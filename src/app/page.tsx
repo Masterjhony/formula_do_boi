@@ -2,13 +2,26 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import ProductGrid from "@/components/ProductGrid";
 import Footer from "@/components/Footer";
+import FeaturedLots from "@/components/FeaturedLots";
+import AdBanner from "@/components/AdBanner";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-gray-50">
       <Header />
       <Hero />
+
+      {/* Premium Highlighted Section */}
+      <FeaturedLots />
+
+      {/* Main Advertisement */}
+      <AdBanner position="leaderboard" />
+
+      {/* Standard Listings */}
       <ProductGrid />
+
+      {/* Secondary Advertisement */}
+      <AdBanner position="leaderboard" className="my-0 mb-12" />
 
       {/* Newsletter Section */}
       <section className="py-20 bg-brand-gold relative overflow-hidden">
@@ -37,3 +50,4 @@ export default function Home() {
     </main>
   );
 }
+

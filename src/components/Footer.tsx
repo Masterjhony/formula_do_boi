@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Facebook, Instagram, Youtube, Phone, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -7,9 +8,15 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
                     {/* Brand Column */}
                     <div className="space-y-6">
-                        <div className="flex flex-col">
-                            <span className="font-bold text-2xl tracking-wider text-white">FÓRMULA DO BOI</span>
-                            <span className="text-[10px] uppercase font-semibold text-brand-gold tracking-[0.2em]">Elite Nelore</span>
+                        <div className="flex flex-col items-start">
+                            {/* Brand Logo */}
+                            <div className="relative h-16 w-60 lg:h-[72px] lg:w-72 mb-6">
+                                <img
+                                    src="/logo_complete.svg"
+                                    alt="Fórmula do Boi"
+                                    className="h-full w-full object-contain object-left"
+                                />
+                            </div>
                         </div>
                         <p className="text-gray-400 text-sm leading-relaxed">
                             Referência em genética bovina e comercialização de gado de elite.
@@ -32,11 +39,9 @@ export default function Footer() {
                     <div>
                         <h3 className="text-lg font-bold mb-6 text-brand-gold uppercase tracking-wider">Navegação</h3>
                         <ul className="space-y-4 text-sm text-gray-400">
-                            <li><a href="#" className="hover:text-white transition-colors">Início</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Catálogo</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Agenda de Leilões</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Sobre Nós</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+                            <li><Link href="/" className="hover:text-white transition-colors">Início</Link></li>
+                            <li><Link href="/catalogo" className="hover:text-white transition-colors">Catálogo</Link></li>
+                            <li><Link href="/venda-conosco" className="hover:text-white transition-colors">Venda Conosco</Link></li>
                         </ul>
                     </div>
 
