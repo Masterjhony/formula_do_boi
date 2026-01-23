@@ -3,42 +3,28 @@ import { ArrowRight } from "lucide-react";
 
 export default function Hero() {
     return (
-        <section className="relative w-full h-[500px] lg:h-[600px] bg-gray-900 overflow-hidden">
-            {/* Background Image Placeholder */}
-            <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                    // Using a high quality cattle image locally
-                    backgroundImage: 'url("/cattle/boi_nelore_elite.jpg")'
-                }}
-            >
-                {/* Overlay gradient */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
-            </div>
+        <section className="relative w-full py-24 lg:py-32 bg-brand-black overflow-hidden flex items-center justify-center">
+            {/* Subtle Gradient Background */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-brand-gold/10 via-transparent to-transparent opacity-60 pointer-events-none"></div>
 
-            <div className="relative container mx-auto px-4 h-full flex items-center">
-                <div className="max-w-2xl text-white space-y-6">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/20 backdrop-blur-sm">
-                        <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></span>
-                        <span className="text-xs font-semibold uppercase tracking-widest text-brand-gold">Leilão ao Vivo</span>
-                    </div>
-
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight uppercase">
+            <div className="relative container mx-auto px-4 flex flex-col items-center text-center z-10">
+                <div className="max-w-4xl space-y-8">
+                    <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight uppercase text-white">
                         A Excelência da <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold via-yellow-200 to-brand-gold animate-gradient-x">
                             Genética Nelore
                         </span>
                     </h1>
 
-                    <p className="text-lg text-gray-300 max-w-lg leading-relaxed">
+                    <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed font-light">
                         Invista no futuro do seu rebanho com animais selecionados rigorosamente.
-                        Matrizes, touros e reprodutores de alta performance.
+                        Matrizes, touros e reprodutores de alta performance para elevar o seu padrão.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                    <div className="flex flex-col sm:flex-row gap-6 pt-6 justify-center">
                         <Link
                             href="/catalogo"
-                            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold uppercase tracking-wide rounded-lg transition-all transform hover:scale-105"
+                            className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold uppercase tracking-widest text-sm rounded transition-all transform hover:translate-y-[-2px] hover:shadow-lg hover:shadow-brand-gold/20"
                         >
                             Ver Catálogo
                             <ArrowRight className="w-5 h-5" />
@@ -46,7 +32,7 @@ export default function Hero() {
 
                         <Link
                             href="/contato"
-                            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-white font-semibold uppercase tracking-wide rounded-lg transition-all"
+                            className="inline-flex items-center justify-center gap-2 px-10 py-4 border border-white/20 hover:border-brand-gold/50 hover:text-brand-gold text-white font-semibold uppercase tracking-widest text-sm rounded transition-all hover:bg-white/5"
                         >
                             Falar com Consultor
                         </Link>
@@ -56,3 +42,4 @@ export default function Hero() {
         </section>
     );
 }
+
