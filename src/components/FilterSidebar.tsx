@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Home, Tag, Dna } from "lucide-react";
+import { ChevronDown, ChevronUp, Home, Tag, DollarSign, Wallet, Truck } from "lucide-react";
 
 interface FilterSection {
     id: string;
@@ -16,32 +16,41 @@ const filterSections: FilterSection[] = [
         title: "Classificação",
         icon: <Home className="w-4 h-4" />,
         options: [
+            { value: "reprodutor", label: "Reprodutor" },
+            { value: "matriz", label: "Matriz" },
             { value: "reposicao", label: "Reposição" },
-            { value: "genetica", label: "Genética" },
         ],
     },
     {
-        id: "categoria",
-        title: "Categoria",
-        icon: <Tag className="w-4 h-4" />,
+        id: "faixa_valor",
+        title: "Faixa de Valor",
+        icon: <DollarSign className="w-4 h-4" />,
         options: [
-            { value: "venda_direta", label: "Venda Direta" },
-            { value: "shopping", label: "Shopping" },
-            { value: "venda_permanente", label: "Venda permanente" },
-            { value: "semen_genex", label: "Sêmen Genex" },
+            { value: "ate_5k", label: "Até R$ 5.000" },
+            { value: "5k_10k", label: "R$ 5.000 - R$ 10.000" },
+            { value: "10k_20k", label: "R$ 10.000 - R$ 20.000" },
+            { value: "acima_20k", label: "Acima de R$ 20.000" },
         ],
     },
     {
-        id: "racas",
-        title: "Raças",
-        icon: <Dna className="w-4 h-4" />,
+        id: "forma_pagamento",
+        title: "Forma de Pagamento",
+        icon: <Wallet className="w-4 h-4" />,
         options: [
-            { value: "nelore", label: "Nelore" },
-            { value: "nelore_mocho", label: "Nelore Mocho" },
-            { value: "nelore_pintado", label: "Nelore Pintado" },
-            { value: "brahman", label: "Brahman" },
-            { value: "tabapua", label: "Tabapuã" },
-            { value: "gir", label: "Gir" },
+            { value: "a_vista", label: "À Vista" },
+            { value: "parcelado_12x", label: "Parcelado (12x)" },
+            { value: "parcelado_24x", label: "Parcelado (24x)" },
+            { value: "parcelado_30x", label: "Parcelado (30x)" },
+        ],
+    },
+    {
+        id: "logistica",
+        title: "Logística / Frete",
+        icon: <Truck className="w-4 h-4" />,
+        options: [
+            { value: "frete_gratis", label: "Frete Grátis" },
+            { value: "frete_compartilhado", label: "Frete Compartilhado" },
+            { value: "retira_fazenda", label: "Buscar na Fazenda" },
         ],
     },
 ];
@@ -59,10 +68,10 @@ export default function FilterSidebar({
 }: FilterSidebarProps) {
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
         classificacao: true,
-        categoria: true,
-        racas: true,
+        faixa_valor: true,
+        forma_pagamento: false,
+        logistica: false,
     });
-    const [showMoreRacas, setShowMoreRacas] = useState(false);
 
     const toggleSection = (sectionId: string) => {
         setExpandedSections((prev) => ({
@@ -78,10 +87,6 @@ export default function FilterSidebar({
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 {filterSections.map((section, index) => {
                     const isExpanded = expandedSections[section.id];
-                    const visibleOptions =
-                        section.id === "racas" && !showMoreRacas
-                            ? section.options.slice(0, 4)
-                            : section.options;
 
                     return (
                         <div
@@ -107,7 +112,7 @@ export default function FilterSidebar({
                             {/* Section Options */}
                             {isExpanded && (
                                 <div className="px-4 pb-4 space-y-2">
-                                    {visibleOptions.map((option) => (
+                                    {section.options.map((option) => (
                                         <label
                                             key={option.value}
                                             className="flex items-center gap-3 cursor-pointer group"
@@ -132,21 +137,6 @@ export default function FilterSidebar({
                                             </span>
                                         </label>
                                     ))}
-
-                                    {/* Ver mais button for Raças */}
-                                    {section.id === "racas" && section.options.length > 4 && (
-                                        <button
-                                            onClick={() => setShowMoreRacas(!showMoreRacas)}
-                                            className="flex items-center gap-1 text-sm text-brand-gold hover:text-yellow-600 font-medium mt-2 transition-colors"
-                                        >
-                                            {showMoreRacas ? "Ver menos" : "Ver mais"}
-                                            {showMoreRacas ? (
-                                                <ChevronUp className="w-3 h-3" />
-                                            ) : (
-                                                <ChevronDown className="w-3 h-3" />
-                                            )}
-                                        </button>
-                                    )}
                                 </div>
                             )}
                         </div>

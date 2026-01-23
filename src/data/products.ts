@@ -3,6 +3,10 @@ export const PRODUCTS = [
         id: 1,
         name: "REM ARMADOR x QUARK COL",
         category: "Touro Nelore",
+        classificacao: "reprodutor",
+        modalidade: "venda_direta",
+        logistica: "frete_gratis",
+        forma_pagamento: "parcelado_30x",
         location: "Uberaba - MG",
         image: "/cattle/boi_nelore_elite.jpg",
         gallery: [
@@ -28,6 +32,10 @@ export const PRODUCTS = [
         id: 2,
         name: "LANDROVER DA XARAES",
         category: "Reprodutor",
+        classificacao: "reprodutor",
+        modalidade: "leilao",
+        logistica: "frete_compartilhado",
+        forma_pagamento: "parcelado_24x",
         location: "Goiânia - GO",
         image: "/cattle/boi_reprodutor.jpg",
         gallery: [
@@ -53,6 +61,10 @@ export const PRODUCTS = [
         id: 3,
         name: "MATRIZ ELITE 5019",
         category: "Matriz PO",
+        classificacao: "matriz",
+        modalidade: "venda_permanente",
+        logistica: "retira_fazenda",
+        forma_pagamento: "parcelado_12x",
         location: "Campo Grande - MS",
         image: "/cattle/boi_nelore_detalhe.jpg",
         gallery: [
@@ -74,60 +86,16 @@ export const PRODUCTS = [
             comentario: "Matriz de exceção! Doadora comprovada, segue parida de fêmea e prenhe do Kayak TE Mafra."
         }
     },
-    {
-        id: 4,
-        name: "V8 DE NAVIRAÍ",
-        category: "Touro Jovem",
-        location: "Naviraí - MS",
-        image: "/cattle/boi_brahman_1.jpg",
-        gallery: [
-            "/cattle/boi_brahman_1.jpg",
-            "/cattle/boi_13.jpg",
-            "/cattle/boi_14.jpg",
-            "/cattle/boi_15.jpg"
-        ],
-        price: "800,00",
-        installments: "24.000,00",
-        tag: "LOTE 04",
-        details: {
-            registro: "PO 901234",
-            raca: "Brahman",
-            nascimento: "05/11/2022 (14 Meses)",
-            pai: "V8 380/6",
-            mae: "MISS NAVIRAÍ",
-            peso: "580 kg",
-            comentario: "Touro jovem muito promissor, aliando racial impecável com muito desempenho e musculatura."
-        }
-    },
-    {
-        id: 5,
-        name: "BELEZA DE ZEBÚ",
-        category: "Novilha",
-        location: "Barretos - SP",
-        image: "/cattle/boi_angus_brahman.jpg",
-        gallery: [
-            "/cattle/boi_angus_brahman.jpg",
-            "/cattle/boi_17.jpg",
-            "/cattle/boi_18.jpg",
-            "/cattle/boi_19.jpg"
-        ],
-        price: "1.500,00",
-        installments: "45.000,00",
-        tag: "OPORTUNIDADE",
-        details: {
-            registro: "PO 567890",
-            raca: "Tabapuã",
-            nascimento: "22/02/2022 (23 Meses)",
-            pai: "RADAR DOS POÇÕES",
-            mae: "BELEZA FIV",
-            peso: "540 kg",
-            comentario: "Novilha de pista! Filha direta de grandes campeões, com futuro brilhante como doadora."
-        }
-    },
+    // Removed Brahman product
+    // Removed Tabapuã product (replaced with Nelore options)
     {
         id: 6,
         name: "BIG BEN DA SANTA NICE",
         category: "Touro PO",
+        classificacao: "reprodutor",
+        modalidade: "shopping",
+        logistica: "frete_gratis",
+        forma_pagamento: "a_vista",
         location: "Uberlândia - MG",
         image: "/cattle/boi_corte_qualidade.jpg",
         gallery: [
@@ -147,6 +115,30 @@ export const PRODUCTS = [
             mae: "SANTA NICE",
             peso: "1100 kg",
             comentario: "Touro provado! Produz bezerros pesados e com excelente rendimento de carcaça. Oportunidade rara."
+        }
+    },
+    {
+        id: 7,
+        name: "Novilha Nelore SGN - 2724",
+        category: "Novilha PO",
+        classificacao: "reposicao",
+        modalidade: "venda_direta",
+        logistica: "frete_compartilhado",
+        forma_pagamento: "parcelado_24x",
+        location: "Itapetininga - SP",
+        image: "/cattle/boi_nelore_elite.jpg",
+        gallery: ["/cattle/boi_nelore_elite.jpg"],
+        price: "850,00",
+        installments: "25.500,00",
+        tag: "DECA 1",
+        details: {
+            raca: "Nelore",
+            registro: "PO 998877",
+            nascimento: "10/10/2022",
+            pai: "GANDHI PO",
+            mae: "MATRIZ 200",
+            peso: "450 kg",
+            comentario: "Novilha pronta para serviço."
         }
     }
 ];

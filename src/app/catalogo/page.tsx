@@ -7,46 +7,15 @@ import FilterSidebar from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import { PRODUCTS } from "@/data/products";
 
-// Extended products for the catalog
-const catalogProducts = [
-    ...PRODUCTS,
-    {
-        id: 7,
-        name: "Novilha Nelore SGN - 2724",
-        category: "Novilha PO",
-        location: "Itapetininga - SP",
-        image: "/cattle/boi_nelore_elite.jpg",
-        price: "850,00",
-        installments: "25.500,00",
-        tag: "DECA 1",
-    },
-    {
-        id: 8,
-        name: "Touro Sindi MIGC - 56",
-        category: "Touro Elite",
-        location: "São Luiz do Norte - GO",
-        image: "/cattle/boi_reprodutor.jpg",
-        price: "450,00",
-        installments: "13.500,00",
-        tag: "IABCZ: 35.6",
-    },
-    {
-        id: 9,
-        name: "Matriz Nelore NBS - 746",
-        category: "Matriz PO",
-        location: "Fazenda Porangaba - GO",
-        image: "/cattle/boi_nelore_detalhe.jpg",
-        price: "1.000,00",
-        installments: "30.000,00",
-        tag: "PREMIUM",
-    },
-];
+// Extended products for the catalog - using only relevant Nelore products now
+const catalogProducts = PRODUCTS;
 
 export default function CatalogoPage() {
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
         classificacao: [],
-        categoria: [],
-        racas: [],
+        faixa_valor: [],
+        forma_pagamento: [],
+        logistica: [],
     });
 
     const handleFilterChange = (sectionId: string, value: string, checked: boolean) => {
@@ -63,21 +32,62 @@ export default function CatalogoPage() {
     const handleClearFilters = () => {
         setSelectedFilters({
             classificacao: [],
-            categoria: [],
-            racas: [],
+            faixa_valor: [],
+            forma_pagamento: [],
+            logistica: [],
         });
     };
 
     const hasFilters = Object.values(selectedFilters).some((arr) => arr.length > 0);
 
-    // Simple filtering simulation - in real app this would filter by actual product properties
+    const parsePrice = (priceStr: string) => {
+        return parseFloat(priceStr.replace(/\./g, "").replace(",", "."));
+    };
+
+    const checkPriceRange = (price: number, ranges: string[]) => {
+        if (ranges.length === 0) return true;
+        return ranges.some(range => {
+            if (range === "ate_5k") return price <= 5000;
+            if (range === "5k_10k") return price > 5000 && price <= 10000;
+            if (range === "10k_20k") return price > 10000 && price <= 20000;
+            if (range === "acima_20k") return price > 20000;
+            return false;
+        });
+    };
+
     const filteredProducts = useMemo(() => {
         if (!hasFilters) return catalogProducts;
 
-        // For demo purposes, just show a subset when filters are active
-        return catalogProducts.filter((_, index) => {
-            const activeFilterCount = Object.values(selectedFilters).flat().length;
-            return index < catalogProducts.length - activeFilterCount;
+        return catalogProducts.filter((product) => {
+            // Check Classification
+            if (selectedFilters.classificacao.length > 0 &&
+                !selectedFilters.classificacao.includes(product.classificacao || "")) {
+                return false;
+            }
+
+
+
+            // Check Payment
+            if (selectedFilters.forma_pagamento.length > 0 &&
+                !selectedFilters.forma_pagamento.includes(product.forma_pagamento || "")) {
+                return false;
+            }
+
+            // Check Logistics
+            if (selectedFilters.logistica.length > 0 &&
+                !selectedFilters.logistica.includes(product.logistica || "")) {
+                return false;
+            }
+
+            // Check Price
+            if (selectedFilters.faixa_valor.length > 0) {
+                const price = parsePrice(product.price);
+                if (!checkPriceRange(price, selectedFilters.faixa_valor)) {
+                    return false;
+                }
+            }
+
+            return true;
         });
     }, [selectedFilters, hasFilters]);
 
