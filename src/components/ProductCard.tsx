@@ -19,6 +19,9 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, featured = false }: ProductCardProps) {
+    // Generate an animal code based on ID
+    const animalCode = `FB-PO-${product.id.toString().padStart(3, '0')}`;
+
     return (
         <div
             className={`group bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative
@@ -29,15 +32,15 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
         >
             {/* Image Container */}
             <Link href={`/lote/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
-                {product.tag && (
-                    <div className={`absolute top-3 left-3 z-10 px-3 py-1 backdrop-blur-sm text-[10px] font-bold uppercase tracking-wider rounded-sm
-                        ${featured
-                            ? 'bg-brand-gold text-brand-black shadow-md'
-                            : 'bg-brand-black/80 text-brand-gold'
-                        }`}>
-                        {product.tag}
-                    </div>
-                )}
+                {/* Animal Code Badge (Top Right - replacing former tag position) */}
+                <div className={`absolute top-3 right-3 z-10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm shadow-md
+                    ${featured
+                        ? 'bg-brand-gold text-brand-black'
+                        : 'bg-black/80 text-white backdrop-blur-sm border border-white/20'
+                    }`}>
+                    {animalCode}
+                </div>
+
                 <div className="w-full h-full relative">
                     {/* Using standard img for prototype simplicity, but handling local paths correcty */}
                     <img
@@ -77,7 +80,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                 <div className="mt-auto border-t border-gray-50 pt-4">
                     <div className="flex flex-col">
                         <span className="text-xs text-brand-gold font-semibold uppercase tracking-wide">
-                            Lance Atual / Valor
+                            Condição Especial
                         </span>
                         <div className="flex items-baseline gap-1">
                             <span className="text-sm text-gray-500 font-medium">30x</span>
@@ -88,13 +91,17 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         </span>
                     </div>
 
-                    <Link href={`/lote/${product.id}`} className={`block w-full mt-4 py-2.5 text-center text-sm font-semibold rounded-lg transition-colors
+                    <Link href={`/lote/${product.id}`} className={`block w-full mt-4 py-2.5 text-center text-sm font-bold uppercase tracking-wide rounded-lg transition-all shadow-sm hover:shadow-md
                         ${featured
                             ? 'bg-brand-gold text-brand-black hover:bg-brand-black hover:text-brand-gold'
-                            : 'bg-brand-black text-white group-hover:bg-brand-gold group-hover:text-brand-black'
+                            : 'bg-brand-black text-white hover:bg-brand-gold hover:text-brand-black'
                         }`}>
-                        Dar Lance
+                        Fazer uma proposta
                     </Link>
+
+                    <button className="w-full mt-2 text-center text-xs font-medium text-gray-500 hover:text-brand-gold transition-colors underline decoration-dotted underline-offset-2">
+                        Ver proposta à vista
+                    </button>
                 </div>
             </div>
         </div>

@@ -29,7 +29,7 @@ export default function CatalogGrid({
             {/* Results Header */}
             <div className="flex items-center justify-between mb-6">
                 <p className="text-gray-600">
-                    Achamos <span className="font-semibold text-gray-900">{totalCount}</span> lotes
+                    Encontramos <span className="font-semibold text-gray-900">{totalCount}</span> animais disponíveis
                 </p>
                 {hasFilters && (
                     <button
@@ -66,7 +66,7 @@ export default function CatalogGrid({
                         </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Nenhum lote encontrado
+                        Nenhum animal encontrado
                     </h3>
                     <p className="text-gray-500 mb-4">
                         Tente ajustar os filtros para encontrar mais resultados.

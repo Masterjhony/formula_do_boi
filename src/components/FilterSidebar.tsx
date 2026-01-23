@@ -25,7 +25,7 @@ const filterSections: FilterSection[] = [
         title: "Categoria",
         icon: <Tag className="w-4 h-4" />,
         options: [
-            { value: "leilao", label: "Leilão" },
+            { value: "venda_direta", label: "Venda Direta" },
             { value: "shopping", label: "Shopping" },
             { value: "venda_permanente", label: "Venda permanente" },
             { value: "semen_genex", label: "Sêmen Genex" },

@@ -21,16 +21,16 @@ export default function FeaturedLots() {
                             <span className="text-brand-gold font-bold uppercase tracking-widest text-xs">Oportunidades Únicas</span>
                         </div>
                         <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                            Lotes em <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200">Destaque</span>
+                            Genética em <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200">Destaque</span>
                         </h2>
                         <p className="text-gray-400 max-w-xl">
-                            Seleção exclusiva dos melhores animais disponíveis para lance imediato.
+                            Seleção exclusiva dos melhores animais disponíveis para negociação direta.
                             Genética, raça e qualidade garantida.
                         </p>
                     </div>
 
                     <Link href="/lotes" className="group flex items-center gap-2 text-white font-semibold hover:text-brand-gold transition-colors">
-                        Ver todos os lotes
+                        Ver catálogo completo
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                 </div>

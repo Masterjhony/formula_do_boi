@@ -67,27 +67,29 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         </div>
                     </div>
 
-                    {/* Right Column: Info & Bidding */}
+                    {/* Right Column: Info & Negotiation */}
                     <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-100 shadow-sm h-fit sticky top-24">
                         <div className="flex items-center gap-2 mb-4">
-                            <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold uppercase tracking-wider rounded-full border border-brand-gold/20">
-                                Lote em Leilão
-                            </span>
-                            <span className="flex items-center gap-1 text-xs text-red-600 font-semibold animate-pulse">
-                                <Clock className="w-3 h-3" />
-                                Encerra em 2h 15m
+                            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider rounded-full border border-green-200 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                Disponível para Negociação
                             </span>
                         </div>
 
                         <h1 className="text-3xl font-bold text-gray-900 mb-2 uppercase">{product.name}</h1>
-                        <p className="text-gray-500 text-sm mb-6 flex items-center gap-2">
-                            <MapPin className="w-4 h-4" /> {product.location}
-                        </p>
+                        <div className="flex items-center gap-2 text-gray-500 text-sm mb-6">
+                            <span className="font-bold text-gray-900 px-2 py-0.5 bg-gray-100 rounded text-xs">
+                                {`FB-PO-${product.id.toString().padStart(3, '0')}`}
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5" /> {product.location}
+                            </span>
+                        </div>
 
                         <div className="border-t border-b border-gray-100 py-6 mb-6 space-y-4">
                             <div className="flex justify-between items-end">
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Lance Atual (30 parcelas)</p>
+                                    <p className="text-sm text-gray-500 mb-1">Condição Especial (30 parcelas)</p>
                                     <p className="text-4xl font-bold text-brand-black">R$ {product.price}</p>
                                 </div>
                                 <div className="text-right">
@@ -97,16 +99,39 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </div>
                         </div>
 
-                        <div className="space-y-4 mb-8">
-                            <button className="w-full py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold text-lg rounded-lg uppercase tracking-wide transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                                Dar Lance Agora
+                        {/* Location & Freight Info Block */}
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 mb-6 space-y-3">
+                            <div className="flex items-start gap-3">
+                                <div className="mt-0.5 p-1.5 bg-white rounded-md border border-gray-200 text-brand-gold shrink-0">
+                                    <MapPin className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-gray-900 uppercase">Localização do Animal</p>
+                                    <p className="text-sm text-gray-600">{product.location} - <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(product.location)}`} target="_blank" rel="noopener noreferrer" className="text-brand-gold hover:underline">Ver no mapa</a></p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <div className="mt-0.5 p-1.5 bg-white rounded-md border border-gray-200 text-brand-gold shrink-0">
+                                    <ShieldCheck className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-gray-900 uppercase">Frete & Comissão</p>
+                                    <p className="text-sm text-gray-600">Frete facilitado para todo Brasil. <span className="font-medium text-green-700">Comissão Zero</span> para comprador.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3 mb-8">
+                            <button className="w-full py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold text-lg rounded-lg uppercase tracking-wide transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                                Fazer uma Proposta
+                                <ArrowRight className="w-5 h-5" />
                             </button>
-                            <button className="w-full py-3 bg-transparent border-2 border-brand-black text-brand-black font-bold rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wide">
+                            <button className="w-full py-3 bg-white border-2 border-brand-black text-brand-black font-bold rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wide text-sm">
                                 Proposta à Vista
                             </button>
                         </div>
 
-                        <div className="space-y-4 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+                        <div className="space-y-4 text-sm text-gray-600 border-t border-gray-100 pt-6">
                             <div className="flex items-center gap-3">
                                 <ShieldCheck className="w-5 h-5 text-green-600" />
                                 <span>Animal com registro genealógico definitivo (RGD)</span>
