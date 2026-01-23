@@ -1,52 +1,12 @@
 import ProductCard from "./ProductCard";
 import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
-
-// Mock data for featured lots - in a real app this would come from props or an API
-const featuredProducts = [
-    {
-        id: 1,
-        image: "https://images.unsplash.com/photo-1546445317-29f4545e9d53?q=80&w=2500&auto=format&fit=crop",
-        name: "Touro Nelore PO Elite - Lote 01",
-        category: "Touros PO",
-        location: "Goiânia, GO",
-        installments: "30x R$ 1.200,00",
-        price: "36.000,00",
-        tag: "Grande Campeão"
-    },
-    {
-        id: 2,
-        image: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=2948&auto=format&fit=crop",
-        name: "Matriz Nelore Pintado - Lote Especial",
-        category: "Matrizes",
-        location: "Uberaba, MG",
-        installments: "30x R$ 2.500,00",
-        price: "75.000,00",
-        tag: "Destaque Genético"
-    },
-    {
-        id: 3,
-        image: "https://images.unsplash.com/photo-1595133642301-e29ad6687eb8?q=80&w=2608&auto=format&fit=crop",
-        name: "Bezerros de Corte Premium - Lote 15",
-        category: "Bezerros",
-        location: "Campo Grande, MS",
-        installments: "30x R$ 800,00",
-        price: "24.000,00",
-        tag: "Oportunidade"
-    },
-    {
-        id: 5,
-        image: "https://images.unsplash.com/photo-1551608688-693248881512?q=80&w=3387&auto=format&fit=crop",
-        name: "Novilhas Reprodução - Lote 22",
-        category: "Novilhas",
-        location: "Sinop, MT",
-        installments: "30x R$ 1.100,00",
-        price: "33.000,00",
-        tag: "Precoce"
-    }
-];
+import { PRODUCTS } from "../data/products";
 
 export default function FeaturedLots() {
+    // Select the first 4 products as featured
+    const featuredProducts = PRODUCTS.slice(0, 4);
+
     return (
         <section className="py-16 bg-[#0a0a0a] relative overflow-hidden">
             {/* Background Decor */}
@@ -77,10 +37,11 @@ export default function FeaturedLots() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {featuredProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                        <ProductCard key={product.id} product={product} featured={true} />
                     ))}
                 </div>
             </div>
         </section>
     );
 }
+

@@ -13,18 +13,33 @@ interface ProductProps {
     tag?: string;
 }
 
-export default function ProductCard({ product }: { product: ProductProps }) {
+interface ProductCardProps {
+    product: ProductProps;
+    featured?: boolean;
+}
+
+export default function ProductCard({ product, featured = false }: ProductCardProps) {
     return (
-        <div className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-brand-gold/30 transition-all duration-300 flex flex-col h-full relative">
+        <div
+            className={`group bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative
+            ${featured
+                    ? 'border-2 border-brand-gold shadow-[0_0_15px_rgba(197,160,89,0.2)]'
+                    : 'border border-gray-100 hover:border-brand-gold/30'
+                }`}
+        >
             {/* Image Container */}
             <Link href={`/lote/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
                 {product.tag && (
-                    <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-brand-black/80 backdrop-blur-sm text-brand-gold text-[10px] font-bold uppercase tracking-wider rounded-sm">
+                    <div className={`absolute top-3 left-3 z-10 px-3 py-1 backdrop-blur-sm text-[10px] font-bold uppercase tracking-wider rounded-sm
+                        ${featured
+                            ? 'bg-brand-gold text-brand-black shadow-md'
+                            : 'bg-brand-black/80 text-brand-gold'
+                        }`}>
                         {product.tag}
                     </div>
                 )}
                 <div className="w-full h-full relative">
-                    {/* Using Next.js Image for optimization, but standard img for prototype simplicity with external URLs */}
+                    {/* Using standard img for prototype simplicity, but handling local paths correcty */}
                     <img
                         src={product.image}
                         alt={product.name}
@@ -73,7 +88,11 @@ export default function ProductCard({ product }: { product: ProductProps }) {
                         </span>
                     </div>
 
-                    <Link href={`/lote/${product.id}`} className="block w-full mt-4 py-2.5 bg-brand-black text-white text-center text-sm font-semibold rounded-lg group-hover:bg-brand-gold group-hover:text-brand-black transition-colors">
+                    <Link href={`/lote/${product.id}`} className={`block w-full mt-4 py-2.5 text-center text-sm font-semibold rounded-lg transition-colors
+                        ${featured
+                            ? 'bg-brand-gold text-brand-black hover:bg-brand-black hover:text-brand-gold'
+                            : 'bg-brand-black text-white group-hover:bg-brand-gold group-hover:text-brand-black'
+                        }`}>
                         Dar Lance
                     </Link>
                 </div>
@@ -81,3 +100,4 @@ export default function ProductCard({ product }: { product: ProductProps }) {
         </div>
     );
 }
+
