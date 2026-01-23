@@ -122,13 +122,23 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         </div>
 
                         <div className="space-y-3 mb-8">
-                            <button className="w-full py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold text-lg rounded-lg uppercase tracking-wide transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <a
+                                href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Gostaria de mais informações.`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold text-lg rounded-lg uppercase tracking-wide transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                            >
                                 Fazer uma Proposta
                                 <ArrowRight className="w-5 h-5" />
-                            </button>
-                            <button className="w-full py-3 bg-white border-2 border-brand-black text-brand-black font-bold rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wide text-sm">
+                            </a>
+                            <a
+                                href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse em fazer uma proposta à vista no animal ${product.name} (ID: ${product.id}).`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-3 bg-white border-2 border-brand-black text-brand-black font-bold rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wide text-sm flex items-center justify-center"
+                            >
                                 Proposta à Vista
-                            </button>
+                            </a>
                         </div>
 
                         <div className="space-y-4 text-sm text-gray-600 border-t border-gray-100 pt-6">

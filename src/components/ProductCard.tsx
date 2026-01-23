@@ -91,17 +91,26 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         </span>
                     </div>
 
-                    <Link href={`/lote/${product.id}`} className={`block w-full mt-4 py-2.5 text-center text-sm font-bold uppercase tracking-wide rounded-lg transition-all shadow-sm hover:shadow-md
+                    <a
+                        href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}).`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`block w-full mt-4 py-2.5 text-center text-sm font-bold uppercase tracking-wide rounded-lg transition-all shadow-sm hover:shadow-md
                         ${featured
-                            ? 'bg-brand-gold text-brand-black hover:bg-brand-black hover:text-brand-gold'
-                            : 'bg-brand-black text-white hover:bg-brand-gold hover:text-brand-black'
-                        }`}>
+                                ? 'bg-brand-gold text-brand-black hover:bg-brand-black hover:text-brand-gold'
+                                : 'bg-brand-black text-white hover:bg-brand-gold hover:text-brand-black'
+                            }`}>
                         Fazer uma proposta
-                    </Link>
+                    </a>
 
-                    <button className="w-full mt-2 text-center text-xs font-medium text-gray-500 hover:text-brand-gold transition-colors underline decoration-dotted underline-offset-2">
+                    <a
+                        href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, gostaria de saber o valor à vista do animal ${product.name} (ID: ${product.id}).`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full mt-2 block text-center text-xs font-medium text-gray-500 hover:text-brand-gold transition-colors underline decoration-dotted underline-offset-2"
+                    >
                         Ver proposta à vista
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
