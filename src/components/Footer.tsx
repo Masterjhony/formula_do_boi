@@ -40,8 +40,9 @@ export default function Footer() {
                         <h3 className="text-lg font-bold mb-6 text-brand-gold uppercase tracking-wider">Navegação</h3>
                         <ul className="space-y-4 text-sm text-gray-400">
                             <li><Link href="/" className="hover:text-white transition-colors">Início</Link></li>
-                            <li><Link href="/catalogo" className="hover:text-white transition-colors">Catálogo</Link></li>
-                            <li><Link href="/embrioes-semen" className="hover:text-white transition-colors">Embriões & Sêmen</Link></li>
+                            <li><Link href="/animais" className="hover:text-white transition-colors">Animais</Link></li>
+                            <li><Link href="/embrioes" className="hover:text-white transition-colors">Embriões</Link></li>
+                            <li><Link href="/semen" className="hover:text-white transition-colors">Sêmen</Link></li>
                             <li><Link href="/venda-conosco" className="hover:text-white transition-colors">Venda Conosco</Link></li>
                         </ul>
                     </div>

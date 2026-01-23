@@ -6,8 +6,9 @@ import { useState } from "react";
 
 const navItems = [
     { href: "/", label: "Início" },
-    { href: "/catalogo", label: "Catálogo" },
-    { href: "/embrioes-semen", label: "Embriões & Sêmen" },
+    { href: "/animais", label: "Animais" },
+    { href: "/embrioes", label: "Embriões" },
+    { href: "/semen", label: "Sêmen" },
     { href: "/venda-conosco", label: "Venda Conosco" },
 ];
 

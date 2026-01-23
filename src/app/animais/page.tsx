@@ -101,7 +101,7 @@ export default function CatalogoPage() {
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-brand-gold/10 to-transparent"></div>
                 <div className="container mx-auto px-4 text-center relative z-10">
                     <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                        Catálogo de <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200">Lotes</span>
+                        Animais de <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200">Elite</span>
                     </h1>
                     <p className="text-gray-400 max-w-2xl mx-auto">
                         Encontre o animal ideal para seu plantel. Filtre por categoria, raça e muito mais.
