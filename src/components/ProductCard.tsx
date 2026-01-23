@@ -92,7 +92,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     </div>
 
                     <a
-                        href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}).`)}`}
+                        href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Link: https://formuladoboii.vercel.app/lote/${product.id}`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`block w-full mt-4 py-2.5 text-center text-sm font-bold uppercase tracking-wide rounded-lg transition-all shadow-sm hover:shadow-md
@@ -104,7 +104,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     </a>
 
                     <a
-                        href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, gostaria de saber o valor à vista do animal ${product.name} (ID: ${product.id}).`)}`}
+                        href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, gostaria de saber o valor à vista do animal ${product.name} (ID: ${product.id}). Link: https://formuladoboii.vercel.app/lote/${product.id}`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full mt-2 block text-center text-xs font-medium text-gray-500 hover:text-brand-gold transition-colors underline decoration-dotted underline-offset-2"

@@ -123,7 +123,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
 
                         <div className="space-y-3 mb-8">
                             <a
-                                href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Gostaria de mais informações.`)}`}
+                                href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Gostaria de mais informações. Link: https://formuladoboii.vercel.app/lote/${product.id}`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-full py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold text-lg rounded-lg uppercase tracking-wide transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
@@ -132,7 +132,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <ArrowRight className="w-5 h-5" />
                             </a>
                             <a
-                                href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse em fazer uma proposta à vista no animal ${product.name} (ID: ${product.id}).`)}`}
+                                href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse em fazer uma proposta à vista no animal ${product.name} (ID: ${product.id}). Link: https://formuladoboii.vercel.app/lote/${product.id}`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-full py-3 bg-white border-2 border-brand-black text-brand-black font-bold rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wide text-sm flex items-center justify-center"
