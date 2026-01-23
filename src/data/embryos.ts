@@ -25,11 +25,11 @@ export const EMBRYOS = [
         name: "Dose de Sêmen - LANDROVER",
         category: "Sêmen",
         location: "Central Genex",
-        image: "/cattle/boi_reprodutor.jpg", // Placeholder
+        image: "/cattle/boi_semen.mp4",
         gallery: [
             "/cattle/boi_reprodutor.jpg",
         ],
-        price: "80,00",
+        price: "50,00",
         installments: "Pedido Mínimo: 50 doses",
         tag: "PROVADO",
         details: {

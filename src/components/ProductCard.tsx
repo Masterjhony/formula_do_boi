@@ -43,11 +43,23 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
 
                 <div className="w-full h-full relative">
                     {/* Using standard img for prototype simplicity, but handling local paths correcty */}
-                    <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
-                    />
+                    {/* Check if image is a video */}
+                    {product.image?.endsWith('.mp4') ? (
+                        <video
+                            src={product.image}
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                        />
+                    ) : (
+                        <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
+                        />
+                    )}
                 </div>
 
                 {/* Quick action overlay (desktop) */}
