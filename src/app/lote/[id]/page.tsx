@@ -27,14 +27,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
         <main className="min-h-screen bg-gray-50">
             <Header />
 
-            {/* Breadcrumb */}
-            <div className="bg-white border-b border-gray-200">
-                <div className="container mx-auto px-4 py-3 text-xs text-gray-500">
-                    <Link href="/" className="hover:text-brand-gold">Home</Link> /
-                    <Link href="/" className="hover:text-brand-gold ml-1">Leilões</Link> /
-                    <span className="text-gray-900 ml-1 font-medium">Lote {id}</span>
-                </div>
-            </div>
+
 
             <div className="container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
@@ -223,8 +216,8 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                     </div>
 
                     <div className="mt-10">
-                        <h3 className="font-bold text-lg mb-4">Comentários do Técnico</h3>
-                        <p className="text-gray-600 leading-relaxed">
+                        <h3 className="font-bold text-lg mb-4 text-black">Comentários do Técnico</h3>
+                        <p className="text-black leading-relaxed">
                             {product.details.comentario}
                         </p>
                     </div>
