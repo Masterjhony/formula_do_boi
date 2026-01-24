@@ -42,3 +42,5 @@ next-env.d.ts
 
 FORMULA DO BOI/
 
+# Ignore large video file (too big for github)
+public/videos/trufa.mp4

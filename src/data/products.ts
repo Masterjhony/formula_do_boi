@@ -1,144 +1,159 @@
 export const PRODUCTS = [
     {
         id: 1,
-        name: "REM ARMADOR x QUARK COL",
-        category: "Touro Nelore",
-        classificacao: "reprodutor",
-        modalidade: "venda_direta",
+        name: "TRUFA BERRANTE DE OURO",
+        category: "Doadeira Elite",
+        classificacao: "matriz",
+        modalidade: "leilao",
         logistica: "frete_gratis",
         forma_pagamento: "parcelado_30x",
         location: "Uberaba - MG",
-        image: "/cattle/boi_nelore_elite.jpg",
+        image: "/videos/trufa.mp4",
         gallery: [
-            "/cattle/boi_nelore_elite.jpg",
+            "/videos/trufa.mp4",
             "/cattle/boi_01.jpg",
-            "/cattle/boi_02.jpg",
-            "/cattle/boi_03.jpg"
         ],
-        price: "1.200,00",
-        installments: "36.000,00",
+        price: "Consultar",
+        installments: "Consultar",
         tag: "DESTAQUE",
         details: {
-            registro: "PO 123456",
-            raca: "Nelore Mocho",
-            nascimento: "15/05/2021 (32 Meses)",
-            pai: "REM ARMADOR",
-            mae: "VACA QUARK COL",
-            peso: "850 kg",
-            comentario: "Touro de extrema avaliação genética, filho direto do consagrado REM Armador. Animal que se destaca pela sua carcaça volumosa."
+            registro: "RGD 1234",
+            raca: "Nelore",
+            nascimento: "01/01/2020",
+            pai: "BERRANTE",
+            mae: "TRUFA",
+            peso: "800 kg",
+            comentario: "Doadora de exceção, com produção comprovada. Animal de pista."
         }
     },
     {
         id: 2,
-        name: "LANDROVER DA XARAES",
-        category: "Reprodutor",
-        classificacao: "reprodutor",
-        modalidade: "leilao",
+        name: "VANEZA MUN 4611",
+        category: "Matriz PO",
+        classificacao: "matriz",
+        modalidade: "venda_direta",
         logistica: "frete_compartilhado",
         forma_pagamento: "parcelado_24x",
         location: "Goiânia - GO",
-        image: "/cattle/boi_reprodutor.jpg",
+        image: "/videos/vaneza.mp4",
         gallery: [
-            "/cattle/boi_reprodutor.jpg",
-            "/cattle/boi_05.jpg",
-            "/cattle/boi_06.jpg",
-            "/cattle/boi_07.jpg"
+            "/videos/vaneza.mp4"
         ],
-        price: "950,00",
-        installments: "28.500,00",
-        tag: "LOTE 02",
+        price: "18.000,00",
+        installments: "600,00",
+        tag: "OPORTUNIDADE",
         details: {
-            registro: "PO 789012",
-            raca: "Nelore Padrão",
-            nascimento: "20/08/2021 (29 Meses)",
-            pai: "LANDROVER",
-            mae: "DA XARAES",
-            peso: "910 kg",
-            comentario: "Reprodutor de carcaça moderna e muito comprimento. Opção certa para quem busca peso e precocidade."
+            registro: "MUN 4611",
+            raca: "Nelore",
+            nascimento: "15/03/2021",
+            pai: "REM ARMADOR",
+            mae: "VANEZA FIV",
+            peso: "650 kg",
+            comentario: "Fêmea jovem, muito equilibrada e fértil."
         }
     },
     {
         id: 3,
-        name: "MATRIZ ELITE 5019",
-        category: "Matriz PO",
-        classificacao: "matriz",
-        modalidade: "venda_permanente",
-        logistica: "retira_fazenda",
-        forma_pagamento: "parcelado_12x",
-        location: "Campo Grande - MS",
-        image: "/cattle/boi_nelore_detalhe.jpg",
-        gallery: [
-            "/cattle/boi_nelore_detalhe.jpg",
-            "/cattle/boi_09.jpeg",
-            "/cattle/boi_10.jpg",
-            "/cattle/boi_11.jpg"
-        ],
-        price: "3.500,00",
-        installments: "105.000,00",
-        tag: "PREMIUM",
-        details: {
-            registro: "PO 345678",
-            raca: "Nelore",
-            nascimento: "10/01/2020 (48 Meses)",
-            pai: "BITELO DA SS",
-            mae: "MATRIZ 5000",
-            peso: "720 kg",
-            comentario: "Matriz de exceção! Doadora comprovada, segue parida de fêmea e prenhe do Kayak TE Mafra."
-        }
-    },
-    // Removed Brahman product
-    // Removed Tabapuã product (replaced with Nelore options)
-    {
-        id: 6,
-        name: "BIG BEN DA SANTA NICE",
-        category: "Touro PO",
-        classificacao: "reprodutor",
-        modalidade: "shopping",
-        logistica: "frete_gratis",
-        forma_pagamento: "a_vista",
-        location: "Uberlândia - MG",
-        image: "/cattle/boi_corte_qualidade.jpg",
-        gallery: [
-            "/cattle/boi_corte_qualidade.jpg",
-            "/cattle/boi_21.jpg",
-            "/cattle/boi_23.jpg",
-            "/cattle/boi_24.jpg"
-        ],
-        price: "1.800,00",
-        installments: "54.000,00",
-        tag: "LOTE 06",
-        details: {
-            registro: "PO 112233",
-            raca: "Nelore",
-            nascimento: "30/06/2019 (54 Meses)",
-            pai: "BIG BEN",
-            mae: "SANTA NICE",
-            peso: "1100 kg",
-            comentario: "Touro provado! Produz bezerros pesados e com excelente rendimento de carcaça. Oportunidade rara."
-        }
-    },
-    {
-        id: 7,
-        name: "Novilha Nelore SGN - 2724",
+        name: "AMORA AQMJ 3422",
         category: "Novilha PO",
         classificacao: "reposicao",
-        modalidade: "venda_direta",
-        logistica: "frete_compartilhado",
-        forma_pagamento: "parcelado_24x",
-        location: "Itapetininga - SP",
-        image: "/cattle/boi_nelore_elite.jpg",
-        gallery: ["/cattle/boi_nelore_elite.jpg"],
-        price: "850,00",
-        installments: "25.500,00",
-        tag: "DECA 1",
+        modalidade: "venda_fixa",
+        logistica: "retira_fazenda",
+        forma_pagamento: "a_vista",
+        location: "Campo Grande - MS",
+        image: "/videos/amora.mp4",
+        gallery: [
+            "/videos/amora.mp4"
+        ],
+        price: "12.000,00",
+        installments: "12.000,00",
+        tag: "NOVIDADE",
         details: {
+            registro: "AQMJ 3422",
             raca: "Nelore",
-            registro: "PO 998877",
-            nascimento: "10/10/2022",
-            pai: "GANDHI PO",
-            mae: "MATRIZ 200",
-            peso: "450 kg",
-            comentario: "Novilha pronta para serviço."
+            nascimento: "20/08/2022",
+            pai: "LANDAU DA DI GENIO",
+            mae: "AMORA FIV",
+            peso: "480 kg",
+            comentario: "Novilha de futuro, pronta para estação de monta."
+        }
+    },
+    {
+        id: 4,
+        name: "DANDARA EAJR 2",
+        category: "Matriz",
+        classificacao: "matriz",
+        modalidade: "venda_direta",
+        logistica: "frete_gratis",
+        forma_pagamento: "parcelado_12x",
+        location: "Uberlândia - MG",
+        image: "/videos/dandara.mp4",
+        gallery: [
+            "/videos/dandara.mp4"
+        ],
+        price: "22.500,00",
+        installments: "1.875,00",
+        tag: "PREMIUM",
+        details: {
+            registro: "EAJR 2",
+            raca: "Nelore",
+            nascimento: "10/05/2019",
+            pai: "BITELO",
+            mae: "DANDARA 1",
+            peso: "720 kg",
+            comentario: "Matriz consagrada, parida de fêmea."
+        }
+    },
+    {
+        id: 5,
+        name: "FADA IBIZ 2331",
+        category: "Doadora",
+        classificacao: "matriz",
+        modalidade: "leilao",
+        logistica: "frete_compartilhado",
+        forma_pagamento: "parcelado_36x",
+        location: "Barretos - SP",
+        image: "/videos/fada.mp4",
+        gallery: [
+            "/videos/fada.mp4"
+        ],
+        price: "Consultar",
+        installments: "Consultar",
+        tag: "LEILÃO",
+        details: {
+            registro: "IBIZ 2331",
+            raca: "Nelore",
+            nascimento: "12/12/2018",
+            pai: "BIG BEN",
+            mae: "FADA FIV",
+            peso: "780 kg",
+            comentario: "Doadora de alta produção de embriões."
+        }
+    },
+    {
+        id: 6,
+        name: "FRANÇA EAJR 7",
+        category: "Novilha",
+        classificacao: "reposicao",
+        modalidade: "venda_direta",
+        logistica: "frete_gratis",
+        forma_pagamento: "parcelado_24x",
+        location: "Cuiabá - MT",
+        image: "/videos/franca.mp4",
+        gallery: [
+            "/videos/franca.mp4"
+        ],
+        price: "15.000,00",
+        installments: "625,00",
+        tag: "TOP",
+        details: {
+            registro: "EAJR 7",
+            raca: "Nelore",
+            nascimento: "05/01/2022",
+            pai: "REM USP",
+            mae: "FRANÇA 1",
+            peso: "510 kg",
+            comentario: "Novilha de pista, morfologia impecável."
         }
     }
 ];
