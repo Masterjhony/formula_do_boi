@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { MapPin, Info } from "lucide-react";
 import Image from "next/image";
@@ -22,8 +25,35 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
     // Generate an animal code based on ID
     const animalCode = `FB-PO-${product.id.toString().padStart(3, '0')}`;
 
+    // Video optimization refs and state
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    const handleMouseEnter = () => {
+        if (videoRef.current) {
+            const playPromise = videoRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise.catch((error: any) => {
+                    // Auto-play was prevented
+                    console.log("Video preview play prevented:", error);
+                });
+            }
+            setIsPlaying(true);
+        }
+    };
+
+    const handleMouseLeave = () => {
+        if (videoRef.current) {
+            videoRef.current.pause();
+            videoRef.current.currentTime = 0; // Reset to start for next preview
+            setIsPlaying(false);
+        }
+    };
+
     return (
         <div
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             className={`group bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative
             ${featured
                     ? 'border-2 border-brand-gold shadow-[0_0_15px_rgba(197,160,89,0.2)]'
@@ -41,18 +71,29 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     {animalCode}
                 </div>
 
-                <div className="w-full h-full relative">
-                    {/* Using standard img for prototype simplicity, but handling local paths correcty */}
+                <div className="w-full h-full relative flex items-center justify-center bg-black">
                     {/* Check if image is a video */}
                     {product.image?.endsWith('.mp4') ? (
-                        <video
-                            src={product.image}
-                            autoPlay
-                            muted
-                            loop
-                            playsInline
-                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
-                        />
+                        <>
+                            <video
+                                ref={videoRef}
+                                src={product.image}
+                                poster={product.image.replace('.mp4', '.jpg')}
+                                muted
+                                loop
+                                playsInline
+                                preload="none"
+                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                            />
+                            {/* Play Icon Overlay - Visible when paused/not hovered */}
+                            <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
+                                <div className="bg-black/30 backdrop-blur-sm rounded-full p-3 border border-white/30">
+                                    <svg className="w-8 h-8 text-white fill-white" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </>
                     ) : (
                         <img
                             src={product.image}

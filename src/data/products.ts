@@ -8,9 +8,9 @@ export const PRODUCTS = [
         logistica: "frete_gratis",
         forma_pagamento: "parcelado_30x",
         location: "Uberaba - MG",
-        image: "/videos/trufa.mp4",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224979/trufa_gz0wpf.mp4",
         gallery: [
-            "/videos/trufa.mp4",
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224979/trufa_gz0wpf.mp4",
             "/cattle/boi_01.jpg",
         ],
         price: "Consultar",
@@ -35,9 +35,9 @@ export const PRODUCTS = [
         logistica: "frete_compartilhado",
         forma_pagamento: "parcelado_24x",
         location: "Goiânia - GO",
-        image: "/videos/vaneza.mp4",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224979/vaneza_yfeis7.mp4",
         gallery: [
-            "/videos/vaneza.mp4"
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224979/vaneza_yfeis7.mp4"
         ],
         price: "18.000,00",
         installments: "600,00",
@@ -61,9 +61,9 @@ export const PRODUCTS = [
         logistica: "retira_fazenda",
         forma_pagamento: "a_vista",
         location: "Campo Grande - MS",
-        image: "/videos/amora.mp4",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/amora_lpw1xx.mp4",
         gallery: [
-            "/videos/amora.mp4"
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/amora_lpw1xx.mp4"
         ],
         price: "12.000,00",
         installments: "12.000,00",
@@ -87,9 +87,9 @@ export const PRODUCTS = [
         logistica: "frete_gratis",
         forma_pagamento: "parcelado_12x",
         location: "Uberlândia - MG",
-        image: "/videos/dandara.mp4",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224964/dandara_nwmjkr.mp4",
         gallery: [
-            "/videos/dandara.mp4"
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224964/dandara_nwmjkr.mp4"
         ],
         price: "22.500,00",
         installments: "1.875,00",
@@ -113,9 +113,9 @@ export const PRODUCTS = [
         logistica: "frete_compartilhado",
         forma_pagamento: "parcelado_36x",
         location: "Barretos - SP",
-        image: "/videos/fada.mp4",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/fada_vg580y.mp4",
         gallery: [
-            "/videos/fada.mp4"
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/fada_vg580y.mp4"
         ],
         price: "Consultar",
         installments: "Consultar",
@@ -139,9 +139,9 @@ export const PRODUCTS = [
         logistica: "frete_gratis",
         forma_pagamento: "parcelado_24x",
         location: "Cuiabá - MT",
-        image: "/videos/franca.mp4",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224980/franca_ga4fbt.mp4",
         gallery: [
-            "/videos/franca.mp4"
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224980/franca_ga4fbt.mp4"
         ],
         price: "15.000,00",
         installments: "625,00",
