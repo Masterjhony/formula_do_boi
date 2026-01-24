@@ -41,6 +41,3 @@ yarn-error.log*
 next-env.d.ts
 
 FORMULA DO BOI/
-
-# Ignore video files to avoid git lfs issues
-public/videos/
