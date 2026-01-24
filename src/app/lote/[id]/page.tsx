@@ -3,10 +3,12 @@ import Footer from "@/components/Footer";
 import { MapPin, Share2, Heart, Clock, ShieldCheck, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { PRODUCTS } from "@/data/products";
+import { EMBRYOS } from "@/data/embryos";
 
 export default async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const product = PRODUCTS.find((p) => p.id === Number(id));
+    const numericId = Number(id);
+    const product = PRODUCTS.find((p) => p.id === numericId) || EMBRYOS.find((p) => p.id === numericId);
 
     if (!product) {
         return (
@@ -40,11 +42,23 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                     {/* Left Column: Images */}
                     <div className="space-y-4">
                         <div className="aspect-[4/3] bg-gray-200 rounded-xl overflow-hidden relative group">
-                            <img
-                                src={product.image}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                            />
+                            {product.image?.endsWith('.mp4') ? (
+                                <video
+                                    src={product.image}
+                                    autoPlay
+                                    muted
+                                    loop
+                                    playsInline
+                                    controls
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            )}
                             <div className="absolute top-4 right-4 flex gap-2">
                                 <button className="p-2 bg-white/90 backdrop-blur rounded-full hover:bg-brand-gold hover:text-white transition-colors">
                                     <Share2 className="w-5 h-5" />
@@ -89,12 +103,18 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         <div className="border-t border-b border-gray-100 py-6 mb-6 space-y-4">
                             <div className="flex justify-between items-end">
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Condição Especial (30 parcelas)</p>
+                                    <p className="text-sm text-gray-500 mb-1">
+                                        {product.category === 'Sêmen' || product.category === 'Embrião' ? 'Valor Unitário' : 'Condição Especial (30 parcelas)'}
+                                    </p>
                                     <p className="text-4xl font-bold text-brand-black">R$ {product.price}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs text-gray-400">Valor Total</p>
-                                    <p className="text-lg font-semibold text-gray-700">R$ {product.installments}</p>
+                                    <p className="text-xs text-gray-400">
+                                        {product.category === 'Sêmen' ? 'Pedido Mínimo' : 'Valor Total'}
+                                    </p>
+                                    <p className="text-lg font-semibold text-gray-700">
+                                        {product.category === 'Sêmen' ? product.installments : `R$ ${product.installments}`}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -158,18 +178,28 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                 <div className="mt-12 lg:mt-16 bg-white rounded-xl border border-gray-100 p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-8 border-b border-gray-100 pb-4">Detalhes do Animal</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-sm">
-                        <div className="space-y-1">
-                            <span className="text-gray-500 font-medium">Registro</span>
-                            <p className="text-gray-900 font-semibold text-lg">{product.details.registro}</p>
-                        </div>
+                        {'registro' in product.details && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Registro</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.registro}</p>
+                            </div>
+                        )}
                         <div className="space-y-1">
                             <span className="text-gray-500 font-medium">Raça</span>
                             <p className="text-gray-900 font-semibold text-lg">{product.details.raca}</p>
                         </div>
-                        <div className="space-y-1">
-                            <span className="text-gray-500 font-medium">Nascimento</span>
-                            <p className="text-gray-900 font-semibold text-lg">{product.details.nascimento}</p>
-                        </div>
+                        {'nascimento' in product.details && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Nascimento</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.nascimento}</p>
+                            </div>
+                        )}
+                        {'tipo' in product.details && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Tipo</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.tipo}</p>
+                            </div>
+                        )}
                         <div className="space-y-1">
                             <span className="text-gray-500 font-medium">Pai</span>
                             <p className="text-brand-gold font-bold text-lg">{product.details.pai}</p>
@@ -178,10 +208,18 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             <span className="text-gray-500 font-medium">Mãe</span>
                             <p className="text-brand-gold font-bold text-lg">{product.details.mae}</p>
                         </div>
-                        <div className="space-y-1">
-                            <span className="text-gray-500 font-medium">Peso</span>
-                            <p className="text-gray-900 font-semibold text-lg">{product.details.peso}</p>
-                        </div>
+                        {'peso' in product.details && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Peso</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.peso}</p>
+                            </div>
+                        )}
+                        {'previsao' in product.details && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Previsão</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.previsao}</p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="mt-10">

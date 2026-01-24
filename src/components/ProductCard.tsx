@@ -95,11 +95,12 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                             Condição Especial
                         </span>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-sm text-gray-500 font-medium">30x</span>
+                            {product.category !== 'Sêmen' && <span className="text-sm text-gray-500 font-medium">30x</span>}
                             <span className="text-xl font-bold text-gray-900">R$ {product.price}</span>
+                            {product.category === 'Sêmen' && <span className="text-sm text-gray-500 font-medium ml-1">1 dose</span>}
                         </div>
                         <span className="text-[10px] text-gray-400 mt-1">
-                            Total: R$ {product.installments}
+                            {product.category === 'Sêmen' ? product.installments : `Total: R$ ${product.installments}`}
                         </span>
                     </div>
 
