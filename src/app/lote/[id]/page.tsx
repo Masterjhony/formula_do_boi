@@ -163,6 +163,21 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <ShieldCheck className="w-5 h-5 text-green-600" />
                                 <span>Exame andrológico/ginecológico positivo</span>
                             </div>
+
+                            {/* PDF Button if available */}
+                            {'pdf' in product.details && (
+                                <a
+                                    href={product.details.pdf}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full mt-4 py-3 flex items-center justify-center gap-2 border border-brand-gold/50 text-brand-gold font-bold uppercase tracking-wide rounded-lg hover:bg-brand-gold hover:text-brand-black transition-colors"
+                                >
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 2H7a2 2 0 00-2 2v15a2 2 0 002 2z" />
+                                    </svg>
+                                    Baixar Ficha Técnica
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -14,6 +14,19 @@ interface ProductProps {
     installments: string;
     price: string;
     tag?: string;
+    details?: {
+        registro?: string;
+        raca?: string;
+        nascimento?: string;
+        pai?: string;
+        mae?: string;
+        peso?: string;
+        comentario?: string;
+        mgte?: string;
+        status?: string;
+        tipo?: string;
+        pdf?: string;
+    };
 }
 
 interface ProductCardProps {
@@ -130,6 +143,49 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     {product.location}
                 </div>
 
+                {/* Technical Details Mini-Sheet */}
+                {product.details && (product.details.pai || product.details.mae) && (
+                    <div className="mb-4 bg-gray-50 rounded-lg p-2 text-xs border border-gray-100">
+                        <div className="grid grid-cols-2 gap-y-1 gap-x-2">
+                            {product.details.registro && (
+                                <div className="col-span-2 flex justify-between border-b border-gray-200 pb-1 mb-1">
+                                    <span className="text-gray-400">RGD</span>
+                                    <span className="font-semibold text-gray-700">{product.details.registro}</span>
+                                </div>
+                            )}
+                            {product.details.pai && (
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] text-gray-400 uppercase">Pai</span>
+                                    <span className="font-semibold text-gray-900 truncate" title={product.details.pai}>{product.details.pai}</span>
+                                </div>
+                            )}
+                            {product.details.mae && (
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] text-gray-400 uppercase">Mãe</span>
+                                    <span className="font-semibold text-gray-900 truncate" title={product.details.mae}>{product.details.mae}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Extra Details for Matrizes */}
+                        {(product.details.mgte || product.details.status) && (
+                            <div className="mt-2 pt-2 border-t border-gray-200 grid grid-cols-1 gap-1">
+                                {product.details.mgte && (
+                                    <div className="flex justify-between items-center text-[10px]">
+                                        <span className="font-bold text-gray-500 uppercase">MGTe</span>
+                                        <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.details.mgte}</span>
+                                    </div>
+                                )}
+                                {product.details.status && (
+                                    <div className="text-[10px] text-gray-600 italic">
+                                        {product.details.status}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <div className="mt-auto border-t border-gray-50 pt-4">
                     <div className="flex flex-col">
                         <span className="text-xs text-brand-gold font-semibold uppercase tracking-wide">
@@ -153,7 +209,8 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         ${featured
                                 ? 'bg-brand-gold text-brand-black hover:bg-brand-black hover:text-brand-gold'
                                 : 'bg-brand-black text-white hover:bg-brand-gold hover:text-brand-black'
-                            }`}>
+                            }`}
+                    >
                         Fazer uma proposta
                     </a>
 
@@ -165,9 +222,23 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     >
                         Ver proposta à vista
                     </a>
+
+                    {/* PDF Button if available */}
+                    {product.details?.pdf && (
+                        <a
+                            href={product.details.pdf}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full mt-3 py-2 flex items-center justify-center gap-2 border border-brand-gold/50 text-brand-gold text-xs font-bold uppercase tracking-wide rounded-lg hover:bg-brand-gold hover:text-brand-black transition-colors"
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 2H7a2 2 0 00-2 2v15a2 2 0 002 2z" />
+                            </svg>
+                            Baixar Ficha Técnica
+                        </a>
+                    )}
                 </div>
             </div>
         </div>
     );
 }
-

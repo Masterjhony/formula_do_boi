@@ -9,6 +9,19 @@ interface Product {
     installments: string;
     price: string;
     tag?: string;
+    details?: {
+        registro?: string;
+        raca?: string;
+        nascimento?: string;
+        pai?: string;
+        mae?: string;
+        peso?: string;
+        comentario?: string;
+        mgte?: string;
+        status?: string;
+        tipo?: string;
+        pdf?: string;
+    };
 }
 
 interface CatalogGridProps {
