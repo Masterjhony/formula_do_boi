@@ -158,7 +158,7 @@ export const PRODUCTS = [
     },
     {
         id: 7,
-        name: "ANCP VIS 4596",
+        name: "MIRAGEM FIV VISUAL",
         category: "Matriz PO",
         classificacao: "matriz",
         modalidade: "venda_direta",
