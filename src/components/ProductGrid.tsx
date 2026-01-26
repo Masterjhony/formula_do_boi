@@ -1,8 +1,11 @@
 import ProductCard from "./ProductCard";
 
 import { PRODUCTS } from "@/data/products";
+import { EMBRYOS } from "@/data/embryos";
 
 export default function ProductGrid() {
+    const allProducts = [...EMBRYOS, ...PRODUCTS].sort((a, b) => a.id - b.id);
+
     return (
         <section className="py-16 bg-gray-50">
             <div className="container mx-auto px-4">
@@ -23,7 +26,7 @@ export default function ProductGrid() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {PRODUCTS.map((product) => (
+                    {allProducts.map((product) => (
                         <ProductCard key={product.id} product={product} />
                     ))}
                 </div>

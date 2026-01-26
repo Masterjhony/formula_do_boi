@@ -97,22 +97,39 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             <div className="flex justify-between items-end">
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">
-                                        {product.category === 'Sêmen' || product.category === 'Embrião' ? 'Valor Unitário' : 'Condição Especial (30 parcelas)'}
+                                        {'forma_pagamento' in product && product.forma_pagamento ?
+                                            (product.forma_pagamento === 'a_vista' ? 'À Vista' : `Condição Especial (${product.forma_pagamento.replace('parcelado_', '').replace('x', '')} parcelas)`)
+                                            : 'Valor'}
                                     </p>
-                                    <p className="text-4xl font-bold text-brand-black">R$ {product.price}</p>
+                                    <p className="text-4xl font-bold text-brand-black">
+                                        {(() => {
+                                            if (product.price === 'Consultar') return 'Consultar';
+                                            if (product.category === 'Sêmen') return `R$ ${product.price}`;
+
+                                            // Extract count
+                                            let count = 1;
+                                            if ('forma_pagamento' in product && product.forma_pagamento) {
+                                                const match = product.forma_pagamento.match(/(\d+)x/);
+                                                if (match) count = parseInt(match[1]);
+                                            }
+
+                                            if (count > 1) return `${count}x R$ ${product.installments}`;
+                                            return `R$ ${product.price}`;
+                                        })()}
+                                    </p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-xs text-gray-400">
-                                        {product.category === 'Sêmen' ? 'Pedido Mínimo' : 'Valor Total'}
+                                        {product.category === 'Sêmen' ? 'Condição' : 'Valor Total'}
                                     </p>
                                     <p className="text-lg font-semibold text-gray-700">
-                                        {product.category === 'Sêmen' ? product.installments : `R$ ${product.installments}`}
+                                        {product.category === 'Sêmen' ? product.installments : `R$ ${product.price}`}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Location & Freight Info Block */}
+                        {/* Payment Conditions Info Block */}
                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 mb-6 space-y-3">
                             <div className="flex items-start gap-3">
                                 <div className="mt-0.5 p-1.5 bg-white rounded-md border border-gray-200 text-brand-gold shrink-0">
@@ -125,11 +142,24 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </div>
                             <div className="flex items-start gap-3">
                                 <div className="mt-0.5 p-1.5 bg-white rounded-md border border-gray-200 text-brand-gold shrink-0">
+                                    <Clock className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-gray-900 uppercase">Condições de Pagamento</p>
+                                    <p className="text-sm text-gray-600">
+                                        {'forma_pagamento' in product ?
+                                            product.forma_pagamento?.replace('_', ' ').replace('x', ' parcelas') :
+                                            'Consulte condições'}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <div className="mt-0.5 p-1.5 bg-white rounded-md border border-gray-200 text-brand-gold shrink-0">
                                     <ShieldCheck className="w-4 h-4" />
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-gray-900 uppercase">Frete & Comissão</p>
-                                    <p className="text-sm text-gray-600">Frete facilitado para todo Brasil. <span className="font-medium text-green-700">Comissão Zero</span> para comprador.</p>
+                                    <p className="text-sm text-gray-600">Frete facilitado para todo Brasil. <span className="font-medium text-green-700">Comissão de 4%</span> para o comprador e para o vendedor.</p>
                                 </div>
                             </div>
                         </div>
@@ -228,13 +258,6 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.previsao}</p>
                             </div>
                         )}
-                    </div>
-
-                    <div className="mt-10">
-                        <h3 className="font-bold text-lg mb-4 text-black">Comentários do Técnico</h3>
-                        <p className="text-black leading-relaxed">
-                            {product.details.comentario}
-                        </p>
                     </div>
                 </div>
             </div>

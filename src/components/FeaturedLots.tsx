@@ -2,10 +2,19 @@ import ProductCard from "./ProductCard";
 import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
 import { PRODUCTS } from "../data/products";
+import { EMBRYOS } from "../data/embryos";
 
 export default function FeaturedLots() {
-    // Select the first 4 products as featured
-    const featuredProducts = PRODUCTS.slice(0, 4);
+    // Combine products and embryos for the home page display
+    const allItems = [...EMBRYOS, ...PRODUCTS].filter(p => !p.category.includes('Sêmen')); // Optionally filter out semen if desired, or keep all. 
+    // The user said "as it was before", identifying products 1-4. 
+    // IDs 1-4 are in EMBRYOS now. ID 7 is in PRODUCTS.
+    // Let's sort by ID to be safe or just use the order.
+    // 1-6 are in Embryos. 7 is in Products.
+    // So [...EMBRYOS, ...PRODUCTS] puts 1-6 then 7.
+
+    // Select the first 4 products as featured (which will be IDs 1, 2, 3, 4)
+    const featuredProducts = allItems.sort((a, b) => a.id - b.id).slice(0, 4);
 
     return (
         <section className="py-16 bg-[#0a0a0a] relative overflow-hidden">
