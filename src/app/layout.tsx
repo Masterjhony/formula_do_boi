@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Fórmula do Boi | Elite Nelore",
+  title: "Fórmula do Boi | Comercialização de Nelore PO",
   description: "O melhor da genética Nelore.",
 };
 
