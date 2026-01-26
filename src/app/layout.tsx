@@ -10,6 +10,17 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Fórmula do Boi | Comercialização de Nelore PO",
   description: "O melhor da genética Nelore.",
+  openGraph: {
+    title: "Fórmula do Boi | Comercialização de Nelore PO",
+    description: "O melhor da genética Nelore.",
+    type: "website",
+    locale: "pt_BR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fórmula do Boi | Comercialização de Nelore PO",
+    description: "O melhor da genética Nelore.",
+  },
 };
 
 export default function RootLayout({
