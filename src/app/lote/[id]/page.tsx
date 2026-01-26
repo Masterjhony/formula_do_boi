@@ -252,12 +252,6 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.peso}</p>
                             </div>
                         )}
-                        {'previsao' in product.details && (
-                            <div className="space-y-1">
-                                <span className="text-gray-500 font-medium">Previsão</span>
-                                <p className="text-gray-900 font-semibold text-lg">{product.details.previsao}</p>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
