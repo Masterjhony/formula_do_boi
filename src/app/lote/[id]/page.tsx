@@ -86,7 +86,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         <h1 className="text-3xl font-bold text-gray-900 mb-2 uppercase">{product.name}</h1>
                         <div className="flex items-center gap-2 text-gray-500 text-sm mb-6">
                             <span className="font-bold text-gray-900 px-2 py-0.5 bg-gray-100 rounded text-xs">
-                                {`FB-PO-${product.id.toString().padStart(3, '0')}`}
+                                {'registro' in product.details && product.details.registro ?
+                                    product.details.registro :
+                                    `FB-PO-${product.id.toString().padStart(3, '0')}`}
                             </span>
                             <span className="flex items-center gap-1">
                                 <MapPin className="w-3.5 h-3.5" /> {product.location}
@@ -250,6 +252,18 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Peso</span>
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.peso}</p>
+                            </div>
+                        )}
+                        {'mgte' in product.details && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Index (MGTe)</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.mgte}</p>
+                            </div>
+                        )}
+                        {'top' in product.details && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Top (MGTe)</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.top}</p>
                             </div>
                         )}
                     </div>

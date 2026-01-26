@@ -23,6 +23,7 @@ export const PRODUCTS = [
             mae: "VIS 1234",
             peso: "600 kg",
             mgte: "27,5",
+            top: "4%",
             status: "Parida de macho e com prenhez confirmada",
             tipo: "Perfil para doadora",
             comentario: "Animal de excelente carcaça e avaliação genética.",
