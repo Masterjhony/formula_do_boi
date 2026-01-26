@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FilterSidebar from "@/components/FilterSidebar";
+import { Tag } from "lucide-react";
+import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import { PRODUCTS } from "@/data/products";
 
@@ -11,9 +12,24 @@ import { PRODUCTS } from "@/data/products";
 const allProducts = PRODUCTS;
 
 export default function MatrizesPage() {
+    const matrizesFilters = [
+        {
+            id: "tipo",
+            title: "Tipo",
+            icon: <Tag className="w-4 h-4" />,
+            options: [
+                { value: "parida", label: "Parida" },
+                { value: "prenha", label: "Prenha" },
+                { value: "parida_prenha", label: "Parida e Prenha" },
+                { value: "doadora", label: "Doadora" },
+            ],
+        },
+        ...commonFilters,
+    ];
+
     // State for selected filters (even if limited, good to keep UI consistent)
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
-        classificacao: [],
+        tipo: [],
         faixa_valor: [],
         forma_pagamento: [],
         logistica: [],
@@ -32,7 +48,7 @@ export default function MatrizesPage() {
 
     const handleClearFilters = () => {
         setSelectedFilters({
-            classificacao: [],
+            tipo: [],
             faixa_valor: [],
             forma_pagamento: [],
             logistica: [],
@@ -49,7 +65,22 @@ export default function MatrizesPage() {
         if (!hasFilters) return items;
 
         return items.filter((product) => {
-            // Check Classification (skip for now as we hard filtered)
+            // Check Tipo
+            if (selectedFilters.tipo.length > 0) {
+                const tipo = ((product.details as any)?.tipo || "").toLowerCase();
+                const status = ((product.details as any)?.status || "").toLowerCase();
+                const category = (product.category || "").toLowerCase();
+
+                const matchesTipo = selectedFilters.tipo.some(filter => {
+                    if (filter === "parida") return status.includes("parida");
+                    if (filter === "prenha") return status.includes("prenhez") || status.includes("prenha");
+                    if (filter === "parida_prenha") return status.includes("parida") && (status.includes("prenhez") || status.includes("prenha"));
+                    if (filter === "doadora") return tipo.includes("doadora") || category.includes("doadora");
+                    return false;
+                });
+
+                if (!matchesTipo) return false;
+            }
 
             // Check Payment
             if (selectedFilters.forma_pagamento.length > 0 &&
@@ -68,11 +99,11 @@ export default function MatrizesPage() {
     }, [selectedFilters, hasFilters]);
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-gray-50" >
             <Header />
 
             {/* Page Header */}
-            <section className="bg-[#0a0a0a] py-12 border-b border-white/10 relative overflow-hidden">
+            <section className="bg-[#0a0a0a] py-12 border-b border-white/10 relative overflow-hidden" >
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-brand-gold/10 to-transparent"></div>
                 <div className="container mx-auto px-4 text-center relative z-10">
                     <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
@@ -82,14 +113,15 @@ export default function MatrizesPage() {
                         Seleção especial de doadoras e matrizes consagradas.
                     </p>
                 </div>
-            </section>
+            </section >
 
             {/* Main Content */}
-            <section className="py-8">
+            < section className="py-8" >
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Sidebar */}
                         <FilterSidebar
+                            sections={matrizesFilters}
                             selectedFilters={selectedFilters}
                             onFilterChange={handleFilterChange}
                             onClearFilters={handleClearFilters}
@@ -104,9 +136,9 @@ export default function MatrizesPage() {
                         />
                     </div>
                 </div>
-            </section>
+            </section >
 
             <Footer />
-        </main>
+        </main >
     );
 }

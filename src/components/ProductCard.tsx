@@ -82,7 +82,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         ? 'bg-brand-gold text-brand-black'
                         : 'bg-black/80 text-white backdrop-blur-sm border border-white/20'
                     }`}>
-                    {animalCode}
+                    {product.details?.registro || animalCode}
                 </div>
 
                 <div className="w-full h-full relative flex items-center justify-center bg-black">

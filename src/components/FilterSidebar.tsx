@@ -3,24 +3,14 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Home, Tag, DollarSign, Wallet, Truck } from "lucide-react";
 
-interface FilterSection {
+export interface FilterSection {
     id: string;
     title: string;
     icon: React.ReactNode;
     options: { value: string; label: string }[];
 }
 
-const filterSections: FilterSection[] = [
-    {
-        id: "classificacao",
-        title: "Classificação",
-        icon: <Home className="w-4 h-4" />,
-        options: [
-            { value: "reprodutor", label: "Reprodutor" },
-            { value: "matriz", label: "Matriz" },
-            { value: "reposicao", label: "Reposição" },
-        ],
-    },
+export const commonFilters: FilterSection[] = [
     {
         id: "faixa_valor",
         title: "Faixa de Valor",
@@ -55,19 +45,39 @@ const filterSections: FilterSection[] = [
     },
 ];
 
+const defaultFilters: FilterSection[] = [
+    {
+        id: "tipo",
+        title: "Tipo",
+        icon: <Tag className="w-4 h-4" />,
+        options: [
+            { value: "parida", label: "Parida" },
+            { value: "prenha", label: "Prenha" },
+            { value: "parida_prenha", label: "Parida e Prenha" },
+            { value: "doadora", label: "Doadora" },
+        ],
+    },
+    ...commonFilters,
+];
+
 interface FilterSidebarProps {
+    sections?: FilterSection[];
     selectedFilters: Record<string, string[]>;
     onFilterChange: (sectionId: string, value: string, checked: boolean) => void;
     onClearFilters: () => void;
 }
 
 export default function FilterSidebar({
+    sections = defaultFilters,
     selectedFilters,
     onFilterChange,
     onClearFilters,
 }: FilterSidebarProps) {
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+        tipo: true,
         classificacao: true,
+        id: true,
+        procedencia: true,
         faixa_valor: true,
         forma_pagamento: false,
         logistica: false,
@@ -85,7 +95,7 @@ export default function FilterSidebar({
     return (
         <aside className="w-full lg:w-72 shrink-0">
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                {filterSections.map((section, index) => {
+                {sections.map((section, index) => {
                     const isExpanded = expandedSections[section.id];
 
                     return (

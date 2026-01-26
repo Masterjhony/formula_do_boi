@@ -3,13 +3,29 @@
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FilterSidebar from "@/components/FilterSidebar";
+import { Globe } from "lucide-react";
+import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import { EMBRYOS } from "@/data/embryos";
 
 export default function SemenPage() {
+    const semenFilters = [
+        {
+            id: "procedencia",
+            title: "Procedência",
+            icon: <Globe className="w-4 h-4" />,
+            options: [
+                { value: "nacional", label: "Nacional" },
+                { value: "importado", label: "Importado" },
+                { value: "propria", label: "Própria" },
+                { value: "parceiros", label: "Parceiros" },
+            ],
+        },
+        ...commonFilters,
+    ];
+
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
-        classificacao: [],
+        procedencia: [],
         faixa_valor: [],
         forma_pagamento: [],
         logistica: [],
@@ -28,7 +44,7 @@ export default function SemenPage() {
 
     const handleClearFilters = () => {
         setSelectedFilters({
-            classificacao: [],
+            procedencia: [],
             faixa_valor: [],
             forma_pagamento: [],
             logistica: [],
@@ -71,10 +87,12 @@ export default function SemenPage() {
                 return false;
             }
 
-            // Check Classification
-            if (selectedFilters.classificacao.length > 0 &&
-                !selectedFilters.classificacao.includes(product.classificacao || "")) {
-                return false;
+            // Check Procedência
+            if (selectedFilters.procedencia.length > 0) {
+                const procedencia = ((product.details as any)?.procedencia || "").toLowerCase();
+                if (!selectedFilters.procedencia.includes(procedencia)) {
+                    return false;
+                }
             }
 
             // Check Price
@@ -113,6 +131,7 @@ export default function SemenPage() {
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Sidebar */}
                         <FilterSidebar
+                            sections={semenFilters}
                             selectedFilters={selectedFilters}
                             onFilterChange={handleFilterChange}
                             onClearFilters={handleClearFilters}
