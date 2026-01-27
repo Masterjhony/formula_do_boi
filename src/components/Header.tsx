@@ -59,13 +59,13 @@ export default function Header() {
                     {/* Right Actions */}
                     <div className="flex items-center gap-3">
 
-                        <button className="hidden lg:flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                        <Link href="/dashboard" className="hidden lg:flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-all">
                             <User className="w-5 h-5" />
                             <span className="text-sm font-medium">Minha Conta</span>
-                        </button>
+                        </Link>
 
                         <Link
-                            href="/entrar"
+                            href="/login"
                             className="flex items-center gap-2 px-5 py-2.5 bg-brand-gold text-[#0a0a0a] text-sm font-bold rounded-full hover:bg-yellow-400 transition-all transform hover:scale-105 shadow-lg shadow-brand-gold/20"
                         >
                             <LogIn className="w-4 h-4" />
@@ -121,6 +121,26 @@ export default function Header() {
                                 {item.label}
                             </Link>
                         ))}
+
+                        <hr className="border-white/10 my-2" />
+
+                        <Link
+                            href="/dashboard"
+                            className="flex items-center gap-2 text-base font-medium text-white/90 py-3 px-4 rounded-lg hover:bg-white/5 transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <User className="w-5 h-5" />
+                            Minha Conta
+                        </Link>
+
+                        <Link
+                            href="/login"
+                            className="flex items-center gap-2 text-base font-medium text-white/90 py-3 px-4 rounded-lg hover:bg-white/5 transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <LogIn className="w-5 h-5" />
+                            Entrar
+                        </Link>
 
                         {/* Mobile CTA */}
                         <Link
