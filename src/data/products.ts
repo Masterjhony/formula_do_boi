@@ -219,5 +219,67 @@ export const PRODUCTS = [
             comentario: "Matriz de alta qualidade.",
             pdf: "/ANCP VIS-4102.pdf"
         }
+    },
+    {
+        id: 14,
+        name: "11112 MAFRA",
+        category: "Touro PO", // Touro category
+        classificacao: "touro",
+        modalidade: "venda_direta",
+        logistica: "retira_fazenda",
+        forma_pagamento: "a_vista",
+        location: "Cumaru do Norte - PA", // From PDF
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769524792/MFRA_11112_tes647.mp4",
+        gallery: [
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769524792/MFRA_11112_tes647.mp4"
+        ],
+        price: "15.000,00",
+        installments: "À Vista",
+        tag: "NOVO",
+        details: {
+            registro: "MFRA 11112",
+            raca: "Nelore",
+            nascimento: "20/11/2020",
+            pai: "REM DHEEF",
+            mae: "4719 TE MAFRA",
+            peso: "Sob Consulta",
+            mgte: "iABCZ 13.60",
+            top: "Deca 2",
+            status: "Touro",
+            tipo: "Touro",
+            comentario: "Touro PO com iABCZ 13.60 (Deca 2).",
+            pdf: "/MFRA 11112.pdf"
+        }
+    },
+    {
+        id: 15,
+        name: "10622 MAFRA",
+        category: "Touro PO",
+        classificacao: "touro",
+        modalidade: "venda_direta",
+        logistica: "retira_fazenda",
+        forma_pagamento: "a_vista",
+        location: "Cumaru do Norte - PA",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769524791/MFRA_10622_mno6vk.mp4",
+        gallery: [
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769524791/MFRA_10622_mno6vk.mp4"
+        ],
+        price: "15.000,00",
+        installments: "À Vista",
+        tag: "NOVO",
+        details: {
+            registro: "MFRA 10622",
+            raca: "Nelore",
+            nascimento: "08/09/2020",
+            pai: "CALIBRE FIV CAMPARINO",
+            mae: "6470 MAFRA",
+            peso: "Sob Consulta",
+            mgte: "Sob Consulta",
+            top: "",
+            status: "Touro",
+            tipo: "Touro",
+            comentario: "Touro PO de excelente linhagem.",
+            pdf: "/MFRA 10622.pdf"
+        }
     }
 ];
