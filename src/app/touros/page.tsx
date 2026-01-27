@@ -104,7 +104,7 @@ export default function TourosPage() {
         // - Category 'Sêmen' (belongs to Semen)
         // - Category 'Embrião' (if any, belongs to Embryos)
         let items = allProducts.filter(p =>
-            p.id !== 7 &&
+            p.category !== 'Matriz PO' &&
             p.category !== 'Sêmen' &&
             p.category !== 'Embrião'
         );

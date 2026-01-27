@@ -58,8 +58,8 @@ export default function MatrizesPage() {
     const hasFilters = Object.values(selectedFilters).some((arr) => arr.length > 0);
 
     const filteredProducts = useMemo(() => {
-        // STRICT REQUIREMENT: Only show VIS 4596 (ID 7)
-        let items = allProducts.filter(p => p.id === 7);
+        // Show all products with category 'Matriz PO'
+        let items = allProducts.filter(p => p.category === 'Matriz PO');
 
         // Standard filter logic (in case user clears/changes logic in future or filters within the single item)
         if (!hasFilters) return items;
