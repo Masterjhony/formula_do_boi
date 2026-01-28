@@ -2,13 +2,21 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { MapPin, Share2, Heart, Clock, ShieldCheck, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { PRODUCTS } from "@/data/products";
+// import { PRODUCTS } from "@/data/products"; // Using DB now
 import { EMBRYOS } from "@/data/embryos";
+import { getProductById } from "@/services/products";
 
 export default async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const numericId = Number(id);
-    const product = PRODUCTS.find((p) => p.id === numericId) || EMBRYOS.find((p) => p.id === numericId);
+
+    // Try to find in DB first
+    let product: any = await getProductById(numericId);
+
+    // If not found in DB, check static EMBRYOS
+    if (!product) {
+        product = EMBRYOS.find((p) => p.id === numericId);
+    }
 
     if (!product) {
         return (
@@ -62,7 +70,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </div>
                         </div>
                         <div className="grid grid-cols-4 gap-4">
-                            {product.gallery?.map((img, i) => (
+                            {product.gallery?.map((img: string, i: number) => (
                                 <div key={i} className="aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-brand-gold transition-all">
                                     <img
                                         src={img}

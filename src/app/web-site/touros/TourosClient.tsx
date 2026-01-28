@@ -6,12 +6,13 @@ import Footer from "@/components/Footer";
 import { Tag, Calendar, Activity } from "lucide-react";
 import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
-import { PRODUCTS } from "@/data/products";
+import { Product } from "@/services/products";
 
-// Use only PRODUCTS (Nelore)
-const allProducts = PRODUCTS;
+interface TourosClientProps {
+    products: Product[];
+}
 
-export default function TourosPage() {
+export default function TourosClient({ products: allProducts }: TourosClientProps) {
     const tourosFilters = [
         {
             id: "tipo",
@@ -83,6 +84,7 @@ export default function TourosPage() {
     const hasFilters = Object.values(selectedFilters).some((arr) => arr.length > 0);
 
     const parsePrice = (priceStr: string) => {
+        if (!priceStr) return 0;
         return parseFloat(priceStr.replace(/\./g, "").replace(",", "."));
     };
 
@@ -98,13 +100,9 @@ export default function TourosPage() {
     };
 
     const filteredProducts = useMemo(() => {
-        // Filter for "Touros" page (requested to contain all other animals except VIS 4596)
-        // Excluding:
-        // - ID 7 (VIS 4596 - belongs to Matrizes)
-        // - Category 'Sêmen' (belongs to Semen)
-        // - Category 'Embrião' (if any, belongs to Embryos)
+        // Filter for "Touros" page 
         let items = allProducts.filter(p =>
-            p.category !== 'Matriz PO' &&
+            !p.category?.includes('Matriz') &&
             p.category !== 'Sêmen' &&
             p.category !== 'Embrião'
         );
@@ -121,7 +119,6 @@ export default function TourosPage() {
             // Check Tipo
             if (selectedFilters.tipo.length > 0) {
                 const tipo = (product.category || "").toLowerCase();
-                // Na prática o "Tipo" pode vir de category ou de details.tipo. Vamos checar ambos.
                 const detailsTipo = ((product.details as any)?.tipo || "").toLowerCase();
 
                 const matches = selectedFilters.tipo.some(filter =>
@@ -130,15 +127,11 @@ export default function TourosPage() {
                 if (!matches) return false;
             }
 
-            // Check Idade (Placeholder logic - needs actual birth date parsing)
+            // Check Idade 
             if (selectedFilters.idade.length > 0) {
-                // Implement logic if birthdate exists in details.nascimento
-                // For now, if no birthdate, maybe show all or none. 
-                // Let's try to parse if available.
-                const nascimento = product.details?.nascimento;
+                const nascimento = (product.details as any)?.nascimento;
                 if (!nascimento) return false;
 
-                // Simple age calc
                 const [day, month, year] = nascimento.split('/');
                 const birthDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
                 const now = new Date();
@@ -156,21 +149,9 @@ export default function TourosPage() {
 
             // Check Indice
             if (selectedFilters.indice.length > 0) {
-                // Explicitly checking for MGTe or similar index if avail.
-                // Assuming mgte value is the index value. 
-                // Logic: If user selects Top 0.1%, we show anything better (smaller?) or is it just a tag?
-                // Usually Top 0.1% means <= 0.1. 
-                // Let's assume mgte is NOT the percentage but there might be a "top" field or we parse "MGTe".
-                // Actually the user said "Índice rgd top %". 
-                // I'll check if `details.mgte` or `details.top` exists. checking products.ts...
-                // products.ts has `mgte: "27,5"`.
-                // Let's assume for now we don't have this data structured well, so I'll loosely match if "top" is in description or just pass true if data missing to avoid empty screen? 
-                // No, strict filter. I will add a `top` field to products later or relying on `details.top`.
-
-                const topVal = (product.details as any)?.top; // Need to add this to data if missing
+                const topVal = (product.details as any)?.top;
                 if (!topVal) return false;
-                // Parse "0.1%" -> 0.1
-                const productTop = parseFloat(topVal.replace('%', ''));
+                const productTop = parseFloat(topVal.replace('%', '').replace(',', '.'));
 
                 const matchesIndice = selectedFilters.indice.some(filter => {
                     const filterTop = parseFloat(filter);
@@ -195,7 +176,7 @@ export default function TourosPage() {
 
             return true;
         });
-    }, [selectedFilters, hasFilters]);
+    }, [selectedFilters, hasFilters, allProducts]);
 
     return (
         <main className="min-h-screen bg-gray-50">

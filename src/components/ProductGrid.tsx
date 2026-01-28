@@ -1,10 +1,13 @@
 import ProductCard from "./ProductCard";
 
-import { PRODUCTS } from "@/data/products";
 import { EMBRYOS } from "@/data/embryos";
 
-export default function ProductGrid() {
-    const allProducts = [...EMBRYOS, ...PRODUCTS].sort((a, b) => a.id - b.id);
+interface ProductGridProps {
+    products: any[];
+}
+
+export default function ProductGrid({ products }: ProductGridProps) {
+    const allProducts = [...EMBRYOS, ...products].sort((a, b) => a.id - b.id);
 
     return (
         <section className="py-16 bg-gray-50">

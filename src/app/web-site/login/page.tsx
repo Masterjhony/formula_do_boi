@@ -21,17 +21,32 @@ export default function LoginPage() {
         setError(null)
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             })
 
-            if (error) {
-                throw error
-            }
+            if (signInError) throw signInError
 
-            router.push('/dashboard')
-            router.refresh()
+            if (user) {
+                // Fetch profile to check role
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single()
+
+                const searchParams = new URLSearchParams(window.location.search);
+                const next = searchParams.get('next');
+
+                router.refresh();
+
+                if (next) {
+                    router.push(next);
+                } else {
+                    router.push('/dashboard');
+                }
+            }
         } catch (err: any) {
             setError(err.message || 'Erro ao realizar login')
         } finally {

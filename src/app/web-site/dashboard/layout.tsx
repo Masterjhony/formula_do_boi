@@ -62,6 +62,17 @@ export default async function DashboardLayout({
                 </div>
 
                 <nav className="flex-1 px-4 space-y-2">
+                    {user?.email?.toLowerCase() === 'formuladoboi@gmail.com' && (
+                        <div className="mb-4 pb-4 border-b border-[#222222]">
+                            <NavLink href="/admin" icon={User}>Acessar Painel Admin</NavLink>
+                        </div>
+                    )}
+
+                    {/* Debug info - Remove later */}
+                    <div className="px-4 py-2 text-xs text-gray-600">
+                        Logado como: {user.email}
+                    </div>
+
                     <NavLink href="/dashboard" icon={LayoutDashboard}>Visão Geral</NavLink>
                     <NavLink href="/dashboard/proposals" icon={FileText}>Minhas Propostas</NavLink>
                     <NavLink href="/dashboard/favorites" icon={Heart}>Meus Favoritos</NavLink>

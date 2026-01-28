@@ -6,12 +6,13 @@ import Footer from "@/components/Footer";
 import { Tag } from "lucide-react";
 import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
-import { PRODUCTS } from "@/data/products";
+import { Product } from "@/services/products";
 
-// Use only PRODUCTS (Nelore) and filter specifically for the requested logic
-const allProducts = PRODUCTS;
+interface MatrizesClientProps {
+    products: Product[];
+}
 
-export default function MatrizesPage() {
+export default function MatrizesClient({ products: allProducts }: MatrizesClientProps) {
     const matrizesFilters = [
         {
             id: "tipo",
@@ -27,7 +28,6 @@ export default function MatrizesPage() {
         ...commonFilters,
     ];
 
-    // State for selected filters (even if limited, good to keep UI consistent)
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
         tipo: [],
         faixa_valor: [],
@@ -58,10 +58,9 @@ export default function MatrizesPage() {
     const hasFilters = Object.values(selectedFilters).some((arr) => arr.length > 0);
 
     const filteredProducts = useMemo(() => {
-        // Show all products with category 'Matriz PO'
-        let items = allProducts.filter(p => p.category === 'Matriz PO');
+        // Show all products with category containing 'Matriz'
+        let items = allProducts.filter(p => p.category?.includes('Matriz'));
 
-        // Standard filter logic (in case user clears/changes logic in future or filters within the single item)
         if (!hasFilters) return items;
 
         return items.filter((product) => {
@@ -96,7 +95,7 @@ export default function MatrizesPage() {
 
             return true;
         });
-    }, [selectedFilters, hasFilters]);
+    }, [selectedFilters, hasFilters, allProducts]);
 
     return (
         <main className="min-h-screen bg-gray-50" >
