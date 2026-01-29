@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { StatsCard } from './components/stats-card'
 import { RecentProposals } from './components/recent-proposals'
-import { FileText, Heart, Beef, TrendingUp } from 'lucide-react'
+import { FileText, Heart, Beef, TrendingUp, Store } from 'lucide-react'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -25,6 +25,20 @@ export default async function DashboardPage() {
         .from('herds')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user?.id)
+
+    // Calculate ads count roughly by checking if any product matches user name (fetching simple count would be complex without owner_id)
+    // For the dashboard summary, we can just fetch all products and filter locally for now or skip the count
+    // Optimizing: Let's fetch profile first
+    const { data: profile } = await supabase.from('profiles').select('name').eq('id', user?.id).single()
+    let adsCount = 0
+    if (profile?.name) {
+        // This is heavy but okay for small MVP. 
+        // Ideally create a postgres function or adding owner_id
+        const { data: allProducts } = await supabase.from('products').select('details')
+        if (allProducts) {
+            adsCount = allProducts.filter(p => p.details?.breeder?.toLowerCase() === profile.name.toLowerCase()).length
+        }
+    }
 
     return (
         <div className="space-y-8">
@@ -53,11 +67,10 @@ export default async function DashboardPage() {
                     description="Animais cadastrados"
                 />
                 <StatsCard
-                    title="Total Investido"
-                    value={'R$ 0,00'}
-                    icon={TrendingUp}
-                    description="Últimos 12 meses"
-                    isCurrency
+                    title="Meus Anúncios"
+                    value={adsCount || 0}
+                    icon={Store}
+                    description="Itens publicados"
                 />
             </div>
 

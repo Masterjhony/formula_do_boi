@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, Menu, X, User } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -63,6 +63,7 @@ export default function AdminLayout({
     const navItems = [
         { href: '/', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/products', label: 'Cards (Animais)', icon: Package },
+        { href: '/breeders', label: 'Criadores', icon: User },
     ];
 
     return (
@@ -73,7 +74,7 @@ export default function AdminLayout({
                     } lg:relative lg:translate-x-0 flex flex-col`}
             >
                 <div className="p-8 border-b border-[#222222] flex justify-center items-center relative">
-                    <Link href="/" className="block relative h-16 w-full max-w-[180px]">
+                    <Link href="/" className="block relative h-24 w-full max-w-[240px]">
                         {/* Ensure you have this logo, otherwise fallback to text */}
                         <Image
                             src="/logo_complete.svg"

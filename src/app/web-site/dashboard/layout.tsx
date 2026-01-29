@@ -9,7 +9,8 @@ import {
     User,
     Beef,
     LogOut,
-    ChevronRight
+    ChevronRight,
+    Store
 } from 'lucide-react'
 
 export default async function DashboardLayout({
@@ -74,6 +75,7 @@ export default async function DashboardLayout({
                     </div>
 
                     <NavLink href="/dashboard" icon={LayoutDashboard}>Visão Geral</NavLink>
+                    <NavLink href="/dashboard/ads" icon={Store}>Meus Anúncios</NavLink>
                     <NavLink href="/dashboard/proposals" icon={FileText}>Minhas Propostas</NavLink>
                     <NavLink href="/dashboard/favorites" icon={Heart}>Meus Favoritos</NavLink>
                     <NavLink href="/dashboard/herds" icon={Beef}>Dados do Rebanho</NavLink>

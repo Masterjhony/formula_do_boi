@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { ArrowLeft, Loader2, Save, Upload } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Upload, Plus } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -12,6 +12,8 @@ export default function NewProductPage() {
     const supabase = createClient();
     const [loading, setLoading] = useState(false);
     const [uploadingPdf, setUploadingPdf] = useState(false);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
+    const [breeders, setBreeders] = useState<any[]>([]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -24,6 +26,7 @@ export default function NewProductPage() {
         price: '',
         installments: '',
         tag: 'NOVO',
+        featured: false,
         // Details fields
         registro: '',
         raca: 'Nelore',
@@ -34,11 +37,71 @@ export default function NewProductPage() {
         mgte: '',
         top: '',
         status: 'Disponível',
+        reproductive_status: '',
+        breeder: '',
         tipo: 'Touro',
         comentario: '',
         pdf: '',
         videoUrl: '', // For now just a URL input, later file upload
     });
+
+    useEffect(() => {
+        const fetchBreeders = async () => {
+            const { data } = await supabase
+                .from('breeders')
+                .select('*')
+                .order('name', { ascending: true });
+            if (data) setBreeders(data);
+        };
+        fetchBreeders();
+    }, []);
+
+    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const file = e.target.files[0];
+        // Basic check, though input accept will handle most
+        if (!file.type.startsWith('video/') && !file.type.startsWith('image/')) {
+            alert('Por favor, selecione um arquivo de vídeo ou imagem.');
+            return;
+        }
+
+        setUploadingVideo(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            // Determine bucket based on type is usually good, but user wants 'videos' bucket or unified
+            // Assumption: User requested video upload, let's put in 'videos' bucket if video, 'images' if image?
+            // Simplification: Put everything in 'videos' bucket as requested or 'products' if generic?
+            // "ali em vídeo coloque a opção de fazer o upload do vídeo... ir pro site e ficar armazenado no Supabase"
+            // I will use 'videos' bucket.
+
+            const { error: uploadError } = await supabase.storage
+                .from('videos')
+                .upload(filePath, file);
+
+            if (uploadError) {
+                console.error('Upload Error:', uploadError);
+                if (uploadError.message.includes('Bucket not found')) {
+                    alert('Erro: Bucket "videos" não encontrado. Crie o bucket "videos" no Supabase e torne-o público.');
+                } else {
+                    alert('Erro ao fazer upload do arquivo.');
+                }
+                return;
+            }
+
+            const { data } = supabase.storage.from('videos').getPublicUrl(filePath);
+
+            setFormData(prev => ({ ...prev, videoUrl: data.publicUrl }));
+        } catch (error) {
+            console.error('Error uploading video:', error);
+            alert('Erro inesperado ao fazer upload.');
+        } finally {
+            setUploadingVideo(false);
+        }
+    };
 
     const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -81,8 +144,13 @@ export default function NewProductPage() {
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type } = e.target;
+        if (type === 'checkbox') {
+            const checked = (e.target as HTMLInputElement).checked;
+            setFormData(prev => ({ ...prev, [name]: checked }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -102,7 +170,7 @@ export default function NewProductPage() {
                 gallery: [formData.videoUrl],
                 price: formData.price,
                 installments: formData.installments,
-                tag: formData.tag,
+                tag: formData.featured ? 'DESTAQUE' : 'NOVO',
                 details: {
                     registro: formData.registro,
                     raca: formData.raca,
@@ -113,7 +181,9 @@ export default function NewProductPage() {
                     mgte: formData.mgte,
                     top: formData.top,
                     status: formData.status,
-                    tipo: formData.tipo,
+                    reproductive_status: formData.reproductive_status,
+                    breeder: formData.breeder,
+                    tipo: formData.reproductive_status, // Sync type with reproductive status
                     comentario: formData.comentario,
                     pdf: formData.pdf,
                 }
@@ -140,8 +210,8 @@ export default function NewProductPage() {
                     <ArrowLeft size={20} className="text-gray-600" />
                 </Link>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Novo Card</h1>
-                    <p className="text-gray-500 text-sm">Preencha as informações do animal.</p>
+                    <h1 className="text-2xl font-bold text-white">Novo Card</h1>
+                    <p className="text-gray-400 text-sm">Preencha as informações do animal.</p>
                 </div>
             </div>
 
@@ -198,6 +268,43 @@ export default function NewProductPage() {
                                 placeholder="Ex: Uberaba - MG"
                                 className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Criador / Proprietário</label>
+                            <div className="flex gap-2">
+                                <select
+                                    name="breeder"
+                                    value={formData.breeder}
+                                    onChange={handleChange}
+                                    className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
+                                >
+                                    <option value="">Selecione um criador...</option>
+                                    {breeders.map((b) => (
+                                        <option key={b.id} value={b.name}>{b.name}</option>
+                                    ))}
+                                </select>
+                                <Link
+                                    href="/breeders"
+                                    target="_blank"
+                                    className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 transition-colors"
+                                    title="Gerenciar Criadores"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </Link>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 pt-6">
+                            <input
+                                type="checkbox"
+                                id="featured"
+                                name="featured"
+                                checked={formData.featured}
+                                onChange={handleChange}
+                                className="w-5 h-5 text-brand-gold border-gray-300 rounded focus:ring-brand-gold"
+                            />
+                            <label htmlFor="featured" className="text-sm font-medium text-gray-900 cursor-pointer select-none">
+                                Marcar como DESTAQUE
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -261,7 +368,7 @@ export default function NewProductPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Parcelas</label>
+                            <label className="text-sm font-medium text-gray-700">Parcelas (Valor)</label>
                             <input
                                 name="installments"
                                 value={formData.installments}
@@ -269,6 +376,22 @@ export default function NewProductPage() {
                                 placeholder="1.125,00"
                                 className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Condições de Pagamento</label>
+                            <select
+                                name="forma_pagamento"
+                                value={formData.forma_pagamento}
+                                onChange={handleChange}
+                                className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
+                            >
+                                <option value="parcelado_24x">24x</option>
+                                <option value="parcelado_30x">30x</option>
+                                <option value="parcelado_36x">36x</option>
+                                <option value="parcelado_12x">12x</option>
+                                <option value="a_vista">À Vista</option>
+                                <option value="consultar">Consultar</option>
+                            </select>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">MGTe / iABCZ</label>
@@ -305,15 +428,41 @@ export default function NewProductPage() {
                     <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Mídia e Arquivos</h3>
                     <div className="grid grid-cols-1 gap-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Link do Vídeo/Imagem (Cloudinary/S3)</label>
-                            <input
-                                name="videoUrl"
-                                value={formData.videoUrl}
-                                onChange={handleChange}
-                                placeholder="https://..."
-                                className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
-                            />
-                            <p className="text-xs text-gray-500">Cole aqui o link direto do arquivo de mídia.</p>
+                            <label className="text-sm font-medium text-gray-700">Vídeo / Imagem Principal</label>
+
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        name="videoUrl"
+                                        value={formData.videoUrl}
+                                        onChange={handleChange}
+                                        placeholder="https://... (ou faça upload abaixo)"
+                                        className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none bg-gray-50"
+                                        readOnly // Optional: make readOnly if we only want uploads, but keeping editable is flexible
+                                    />
+                                    {formData.videoUrl && (
+                                        <Link href={formData.videoUrl} target="_blank" className="p-2 text-blue-600 hover:text-blue-800">
+                                            Ver
+                                        </Link>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <label className="cursor-pointer bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold border border-brand-gold/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                        {uploadingVideo ? <Loader2 className="animate-spin w-4 h-4" /> : <Upload className="w-4 h-4" />}
+                                        {uploadingVideo ? 'Enviando Mídia...' : 'Fazer Upload de Vídeo/Imagem'}
+                                        <input
+                                            type="file"
+                                            accept="video/*,image/*"
+                                            className="hidden"
+                                            onChange={handleVideoUpload}
+                                            disabled={uploadingVideo}
+                                        />
+                                    </label>
+                                    {formData.videoUrl && !uploadingVideo && <span className="text-xs text-green-600 font-medium">Mídia anexada!</span>}
+                                </div>
+                                <p className="text-xs text-gray-500">Faça upload do vídeo/imagem ou cole o link direto.</p>
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Link da Ficha Técnica (PDF)</label>
@@ -349,29 +498,47 @@ export default function NewProductPage() {
                     <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Detalhes Finais</h3>
                     <div className="grid grid-cols-1 gap-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Comentários</label>
+                            <label className="text-sm font-medium text-gray-700">Descrição Detalhada</label>
                             <textarea
                                 name="comentario"
                                 value={formData.comentario}
                                 onChange={handleChange}
-                                rows={3}
+                                rows={6}
                                 className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Status</label>
-                            <select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
-                            >
-                                <option value="Disponível">Disponível</option>
-                                <option value="Vendido">Vendido</option>
-                                <option value="Reservado">Reservado</option>
-                                <option value="Matriz Parida e Prenha">Matriz Parida e Prenha</option>
-                                <option value="Prenha">Prenha</option>
-                            </select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Disponibilidade</label>
+                                <select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleChange}
+                                    className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
+                                >
+                                    <option value="Disponível">Disponível</option>
+                                    <option value="Vendido">Vendido</option>
+                                    <option value="Reservado">Reservado</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Status Reprodutivo / Tipo</label>
+                                <select
+                                    name="reproductive_status"
+                                    value={formData.reproductive_status}
+                                    onChange={handleChange}
+                                    className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
+                                >
+                                    <option value="">Selecione...</option>
+                                    <option value="Touro">Touro</option>
+                                    <option value="Matriz">Matriz</option>
+                                    <option value="Matriz Parida">Matriz Parida</option>
+                                    <option value="Matriz Prenha">Matriz Prenha</option>
+                                    <option value="Doadora">Doadora</option>
+                                    <option value="Sêmen">Sêmen</option>
+                                    <option value="Embrião">Embrião</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>

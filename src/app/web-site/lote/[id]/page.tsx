@@ -236,6 +236,12 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             <span className="text-gray-500 font-medium">Raça</span>
                             <p className="text-gray-900 font-semibold text-lg">{product.details.raca}</p>
                         </div>
+                        {'breeder' in product.details && product.details.breeder && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Criador</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.breeder}</p>
+                            </div>
+                        )}
                         {'nascimento' in product.details && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Nascimento</span>
