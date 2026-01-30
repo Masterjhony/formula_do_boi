@@ -34,11 +34,12 @@ export default async function MyAdsPage() {
             .order('created_at', { ascending: false })
 
         if (data) {
-            products = data.filter(product =>
-                product.details &&
-                product.details.breeder &&
-                product.details.breeder.toLowerCase() === breederName.toLowerCase()
-            )
+            products = data.filter(product => {
+                if (!product.details) return false;
+
+                const productBreeder = product.details.breeder || product.details.proprietario;
+                return productBreeder && productBreeder.toLowerCase() === breederName.toLowerCase();
+            });
         }
     }
 

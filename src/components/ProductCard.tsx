@@ -28,6 +28,7 @@ interface ProductProps {
         reproductive_status?: string;
         tipo?: string;
         breeder?: string;
+        proprietario?: string;
         pdf?: string;
     };
 }
@@ -133,9 +134,9 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider border border-gray-200 px-2 py-0.5 rounded-full">
                         {product.category}
                     </span>
-                    {product.details?.breeder && (
+                    {(product.details?.breeder || product.details?.proprietario) && (
                         <span className="text-[10px] font-bold text-brand-gold uppercase tracking-wider border border-brand-gold/20 px-2 py-0.5 rounded-full bg-brand-gold/5 truncate max-w-[120px]">
-                            {product.details.breeder}
+                            {product.details?.breeder || product.details?.proprietario}
                         </span>
                     )}
                 </div>
