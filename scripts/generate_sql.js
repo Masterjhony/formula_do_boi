@@ -40,8 +40,8 @@ bulls.forEach(bull => {
         criador: "GSOL"
     };
 
-    const price = 0; // Consultar
-    const installments = "Consultar";
+    const price = 12000;
+    const installments = "À Vista";
 
     sql += `INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
@@ -53,14 +53,18 @@ bulls.forEach(bull => {
     'venda_direta',
     'retira_fazenda',
     'a_vista',
-    'Aripuanã - MT', -- Default location for GSOL or unknown? Using generic.
+    'Jordania - MG',
     '${bull.video}',
     ARRAY['${bull.video}'],
     ${price},
     '${installments}',
     'NOVO',
     '${JSON.stringify(details)}'::jsonb
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+    price = EXCLUDED.price,
+    installments = EXCLUDED.installments,
+    location = EXCLUDED.location,
+    forma_pagamento = EXCLUDED.forma_pagamento;
 
 `;
 });
