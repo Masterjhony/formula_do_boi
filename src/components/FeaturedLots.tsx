@@ -1,7 +1,10 @@
+"use client";
+
 import ProductCard from "./ProductCard";
 import Link from "next/link";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { EMBRYOS } from "../data/embryos";
+import { useState, useEffect } from "react";
 
 interface FeaturedLotsProps {
     products: any[];
@@ -16,13 +19,31 @@ export default function FeaturedLots({ products }: FeaturedLotsProps) {
     });
     const uniqueItems = Array.from(uniqueItemsMap.values());
 
-    // Filter for Bulls (Touros)
-    // Assuming 'Touro' or 'Bezerro' or 'Garrote' might be in category or name, or just exclude Matriz/Embriao/Seman
-    // Based on TourosClient, it filters: !p.category?.includes('Matriz') && p.category !== 'Sêmen' && p.category !== 'Embrião'
+    // Filter for Embriões only
     const featuredProducts = uniqueItems
-        .filter(p => !p.category?.includes('Matriz') && p.category !== 'Sêmen' && p.category !== 'Embrião')
+        .filter(p => p.category === 'Embrião')
         .sort((a, b) => a.id - b.id)
         .slice(0, 4);
+
+    // Carousel Logic
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    const nextSlide = () => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % featuredProducts.length);
+    };
+
+    const prevSlide = () => {
+        setCurrentIndex((prevIndex) => (prevIndex - 1 + featuredProducts.length) % featuredProducts.length);
+    };
+
+    // Auto-play
+    useEffect(() => {
+        const interval = setInterval(() => {
+            nextSlide();
+        }, 5000); // Change slide every 5 seconds
+
+        return () => clearInterval(interval);
+    }, [featuredProducts.length]);
 
     return (
         <section className="py-16 bg-[#0a0a0a] relative overflow-hidden">
@@ -41,21 +62,66 @@ export default function FeaturedLots({ products }: FeaturedLotsProps) {
                             Genética em <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200">Destaque</span>
                         </h2>
                         <p className="text-gray-400 max-w-xl">
-                            Seleção exclusiva dos melhores animais disponíveis para negociação direta.
-                            Genética, raça e qualidade garantida.
+                            Seleção exclusiva dos melhores embriões disponíveis para negociação.
                         </p>
                     </div>
 
-                    <Link href="/touros" className="group flex items-center gap-2 text-white font-semibold hover:text-brand-gold transition-colors">
-                        Ver todos os Touros
+                    <Link href="/embrioes" className="group flex items-center gap-2 text-white font-semibold hover:text-brand-gold transition-colors">
+                        Ver todos os Embriões
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Desktop Grid */}
+                <div className="hidden lg:grid grid-cols-4 gap-6">
                     {featuredProducts.map((product) => (
                         <ProductCard key={product.id} product={product} featured={true} />
                     ))}
+                </div>
+
+                {/* Mobile Carousel */}
+                <div className="lg:hidden relative">
+                    <div className="overflow-hidden">
+                        <div
+                            className="flex transition-transform duration-500 ease-in-out"
+                            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+                        >
+                            {featuredProducts.map((product) => (
+                                <div key={product.id} className="w-full flex-shrink-0 px-2 box-border">
+                                    <ProductCard product={product} featured={true} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Navigation Arrows */}
+                    <button
+                        onClick={prevSlide}
+                        className="absolute top-1/2 left-0 -translate-y-1/2 -ml-2 p-2 bg-brand-black/50 hover:bg-brand-black/80 text-white rounded-full backdrop-blur-sm transition-all z-20"
+                        aria-label="Previous slide"
+                    >
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                        onClick={nextSlide}
+                        className="absolute top-1/2 right-0 -translate-y-1/2 -mr-2 p-2 bg-brand-black/50 hover:bg-brand-black/80 text-white rounded-full backdrop-blur-sm transition-all z-20"
+                        aria-label="Next slide"
+                    >
+                        <ChevronRight className="w-6 h-6" />
+                    </button>
+
+                    {/* Dots Indicators */}
+                    <div className="flex justify-center gap-2 mt-6">
+                        {featuredProducts.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => setCurrentIndex(index)}
+                                className={`w-2 h-2 rounded-full transition-all ${index === currentIndex ? "bg-brand-gold w-6" : "bg-white/30"
+                                    }`}
+                                aria-label={`Go to slide ${index + 1}`}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
         </section>

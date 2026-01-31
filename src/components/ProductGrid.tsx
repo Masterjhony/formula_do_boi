@@ -17,6 +17,11 @@ export default function ProductGrid({ products }: ProductGridProps) {
     const uniqueItems = Array.from(uniqueItemsMap.values());
 
     // Filter categories
+    const touros = uniqueItems
+        .filter(p => !p.category?.includes('Matriz') && p.category !== 'Sêmen' && p.category !== 'Embrião')
+        .sort((a, b) => a.id - b.id)
+        .slice(0, 4);
+
     const matrizes = uniqueItems
         .filter(p => p.category?.includes('Matriz'))
         .sort((a, b) => a.id - b.id)
@@ -27,21 +32,16 @@ export default function ProductGrid({ products }: ProductGridProps) {
         .sort((a, b) => a.id - b.id)
         .slice(0, 4);
 
-    const semen = uniqueItems
-        .filter(p => p.category === 'Sêmen')
-        .sort((a, b) => a.id - b.id)
-        .slice(0, 4);
-
     const renderSection = (title: string, items: any[], link: string, linkText: string) => {
         if (items.length === 0) return null;
         return (
             <div className="mb-16 last:mb-0">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-b border-gray-200 pb-4">
+                <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-8 gap-4 border-b border-gray-200 pb-4 text-center md:text-left">
                     <div>
                         <h3 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">
                             {title}
                         </h3>
-                        <div className="h-1 w-12 bg-brand-gold mt-2 rounded-full"></div>
+                        <div className="h-1 w-12 bg-brand-gold mt-2 rounded-full mx-auto md:mx-0"></div>
                     </div>
                     <Link
                         href={link}
@@ -73,9 +73,9 @@ export default function ProductGrid({ products }: ProductGridProps) {
                     </p>
                 </div>
 
+                {renderSection("Touros", touros, "/touros", "Ver todos os Touros")}
                 {renderSection("Matrizes", matrizes, "/matrizes", "Ver todas as Matrizes")}
                 {renderSection("Embriões", embrioes, "/embrioes", "Ver todos os Embriões")}
-                {renderSection("Sêmen", semen, "/semen", "Ver todo Sêmen")}
             </div>
         </section>
     );
