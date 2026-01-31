@@ -1,4 +1,4 @@
-import { getProductsServer } from "@/services/products";
+import { getProductsServer } from "@/services/products.server";
 import MatrizesClient from "./MatrizesClient";
 
 export default async function MatrizesPage() {

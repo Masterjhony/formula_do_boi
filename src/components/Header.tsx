@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Search, User, Menu, X, LogIn } from "lucide-react";
+import { User, Menu, X, LogIn } from "lucide-react";
 import { useState } from "react";
+import SearchBar from "./SearchBar";
 
 const navItems = [
     { href: "/", label: "Início" },
@@ -44,16 +45,7 @@ export default function Header() {
 
                     {/* Search Bar - Desktop */}
                     <div className="hidden md:flex flex-1 max-w-lg mx-8">
-                        <div className="relative w-full group">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-brand-gold/20 p-1.5 rounded-full">
-                                <Search className="w-4 h-4 text-brand-gold" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="O que você está procurando?"
-                                className="w-full pl-14 pr-4 py-3 bg-white/5 border-2 border-brand-gold/30 rounded-full focus:outline-none focus:border-brand-gold focus:bg-white/10 transition-all text-sm text-white placeholder:text-gray-400"
-                            />
-                        </div>
+                        <SearchBar />
                     </div>
 
                     {/* Right Actions */}
@@ -99,15 +91,8 @@ export default function Header() {
                 <div className="lg:hidden bg-[#0a0a0a] border-t border-white/10 absolute w-full left-0 animate-in slide-in-from-top-2 shadow-xl">
                     <div className="container mx-auto px-4 py-4 flex flex-col gap-2">
                         {/* Mobile Search */}
-                        <div className="relative w-full mb-4">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-brand-gold/20 p-1.5 rounded-full">
-                                <Search className="w-4 h-4 text-brand-gold" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="O que você está procurando?"
-                                className="w-full pl-14 pr-4 py-3 bg-white/5 border-2 border-brand-gold/30 rounded-full text-white placeholder:text-gray-400"
-                            />
+                        <div className="mb-4">
+                            <SearchBar />
                         </div>
 
                         {/* Mobile Nav Items */}

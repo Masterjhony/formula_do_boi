@@ -4,7 +4,7 @@ import { MapPin, Share2, Heart, Clock, ShieldCheck, ArrowRight } from "lucide-re
 import Link from "next/link";
 // import { PRODUCTS } from "@/data/products"; // Using DB now
 import { EMBRYOS } from "@/data/embryos";
-import { getProductById } from "@/services/products";
+import { getProductById } from "@/services/products.server";
 
 export default async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
