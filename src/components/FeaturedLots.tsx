@@ -66,10 +66,7 @@ export default function FeaturedLots({ products }: FeaturedLotsProps) {
                         </p>
                     </div>
 
-                    <Link href="/embrioes" className="group flex items-center gap-2 text-white font-semibold hover:text-brand-gold transition-colors">
-                        Ver todos os Embriões
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+
                 </div>
 
                 {/* Desktop Grid */}
