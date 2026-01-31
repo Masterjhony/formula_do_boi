@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -10,6 +11,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Fórmula do Boi | Comercialização de Nelore PO",
   description: "O melhor da genética Nelore.",
+  manifest: "/manifest.webmanifest",
   openGraph: {
     title: "Fórmula do Boi | Comercialização de Nelore PO",
     description: "O melhor da genética Nelore.",
@@ -23,6 +25,11 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  themeColor: "#F4B400",
+};
+
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,6 +41,7 @@ export default function RootLayout({
         className={`${inter.variable} antialiased`}
       >
         {children}
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
