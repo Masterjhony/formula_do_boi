@@ -10,7 +10,7 @@ export default function Footer() {
                     <div className="space-y-6">
                         <div className="flex flex-col items-start">
                             {/* Brand Logo */}
-                            <div className="relative h-16 w-60 lg:h-[72px] lg:w-72 mb-6">
+                            <div className="relative h-24 w-80 lg:h-32 lg:w-96 mb-6">
                                 <img
                                     src="/logo_complete.svg"
                                     alt="Fórmula do Boi"
@@ -23,14 +23,8 @@ export default function Footer() {
                             Conectando criadores a o que há de melhor no agronegócio brasileiro.
                         </p>
                         <div className="flex gap-4">
-                            <a href="#" className="p-2 bg-gray-800 rounded-full hover:bg-brand-gold hover:text-brand-black transition-colors">
+                            <a href="https://www.instagram.com/formuladoboi/" target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 rounded-full hover:bg-brand-gold hover:text-brand-black transition-colors">
                                 <Instagram className="w-5 h-5" />
-                            </a>
-                            <a href="#" className="p-2 bg-gray-800 rounded-full hover:bg-brand-gold hover:text-brand-black transition-colors">
-                                <Facebook className="w-5 h-5" />
-                            </a>
-                            <a href="#" className="p-2 bg-gray-800 rounded-full hover:bg-brand-gold hover:text-brand-black transition-colors">
-                                <Youtube className="w-5 h-5" />
                             </a>
                         </div>
                     </div>
@@ -65,11 +59,11 @@ export default function Footer() {
                         <ul className="space-y-4 text-sm text-gray-400">
                             <li className="flex items-start gap-3">
                                 <Phone className="w-5 h-5 mt-0.5 text-brand-gold" />
-                                <span>(62) 99999-9999<br />(62) 3333-3333</span>
+                                <span>(31) 9414-9161<br />(31) 7565-9900</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <Mail className="w-5 h-5 mt-0.5 text-brand-gold" />
-                                <span>contato@formuladoboi.com.br</span>
+                                <span>formuladoboi@gmail.com</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 mt-0.5 text-brand-gold" />

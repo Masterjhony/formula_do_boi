@@ -23,10 +23,10 @@ export default function Hero() {
 
                     <div className="flex flex-col sm:flex-row gap-6 pt-6 justify-center">
                         <Link
-                            href="/catalogo"
+                            href="/venda-conosco"
                             className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold uppercase tracking-widest text-sm rounded transition-all transform hover:translate-y-[-2px] hover:shadow-lg hover:shadow-brand-gold/20"
                         >
-                            Ver Catálogo
+                            Venda Conosco
                             <ArrowRight className="w-5 h-5" />
                         </Link>
 

@@ -8,11 +8,21 @@ interface FeaturedLotsProps {
 }
 
 export default function FeaturedLots({ products }: FeaturedLotsProps) {
-    // Combine products and embryos for the home page display
-    const allItems = [...EMBRYOS, ...products].filter(p => !p.category.includes('Sêmen'));
+    // Combine products and embryos for the home page display, deduplicating by ID
+    const combinedItems = [...EMBRYOS, ...products];
+    const uniqueItemsMap = new Map();
+    combinedItems.forEach(item => {
+        uniqueItemsMap.set(item.id, item);
+    });
+    const uniqueItems = Array.from(uniqueItemsMap.values());
 
-    // Select the first 4 products as featured (which will be IDs 1, 2, 3, 4)
-    const featuredProducts = allItems.sort((a, b) => a.id - b.id).slice(0, 4);
+    // Filter for Bulls (Touros)
+    // Assuming 'Touro' or 'Bezerro' or 'Garrote' might be in category or name, or just exclude Matriz/Embriao/Seman
+    // Based on TourosClient, it filters: !p.category?.includes('Matriz') && p.category !== 'Sêmen' && p.category !== 'Embrião'
+    const featuredProducts = uniqueItems
+        .filter(p => !p.category?.includes('Matriz') && p.category !== 'Sêmen' && p.category !== 'Embrião')
+        .sort((a, b) => a.id - b.id)
+        .slice(0, 4);
 
     return (
         <section className="py-16 bg-[#0a0a0a] relative overflow-hidden">
@@ -36,8 +46,8 @@ export default function FeaturedLots({ products }: FeaturedLotsProps) {
                         </p>
                     </div>
 
-                    <Link href="/lotes" className="group flex items-center gap-2 text-white font-semibold hover:text-brand-gold transition-colors">
-                        Ver catálogo completo
+                    <Link href="/touros" className="group flex items-center gap-2 text-white font-semibold hover:text-brand-gold transition-colors">
+                        Ver todos os Touros
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                 </div>
