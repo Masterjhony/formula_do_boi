@@ -7,14 +7,14 @@ export default function Footer() {
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
                     {/* Brand Column */}
-                    <div className="space-y-6">
-                        <div className="flex flex-col items-start">
+                    <div className="space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
+                        <div className="flex flex-col items-center md:items-start">
                             {/* Brand Logo */}
                             <div className="relative h-24 w-80 lg:h-32 lg:w-96 mb-6">
                                 <img
                                     src="/logo_complete.svg"
                                     alt="Fórmula do Boi"
-                                    className="h-full w-full object-contain object-left"
+                                    className="h-full w-full object-contain object-center md:object-left"
                                 />
                             </div>
                         </div>
@@ -30,7 +30,7 @@ export default function Footer() {
                     </div>
 
                     {/* Links Column */}
-                    <div>
+                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
                         <h3 className="text-lg font-bold mb-6 text-brand-gold uppercase tracking-wider">Navegação</h3>
                         <ul className="space-y-4 text-sm text-gray-400">
                             <li><Link href="/" className="hover:text-white transition-colors">Início</Link></li>
@@ -42,7 +42,7 @@ export default function Footer() {
                     </div>
 
                     {/* Links Column */}
-                    <div>
+                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
                         <h3 className="text-lg font-bold mb-6 text-brand-gold uppercase tracking-wider">Suporte</h3>
                         <ul className="space-y-4 text-sm text-gray-400">
                             <li><a href="#" className="hover:text-white transition-colors">Como Comprar</a></li>
@@ -54,18 +54,18 @@ export default function Footer() {
                     </div>
 
                     {/* Contact Column */}
-                    <div>
+                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
                         <h3 className="text-lg font-bold mb-6 text-brand-gold uppercase tracking-wider">Contato</h3>
                         <ul className="space-y-4 text-sm text-gray-400">
-                            <li className="flex items-start gap-3">
+                            <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
                                 <Phone className="w-5 h-5 mt-0.5 text-brand-gold" />
                                 <span>(31) 9414-9161<br />(31) 7565-9900</span>
                             </li>
-                            <li className="flex items-start gap-3">
+                            <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
                                 <Mail className="w-5 h-5 mt-0.5 text-brand-gold" />
                                 <span>formuladoboi@gmail.com</span>
                             </li>
-                            <li className="flex items-start gap-3">
+                            <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
                                 <MapPin className="w-5 h-5 mt-0.5 text-brand-gold" />
                                 <span>Av. do Boi, 1000 - Setor Bueno<br />Goiânia - GO</span>
                             </li>
