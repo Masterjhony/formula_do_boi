@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DATA_FILE = path.join(__dirname, '../src/data/bulls_data.json');
-const OUTPUT_SQL = path.join(__dirname, '../migrate_touros.sql');
+const OUTPUT_SQL = path.join(__dirname, '../database/migrate_touros.sql');
 
 const bulls = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
 
