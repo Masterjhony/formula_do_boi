@@ -29,11 +29,20 @@ export default async function DashboardPage() {
     // Calculate ads count roughly by checking if any product matches user name (fetching simple count would be complex without owner_id)
     // For the dashboard summary, we can just fetch all products and filter locally for now or skip the count
     // Optimizing: Let's fetch profile first
+    // Calculate ads count
     const { data: profile } = await supabase.from('profiles').select('name').eq('id', user?.id).single()
     let adsCount = 0
-    if (profile?.name) {
-        // This is heavy but okay for small MVP. 
-        // Ideally create a postgres function or adding owner_id
+
+    // 1. Check by owner_id
+    const { count: ownerAdsCount } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+        .eq('owner_id', user?.id)
+
+    if (ownerAdsCount && ownerAdsCount > 0) {
+        adsCount = ownerAdsCount
+    } else if (profile?.name) {
+        // 2. Fallback check by name
         const { data: allProducts } = await supabase.from('products').select('details')
         if (allProducts) {
             adsCount = allProducts.filter(p => p.details?.breeder?.toLowerCase() === profile.name.toLowerCase()).length

@@ -20,14 +20,20 @@ export default async function MyAdsPage() {
 
     const breederName = profile?.name
 
-    // Fetch products where breeder matches user name
-    // Note: This relies on the convention that breeder name in details matches the user profile name
-    // In a future refactor, we should add an owner_id column to products
+    // Fetch products
     let products: any[] = []
 
-    if (breederName) {
-        // We need to fetch all products and filter in application because details->>breeder is inside a jsonb column
-        // depending on supabase setup, we might be able to query directly, but let's fetch active products first
+    // 1. Try fetching by owner_id first (Best practice)
+    const { data: productsByOwner } = await supabase
+        .from('products')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (productsByOwner && productsByOwner.length > 0) {
+        products = productsByOwner;
+    } else if (breederName) {
+        // 2. Fallback: Fetch by breeder name match (Legacy/Name-based)
         const { data } = await supabase
             .from('products')
             .select('*')
@@ -36,7 +42,6 @@ export default async function MyAdsPage() {
         if (data) {
             products = data.filter(product => {
                 if (!product.details) return false;
-
                 const productBreeder = product.details.breeder || product.details.proprietario;
                 return productBreeder && productBreeder.toLowerCase() === breederName.toLowerCase();
             });
