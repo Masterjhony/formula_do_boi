@@ -2,7 +2,15 @@
 -- UPDATE R3 BULLS PRICES AND CONDITIONS (CORRECTED)
 -- ==============================================================================
 
--- 1. RELUTANTE RJ DA R3 (RJPS 579)
+-- 1. QUINCAS RJ DA R3 (RJPS 556)
+UPDATE public.products 
+SET 
+    price = 18000,
+    installments = '600,00',
+    forma_pagamento = '30x'
+WHERE name = 'QUINCAS RJ DA R3';
+
+-- 2. RELUTANTE RJ DA R3 (RJPS 579)
 UPDATE public.products 
 SET 
     price = 18000,
