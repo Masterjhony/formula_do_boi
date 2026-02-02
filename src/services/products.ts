@@ -17,6 +17,7 @@ export interface Product {
     installments: string;
     tag: string;
     details: any;
+    video_object_position?: string;
     old_id?: number;
 }
 

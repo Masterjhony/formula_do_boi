@@ -19,7 +19,12 @@ export default function ProductGrid({ products }: ProductGridProps) {
 
     // Filter categories
     const touros = uniqueItems
-        .filter(p => !p.category?.includes('Matriz') && p.category !== 'Sêmen' && p.category !== 'Embrião')
+        .filter(p =>
+            !p.category?.includes('Matriz') &&
+            p.category !== 'Sêmen' &&
+            p.category !== 'Embrião' &&
+            (p.details?.breeder === 'R3' || p.name.includes('R3') || p.name.includes('RJPS'))
+        )
         .sort((a, b) => a.id - b.id)
         .slice(0, 4);
 

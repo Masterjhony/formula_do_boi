@@ -15,6 +15,7 @@ interface ProductProps {
     price: string;
     tag?: string;
     forma_pagamento?: string; // Added field
+    video_object_position?: string;
     details?: {
         registro?: string;
         raca?: string;
@@ -101,6 +102,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                                 playsInline
                                 preload="none"
                                 className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                                style={{ objectPosition: product.video_object_position || 'center center' }}
                             />
                             {/* Play Icon Overlay - Visible when paused/not hovered */}
                             <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
