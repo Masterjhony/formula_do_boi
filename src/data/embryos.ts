@@ -13,8 +13,8 @@ export const EMBRYOS = [
             "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224979/trufa_gz0wpf.mp4",
             "/cattle/boi_01.jpg",
         ],
-        price: "Consultar",
-        installments: "Consultar",
+        price: "1.200,00",
+        installments: "40,00",
         tag: "DESTAQUE",
         details: {
             registro: "RGD 1234",
@@ -85,14 +85,14 @@ export const EMBRYOS = [
         classificacao: "matriz",
         modalidade: "venda_direta",
         logistica: "frete_gratis",
-        forma_pagamento: "parcelado_12x",
+        forma_pagamento: "parcelado_30x",
         location: "Uberlândia - MG",
         image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224964/dandara_nwmjkr.mp4",
         gallery: [
             "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224964/dandara_nwmjkr.mp4"
         ],
-        price: "22.500,00",
-        installments: "1.875,00",
+        price: "1.100,00",
+        installments: "36,66",
         tag: "PREMIUM",
         details: {
             registro: "EAJR 2",
@@ -111,14 +111,14 @@ export const EMBRYOS = [
         classificacao: "matriz",
         modalidade: "leilao",
         logistica: "frete_compartilhado",
-        forma_pagamento: "parcelado_36x",
+        forma_pagamento: "parcelado_30x",
         location: "Barretos - SP",
         image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/fada_vg580y.mp4",
         gallery: [
             "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/fada_vg580y.mp4"
         ],
-        price: "Consultar",
-        installments: "Consultar",
+        price: "1.500,00",
+        installments: "50,00",
         tag: "LEILÃO",
         details: {
             registro: "IBIZ 2331",
@@ -154,6 +154,32 @@ export const EMBRYOS = [
             mae: "FRANÇA 1",
             peso: "510 kg",
             comentario: "Novilha de pista, morfologia impecável."
+        }
+    },
+    {
+        id: 20,
+        name: "MEDUZA",
+        category: "Embrião",
+        classificacao: "matriz",
+        modalidade: "venda_direta",
+        logistica: "frete_compartilhado",
+        forma_pagamento: "parcelado_30x",
+        location: "Uberaba - MG",
+        image: "/cattle/boi_01.jpg",
+        gallery: [
+            "/cattle/boi_01.jpg"
+        ],
+        price: "1.700,00",
+        installments: "56,66",
+        tag: "NOVO",
+        details: {
+            registro: "MED 1234",
+            raca: "Nelore",
+            nascimento: "01/01/2021",
+            pai: "BERRANTE",
+            mae: "MEDUZA",
+            peso: "Sob Consulta",
+            comentario: "Excelente animal."
         }
     },
     {
