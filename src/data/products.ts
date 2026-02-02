@@ -228,7 +228,7 @@ export const PRODUCTS = [
         modalidade: "venda_direta",
         logistica: "retira_fazenda",
         forma_pagamento: "a_vista",
-        location: "Cumaru do Norte - PA", // From PDF
+        location: "João Pinheiro-MG", // From PDF
         image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769524792/MFRA_11112_tes647.mp4",
         gallery: [
             "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769524792/MFRA_11112_tes647.mp4"
@@ -248,6 +248,7 @@ export const PRODUCTS = [
             status: "Touro",
             tipo: "Touro",
             comentario: "Touro PO com iABCZ 13.60 (Deca 2).",
+            breeder: "Arthur Couto",
             pdf: "/MFRA 11112.pdf"
         }
     },
@@ -259,7 +260,7 @@ export const PRODUCTS = [
         modalidade: "venda_direta",
         logistica: "retira_fazenda",
         forma_pagamento: "a_vista",
-        location: "Cumaru do Norte - PA",
+        location: "João Pinheiro-MG",
         image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769524791/MFRA_10622_mno6vk.mp4",
         gallery: [
             "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769524791/MFRA_10622_mno6vk.mp4"
@@ -279,7 +280,72 @@ export const PRODUCTS = [
             status: "Touro",
             tipo: "Touro",
             comentario: "Touro PO de excelente linhagem.",
+            breeder: "Arthur Couto",
             pdf: "/MFRA 10622.pdf"
+        }
+    },
+    {
+        id: 16,
+        name: "REVOLUCAO RJ DA R3",
+        category: "Touro PO",
+        classificacao: "touro",
+        modalidade: "venda_direta",
+        logistica: "retira_fazenda",
+        forma_pagamento: "30x",
+        location: "Itacarambi - MG",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770064377/RJPS592_chsa3f.mp4",
+        gallery: [
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770064377/RJPS592_chsa3f.mp4"
+        ],
+        price: "18.000,00",
+        installments: "600,00",
+        tag: "Vendido",
+        details: {
+            registro: "RJPS 592",
+            raca: "Nelore",
+            nascimento: "", // To be filled from PDF if possible, empty for now
+            pai: "",
+            mae: "",
+            peso: "Sob Consulta",
+            mgte: "Sob Consulta",
+            top: "",
+            status: "Vendido",
+            tipo: "Touro",
+            comentario: "Touro PO R3.",
+            breeder: "R3",
+            pdf: "/RJPS592.pdf"
+        }
+    },
+    {
+        id: 17,
+        name: "RISPIDO FIV RJ DA R3",
+        category: "Touro PO",
+        classificacao: "touro",
+        modalidade: "venda_direta",
+        logistica: "retira_fazenda",
+        forma_pagamento: "30x",
+        location: "Itacarambi - MG",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770064378/RJPS603_e7h96q.mp4",
+        gallery: [
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770064378/RJPS603_e7h96q.mp4"
+        ],
+        price: "18.000,00",
+        installments: "600,00",
+        tag: "Vendido",
+        details: {
+            registro: "RJPS 603",
+            raca: "Nelore",
+            nascimento: "",
+            pai: "",
+            mae: "",
+            peso: "Sob Consulta",
+            mgte: "Sob Consulta",
+            top: "",
+            status: "Vendido",
+            tipo: "Touro",
+            comentario: "Touro PO R3.",
+            breeder: "R3",
+            pdf: "/RJPS603.pdf"
         }
     }
 ];

@@ -89,6 +89,9 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     {product.details?.registro || animalCode}
                 </div>
 
+                {/* Sold Overlay */}
+
+
                 <div className="w-full h-full relative flex items-center justify-center bg-black">
                     {/* Check if image is a video */}
                     {product.image?.endsWith('.mp4') ? (
@@ -128,10 +131,10 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         <Info className="w-5 h-5" />
                     </div>
                 </div>
-            </Link>
+            </Link >
 
             {/* Content */}
-            <div className="p-5 flex flex-col flex-1">
+            < div className="p-5 flex flex-col flex-1" >
                 <div className="mb-2 flex items-center gap-2">
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider border border-gray-200 px-2 py-0.5 rounded-full">
                         {product.category}
@@ -139,6 +142,11 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     {(product.details?.breeder || product.details?.proprietario) && (
                         <span className="text-[10px] font-bold text-brand-gold uppercase tracking-wider border border-brand-gold/20 px-2 py-0.5 rounded-full bg-brand-gold/5 truncate max-w-[120px]">
                             {product.details?.breeder || product.details?.proprietario}
+                        </span>
+                    )}
+                    {(product.tag === 'Vendido' || product.details?.status === 'Vendido') && (
+                        <span className="text-[10px] font-bold text-white bg-gray-900 uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
+                            VENDIDO
                         </span>
                     )}
                 </div>
@@ -155,47 +163,49 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                 </div>
 
                 {/* Technical Details Mini-Sheet */}
-                {product.details && (product.details.pai || product.details.mae) && (
-                    <div className="mb-4 bg-gray-50 rounded-lg p-2 text-xs border border-gray-100">
-                        <div className="grid grid-cols-2 gap-y-1 gap-x-2">
-                            {product.details.registro && (
-                                <div className="col-span-2 flex justify-between border-b border-gray-200 pb-1 mb-1">
-                                    <span className="text-gray-400">RGD</span>
-                                    <span className="font-semibold text-gray-700">{product.details.registro}</span>
-                                </div>
-                            )}
-                            {product.details.pai && (
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] text-gray-400 uppercase">Pai</span>
-                                    <span className="font-semibold text-gray-900 truncate" title={product.details.pai}>{product.details.pai}</span>
-                                </div>
-                            )}
-                            {product.details.mae && (
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] text-gray-400 uppercase">Mãe</span>
-                                    <span className="font-semibold text-gray-900 truncate" title={product.details.mae}>{product.details.mae}</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Extra Details for Matrizes */}
-                        {(product.details.mgte || product.details.status) && (
-                            <div className="mt-2 pt-2 border-t border-gray-200 grid grid-cols-1 gap-1">
-                                {product.details.mgte && (
-                                    <div className="flex justify-between items-center text-[10px]">
-                                        <span className="font-bold text-gray-500 uppercase">MGTe</span>
-                                        <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.details.mgte}</span>
+                {
+                    product.details && (product.details.pai || product.details.mae) && (
+                        <div className="mb-4 bg-gray-50 rounded-lg p-2 text-xs border border-gray-100">
+                            <div className="grid grid-cols-2 gap-y-1 gap-x-2">
+                                {product.details.registro && (
+                                    <div className="col-span-2 flex justify-between border-b border-gray-200 pb-1 mb-1">
+                                        <span className="text-gray-400">RGD</span>
+                                        <span className="font-semibold text-gray-700">{product.details.registro}</span>
                                     </div>
                                 )}
-                                {product.details.status && (
-                                    <div className="text-[10px] text-gray-600 italic">
-                                        {product.details.status}
+                                {product.details.pai && (
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-gray-400 uppercase">Pai</span>
+                                        <span className="font-semibold text-gray-900 truncate" title={product.details.pai}>{product.details.pai}</span>
+                                    </div>
+                                )}
+                                {product.details.mae && (
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-gray-400 uppercase">Mãe</span>
+                                        <span className="font-semibold text-gray-900 truncate" title={product.details.mae}>{product.details.mae}</span>
                                     </div>
                                 )}
                             </div>
-                        )}
-                    </div>
-                )}
+
+                            {/* Extra Details for Matrizes */}
+                            {(product.details.mgte || product.details.status) && (
+                                <div className="mt-2 pt-2 border-t border-gray-200 grid grid-cols-1 gap-1">
+                                    {product.details.mgte && (
+                                        <div className="flex justify-between items-center text-[10px]">
+                                            <span className="font-bold text-gray-500 uppercase">MGTe</span>
+                                            <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.details.mgte}</span>
+                                        </div>
+                                    )}
+                                    {product.details.status && (
+                                        <div className="text-[10px] text-gray-600 italic">
+                                            {product.details.status}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
 
                 <div className="mt-auto border-t border-gray-50 pt-4">
                     <div className="flex flex-col">
@@ -263,7 +273,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         </a>
                     )}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
