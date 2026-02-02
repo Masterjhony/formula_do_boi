@@ -26,58 +26,8 @@ export const EMBRYOS = [
             comentario: "Doadora de exceção, com produção comprovada. Animal de pista."
         }
     },
-    {
-        id: 2,
-        name: "VANEZA MUN 4611",
-        category: "Matriz PO",
-        classificacao: "matriz",
-        modalidade: "venda_direta",
-        logistica: "frete_compartilhado",
-        forma_pagamento: "parcelado_24x",
-        location: "Goiânia - GO",
-        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224979/vaneza_yfeis7.mp4",
-        gallery: [
-            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224979/vaneza_yfeis7.mp4"
-        ],
-        price: "18.000,00",
-        installments: "600,00",
-        tag: "OPORTUNIDADE",
-        details: {
-            registro: "MUN 4611",
-            raca: "Nelore",
-            nascimento: "15/03/2021",
-            pai: "REM ARMADOR",
-            mae: "VANEZA FIV",
-            peso: "650 kg",
-            comentario: "Fêmea jovem, muito equilibrada e fértil."
-        }
-    },
-    {
-        id: 3,
-        name: "AMORA AQMJ 3422",
-        category: "Novilha PO",
-        classificacao: "reposicao",
-        modalidade: "venda_fixa",
-        logistica: "retira_fazenda",
-        forma_pagamento: "a_vista",
-        location: "Campo Grande - MS",
-        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/amora_lpw1xx.mp4",
-        gallery: [
-            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/amora_lpw1xx.mp4"
-        ],
-        price: "12.000,00",
-        installments: "12.000,00",
-        tag: "NOVIDADE",
-        details: {
-            registro: "AQMJ 3422",
-            raca: "Nelore",
-            nascimento: "20/08/2022",
-            pai: "LANDAU DA DI GENIO",
-            mae: "AMORA FIV",
-            peso: "480 kg",
-            comentario: "Novilha de futuro, pronta para estação de monta."
-        }
-    },
+
+
     {
         id: 4,
         name: "DANDARA EAJR 2",
@@ -130,32 +80,7 @@ export const EMBRYOS = [
             comentario: "Doadora de alta produção de embriões."
         }
     },
-    {
-        id: 6,
-        name: "FRANÇA EAJR 7",
-        category: "Novilha",
-        classificacao: "reposicao",
-        modalidade: "venda_direta",
-        logistica: "frete_gratis",
-        forma_pagamento: "parcelado_24x",
-        location: "Cuiabá - MT",
-        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224980/franca_ga4fbt.mp4",
-        gallery: [
-            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224980/franca_ga4fbt.mp4"
-        ],
-        price: "15.000,00",
-        installments: "625,00",
-        tag: "TOP",
-        details: {
-            registro: "EAJR 7",
-            raca: "Nelore",
-            nascimento: "05/01/2022",
-            pai: "REM USP",
-            mae: "FRANÇA 1",
-            peso: "510 kg",
-            comentario: "Novilha de pista, morfologia impecável."
-        }
-    },
+
     {
         id: 20,
         name: "MEDUZA",
