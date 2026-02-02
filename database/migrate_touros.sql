@@ -140,6 +140,7 @@ INSERT INTO public.products (
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -162,7 +163,9 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -185,7 +188,9 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -208,7 +213,9 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -231,6 +238,7 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
@@ -278,6 +286,7 @@ INSERT INTO public.products (
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -300,7 +309,9 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -323,6 +334,7 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
@@ -347,6 +359,7 @@ INSERT INTO public.products (
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -369,7 +382,9 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -392,7 +407,9 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -415,6 +432,7 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
@@ -485,6 +503,7 @@ INSERT INTO public.products (
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
 
+/*
 INSERT INTO public.products (
     id, name, category, classificacao, modalidade, logistica, forma_pagamento, location, image_url, gallery, price, installments, tag, details
 ) OVERRIDING SYSTEM VALUE VALUES (
@@ -507,4 +526,5 @@ INSERT INTO public.products (
     installments = EXCLUDED.installments,
     location = EXCLUDED.location,
     forma_pagamento = EXCLUDED.forma_pagamento;
+*/
 

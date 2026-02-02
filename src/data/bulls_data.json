@@ -77,17 +77,6 @@
     "mgte": ""
   },
   {
-    "rgd": "GSOL1566",
-    "video": "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769796980/GSOL1566_utzvxc.mp4",
-    "pdf": "/GSOL1566.pdf",
-    "name": "UNICO",
-    "pai": "",
-    "mae": "",
-    "nascimento": "14/09/2023",
-    "iabcz": "",
-    "mgte": ""
-  },
-  {
     "rgd": "GSOL1571",
     "video": "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769796980/GSOL1571_gvdzig.mp4",
     "pdf": "/GSOL1571.pdf",
@@ -165,32 +154,10 @@
     "mgte": ""
   },
   {
-    "rgd": "NAJ0062",
-    "video": "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769796992/NAJ0062_ctat4b.mp4",
-    "pdf": "/NAJ0062.pdf",
-    "name": "GUTO DA NAJ",
-    "pai": "",
-    "mae": "",
-    "nascimento": "20/12/2023",
-    "iabcz": "",
-    "mgte": ""
-  },
-  {
     "rgd": "NAJ0071",
     "video": "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769796995/NAJ0071_er1ghq.mp4",
     "pdf": "/NAJ0071.pdf",
     "name": "LUCIO DA NAJ",
-    "pai": "",
-    "mae": "",
-    "nascimento": "20/12/2023",
-    "iabcz": "",
-    "mgte": ""
-  },
-  {
-    "rgd": "NAJ0078",
-    "video": "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769797000/NAJ0078_idonsj.mp4",
-    "pdf": "/NAJ0078.pdf",
-    "name": "GOEL DA NAJ",
     "pai": "",
     "mae": "",
     "nascimento": "20/12/2023",
@@ -227,17 +194,6 @@
     "pai": "",
     "mae": "",
     "nascimento": "01/02/2024",
-    "iabcz": "",
-    "mgte": ""
-  },
-  {
-    "rgd": "NAJ104",
-    "video": "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769797002/NAJ104_zs6h1d.mp4",
-    "pdf": "/NAJ104.pdf",
-    "name": "PIETRO DA NAJ",
-    "pai": "",
-    "mae": "",
-    "nascimento": "20/12/2023",
     "iabcz": "",
     "mgte": ""
   }
