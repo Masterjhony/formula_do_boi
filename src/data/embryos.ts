@@ -90,21 +90,22 @@ export const EMBRYOS = [
         logistica: "frete_compartilhado",
         forma_pagamento: "parcelado_30x",
         location: "Uberaba - MG",
-        image: "/cattle/boi_01.jpg",
+        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770078735/SYA537_f8ahhu.mp4",
         gallery: [
-            "/cattle/boi_01.jpg"
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770078735/SYA537_f8ahhu.mp4"
         ],
         price: "1.700,00",
         installments: "56,66",
-        tag: "NOVO",
+        tag: "DESTAQUE",
         details: {
-            registro: "MED 1234",
+            registro: "SYA 537",
             raca: "Nelore",
             nascimento: "01/01/2021",
             pai: "BERRANTE",
             mae: "MEDUZA",
             peso: "Sob Consulta",
-            comentario: "Excelente animal."
+            comentario: "Excelente animal.",
+            pdf: "/SYA537.pdf"
         }
     },
     {
