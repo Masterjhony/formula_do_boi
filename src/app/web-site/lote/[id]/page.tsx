@@ -5,6 +5,74 @@ import Link from "next/link";
 // import { PRODUCTS } from "@/data/products"; // Using DB now
 import { EMBRYOS } from "@/data/embryos";
 import { getProductById } from "@/services/products.server";
+import { Metadata, ResolvingMetadata } from "next";
+
+type Props = {
+    params: Promise<{ id: string }>
+}
+
+export async function generateMetadata(
+    { params }: Props,
+    parent: ResolvingMetadata
+): Promise<Metadata> {
+    const { id } = await params;
+
+    // fetch data
+    const numericId = Number(id);
+    let product: any = await getProductById(numericId);
+
+    // If not found in DB, check static EMBRYOS
+    if (!product) {
+        product = EMBRYOS.find((p) => p.id === numericId);
+    }
+
+    if (!product) {
+        return {
+            title: 'Lote não encontrado | Fórmula do Boi',
+            description: 'O lote que você procura não foi encontrado.'
+        }
+    }
+
+    // Determine the image to use for preview
+    // If product.image is a video (.mp4), try to use the first gallery image
+    let previewImage = product.image;
+    if (previewImage && previewImage.endsWith('.mp4')) {
+        if (product.gallery && product.gallery.length > 0) {
+            previewImage = product.gallery[0];
+        } else {
+            // Fallback if no gallery image is available. 
+            // In a real scenario, you might want a specific placeholder for video-only lots.
+            // For now, we keep the video URL (some platforms might fetch a thumbnail) or use a default.
+            previewImage = 'https://app.formuladoboi.com/icon.png'; // Fallback to app icon or similar if strictly needed
+        }
+    }
+
+    // fallback to a default image if still empty (optional)
+    const images = previewImage ? [previewImage] : [];
+
+    const title = `Lote ${product.id} | ${product.name} - Fórmula do Boi`;
+    const description = `Confira ${product.name}, ${product.details?.raca || 'Nelore PO'} localizado em ${product.location}. ${product.details?.breeder ? `Criador: ${product.details.breeder}.` : ''} Aproveite essa oportunidade!`;
+
+    return {
+        title: title,
+        description: description,
+        openGraph: {
+            title: `Lote ${product.id} | ${product.name} - Fórmula do Boi`,
+            description: description,
+            url: `https://app.formuladoboi.com/lote/${product.id}`,
+            siteName: 'Fórmula do Boi',
+            images: images,
+            locale: 'pt_BR',
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: title,
+            description: description,
+            images: images,
+        }
+    }
+}
 
 export default async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
