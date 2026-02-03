@@ -110,7 +110,7 @@ export const EMBRYOS = [
     },
     {
         id: 102,
-        name: "Dose de Sêmen - LANDROVER",
+        name: "Dose de Sêmen - WOLVERINE DA MYO",
         category: "Sêmen",
         location: "Central Genex",
         image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770078928/boi_semen_dffkyz.mp4",
@@ -123,7 +123,7 @@ export const EMBRYOS = [
         details: {
             raca: "Nelore",
             tipo: "Sêmen Convencional",
-            pai: "LANDROVER",
+            pai: "WOLVERINE DA MYO",
             mae: "DA XARAES",
             comentario: "Touro com excelente avaliação de carcaça e desempenho. Ideal para rebanhos comerciais e puros."
         }
