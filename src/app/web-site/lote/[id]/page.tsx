@@ -49,7 +49,7 @@ export async function generateMetadata(
 
     // 1. Try to find a static image in the gallery first
     if (product.gallery && product.gallery.length > 0) {
-        const firstImage = product.gallery.find((img: string) => !img.endsWith('.mp4'));
+        const firstImage = product.gallery.find((img: string) => img && !img.endsWith('.mp4'));
         if (firstImage) {
             previewImage = getThumbnail(firstImage);
         }
@@ -180,7 +180,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         <h1 className="text-3xl font-bold text-gray-900 mb-2 uppercase">{product.name}</h1>
                         <div className="flex items-center gap-2 text-gray-500 text-sm mb-6">
                             <span className="font-bold text-gray-900 px-2 py-0.5 bg-gray-100 rounded text-xs">
-                                {'registro' in product.details && product.details.registro ?
+                                {product.details?.registro ?
                                     product.details.registro :
                                     `FB-PO-${product.id.toString().padStart(3, '0')}`}
                             </span>
@@ -291,7 +291,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </div>
 
                             {/* PDF Button if available */}
-                            {'pdf' in product.details && (
+                            {product.details?.pdf && (
                                 <a
                                     href={product.details.pdf}
                                     target="_blank"
@@ -312,7 +312,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                 <div className="mt-12 lg:mt-16 bg-white rounded-xl border border-gray-100 p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-8 border-b border-gray-100 pb-4">Detalhes do Animal</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-sm">
-                        {'registro' in product.details && (
+                        {product.details?.registro && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Registro</span>
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.registro}</p>
@@ -320,21 +320,21 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         )}
                         <div className="space-y-1">
                             <span className="text-gray-500 font-medium">Raça</span>
-                            <p className="text-gray-900 font-semibold text-lg">{product.details.raca}</p>
+                            <p className="text-gray-900 font-semibold text-lg">{product.details?.raca || 'Nelore'}</p>
                         </div>
-                        {(('breeder' in product.details && product.details.breeder) || ('proprietario' in product.details && product.details.proprietario)) && (
+                        {(product.details?.breeder || product.details?.proprietario) && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Criador / Proprietário</span>
-                                <p className="text-gray-900 font-semibold text-lg">{product.details.breeder || product.details.proprietario}</p>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details?.breeder || product.details?.proprietario}</p>
                             </div>
                         )}
-                        {'nascimento' in product.details && (
+                        {product.details?.nascimento && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Nascimento</span>
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.nascimento}</p>
                             </div>
                         )}
-                        {'tipo' in product.details && (
+                        {product.details?.tipo && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Tipo</span>
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.tipo}</p>
@@ -342,25 +342,25 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         )}
                         <div className="space-y-1">
                             <span className="text-gray-500 font-medium">Pai</span>
-                            <p className="text-brand-gold font-bold text-lg">{product.details.pai}</p>
+                            <p className="text-brand-gold font-bold text-lg">{product.details?.pai || '-'}</p>
                         </div>
                         <div className="space-y-1">
                             <span className="text-gray-500 font-medium">Mãe</span>
-                            <p className="text-brand-gold font-bold text-lg">{product.details.mae}</p>
+                            <p className="text-brand-gold font-bold text-lg">{product.details?.mae || '-'}</p>
                         </div>
-                        {'peso' in product.details && (
+                        {product.details?.peso && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Peso</span>
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.peso}</p>
                             </div>
                         )}
-                        {'mgte' in product.details && (
+                        {product.details?.mgte && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Index (MGTe)</span>
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.mgte}</p>
                             </div>
                         )}
-                        {'top' in product.details && (
+                        {product.details?.top && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Top (MGTe)</span>
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.top}</p>
