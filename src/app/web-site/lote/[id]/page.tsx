@@ -33,18 +33,36 @@ export async function generateMetadata(
         }
     }
 
-    // Determine the image to use for preview
-    // If product.image is a video (.mp4), try to use the first gallery image
-    let previewImage = product.image;
-    if (previewImage && previewImage.endsWith('.mp4')) {
-        if (product.gallery && product.gallery.length > 0) {
-            previewImage = product.gallery[0];
-        } else {
-            // Fallback if no gallery image is available. 
-            // In a real scenario, you might want a specific placeholder for video-only lots.
-            // For now, we keep the video URL (some platforms might fetch a thumbnail) or use a default.
-            previewImage = 'https://app.formuladoboi.com/icon.png'; // Fallback to app icon or similar if strictly needed
+    // Helper to get a valid image URL
+    const getThumbnail = (url: string) => {
+        if (!url) return null;
+        if (url.includes('cloudinary.com') && url.endsWith('.mp4')) {
+            return url.replace('.mp4', '.jpg');
         }
+        if (url.endsWith('.mp4')) return null; // Can't use other videos as images
+        if (url.startsWith('/')) return `https://app.formuladoboi.com${url}`;
+        return url;
+    };
+
+    // Determine the image to use for preview
+    let previewImage = null;
+
+    // 1. Try to find a static image in the gallery first
+    if (product.gallery && product.gallery.length > 0) {
+        const firstImage = product.gallery.find((img: string) => !img.endsWith('.mp4'));
+        if (firstImage) {
+            previewImage = getThumbnail(firstImage);
+        }
+    }
+
+    // 2. If no gallery image, try the main product image (converting video to thumb if possible)
+    if (!previewImage && product.image) {
+        previewImage = getThumbnail(product.image);
+    }
+
+    // 3. Fallback if still no image
+    if (!previewImage) {
+        previewImage = 'https://app.formuladoboi.com/icon.png';
     }
 
     // fallback to a default image if still empty (optional)
