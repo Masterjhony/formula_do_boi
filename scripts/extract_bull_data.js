@@ -27,7 +27,18 @@ const videoUrls = [
     "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769796977/GSOL1499_txpcf5.mp4",
     "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769796978/GSOL1506_rixc90.mp4",
     "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769796976/GSOL1443_fwwjhg.mp4",
-    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769796975/GSOL1442_esri7e.mp4"
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769796975/GSOL1442_esri7e.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226314/SINO4365_fulo4l.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226314/SOAL_14785_zoaigv.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226314/SOAL_13550_zufjsb.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226312/SOAL_13851_ermzzx.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226308/MMAR_3853_t1g79m.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226308/NBEM_385_m6wjdy.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226307/FVCP_3834_iyjite.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226306/GSOL382_xih0sz.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226306/ACAC8298_wcmdyb.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226306/ACAC8096_op3abx.mp4",
+    "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770226306/ACAC5148_hmnlpj.mp4"
 ];
 
 const PUBLIC_DIR = path.join(__dirname, '../public');
@@ -53,11 +64,14 @@ const PATTERNS = {
 };
 
 async function extractData() {
+    console.log('Public Dir:', PUBLIC_DIR);
     const results = [];
     const publicFiles = fs.readdirSync(PUBLIC_DIR);
+    console.log('Files found in public:', publicFiles.length);
 
     for (const url of videoUrls) {
         const rgdKey = getRegFromUrl(url);
+        console.log(`Checking URL: ${url} -> Key: ${rgdKey}`);
 
         // Find matching PDF file (case insensitive search)
         const pdfFile = publicFiles.find(f =>
