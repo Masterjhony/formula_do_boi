@@ -170,12 +170,19 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
 
                     {/* Right Column: Info & Negotiation */}
                     <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-100 shadow-sm h-fit sticky top-24">
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider rounded-full border border-green-200 flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                Disponível para Negociação
-                            </span>
-                        </div>
+                        {/* Check if sold */}
+                        {(product.tag === 'Vendido' || product.details?.status === 'Vendido') ? (
+                            <div className="w-full bg-gradient-to-r from-brand-gold via-yellow-400 to-brand-gold text-brand-black text-center py-3 font-bold uppercase tracking-widest shadow-lg rounded-lg mb-6 border border-white/20">
+                                VENDIDO
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider rounded-full border border-green-200 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                    Disponível para Negociação
+                                </span>
+                            </div>
+                        )}
 
                         <h1 className="text-3xl font-bold text-gray-900 mb-2 uppercase">{product.name}</h1>
                         <div className="flex items-center gap-2 text-gray-500 text-sm mb-6">
@@ -260,25 +267,27 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </div>
                         </div>
 
-                        <div className="space-y-3 mb-8">
-                            <a
-                                href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Gostaria de mais informações. Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-full py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold text-lg rounded-lg uppercase tracking-wide transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                            >
-                                Fazer uma Proposta
-                                <ArrowRight className="w-5 h-5" />
-                            </a>
-                            <a
-                                href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse em fazer uma proposta à vista no animal ${product.name} (ID: ${product.id}). Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-full py-3 bg-white border-2 border-brand-black text-brand-black font-bold rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wide text-sm flex items-center justify-center"
-                            >
-                                Proposta à Vista
-                            </a>
-                        </div>
+                        {!(product.tag === 'Vendido' || product.details?.status === 'Vendido') && (
+                            <div className="space-y-3 mb-8">
+                                <a
+                                    href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Gostaria de mais informações. Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold text-lg rounded-lg uppercase tracking-wide transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                                >
+                                    Fazer uma Proposta
+                                    <ArrowRight className="w-5 h-5" />
+                                </a>
+                                <a
+                                    href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse em fazer uma proposta à vista no animal ${product.name} (ID: ${product.id}). Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full py-3 bg-white border-2 border-brand-black text-brand-black font-bold rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wide text-sm flex items-center justify-center"
+                                >
+                                    Proposta à Vista
+                                </a>
+                            </div>
+                        )}
 
                         <div className="space-y-4 text-sm text-gray-600 border-t border-gray-100 pt-6">
                             <div className="flex items-center gap-3">

@@ -89,7 +89,16 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     {product.details?.registro || animalCode}
                 </div>
 
-                {/* Sold Overlay */}
+                {/* Sold Overlay Banner */}
+                {(product.tag === 'Vendido' || product.details?.status === 'Vendido') && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                        <div className="w-full bg-brand-gold/90 backdrop-blur-sm py-3 text-center transform -rotate-12 shadow-lg border-y border-white/20">
+                            <span className="text-2xl font-black text-brand-black tracking-[0.2em] uppercase drop-shadow-sm">
+                                VENDIDO
+                            </span>
+                        </div>
+                    </div>
+                )}
 
 
                 <div className="w-full h-full relative flex items-center justify-center bg-black">
@@ -145,9 +154,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         </span>
                     )}
                     {(product.tag === 'Vendido' || product.details?.status === 'Vendido') && (
-                        <span className="text-[10px] font-bold text-white bg-gray-900 uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
-                            VENDIDO
-                        </span>
+                        null
                     )}
                 </div>
 
