@@ -67,7 +67,7 @@ export default function Footer() {
                             </li>
                             <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
                                 <MapPin className="w-5 h-5 mt-0.5 text-brand-gold" />
-                                <span>Av. do Boi, 1000 - Setor Bueno<br />Goiânia - GO</span>
+                                <span>Belo Horizonte - MG</span>
                             </li>
                         </ul>
                     </div>
