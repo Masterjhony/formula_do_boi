@@ -36,7 +36,7 @@ export const EMBRYOS = [
         modalidade: "venda_direta",
         logistica: "frete_gratis",
         forma_pagamento: "parcelado_30x",
-        location: "Uberlândia - MG",
+        location: "Uberaba - MG",
         image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224964/dandara_nwmjkr.mp4",
         gallery: [
             "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224964/dandara_nwmjkr.mp4"
@@ -62,7 +62,7 @@ export const EMBRYOS = [
         modalidade: "leilao",
         logistica: "frete_compartilhado",
         forma_pagamento: "parcelado_30x",
-        location: "Barretos - SP",
+        location: "Uberaba - MG",
         image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/fada_vg580y.mp4",
         gallery: [
             "https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/fada_vg580y.mp4"
