@@ -34,7 +34,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
         .slice(0, 4);
 
     const embrioes = uniqueItems
-        .filter(p => p.category === 'Embrião')
+        .filter(p => p.category === 'Embrião' || p.category === 'DOADORA')
         .sort((a, b) => a.id - b.id)
         .slice(0, 4);
 

@@ -95,7 +95,8 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
         let items = allProducts.filter(p =>
             !p.category?.includes('Matriz') &&
             p.category !== 'Sêmen' &&
-            p.category !== 'Embrião'
+            p.category !== 'Embrião' &&
+            p.category !== 'DOADORA'
         );
 
         if (!hasFilters) return items;
