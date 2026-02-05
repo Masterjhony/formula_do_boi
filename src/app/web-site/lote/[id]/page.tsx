@@ -19,11 +19,13 @@ export async function generateMetadata(
 
     // fetch data
     const numericId = Number(id);
-    let product: any = await getProductById(numericId);
 
-    // If not found in DB, check static EMBRYOS
+    // Check static EMBRYOS first (Source of Truth for this update)
+    let product: any = EMBRYOS.find((p) => p.id === numericId);
+
+    // If not found in static, check DB
     if (!product) {
-        product = EMBRYOS.find((p) => p.id === numericId);
+        product = await getProductById(numericId);
     }
 
     if (!product) {
@@ -96,12 +98,12 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
     const { id } = await params;
     const numericId = Number(id);
 
-    // Try to find in DB first
-    let product: any = await getProductById(numericId);
+    // Check static EMBRYOS first (Source of Truth for this update)
+    let product: any = EMBRYOS.find((p) => p.id === numericId);
 
-    // If not found in DB, check static EMBRYOS
+    // If not found in static, check DB
     if (!product) {
-        product = EMBRYOS.find((p) => p.id === numericId);
+        product = await getProductById(numericId);
     }
 
     if (!product) {
@@ -201,9 +203,14 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">
                                         {'forma_pagamento' in product && product.forma_pagamento ?
-                                            (product.forma_pagamento === 'a_vista' ? 'À Vista' : `Condição Especial (${product.forma_pagamento.replace('parcelado_', '').replace('x', '')} parcelas)`)
+                                            (product.forma_pagamento === 'a_vista' ? 'À Vista' : product.forma_pagamento)
                                             : 'Valor'}
                                     </p>
+                                    {'downPaymentValue' in product && (
+                                        <p className="text-sm font-semibold text-brand-gold mb-1">
+                                            Entrada: R$ {product.downPaymentValue}
+                                        </p>
+                                    )}
                                     <p className="text-4xl font-bold text-brand-black">
                                         {(() => {
                                             if (product.price === 'Consultar') return 'Consultar';
@@ -251,7 +258,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                     <p className="text-xs font-bold text-gray-900 uppercase">Condições de Pagamento</p>
                                     <p className="text-sm text-gray-600">
                                         {'forma_pagamento' in product ?
-                                            product.forma_pagamento?.replace('_', ' ').replace('x', ' parcelas') :
+                                            ('downPaymentValue' in product ?
+                                                `Entrada de R$ ${product.downPaymentValue} + ${product.forma_pagamento?.replace('Entrada + ', '')}` :
+                                                product.forma_pagamento?.replace('_', ' ').replace('x', ' parcelas')) :
                                             'Consulte condições'}
                                     </p>
                                 </div>

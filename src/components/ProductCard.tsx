@@ -15,6 +15,7 @@ interface ProductProps {
     price: string;
     tag?: string;
     forma_pagamento?: string; // Added field
+    downPaymentValue?: string; // Added field for Entrada
     video_object_position?: string;
     details?: {
         registro?: string;
@@ -238,6 +239,15 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                                 </span>
                             )}
                         </div>
+
+                        {product.downPaymentValue && (
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="text-xs font-semibold text-brand-gold uppercase tracking-wide bg-brand-gold/10 px-2 py-0.5 rounded-full border border-brand-gold/20">
+                                    Entrada: R$ {product.downPaymentValue}
+                                </span>
+                            </div>
+                        )}
+
                         <span className="text-[10px] text-gray-400 mt-1">
                             {product.category === 'Sêmen' ? product.installments : `Total: R$ ${product.price}`}
                         </span>
