@@ -4,6 +4,8 @@
 UPDATE products
 SET 
     name = 'TRUFA BERRANTE DE OURO - Pacote 10 Embriões',
+    image_url = 'https://res.cloudinary.com/dkh2nsugb/video/upload/v1770325189/Trufa_Berrante_Ouro_wkoaiv.mp4',
+    gallery = ARRAY['https://res.cloudinary.com/dkh2nsugb/video/upload/v1770325189/Trufa_Berrante_Ouro_wkoaiv.mp4'],
     category = 'DOADORA',
     price = 12000.00,
     installments = '320,00',
