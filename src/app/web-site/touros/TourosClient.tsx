@@ -3,9 +3,10 @@
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Tag, Calendar, Activity } from "lucide-react";
+import { Calendar, Activity } from "lucide-react";
 import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
+import Pagination from "@/components/Pagination";
 import { Product } from "@/services/products";
 
 interface TourosClientProps {
@@ -14,16 +15,6 @@ interface TourosClientProps {
 
 export default function TourosClient({ products: allProducts }: TourosClientProps) {
     const tourosFilters = [
-        {
-            id: "tipo",
-            title: "Tipo",
-            icon: <Tag className="w-4 h-4" />,
-            options: [
-                { value: "touro", label: "Touro" },
-                { value: "bezerro", label: "Bezerro" },
-                { value: "garrote", label: "Garrote" },
-            ],
-        },
         {
             id: "idade",
             title: "Idade",
@@ -51,7 +42,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
     ];
 
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
-        tipo: [],
+
         idade: [],
         indice: [],
         faixa_valor: [],
@@ -72,7 +63,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
 
     const handleClearFilters = () => {
         setSelectedFilters({
-            tipo: [],
+
             idade: [],
             indice: [],
             faixa_valor: [],
@@ -116,16 +107,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
                 return false;
             }
 
-            // Check Tipo
-            if (selectedFilters.tipo.length > 0) {
-                const tipo = (product.category || "").toLowerCase();
-                const detailsTipo = ((product.details as any)?.tipo || "").toLowerCase();
 
-                const matches = selectedFilters.tipo.some(filter =>
-                    tipo.includes(filter) || detailsTipo.includes(filter)
-                );
-                if (!matches) return false;
-            }
 
             // Check Idade 
             if (selectedFilters.idade.length > 0) {
@@ -178,6 +160,27 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
         });
     }, [selectedFilters, hasFilters, allProducts]);
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 12;
+
+    const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
+    // Reset to page 1 when filters change
+    useMemo(() => {
+        setCurrentPage(1);
+    }, [selectedFilters]);
+
+    const paginatedProducts = filteredProducts.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
     return (
         <main className="min-h-screen bg-gray-50">
             <Header />
@@ -208,12 +211,19 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
                         />
 
                         {/* Products Grid */}
-                        <CatalogGrid
-                            products={filteredProducts}
-                            totalCount={filteredProducts.length}
-                            onClearFilters={handleClearFilters}
-                            hasFilters={hasFilters}
-                        />
+                        <div className="flex-1">
+                            <CatalogGrid
+                                products={paginatedProducts}
+                                totalCount={filteredProducts.length}
+                                onClearFilters={handleClearFilters}
+                                hasFilters={hasFilters}
+                            />
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={handlePageChange}
+                            />
+                        </div>
                     </div>
                 </div>
             </section>
