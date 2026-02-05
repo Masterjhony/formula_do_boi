@@ -12,16 +12,18 @@ interface FeaturedLotsProps {
 
 export default function FeaturedLots({ products }: FeaturedLotsProps) {
     // Combine products and embryos for the home page display, deduplicating by ID
-    const combinedItems = [...EMBRYOS, ...products];
+    // Combine products and embryos, giving priority to static EMBRYOS
+    // We spread products first, then EMBRYOS, so EMBRYOS overwrite DB data for same IDs
+    const combinedItems = [...products, ...EMBRYOS];
     const uniqueItemsMap = new Map();
     combinedItems.forEach(item => {
         uniqueItemsMap.set(item.id, item);
     });
     const uniqueItems = Array.from(uniqueItemsMap.values());
 
-    // Filter for Embriões only
+    // Filter for Embriões/Doadora only
     const featuredProducts = uniqueItems
-        .filter(p => p.category === 'Embrião')
+        .filter(p => p.category === 'Embrião' || p.category === 'DOADORA')
         .sort((a, b) => a.id - b.id)
         .slice(0, 4);
 
