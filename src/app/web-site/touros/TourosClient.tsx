@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Calendar, Activity } from "lucide-react";
+import { Calendar, Activity, User } from "lucide-react";
 import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import Pagination from "@/components/Pagination";
@@ -14,7 +14,26 @@ interface TourosClientProps {
 }
 
 export default function TourosClient({ products: allProducts }: TourosClientProps) {
+    // Extract unique breeders for filter options
+    const breederOptions = useMemo(() => {
+        const breeders = new Set<string>();
+        allProducts.forEach(p => {
+            // Only consider Touros for this list to avoid clutter if mixed data passed
+            if (p.category?.includes('Matriz') || p.category === 'Sêmen' || p.category === 'Embrião') return;
+
+            const breeder = p.details?.breeder || p.details?.proprietario;
+            if (breeder) breeders.add(breeder.trim());
+        });
+        return Array.from(breeders).sort().map(b => ({ value: b, label: b }));
+    }, [allProducts]);
+
     const tourosFilters = [
+        {
+            id: "criador",
+            title: "Criador / Proprietário",
+            icon: <User className="w-4 h-4" />,
+            options: breederOptions,
+        },
         {
             id: "idade",
             title: "Idade",
@@ -42,7 +61,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
     ];
 
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
-
+        criador: [],
         idade: [],
         indice: [],
         faixa_valor: [],
@@ -63,7 +82,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
 
     const handleClearFilters = () => {
         setSelectedFilters({
-
+            criador: [],
             idade: [],
             indice: [],
             faixa_valor: [],
@@ -102,13 +121,19 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
         if (!hasFilters) return items;
 
         return items.filter((product) => {
+            // Check Breeder/Owner
+            if (selectedFilters.criador.length > 0) {
+                const breeder = product.details?.breeder || product.details?.proprietario;
+                if (!breeder || !selectedFilters.criador.includes(breeder.trim())) {
+                    return false;
+                }
+            }
+
             // Check Payment
             if (selectedFilters.forma_pagamento.length > 0 &&
                 !selectedFilters.forma_pagamento.includes(product.forma_pagamento || "")) {
                 return false;
             }
-
-
 
             // Check Idade 
             if (selectedFilters.idade.length > 0) {

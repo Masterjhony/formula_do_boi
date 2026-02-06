@@ -3,13 +3,31 @@
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Tag, Globe } from "lucide-react";
+import { Tag, Globe, User } from "lucide-react";
 import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import { EMBRYOS } from "@/data/embryos";
 
 export default function EmbrioesPage() {
+    // Extract unique breeders for filter options
+    const breederOptions = useMemo(() => {
+        const breeders = new Set<string>();
+        EMBRYOS.forEach(p => {
+            if (p.category === "Sêmen") return;
+            // Check details.proprietario or details.breeder
+            const breeder = (p.details as any)?.proprietario || (p.details as any)?.breeder;
+            if (breeder) breeders.add(breeder.trim());
+        });
+        return Array.from(breeders).sort().map(b => ({ value: b, label: b }));
+    }, []);
+
     const embrioesFilters = [
+        {
+            id: "criador",
+            title: "Criador / Proprietário",
+            icon: <User className="w-4 h-4" />,
+            options: breederOptions,
+        },
         {
             id: "procedencia",
             title: "Procedência",
@@ -25,6 +43,7 @@ export default function EmbrioesPage() {
     ];
 
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
+        criador: [],
         procedencia: [],
         faixa_valor: [],
         forma_pagamento: [],
@@ -44,6 +63,7 @@ export default function EmbrioesPage() {
 
     const handleClearFilters = () => {
         setSelectedFilters({
+            criador: [],
             procedencia: [],
             faixa_valor: [],
             forma_pagamento: [],
@@ -75,6 +95,14 @@ export default function EmbrioesPage() {
         if (!hasFilters) return items;
 
         return items.filter((product) => {
+            // Check Breeder
+            if (selectedFilters.criador.length > 0) {
+                const breeder = (product.details as any)?.proprietario || (product.details as any)?.breeder;
+                if (!breeder || !selectedFilters.criador.includes(breeder.trim())) {
+                    return false;
+                }
+            }
+
             // Check Payment
             if (selectedFilters.forma_pagamento.length > 0 &&
                 !selectedFilters.forma_pagamento.includes(product.forma_pagamento || "")) {
