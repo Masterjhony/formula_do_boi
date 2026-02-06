@@ -17,6 +17,9 @@ interface ProductProps {
     forma_pagamento?: string; // Added field
     downPaymentValue?: string; // Added field for Entrada
     video_object_position?: string;
+    iabcz?: string;
+    mgte?: string;
+    iqg?: string;
     details?: {
         registro?: string;
         raca?: string;
@@ -26,6 +29,8 @@ interface ProductProps {
         peso?: string;
         comentario?: string;
         mgte?: string;
+        iabcz?: string;
+        iqg?: string;
         status?: string;
         reproductive_status?: string;
         tipo?: string;
@@ -196,12 +201,24 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                             </div>
 
                             {/* Extra Details for Matrizes */}
-                            {(product.details.mgte || product.details.status) && (
+                            {(product.details.mgte || product.details.status || product.iabcz || product.mgte || product.iqg) && (
                                 <div className="mt-2 pt-2 border-t border-gray-200 grid grid-cols-1 gap-1">
-                                    {product.details.mgte && (
+                                    {(product.mgte || product.details.mgte) && (
                                         <div className="flex justify-between items-center text-[10px]">
                                             <span className="font-bold text-gray-500 uppercase">MGTe</span>
-                                            <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.details.mgte}</span>
+                                            <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.mgte || product.details.mgte}</span>
+                                        </div>
+                                    )}
+                                    {product.iabcz && (
+                                        <div className="flex justify-between items-center text-[10px]">
+                                            <span className="font-bold text-gray-500 uppercase">iABCZ</span>
+                                            <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.iabcz}</span>
+                                        </div>
+                                    )}
+                                    {product.iqg && (
+                                        <div className="flex justify-between items-center text-[10px]">
+                                            <span className="font-bold text-gray-500 uppercase">IQG</span>
+                                            <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.iqg}</span>
                                         </div>
                                     )}
                                     {product.details.status && (

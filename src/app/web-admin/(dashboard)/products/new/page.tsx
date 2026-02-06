@@ -35,6 +35,8 @@ export default function NewProductPage() {
         mae: '',
         peso: '',
         mgte: '',
+        iabcz: '',
+        iqg: '',
         top: '',
         status: 'Disponível',
         reproductive_status: '',
@@ -171,6 +173,9 @@ export default function NewProductPage() {
                 price: formData.price,
                 installments: formData.installments,
                 tag: formData.featured ? 'DESTAQUE' : 'NOVO',
+                iabcz: formData.iabcz,
+                iqg: formData.iqg,
+                mgte: formData.mgte, // Explicitly add mgte to root as well
                 details: {
                     registro: formData.registro,
                     raca: formData.raca,
@@ -179,6 +184,8 @@ export default function NewProductPage() {
                     mae: formData.mae,
                     peso: formData.peso,
                     mgte: formData.mgte,
+                    iabcz: formData.iabcz,
+                    iqg: formData.iqg,
                     top: formData.top,
                     status: formData.status,
                     reproductive_status: formData.reproductive_status,
@@ -394,11 +401,32 @@ export default function NewProductPage() {
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">MGTe / iABCZ</label>
+                            <label className="text-sm font-medium text-gray-700">MGTe</label>
                             <input
                                 name="mgte"
                                 value={formData.mgte}
                                 onChange={handleChange}
+                                placeholder="Ex: 29.69"
+                                className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">iABCZ</label>
+                            <input
+                                name="iabcz"
+                                value={formData.iabcz}
+                                onChange={handleChange}
+                                placeholder="Ex: 29.69"
+                                className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">IQG</label>
+                            <input
+                                name="iqg"
+                                value={formData.iqg}
+                                onChange={handleChange}
+                                placeholder="Ex: 44.17"
                                 className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
                             />
                         </div>

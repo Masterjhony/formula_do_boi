@@ -19,6 +19,9 @@ export interface Product {
     details: any;
     video_object_position?: string;
     old_id?: number;
+    iabcz?: string;
+    mgte?: string;
+    iqg?: string;
 }
 
 // Helper to format currency
@@ -34,6 +37,9 @@ const mapProduct = (data: any): Product => ({
     image: data.image_url || data.image || '', // Fallback to image if image_url missing
     price: formatPrice(data.price),
     gallery: data.gallery || [],
+    iabcz: data.iabcz || data.details?.iabcz || '',
+    mgte: data.mgte || data.details?.mgte || '',
+    iqg: data.iqg || data.details?.iqg || '',
 });
 
 // For Client Components

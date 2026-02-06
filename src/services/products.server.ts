@@ -14,6 +14,9 @@ const mapProduct = (data: any): Product => ({
     image: data.image_url || data.image || '', // Fallback to image if image_url missing
     price: formatPrice(data.price),
     gallery: data.gallery || [],
+    iabcz: data.iabcz || data.details?.iabcz || '',
+    mgte: data.mgte || data.details?.mgte || '',
+    iqg: data.iqg || data.details?.iqg || '',
 });
 
 // For Server Components

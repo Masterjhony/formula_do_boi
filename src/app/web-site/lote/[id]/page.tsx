@@ -372,10 +372,22 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.peso}</p>
                             </div>
                         )}
-                        {product.details?.mgte && (
+                        {(product.mgte || product.details?.mgte) && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Index (MGTe)</span>
-                                <p className="text-gray-900 font-semibold text-lg">{product.details.mgte}</p>
+                                <p className="text-gray-900 font-semibold text-lg text-brand-black bg-brand-gold/10 px-2 py-0.5 rounded w-fit">{product.mgte || product.details.mgte}</p>
+                            </div>
+                        )}
+                        {(product.iabcz || product.details?.iabcz) && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Index (iABCZ)</span>
+                                <p className="text-gray-900 font-semibold text-lg text-brand-black bg-brand-gold/10 px-2 py-0.5 rounded w-fit">{product.iabcz || product.details.iabcz}</p>
+                            </div>
+                        )}
+                        {(product.iqg || product.details?.iqg) && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Index (IQG)</span>
+                                <p className="text-gray-900 font-semibold text-lg text-brand-black bg-brand-gold/10 px-2 py-0.5 rounded w-fit">{product.iqg || product.details.iqg}</p>
                             </div>
                         )}
                         {product.details?.top && (

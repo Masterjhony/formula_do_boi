@@ -45,7 +45,9 @@ export default function EditProductForm({ product }: { product: any }) {
         pai: product.details?.pai || '',
         mae: product.details?.mae || '',
         peso: product.details?.peso || '',
-        mgte: product.details?.mgte || '',
+        mgte: product.mgte || product.details?.mgte || '',
+        iabcz: product.iabcz || product.details?.iabcz || '',
+        iqg: product.iqg || product.details?.iqg || '',
         top: product.details?.top || '',
         status: product.details?.status || 'Disponível',
         reproductive_status: product.details?.reproductive_status || '',
@@ -167,6 +169,9 @@ export default function EditProductForm({ product }: { product: any }) {
                 price: formData.price,
                 installments: formData.installments,
                 tag: formData.featured ? 'DESTAQUE' : (formData.tag === 'DESTAQUE' ? 'NOVO' : formData.tag),
+                iabcz: formData.iabcz,
+                mgte: formData.mgte,
+                iqg: formData.iqg,
                 details: {
                     registro: formData.registro,
                     raca: formData.raca,
@@ -175,6 +180,8 @@ export default function EditProductForm({ product }: { product: any }) {
                     mae: formData.mae,
                     peso: formData.peso,
                     mgte: formData.mgte,
+                    iabcz: formData.iabcz,
+                    iqg: formData.iqg,
                     top: formData.top,
                     status: formData.status,
                     reproductive_status: formData.reproductive_status,
@@ -363,8 +370,16 @@ export default function EditProductForm({ product }: { product: any }) {
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">MGTe / iABCZ</label>
-                            <input name="mgte" value={formData.mgte} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none" />
+                            <label className="text-sm font-medium text-gray-700">MGTe</label>
+                            <input name="mgte" value={formData.mgte} onChange={handleChange} placeholder="Ex: 29.69" className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">iABCZ</label>
+                            <input name="iabcz" value={formData.iabcz} onChange={handleChange} placeholder="Ex: 15.54" className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">IQG</label>
+                            <input name="iqg" value={formData.iqg} onChange={handleChange} placeholder="Ex: 10.5" className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">TOP (%)</label>
