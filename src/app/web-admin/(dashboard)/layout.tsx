@@ -64,6 +64,7 @@ export default function AdminLayout({
         { href: '/', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/products', label: 'Cards (Animais)', icon: Package },
         { href: '/breeders', label: 'Criadores', icon: User },
+        { href: '/users', label: 'Usuários', icon: User },
     ];
 
     return (
