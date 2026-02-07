@@ -135,6 +135,9 @@ export const EMBRYOS = [
             tipo: "Sêmen Convencional",
             pai: "WOLVERINE DA MYO",
             mae: "DA XARAES",
+            iabcz: "25.00",
+            iqg: "22.50",
+            proprietario: "LUDEN",
             comentario: "Touro com excelente avaliação de carcaça e desempenho. Ideal para rebanhos comerciais e puros."
         }
     }

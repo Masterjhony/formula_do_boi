@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Tag } from "lucide-react";
+import { Tag, User } from "lucide-react";
 import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import { Product } from "@/services/products";
@@ -13,7 +13,24 @@ interface MatrizesClientProps {
 }
 
 export default function MatrizesClient({ products: allProducts }: MatrizesClientProps) {
+    // Extract unique breeders for filter options
+    const breederOptions = useMemo(() => {
+        const breeders = new Set<string>();
+        allProducts.forEach(p => {
+            if (!p.category?.includes('Matriz')) return;
+            const breeder = (p.details as any)?.proprietario || (p.details as any)?.breeder;
+            if (breeder) breeders.add(breeder.trim());
+        });
+        return Array.from(breeders).sort().map(b => ({ value: b, label: b }));
+    }, [allProducts]);
+
     const matrizesFilters = [
+        {
+            id: "criador",
+            title: "Criador / Proprietário",
+            icon: <User className="w-4 h-4" />,
+            options: breederOptions,
+        },
         {
             id: "tipo",
             title: "Tipo",
@@ -29,8 +46,12 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
     ];
 
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
+        criador: [],
         tipo: [],
         faixa_valor: [],
+        iabcz: [],
+        mgte: [],
+        iqg: [],
         forma_pagamento: [],
         logistica: [],
     });
@@ -48,14 +69,42 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
 
     const handleClearFilters = () => {
         setSelectedFilters({
+            criador: [],
             tipo: [],
             faixa_valor: [],
+            iabcz: [],
+            mgte: [],
+            iqg: [],
             forma_pagamento: [],
             logistica: [],
         });
     };
 
     const hasFilters = Object.values(selectedFilters).some((arr) => arr.length > 0);
+
+    const parsePrice = (priceStr: string) => {
+        return parseFloat(priceStr.replace(/\./g, "").replace(",", "."));
+    };
+
+    const cleanNumberString = (str: string) => {
+        // Extract the first number found in the string (e.g. "iABCZ 13.60" -> "13.60")
+        const match = str.match(/[\d\.]+/);
+        return match ? parseFloat(match[0]) : null;
+    };
+
+    const checkRange = (value: number, ranges: string[]) => {
+        if (ranges.length === 0) return true;
+        return ranges.some(range => {
+            if (range === "acima_30") return value > 30;
+            if (range === "25_30") return value >= 25 && value <= 30; // Specific for MGTe
+            if (range === "20_30") return value >= 20 && value <= 30; // For iABCZ / IQG
+            if (range === "20_25") return value >= 20 && value <= 25; // Specific for MGTe
+            if (range === "10_20") return value >= 10 && value <= 20;
+            if (range === "abaixo_20") return value < 20; // Specific for MGTe
+            if (range === "abaixo_10") return value < 10;
+            return false;
+        });
+    };
 
     const filteredProducts = useMemo(() => {
         // Show all products with category containing 'Matriz'
@@ -64,6 +113,14 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
         if (!hasFilters) return items;
 
         return items.filter((product) => {
+            // Check Breeder
+            if (selectedFilters.criador.length > 0) {
+                const breeder = (product.details as any)?.proprietario || (product.details as any)?.breeder;
+                if (!breeder || !selectedFilters.criador.includes(breeder.trim())) {
+                    return false;
+                }
+            }
+
             // Check Tipo
             if (selectedFilters.tipo.length > 0) {
                 const tipo = ((product.details as any)?.tipo || "").toLowerCase();
@@ -91,6 +148,43 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
             if (selectedFilters.logistica.length > 0 &&
                 !selectedFilters.logistica.includes(product.logistica || "")) {
                 return false;
+            }
+
+            // Check Price
+            if (selectedFilters.faixa_valor.length > 0) {
+                if (product.price === "Sob Consulta" || product.price === "Consultar") return false;
+                const price = parsePrice(product.price);
+
+                const matchesPrice = selectedFilters.faixa_valor.some(range => {
+                    if (range === "ate_5k") return price <= 5000;
+                    if (range === "5k_10k") return price > 5000 && price <= 10000;
+                    if (range === "10k_20k") return price > 10000 && price <= 20000;
+                    if (range === "acima_20k") return price > 20000;
+                    return false;
+                });
+
+                if (!matchesPrice) return false;
+            }
+
+            // Check iABCZ
+            if (selectedFilters.iabcz.length > 0) {
+                const valStr = (product as any).iabcz || (product.details as any)?.iabcz || "";
+                const val = cleanNumberString(valStr);
+                if (val === null || !checkRange(val, selectedFilters.iabcz)) return false;
+            }
+
+            // Check MGTe
+            if (selectedFilters.mgte.length > 0) {
+                const valStr = (product as any).mgte || (product.details as any)?.mgte || "";
+                const val = cleanNumberString(valStr);
+                if (val === null || !checkRange(val, selectedFilters.mgte)) return false;
+            }
+
+            // Check IQG
+            if (selectedFilters.iqg.length > 0) {
+                const valStr = (product as any).iqg || (product.details as any)?.iqg || "";
+                const val = cleanNumberString(valStr);
+                if (val === null || !checkRange(val, selectedFilters.iqg)) return false;
             }
 
             return true;

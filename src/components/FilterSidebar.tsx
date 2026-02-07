@@ -23,6 +23,39 @@ export const commonFilters: FilterSection[] = [
         ],
     },
     {
+        id: "iabcz",
+        title: "iABCZ",
+        icon: <Tag className="w-4 h-4" />,
+        options: [
+            { value: "acima_30", label: "Acima de 30" },
+            { value: "20_30", label: "20 a 30" },
+            { value: "10_20", label: "10 a 20" },
+            { value: "abaixo_10", label: "Abaixo de 10" },
+        ],
+    },
+    {
+        id: "mgte",
+        title: "MGTe",
+        icon: <Tag className="w-4 h-4" />,
+        options: [
+            { value: "acima_30", label: "Acima de 30" },
+            { value: "25_30", label: "25 a 30" },
+            { value: "20_25", label: "20 a 25" },
+            { value: "abaixo_20", label: "Abaixo de 20" },
+        ],
+    },
+    {
+        id: "iqg",
+        title: "IQG",
+        icon: <Tag className="w-4 h-4" />,
+        options: [
+            { value: "acima_30", label: "Acima de 30" },
+            { value: "20_30", label: "20 a 30" },
+            { value: "10_20", label: "10 a 20" },
+            { value: "abaixo_10", label: "Abaixo de 10" },
+        ],
+    },
+    {
         id: "forma_pagamento",
         title: "Forma de Pagamento",
         icon: <Wallet className="w-4 h-4" />,
@@ -79,6 +112,9 @@ export default function FilterSidebar({
         id: true,
         procedencia: true,
         faixa_valor: true,
+        iabcz: false,
+        mgte: false,
+        iqg: false,
         forma_pagamento: false,
         logistica: false,
     });

@@ -46,6 +46,9 @@ export default function EmbrioesPage() {
         criador: [],
         procedencia: [],
         faixa_valor: [],
+        iabcz: [],
+        mgte: [],
+        iqg: [],
         forma_pagamento: [],
         logistica: [],
     });
@@ -66,6 +69,9 @@ export default function EmbrioesPage() {
             criador: [],
             procedencia: [],
             faixa_valor: [],
+            iabcz: [],
+            mgte: [],
+            iqg: [],
             forma_pagamento: [],
             logistica: [],
         });
@@ -75,6 +81,26 @@ export default function EmbrioesPage() {
 
     const parsePrice = (priceStr: string) => {
         return parseFloat(priceStr.replace(/\./g, "").replace(",", "."));
+    };
+
+    const cleanNumberString = (str: string) => {
+        // Extract the first number found in the string (e.g. "iABCZ 13.60" -> "13.60")
+        const match = str.match(/[\d\.]+/);
+        return match ? parseFloat(match[0]) : null;
+    };
+
+    const checkRange = (value: number, ranges: string[]) => {
+        if (ranges.length === 0) return true;
+        return ranges.some(range => {
+            if (range === "acima_30") return value > 30;
+            if (range === "25_30") return value >= 25 && value <= 30; // Specific for MGTe
+            if (range === "20_30") return value >= 20 && value <= 30; // For iABCZ / IQG
+            if (range === "20_25") return value >= 20 && value <= 25; // Specific for MGTe
+            if (range === "10_20") return value >= 10 && value <= 20;
+            if (range === "abaixo_20") return value < 20; // Specific for MGTe
+            if (range === "abaixo_10") return value < 10;
+            return false;
+        });
     };
 
     const checkPriceRange = (price: number, ranges: string[]) => {
@@ -89,7 +115,7 @@ export default function EmbrioesPage() {
     };
 
     const filteredProducts = useMemo(() => {
-        // Filter only items that are moved from Touros (not Semen)
+        // Filter only items that are not Semen (so Embryos and others)
         let items = EMBRYOS.filter(item => item.category !== "Sêmen");
 
         if (!hasFilters) return items;
@@ -118,8 +144,6 @@ export default function EmbrioesPage() {
             // Check Procedência
             if (selectedFilters.procedencia.length > 0) {
                 const procedencia = ((product.details as any)?.procedencia || "").toLowerCase();
-                // If data is missing, we might assume check logic or skip. 
-                // Assuming data will be populated later.
                 if (!selectedFilters.procedencia.includes(procedencia)) {
                     return false;
                 }
@@ -132,6 +156,27 @@ export default function EmbrioesPage() {
                 if (!checkPriceRange(price, selectedFilters.faixa_valor)) {
                     return false;
                 }
+            }
+
+            // Check iABCZ
+            if (selectedFilters.iabcz.length > 0) {
+                const valStr = (product as any).iabcz || (product.details as any)?.iabcz || "";
+                const val = cleanNumberString(valStr);
+                if (val === null || !checkRange(val, selectedFilters.iabcz)) return false;
+            }
+
+            // Check MGTe
+            if (selectedFilters.mgte.length > 0) {
+                const valStr = (product as any).mgte || (product.details as any)?.mgte || "";
+                const val = cleanNumberString(valStr);
+                if (val === null || !checkRange(val, selectedFilters.mgte)) return false;
+            }
+
+            // Check IQG
+            if (selectedFilters.iqg.length > 0) {
+                const valStr = (product as any).iqg || (product.details as any)?.iqg || "";
+                const val = cleanNumberString(valStr);
+                if (val === null || !checkRange(val, selectedFilters.iqg)) return false;
             }
 
             return true;
