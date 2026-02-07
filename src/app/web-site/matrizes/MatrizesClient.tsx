@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Tag, User } from "lucide-react";
 import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import { Product } from "@/services/products";
+import Pagination from "@/components/Pagination";
 
 interface MatrizesClientProps {
     products: Product[];
 }
+
+const ITEMS_PER_PAGE = 12;
 
 export default function MatrizesClient({ products: allProducts }: MatrizesClientProps) {
     // Extract unique breeders for filter options
@@ -56,6 +59,8 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
         logistica: [],
     });
 
+    const [currentPage, setCurrentPage] = useState(1);
+
     const handleFilterChange = (sectionId: string, value: string, checked: boolean) => {
         setSelectedFilters((prev) => {
             const current = prev[sectionId] || [];
@@ -65,6 +70,7 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
                 return { ...prev, [sectionId]: current.filter((v) => v !== value) };
             }
         });
+        setCurrentPage(1); // Reset to first page on filter change
     };
 
     const handleClearFilters = () => {
@@ -78,6 +84,7 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
             forma_pagamento: [],
             logistica: [],
         });
+        setCurrentPage(1); // Reset to first page on clear
     };
 
     const hasFilters = Object.values(selectedFilters).some((arr) => arr.length > 0);
@@ -191,6 +198,18 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
         });
     }, [selectedFilters, hasFilters, allProducts]);
 
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+    const displayedProducts = filteredProducts.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
     return (
         <main className="min-h-screen bg-gray-50" >
             <Header />
@@ -221,12 +240,21 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
                         />
 
                         {/* Products Grid */}
-                        <CatalogGrid
-                            products={filteredProducts}
-                            totalCount={filteredProducts.length}
-                            onClearFilters={handleClearFilters}
-                            hasFilters={hasFilters}
-                        />
+                        <div className="flex-1">
+                            <CatalogGrid
+                                products={displayedProducts}
+                                totalCount={filteredProducts.length}
+                                onClearFilters={handleClearFilters}
+                                hasFilters={hasFilters}
+                            />
+
+                            {/* Pagination */}
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={handlePageChange}
+                            />
+                        </div>
                     </div>
                 </div>
             </section >
