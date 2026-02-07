@@ -371,6 +371,7 @@ export default function EditProductForm({ product }: { product: any }) {
                                 className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
                             >
                                 <option value="parcelado_24x">24x</option>
+                                <option value="parcelado_25x">25x</option>
                                 <option value="parcelado_30x">30x</option>
                                 <option value="parcelado_36x">36x</option>
                                 <option value="parcelado_15x">15x</option>

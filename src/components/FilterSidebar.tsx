@@ -65,6 +65,7 @@ export const commonFilters: FilterSection[] = [
             { value: "parcelado_12x", label: "Parcelado (12x)" },
             { value: "parcelado_15x", label: "Parcelado (15x)" },
             { value: "parcelado_24x", label: "Parcelado (24x)" },
+            { value: "parcelado_25x", label: "Parcelado (25x)" },
             { value: "parcelado_30x", label: "Parcelado (30x)" },
         ],
     },
