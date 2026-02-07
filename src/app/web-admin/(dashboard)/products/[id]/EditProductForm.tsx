@@ -271,6 +271,15 @@ export default function EditProductForm({ product }: { product: any }) {
                             </select>
                         </div>
                         <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Classificação (Sistema)</label>
+                            <select name="classificacao" value={formData.classificacao} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none bg-yellow-50">
+                                <option value="touro">Touro</option>
+                                <option value="matriz">Matriz</option>
+                                <option value="semen">Sêmen</option>
+                                <option value="embriao">Embrião</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Registro (RGD)</label>
                             <input name="registro" value={formData.registro} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none" />
                         </div>
