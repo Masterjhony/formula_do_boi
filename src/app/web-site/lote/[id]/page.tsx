@@ -128,7 +128,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
     let nextLabel = 'Próximo Lote';
     let seeMoreLabel = 'Veja mais Lotes';
 
-    if (product.category?.includes('Matriz') || product.classificacao === 'matriz') {
+    if (product.classificacao === 'matriz' || (product.category?.includes('Matriz') && product.classificacao !== 'embriao')) {
         categoryLabel = 'Matriz';
         nextLabel = 'Próxima Matriz';
         seeMoreLabel = 'Veja mais Matrizes';
@@ -136,7 +136,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
         categoryLabel = 'Touro';
         nextLabel = 'Próximo Touro';
         seeMoreLabel = 'Veja mais Touros';
-    } else if (product.category?.includes('Embrião') || product.category === 'DOADORA') {
+    } else if (product.classificacao === 'embriao' || product.category?.includes('Embrião') || product.category === 'DOADORA') {
         categoryLabel = 'Embrião';
         nextLabel = 'Próximo Embrião';
         seeMoreLabel = 'Veja mais Embriões';
@@ -468,7 +468,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         <div className="relative">
                             <div className="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-brand-gold/20 scrollbar-track-transparent">
                                 {relatedProducts.map((p) => (
-                                    <div key={p.id} className="min-w-[280px] sm:min-w-[320px] lg:min-w-[300px] snap-start h-full pb-2">
+                                    <div key={p.id} className="w-[280px] sm:w-[320px] lg:w-[300px] flex-none snap-start h-full pb-2">
                                         <ProductCard product={p} />
                                     </div>
                                 ))}
