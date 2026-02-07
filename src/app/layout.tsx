@@ -10,19 +10,22 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://app.formuladoboi.com'),
   title: "Fórmula do Boi | Comercialização de Nelore PO",
-  description: "O melhor da genética Nelore.",
+  description: "Plataforma especializada na compra e venda de genética Nelore PO: matrizes, touros, sêmen e embriões.",
   manifest: "/manifest.webmanifest",
   openGraph: {
     title: "Fórmula do Boi | Comercialização de Nelore PO",
-    description: "O melhor da genética Nelore.",
+    description: "Plataforma especializada na compra e venda de genética Nelore PO: matrizes, touros, sêmen e embriões.",
     type: "website",
     locale: "pt_BR",
+    images: ['/FORMULA DO BOI_LOGO-01.png'],
   },
   twitter: {
     card: "summary_large_image",
     title: "Fórmula do Boi | Comercialização de Nelore PO",
-    description: "O melhor da genética Nelore.",
+    description: "Plataforma especializada na compra e venda de genética Nelore PO: matrizes, touros, sêmen e embriões.",
+    images: ['/FORMULA DO BOI_LOGO-01.png'],
   },
 };
 
