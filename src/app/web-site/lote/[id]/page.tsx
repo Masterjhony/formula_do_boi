@@ -157,17 +157,24 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 </button>
                             </div>
                         </div>
-                        <div className="grid grid-cols-4 gap-4">
-                            {product.gallery?.map((img: string, i: number) => (
-                                <div key={i} className="aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-brand-gold transition-all">
-                                    <img
-                                        src={img}
-                                        alt={`${product.name} thumb ${i + 1}`}
-                                        className="w-full h-full object-cover hover:scale-110 transition-transform"
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                        {product.gallery && product.gallery.length > 1 && (
+                            <div className="grid grid-cols-4 gap-4">
+                                {product.gallery.map((img: string, i: number) => {
+                                    const isVideo = img.includes('cloudinary.com') && img.endsWith('.mp4');
+                                    const thumb = isVideo ? img.replace('.mp4', '.jpg') : img;
+
+                                    return (
+                                        <div key={i} className="aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-brand-gold transition-all">
+                                            <img
+                                                src={thumb}
+                                                alt={`${product.name} thumb ${i + 1}`}
+                                                className="w-full h-full object-cover hover:scale-110 transition-transform"
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column: Info & Negotiation */}
