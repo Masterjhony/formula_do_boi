@@ -395,7 +395,9 @@ export default function NewProductPage() {
                                 <option value="parcelado_24x">24x</option>
                                 <option value="parcelado_30x">30x</option>
                                 <option value="parcelado_36x">36x</option>
+                                <option value="parcelado_15x">15x</option>
                                 <option value="parcelado_12x">12x</option>
+                                <option value="parcelado_10x">10x</option>
                                 <option value="a_vista">À Vista</option>
                                 <option value="consultar">Consultar</option>
                             </select>
