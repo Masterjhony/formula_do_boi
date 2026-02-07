@@ -1,11 +1,12 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { MapPin, Share2, Heart, Clock, ShieldCheck, ArrowRight } from "lucide-react";
+import { MapPin, Share2, Heart, Clock, ShieldCheck, ArrowRight, ChevronRight, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 // import { PRODUCTS } from "@/data/products"; // Using DB now
 import { EMBRYOS } from "@/data/embryos";
-import { getProductById } from "@/services/products.server";
+import { getProductById, getNavigationData } from "@/services/products.server";
 import { Metadata, ResolvingMetadata } from "next";
+import ProductCard from "@/components/ProductCard";
 
 type Props = {
     params: Promise<{ id: string }>
@@ -119,13 +120,60 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
         );
     }
 
+    // Get Navigation Data
+    const { nextProduct, relatedProducts } = await getNavigationData(numericId);
+
+    // Determine category label for "Next" button
+    let categoryLabel = 'Lote';
+    let nextLabel = 'Próximo Lote';
+    let seeMoreLabel = 'Veja mais Lotes';
+
+    if (product.category?.includes('Matriz') || product.classificacao === 'matriz') {
+        categoryLabel = 'Matriz';
+        nextLabel = 'Próxima Matriz';
+        seeMoreLabel = 'Veja mais Matrizes';
+    } else if (product.category?.includes('Touro')) {
+        categoryLabel = 'Touro';
+        nextLabel = 'Próximo Touro';
+        seeMoreLabel = 'Veja mais Touros';
+    } else if (product.category?.includes('Embrião') || product.category === 'DOADORA') {
+        categoryLabel = 'Embrião';
+        nextLabel = 'Próximo Embrião';
+        seeMoreLabel = 'Veja mais Embriões';
+    } else if (product.category?.includes('Sêmen')) {
+        categoryLabel = 'Sêmen';
+        nextLabel = 'Próximo Sêmen';
+        seeMoreLabel = 'Veja mais Sêmen';
+    }
+
     return (
         <main className="min-h-screen bg-gray-50">
             <Header />
 
+            {/* Breadcrumb & Navigation */}
+            <div className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Link href="/" className="hover:text-brand-gold">Home</Link>
+                    <ChevronRight className="w-4 h-4" />
+                    <Link href={`/${categoryLabel === 'Matriz' ? 'matrizes' : categoryLabel === 'Touro' ? 'touros' : categoryLabel === 'Embrião' ? 'embrioes' : 'semen'}`} className="hover:text-brand-gold">
+                        {categoryLabel === 'Matriz' ? 'Matrizes' : categoryLabel === 'Touro' ? 'Touros' : categoryLabel === 'Embrião' ? 'Embriões' : 'Sêmen'}
+                    </Link>
+                    <ChevronRight className="w-4 h-4" />
+                    <span className="text-gray-900 font-semibold truncate max-w-[200px]">{product.name}</span>
+                </div>
 
+                {nextProduct && (
+                    <Link
+                        href={`/lote/${nextProduct.id}`}
+                        className="flex items-center gap-2 px-4 py-2 bg-white text-brand-gold border border-brand-gold/30 rounded-lg hover:bg-brand-gold hover:text-white transition-all shadow-sm font-semibold text-sm group"
+                    >
+                        <span>{nextLabel}</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                )}
+            </div>
 
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4 pb-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
                     {/* Left Column: Images */}
@@ -405,9 +453,33 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         )}
                     </div>
                 </div>
+
+                {/* Related Products / See More Section */}
+                {relatedProducts.length > 0 && (
+                    <div className="mt-16 border-t border-gray-100 pt-16">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-3">
+                                <img src="/icon.svg" alt="Logo" className="w-8 h-8 opacity-80" />
+                                <h2 className="text-2xl font-bold text-gray-900">{seeMoreLabel}</h2>
+                            </div>
+                        </div>
+
+                        {/* Scrollable Horizontal List (Carousel) */}
+                        <div className="relative">
+                            <div className="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-brand-gold/20 scrollbar-track-transparent">
+                                {relatedProducts.map((p) => (
+                                    <div key={p.id} className="min-w-[280px] sm:min-w-[320px] lg:min-w-[300px] snap-start h-full pb-2">
+                                        <ProductCard product={p} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <Footer />
         </main>
     );
 }
+
