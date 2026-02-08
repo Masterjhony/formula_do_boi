@@ -67,8 +67,9 @@ export const getNavigationData = async (currentId: number) => {
         // Add other fields if missing in static data but required
     }));
 
-    // Combine and deduplicate by ID
-    const allProducts = [...mappedEmbryos, ...mappedDbProducts].reduce((acc: Product[], current) => {
+    // Combine and deduplicate by ID - Prioritize DB (mappedDbProducts first in array if reduce keeps first, OR put mappedDbProducts first in reduces)
+    // The previous reduce kept the FIRST item it found. So if we want DB to win, we should put DB items first in the array we iterate over.
+    const allProducts = [...mappedDbProducts, ...mappedEmbryos].reduce((acc: Product[], current) => {
         const x = acc.find(item => item.id === current.id);
         if (!x) {
             return acc.concat([current]);

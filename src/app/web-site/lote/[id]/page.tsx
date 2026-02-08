@@ -21,12 +21,12 @@ export async function generateMetadata(
     // fetch data
     const numericId = Number(id);
 
-    // Check static EMBRYOS first (Source of Truth for this update)
-    let product: any = EMBRYOS.find((p) => p.id === numericId);
+    // Check DB first (Source of Truth)
+    let product: any = await getProductById(numericId);
 
-    // If not found in static, check DB
+    // If not found in DB, check static EMBRYOS
     if (!product) {
-        product = await getProductById(numericId);
+        product = EMBRYOS.find((p) => p.id === numericId);
     }
 
     if (!product) {
@@ -99,12 +99,12 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
     const { id } = await params;
     const numericId = Number(id);
 
-    // Check static EMBRYOS first (Source of Truth for this update)
-    let product: any = EMBRYOS.find((p) => p.id === numericId);
+    // Check DB first (Source of Truth)
+    let product: any = await getProductById(numericId);
 
-    // If not found in static, check DB
+    // If not found in DB, check static EMBRYOS
     if (!product) {
-        product = await getProductById(numericId);
+        product = EMBRYOS.find((p) => p.id === numericId);
     }
 
     if (!product) {
