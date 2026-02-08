@@ -8,6 +8,8 @@ import { getProductById, getNavigationData } from "@/services/products.server";
 import { Metadata, ResolvingMetadata } from "next";
 import ProductCard from "@/components/ProductCard";
 
+export const dynamic = 'force-dynamic';
+
 type Props = {
     params: Promise<{ id: string }>
 }
