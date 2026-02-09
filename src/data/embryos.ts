@@ -89,35 +89,7 @@ export const EMBRYOS = [
         }
     },
 
-    {
-        id: 20,
-        name: "MEDUZA - Pacote 10 Embriões",
-        category: "DOADORA",
-        classificacao: "embriao",
-        modalidade: "venda_direta",
-        logistica: "frete_compartilhado",
-        forma_pagamento: "Entrada + 30x",
-        location: "Uberaba - MG",
-        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770078735/SYA537_f8ahhu.mp4",
-        gallery: [
-            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770078735/SYA537_f8ahhu.mp4"
-        ],
-        price: "17.000,00",
-        installments: "453,33",
-        downPaymentValue: "3.400,00",
-        tag: "DESTAQUE",
-        details: {
-            registro: "SYA 537",
-            raca: "Nelore",
-            nascimento: "15/06/2023",
-            pai: "PAO DE LO DA CA",
-            mae: "IBIZA FIV MERLIN",
-            proprietario: "BERRANTE DE OURO",
-            peso: "Sob Consulta",
-            comentario: "Excelente animal.",
-            pdf: "/SYA537.pdf"
-        }
-    },
+
     {
         id: 102,
         name: "Dose de Sêmen - WOLVERINE DA MYO",
