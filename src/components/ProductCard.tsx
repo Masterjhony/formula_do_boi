@@ -237,23 +237,53 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         <span className="text-xs text-brand-gold font-semibold uppercase tracking-wide">
                             Condição Especial
                         </span>
-                        <div className="flex items-baseline gap-1">
-                            {product.category !== 'Sêmen' && product.installments !== 'À Vista' && (
-                                <span className="text-sm text-gray-500 font-medium">
-                                    {product.forma_pagamento && product.forma_pagamento.includes('x')
-                                        ? product.forma_pagamento.match(/(\d+)x/)?.[1] + 'x'
-                                        : '30x'}
-                                </span>
-                            )}
-                            <span className="text-xl font-bold text-gray-900">
-                                {product.category === 'Sêmen' || product.installments === 'À Vista'
-                                    ? `R$ ${product.price}`
-                                    : `R$ ${product.installments}`}
-                            </span>
-                            {(product.category === 'Sêmen' || product.installments === 'À Vista') && (
-                                <span className="text-sm text-gray-500 font-medium ml-1">
-                                    {product.category === 'Sêmen' ? '1 dose' : 'À Vista'}
-                                </span>
+                        <div className="flex flex-col gap-0.5">
+                            {/* Casos onde há parcelamento e preço à vista definidos */}
+                            {product.category !== 'Sêmen' && product.installments !== 'À Vista' && product.price && product.price !== 'Consultar' ? (
+                                <div className="flex flex-col">
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-xl font-bold text-gray-900">
+                                            R$ {product.price}
+                                        </span>
+                                        <span className="text-sm text-gray-500 font-medium">À Vista</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 w-full my-0.5">
+                                        <div className="h-px bg-gray-200 flex-1"></div>
+                                        <span className="text-[10px] text-gray-400 font-medium uppercase">OU</span>
+                                        <div className="h-px bg-gray-200 flex-1"></div>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-base text-brand-gold">
+                                        <span className="font-bold">
+                                            {product.forma_pagamento && product.forma_pagamento.includes('x')
+                                                ? product.forma_pagamento.match(/(\d+)x/)?.[1] + 'x'
+                                                : '30x'}
+                                        </span>
+                                        <span className="text-xs font-medium text-gray-500">de</span>
+                                        <span className="font-bold">R$ {product.installments}</span>
+                                        <span className="text-[10px] font-medium text-gray-400 ml-1">no boleto</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Fallback para visualização padrão (Sêmen ou Sem Parcelas) */
+                                <div className="flex items-baseline gap-1">
+                                    {product.category !== 'Sêmen' && product.installments !== 'À Vista' && (
+                                        <span className="text-sm text-gray-500 font-medium">
+                                            {product.forma_pagamento && product.forma_pagamento.includes('x')
+                                                ? product.forma_pagamento.match(/(\d+)x/)?.[1] + 'x'
+                                                : '30x'}
+                                        </span>
+                                    )}
+                                    <span className="text-xl font-bold text-gray-900">
+                                        {product.category === 'Sêmen' || product.installments === 'À Vista'
+                                            ? `R$ ${product.price}`
+                                            : `R$ ${product.installments}`}
+                                    </span>
+                                    {(product.category === 'Sêmen' || product.installments === 'À Vista') && (
+                                        <span className="text-sm text-gray-500 font-medium ml-1">
+                                            {product.category === 'Sêmen' ? '1 dose' : 'À Vista'}
+                                        </span>
+                                    )}
+                                </div>
                             )}
                         </div>
 
@@ -264,10 +294,6 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                                 </span>
                             </div>
                         )}
-
-                        <span className="text-[10px] text-gray-400 mt-1">
-                            {product.category === 'Sêmen' ? product.installments : `Total: R$ ${product.price}`}
-                        </span>
                     </div>
 
                     <a

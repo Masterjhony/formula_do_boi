@@ -257,44 +257,93 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         </div>
 
                         <div className="border-t border-b border-gray-100 py-6 mb-6 space-y-4">
-                            <div className="flex justify-between items-end">
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">
-                                        {'forma_pagamento' in product && product.forma_pagamento ?
-                                            (product.forma_pagamento === 'a_vista' ? 'À Vista' : product.forma_pagamento)
-                                            : 'Valor'}
-                                    </p>
-                                    {'downPaymentValue' in product && (
-                                        <p className="text-sm font-semibold text-brand-gold mb-1">
-                                            Entrada: R$ {product.downPaymentValue}
+                            {product.price && product.price !== 'Consultar' && product.installments && product.installments !== 'À Vista' && product.category !== 'Sêmen' ? (
+                                <div className="space-y-4">
+                                    {/* Opção À Vista */}
+                                    <div className="flex justify-between items-end">
+                                        <div>
+                                            <p className="text-sm text-gray-500 mb-1 font-medium">Valor para pagamento À Vista</p>
+                                            <div className="flex items-baseline gap-2">
+                                                <p className="text-4xl font-extrabold text-brand-black tracking-tight">R$ {product.price}</p>
+                                                <span className="text-sm font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+                                                    Melhor Preço
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Divider */}
+                                    <div className="relative py-2">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <div className="w-full border-t border-gray-200"></div>
+                                        </div>
+                                        <div className="relative flex justify-center text-xs uppercase tracking-widest">
+                                            <span className="bg-white px-3 text-gray-400 font-medium">OU PARCELADO</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Opção Parcelada */}
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <p className="text-sm text-gray-500 font-medium">Boleto Bancário</p>
+                                            {product.downPaymentValue && (
+                                                <span className="text-xs font-semibold text-brand-gold bg-brand-gold/10 px-2 py-0.5 rounded border border-brand-gold/20">
+                                                    Entrada de R$ {product.downPaymentValue}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-baseline gap-2 text-brand-gold">
+                                            <span className="text-3xl font-bold">
+                                                {product.forma_pagamento && product.forma_pagamento.includes('x')
+                                                    ? product.forma_pagamento.match(/(\d+)x/)?.[1] + 'x'
+                                                    : '30x'}
+                                            </span>
+                                            <span className="text-xl font-medium text-gray-600">de</span>
+                                            <span className="text-3xl font-bold">R$ {product.installments}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-1">* Sujeito a análise de cadastro</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex justify-between items-end">
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">
+                                            {'forma_pagamento' in product && product.forma_pagamento ?
+                                                (product.forma_pagamento === 'a_vista' ? 'À Vista' : product.forma_pagamento)
+                                                : 'Valor'}
                                         </p>
-                                    )}
-                                    <p className="text-4xl font-bold text-brand-black">
-                                        {(() => {
-                                            if (product.price === 'Consultar') return 'Consultar';
-                                            if (product.category === 'Sêmen') return `R$ ${product.price}`;
+                                        {'downPaymentValue' in product && (
+                                            <p className="text-sm font-semibold text-brand-gold mb-1">
+                                                Entrada: R$ {product.downPaymentValue}
+                                            </p>
+                                        )}
+                                        <p className="text-4xl font-bold text-brand-black">
+                                            {(() => {
+                                                if (product.price === 'Consultar') return 'Consultar';
+                                                if (product.category === 'Sêmen') return `R$ ${product.price}`;
 
-                                            // Extract count
-                                            let count = 1;
-                                            if ('forma_pagamento' in product && product.forma_pagamento) {
-                                                const match = product.forma_pagamento.match(/(\d+)x/);
-                                                if (match) count = parseInt(match[1]);
-                                            }
+                                                // Extract count
+                                                let count = 1;
+                                                if ('forma_pagamento' in product && product.forma_pagamento) {
+                                                    const match = product.forma_pagamento.match(/(\d+)x/);
+                                                    if (match) count = parseInt(match[1]);
+                                                }
 
-                                            if (count > 1) return `${count}x R$ ${product.installments}`;
-                                            return `R$ ${product.price}`;
-                                        })()}
-                                    </p>
+                                                if (count > 1) return `${count}x R$ ${product.installments}`;
+                                                return `R$ ${product.price}`;
+                                            })()}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-gray-400">
+                                            {product.category === 'Sêmen' ? 'Condição' : 'Valor Total'}
+                                        </p>
+                                        <p className="text-lg font-semibold text-gray-700">
+                                            {product.category === 'Sêmen' ? product.installments : `R$ ${product.price}`}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-xs text-gray-400">
-                                        {product.category === 'Sêmen' ? 'Condição' : 'Valor Total'}
-                                    </p>
-                                    <p className="text-lg font-semibold text-gray-700">
-                                        {product.category === 'Sêmen' ? product.installments : `R$ ${product.price}`}
-                                    </p>
-                                </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* Payment Conditions Info Block */}
