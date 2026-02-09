@@ -239,7 +239,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         </span>
                         <div className="flex flex-col gap-0.5">
                             {/* Casos onde há parcelamento e preço à vista definidos */}
-                            {product.category !== 'Sêmen' && product.installments !== 'À Vista' && product.price && product.price !== 'Consultar' ? (
+                            {product.category !== 'Sêmen' && product.special_price && product.installments !== 'À Vista' && product.price && product.price !== 'Consultar' ? (
                                 <div className="flex flex-col">
                                     <div className="flex items-baseline gap-1">
                                         <span className="text-xl font-bold text-gray-900">

@@ -17,6 +17,7 @@ const mapProduct = (data: any): Product => ({
     iabcz: data.iabcz || data.details?.iabcz || '',
     mgte: data.mgte || data.details?.mgte || '',
     iqg: data.iqg || data.details?.iqg || '',
+    special_price: data.details?.special_price || false,
 });
 
 // For Server Components

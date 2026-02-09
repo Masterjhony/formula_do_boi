@@ -45,6 +45,7 @@ export default function NewProductPage() {
         comentario: '',
         pdf: '',
         videoUrl: '', // For now just a URL input, later file upload
+        special_price: false,
     });
 
     useEffect(() => {
@@ -193,6 +194,7 @@ export default function NewProductPage() {
                     tipo: formData.reproductive_status, // Sync type with reproductive status
                     comentario: formData.comentario,
                     pdf: formData.pdf,
+                    special_price: (formData as any).special_price,
                 }
             };
 
@@ -364,8 +366,31 @@ export default function NewProductPage() {
                 <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Números e Valores</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-4 border-l-4 border-brand-gold pl-4 bg-brand-gold/5 p-4 rounded-r-lg">
+                            <h4 className="font-semibold text-brand-gold">Condições Especiais de Venda</h4>
+
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="special_price"
+                                    name="special_price"
+                                    checked={(formData as any).special_price || false}
+                                    onChange={handleChange}
+                                    className="w-5 h-5 text-brand-gold border-gray-300 rounded focus:ring-brand-gold"
+                                />
+                                <label htmlFor="special_price" className="text-sm font-medium text-gray-900 cursor-pointer select-none">
+                                    Ativar Dupla Precificação (À Vista + Parcelado)
+                                </label>
+                            </div>
+
+                            <p className="text-xs text-gray-500">
+                                Marque esta opção para exibir o preço "À Vista" e "Parcelado" simultaneamente no card do animal.
+                                Caso contrário, será exibido apenas o padrão (ou um ou outro).
+                            </p>
+                        </div>
+
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Preço Total</label>
+                            <label className="text-sm font-medium text-gray-700">Preço Total / À Vista</label>
                             <input
                                 name="price"
                                 value={formData.price}
@@ -375,7 +400,7 @@ export default function NewProductPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Parcelas (Valor)</label>
+                            <label className="text-sm font-medium text-gray-700">Valor da Parcela</label>
                             <input
                                 name="installments"
                                 value={formData.installments}
@@ -386,22 +411,28 @@ export default function NewProductPage() {
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Condições de Pagamento</label>
-                            <select
-                                name="forma_pagamento"
-                                value={formData.forma_pagamento}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
-                            >
-                                <option value="parcelado_24x">24x</option>
-                                <option value="parcelado_25x">25x</option>
-                                <option value="parcelado_30x">30x</option>
-                                <option value="parcelado_36x">36x</option>
-                                <option value="parcelado_15x">15x</option>
-                                <option value="parcelado_12x">12x</option>
-                                <option value="parcelado_10x">10x</option>
-                                <option value="a_vista">À Vista</option>
-                                <option value="consultar">Consultar</option>
-                            </select>
+                            <div className="space-y-1">
+                                <input
+                                    name="forma_pagamento"
+                                    value={formData.forma_pagamento}
+                                    onChange={handleChange}
+                                    list="payment_options"
+                                    placeholder="Ex: 30x ou selecione..."
+                                    className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
+                                />
+                                <datalist id="payment_options">
+                                    <option value="parcelado_24x">24x</option>
+                                    <option value="parcelado_25x">25x</option>
+                                    <option value="parcelado_30x">30x</option>
+                                    <option value="parcelado_36x">36x</option>
+                                    <option value="parcelado_15x">15x</option>
+                                    <option value="parcelado_12x">12x</option>
+                                    <option value="parcelado_10x">10x</option>
+                                    <option value="a_vista">À Vista</option>
+                                    <option value="consultar">Consultar</option>
+                                </datalist>
+                                <p className="text-xs text-gray-500">Digite livremente (ex: "30x") ou selecione uma opção.</p>
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">MGTe</label>
