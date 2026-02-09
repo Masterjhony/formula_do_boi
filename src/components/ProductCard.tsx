@@ -20,6 +20,7 @@ interface ProductProps {
     iabcz?: string;
     mgte?: string;
     iqg?: string;
+    special_price?: boolean;
     details?: {
         registro?: string;
         raca?: string;
