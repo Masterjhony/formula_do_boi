@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { MapPin, Share2, Heart, Clock, ShieldCheck, ArrowRight, ChevronRight, LayoutGrid } from "lucide-react";
+import { MapPin, Share2, Heart, Clock, ShieldCheck, ArrowRight, ChevronRight, LayoutGrid, Info } from "lucide-react";
 import Link from "next/link";
 // import { PRODUCTS } from "@/data/products"; // Using DB now
 import { EMBRYOS } from "@/data/embryos";
@@ -434,8 +434,25 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                 </div>
 
                 {/* Details Section */}
-                <div className="mt-12 lg:mt-16 bg-white rounded-xl border border-gray-100 p-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-8 border-b border-gray-100 pb-4">Detalhes do Animal</h2>
+                <div className="mt-12 lg:mt-16 bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-8">
+                        <h2 className="text-2xl font-bold text-gray-900">Detalhes do Animal</h2>
+                    </div>
+
+                    {/* Description / Comment - Added based on user request */}
+                    {product.details?.comentario && (
+                        <div className="mb-10 bg-brand-gold/5 border border-brand-gold/20 p-6 rounded-lg">
+                            <h3 className="text-sm font-bold text-brand-gold uppercase tracking-wide mb-3 flex items-center gap-2">
+                                <Info className="w-4 h-4" />
+                                Informações Adicionais
+                            </h3>
+                            <p className="text-gray-700 whitespace-pre-line leading-relaxed text-base">
+                                {product.details.comentario}
+                            </p>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-sm">
                         {product.details?.registro && (
                             <div className="space-y-1">
@@ -508,23 +525,25 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
 
                 {/* Related Products / See More Section */}
                 {relatedProducts.length > 0 && (
-                    <div className="mt-16 border-t border-gray-100 pt-16">
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center gap-3">
-                                <img src="/icon.svg" alt="Logo" className="w-8 h-8 opacity-80" />
-                                <h2 className="text-2xl font-bold text-gray-900">{seeMoreLabel}</h2>
-                            </div>
+                    <div className="mt-16 pt-8 border-t border-gray-200">
+                        <div className="flex items-center gap-3 mb-8">
+                            <img src="/icon.svg" alt="Logo" className="w-8 h-8 opacity-80" />
+                            <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">{seeMoreLabel}</h2>
                         </div>
 
                         {/* Scrollable Horizontal List (Carousel) */}
-                        <div className="relative">
-                            <div className="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-brand-gold/20 scrollbar-track-transparent">
+                        <div className="relative group">
+                            <div className="flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-brand-gold/20 scrollbar-track-gray-100 hover:scrollbar-thumb-brand-gold/50 transition-colors px-1">
                                 {relatedProducts.map((p) => (
-                                    <div key={p.id} className="w-[280px] sm:w-[320px] lg:w-[300px] flex-none snap-start h-full pb-2">
-                                        <ProductCard product={p} />
+                                    <div key={p.id} className="w-[280px] sm:w-[320px] flex-none snap-center first:pl-0 last:pr-4">
+                                        <div className="h-full transform transition-transform hover:-translate-y-1 duration-300">
+                                            <ProductCard product={p} />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
+                            {/* Gradient Fade for Scroll Hint */}
+                            <div className="absolute right-0 top-0 bottom-8 w-24 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none lg:hidden"></div>
                         </div>
                     </div>
                 )}
