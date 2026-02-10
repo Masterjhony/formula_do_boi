@@ -45,6 +45,10 @@ export async function generateMetadata(
         if (url.includes('cloudinary.com') && url.endsWith('.mp4')) {
             return url.replace('.mp4', '.jpg');
         }
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            const videoId = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('/').pop();
+            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
         if (url.endsWith('.mp4')) return null; // Can't use other videos as images
         if (url.startsWith('/')) return `https://app.formuladoboi.com${url}`;
         return url;
@@ -191,6 +195,13 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                     playsInline
                                     controls
                                     className="w-full h-full object-cover"
+                                />
+                            ) : (product.image?.includes('youtube.com') || product.image?.includes('youtu.be')) ? (
+                                <iframe
+                                    src={`https://www.youtube.com/embed/${product.image.includes('v=') ? product.image.split('v=')[1].split('&')[0] : product.image.split('/').pop()}?autoplay=1&mute=1&loop=1&playlist=${product.image.includes('v=') ? product.image.split('v=')[1].split('&')[0] : product.image.split('/').pop()}`}
+                                    className="w-full h-full object-cover"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
                                 />
                             ) : (
                                 <img
