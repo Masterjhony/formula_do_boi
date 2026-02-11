@@ -148,7 +148,7 @@ export default function Header() {
         <header className="sticky top-0 z-50">
             {/* Top Bar */}
             <div className="bg-[#0a0a0a] border-b border-white/10">
-                <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+                <div className="container mx-auto px-4 h-20 flex items-center justify-between relative">
                     {/* Mobile Menu Button */}
                     <button
                         className="p-2 -ml-2 text-white/80 hover:text-white lg:hidden transition-colors"
@@ -169,7 +169,7 @@ export default function Header() {
                     </Link>
 
                     {/* Search Bar - Desktop */}
-                    <div className="hidden md:flex flex-1 max-w-lg mx-8">
+                    <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-full max-w-lg px-4">
                         <SearchBar />
                     </div>
 
