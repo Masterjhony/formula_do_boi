@@ -67,8 +67,8 @@ export default function HerdsPage() {
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Dados do Rebanho</h1>
-                    <p className="text-gray-400">Gerencie o cadastro dos seus animais</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dados do Rebanho</h1>
+                    <p className="text-gray-500">Gerencie o cadastro dos seus animais</p>
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
@@ -80,46 +80,46 @@ export default function HerdsPage() {
             </div>
 
             {isAdding && (
-                <div className="bg-[#111111] border border-[#222222] rounded-2xl p-6 mb-8 animate-in slide-in-from-top-4">
-                    <h3 className="text-lg font-bold text-white mb-4">Novo Cadastro</h3>
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 mb-8 animate-in slide-in-from-top-4 shadow-sm dark:shadow-none">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Novo Cadastro</h3>
                     <form onSubmit={handleAddHerd} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">Nome do Lote/Rebanho</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Lote/Rebanho</label>
                             <input
                                 required
                                 type="text"
                                 value={newHerd.name}
                                 onChange={e => setNewHerd({ ...newHerd, name: e.target.value })}
-                                className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl px-4 py-2"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl px-4 py-2"
                                 placeholder="Ex: Lote Reprodução 2024"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">Raça Predominante</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Raça Predominante</label>
                             <input
                                 type="text"
                                 value={newHerd.breed}
                                 onChange={e => setNewHerd({ ...newHerd, breed: e.target.value })}
-                                className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl px-4 py-2"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl px-4 py-2"
                                 placeholder="Ex: Nelore"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">Quantidade de Cabeças</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Quantidade de Cabeças</label>
                             <input
                                 type="number"
                                 value={newHerd.quantity}
                                 onChange={e => setNewHerd({ ...newHerd, quantity: Number(e.target.value) })}
-                                className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl px-4 py-2"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl px-4 py-2"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">Observações</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Observações</label>
                             <input
                                 type="text"
                                 value={newHerd.description}
                                 onChange={e => setNewHerd({ ...newHerd, description: e.target.value })}
-                                className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl px-4 py-2"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl px-4 py-2"
                                 placeholder="Informações adicionais..."
                             />
                         </div>
@@ -127,7 +127,7 @@ export default function HerdsPage() {
                             <button
                                 type="button"
                                 onClick={() => setIsAdding(false)}
-                                className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                                className="px-4 py-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
                             >
                                 Cancelar
                             </button>
@@ -144,14 +144,14 @@ export default function HerdsPage() {
 
             <div className="grid gap-4">
                 {herds.map((herd) => (
-                    <div key={herd.id} className="bg-[#111111] border border-[#222222] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 group">
+                    <div key={herd.id} className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 group shadow-sm dark:shadow-none">
                         <div className="flex items-center gap-4 w-full md:w-auto">
-                            <div className="p-4 bg-[#1A1A1A] rounded-xl text-[#B8860B]">
+                            <div className="p-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl text-[#B8860B]">
                                 <Beef className="w-8 h-8" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-white mb-1">{herd.name}</h3>
-                                <p className="text-gray-400 text-sm">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{herd.name}</h3>
+                                <p className="text-gray-500 text-sm">
                                     {herd.quantity} animais • {herd.breed || 'Raça não informada'}
                                 </p>
                             </div>
@@ -160,12 +160,12 @@ export default function HerdsPage() {
                         <div className="flex items-center gap-4 text-sm text-gray-500 w-full md:w-auto justify-between md:justify-end">
                             <span>Cadastrado em {new Date(herd.created_at).toLocaleDateString('pt-BR')}</span>
                             <div className="flex gap-2">
-                                <button className="p-2 hover:bg-[#1A1A1A] rounded-lg text-gray-400 hover:text-white transition-colors">
+                                <button className="p-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                                     <Edit className="w-5 h-5" />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(herd.id)}
-                                    className="p-2 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-500 transition-colors"
+                                    className="p-2 hover:bg-red-100 text-gray-400 hover:text-red-500 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                                 >
                                     <Trash2 className="w-5 h-5" />
                                 </button>
@@ -175,9 +175,9 @@ export default function HerdsPage() {
                 ))}
 
                 {herds.length === 0 && !loading && (
-                    <div className="text-center py-12 bg-[#111111] border border-[#222222] rounded-2xl">
-                        <Beef className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-white mb-2">Nenhum rebanho cadastrado</h3>
+                    <div className="text-center py-12 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl shadow-sm dark:shadow-none">
+                        <Beef className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Nenhum rebanho cadastrado</h3>
                         <p className="text-gray-500">Cadastre seus animais para ter um controle melhor do seu estoque.</p>
                     </div>
                 )}

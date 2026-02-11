@@ -52,8 +52,8 @@ export default async function DashboardPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Visão Geral</h1>
-                <p className="text-gray-400">Acompanhe suas atividades e status do rebanho</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Visão Geral</h1>
+                <p className="text-gray-500">Acompanhe suas atividades e status do rebanho</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -85,12 +85,12 @@ export default async function DashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    <h2 className="text-xl font-bold text-white mb-6">Propostas Recentes</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Propostas Recentes</h2>
                     <RecentProposals userId={user?.id!} />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-white mb-6">Atividades</h2>
-                    <div className="bg-[#111111] border border-[#222222] rounded-2xl p-6">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Atividades</h2>
+                    <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 shadow-sm dark:shadow-none">
                         <p className="text-gray-500 text-center py-8">Nenhuma atividade recente</p>
                     </div>
                 </div>

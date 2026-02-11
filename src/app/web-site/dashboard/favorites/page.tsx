@@ -18,8 +18,8 @@ export default async function FavoritesPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Meus Favoritos</h1>
-                <p className="text-gray-400">Acompanhe os lotes que você mais gostou</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Meus Favoritos</h1>
+                <p className="text-gray-500">Acompanhe os lotes que você mais gostou</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -29,7 +29,7 @@ export default async function FavoritesPage() {
                     if (!product) return null
 
                     return (
-                        <div key={favorite.id} className="bg-[#111111] border border-[#222222] rounded-2xl overflow-hidden group hover:border-[#B8860B]/30 transition-colors">
+                        <div key={favorite.id} className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl overflow-hidden group hover:border-[#B8860B]/30 transition-colors shadow-sm dark:shadow-none">
                             <div className="relative aspect-video">
                                 {product.image.endsWith('.mp4') ? (
                                     <video
@@ -61,21 +61,21 @@ export default async function FavoritesPage() {
                                         <p className="text-[#B8860B] font-bold">R$ {product.price}</p>
                                     </div>
                                     <div className="text-right text-sm">
-                                        <p className="text-gray-500">Registro</p>
-                                        <p className="text-white">{product.details?.registro}</p>
+                                        <p className="text-gray-500 mb-1">Registro</p>
+                                        <p className="text-gray-900 dark:text-white font-medium">{product.details?.registro}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-2">
                                     <Link
                                         href={`/lote/${product.id}`}
-                                        className="flex-1 bg-[#1A1A1A] hover:bg-[#B8860B] hover:text-black text-white font-medium py-2.5 rounded-xl transition-all text-center text-sm flex items-center justify-center gap-2"
+                                        className="flex-1 bg-gray-100 dark:bg-[#1A1A1A] hover:bg-[#B8860B] hover:text-black text-gray-900 dark:text-white font-medium py-2.5 rounded-xl transition-all text-center text-sm flex items-center justify-center gap-2"
                                     >
                                         Ver Detalhes
                                         <ArrowUpRight className="w-4 h-4" />
                                     </Link>
                                     {/* Ideally create a client component for removing favorite */}
-                                    <button className="p-2.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors">
+                                    <button className="p-2.5 bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500 rounded-xl hover:bg-red-200 dark:hover:bg-red-500/20 transition-colors">
                                         <Trash2 className="w-5 h-5" />
                                     </button>
                                 </div>
@@ -86,9 +86,9 @@ export default async function FavoritesPage() {
             </div>
 
             {(!favorites || favorites.length === 0) && (
-                <div className="text-center py-20 bg-[#111111] border border-[#222222] rounded-2xl">
-                    <Heart className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-white mb-2">Sua lista de favoritos está vazia</h3>
+                <div className="text-center py-20 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl shadow-sm dark:shadow-none">
+                    <Heart className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Sua lista de favoritos está vazia</h3>
                     <p className="text-gray-500 mb-6">Explore nossos lotes e marque como favorito os que mais te interessar.</p>
                     <Link href="/touros" className="inline-flex items-center justify-center px-6 py-3 bg-[#B8860B] hover:bg-[#D4AF37] text-black font-bold rounded-xl transition-all">
                         Explorar Leilões

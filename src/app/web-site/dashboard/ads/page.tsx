@@ -51,8 +51,8 @@ export default async function MyAdsPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Meus Anúncios</h1>
-                <p className="text-gray-400">Gerencie os animais que você anunciou no site</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Meus Anúncios</h1>
+                <p className="text-gray-500">Gerencie os animais que você anunciou no site</p>
                 {breederName && <p className="text-xs text-gray-500 mt-1">Exibindo anúncios para: <span className="text-[#B8860B]">{breederName}</span></p>}
             </div>
 
@@ -65,11 +65,11 @@ export default async function MyAdsPage() {
                     ))}
                 </div>
             ) : (
-                <div className="bg-[#111111] border border-[#222222] rounded-2xl p-12 text-center">
-                    <div className="bg-[#1A1A1A] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Store className="w-8 h-8 text-gray-600" />
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-12 text-center shadow-sm dark:shadow-none">
+                    <div className="bg-gray-50 dark:bg-[#1A1A1A] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-[#B8860B]">
+                        <Store className="w-8 h-8" />
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2">Nenhum anúncio encontrado</h3>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Nenhum anúncio encontrado</h3>
                     <p className="text-gray-500 max-w-md mx-auto">
                         Não encontramos animais vinculados ao seu nome de cadastro ({breederName || 'Sem nome'}).
                         Entre em contato com a administração caso seus anúncios não estejam aparecendo.

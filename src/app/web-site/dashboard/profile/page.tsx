@@ -99,63 +99,63 @@ export default function ProfilePage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Dados Cadastrais</h1>
-                <p className="text-gray-400">Mantenha seus dados atualizados para participar dos leilões</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dados Cadastrais</h1>
+                <p className="text-gray-500">Mantenha seus dados atualizados para participar dos leilões</p>
             </div>
 
             <form onSubmit={updateProfile} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Personal Info */}
                 <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <User className="w-5 h-5 text-[#B8860B]" />
                         Informações Pessoais
                     </h2>
 
-                    <div className="bg-[#111111] border border-[#222222] rounded-2xl p-6 space-y-4">
+                    <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 space-y-4 shadow-sm dark:shadow-none">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">Nome Completo</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nome Completo</label>
                             <input
                                 type="text"
                                 value={formData.full_name}
                                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                                className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">Email</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                 <input
                                     type="email"
                                     value={formData.email}
                                     disabled
-                                    className="w-full bg-[#1A1A1A]/50 border border-[#333333] text-gray-400 rounded-xl py-3 pl-10 pr-4 cursor-not-allowed outline-none"
+                                    className="w-full bg-gray-100 dark:bg-[#1A1A1A]/50 border border-gray-200 dark:border-[#333333] text-gray-500 dark:text-gray-400 rounded-xl py-3 pl-10 pr-4 cursor-not-allowed outline-none"
                                 />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-300">CPF</label>
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">CPF</label>
                                 <div className="relative">
                                     <FileCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                     <input
                                         type="text"
                                         value={formData.cpf}
                                         onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
-                                        className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-10 pr-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                        className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
                                         placeholder="000.000.000-00"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-300">Telefone</label>
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Telefone</label>
                                 <div className="relative">
                                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                     <input
                                         type="tel"
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-10 pr-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                        className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
                                         placeholder="(00) 00000-0000"
                                     />
                                 </div>
@@ -166,55 +166,55 @@ export default function ProfilePage() {
 
                 {/* Address Info */}
                 <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-[#B8860B]" />
                         Endereço
                     </h2>
 
-                    <div className="bg-[#111111] border border-[#222222] rounded-2xl p-6 space-y-4">
+                    <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 space-y-4 shadow-sm dark:shadow-none">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">Rua / Avenida</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Rua / Avenida</label>
                             <input
                                 type="text"
                                 value={formData.address_street}
                                 onChange={(e) => setFormData({ ...formData, address_street: e.target.value })}
-                                className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-300">Cidade</label>
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Cidade</label>
                                 <input
                                     type="text"
                                     value={formData.address_city}
                                     onChange={(e) => setFormData({ ...formData, address_city: e.target.value })}
-                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-300">Estado (UF)</label>
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Estado (UF)</label>
                                 <input
                                     type="text"
                                     value={formData.address_state}
                                     onChange={(e) => setFormData({ ...formData, address_state: e.target.value })}
-                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300">CEP</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">CEP</label>
                             <input
                                 type="text"
                                 value={formData.address_zip}
                                 onChange={(e) => setFormData({ ...formData, address_zip: e.target.value })}
-                                className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
                                 placeholder="00000-000"
                             />
                         </div>
                     </div>
 
                     {message && (
-                        <div className={`p-4 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                        <div className={`p-4 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500' : 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500'}`}>
                             {message.text}
                         </div>
                     )}
@@ -227,7 +227,7 @@ export default function ProfilePage() {
                         {updating ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                Salvando...
+                                Saving...
                             </>
                         ) : (
                             <>

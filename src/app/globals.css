@@ -1,7 +1,16 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #0a0a0a;
+  --background: #ffffff;
+  --foreground: #171717;
+  --brand-gold: #C5A059;
+  --brand-black: #0a0a0a;
+  --brand-light: #f5f5f5;
+}
+
+.dark {
+  --background: #000000;
   --foreground: #ededed;
   --brand-gold: #C5A059;
   --brand-black: #0a0a0a;
