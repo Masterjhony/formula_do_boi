@@ -82,7 +82,7 @@ export default function Header() {
         <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200">
             <div className="px-4 py-3 border-b border-gray-100">
                 <p className="text-sm font-bold text-gray-900 truncate">
-                    {profile?.full_name || 'Usuário'}
+                    {profile?.full_name || user?.user_metadata?.full_name || 'Usuário'}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
                     {user?.email}
@@ -183,14 +183,14 @@ export default function Header() {
                                 >
                                     <div className="text-right hidden sm:block">
                                         <p className="text-sm font-bold text-white leading-none">
-                                            {profile?.full_name?.split(' ')[0] || 'Usuário'}
+                                            {(profile?.full_name || user?.user_metadata?.full_name || 'Usuário').split(' ')[0]}
                                         </p>
-                                        <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mt-0.5 group-hover:text-brand-gold transition-colors">
+                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mt-0.5 group-hover:text-brand-gold transition-colors">
                                             Minha Conta
                                         </p>
                                     </div>
                                     <div className="w-10 h-10 rounded-full bg-brand-gold flex items-center justify-center text-brand-black font-bold text-lg border-2 border-transparent group-hover:border-white/20 transition-all">
-                                        {profile?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+                                        {(profile?.full_name || user?.user_metadata?.full_name || user.email || '?').charAt(0).toUpperCase()}
                                     </div>
                                 </button>
 
@@ -241,10 +241,10 @@ export default function Header() {
                             <div className="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-12 h-12 rounded-full bg-brand-gold flex items-center justify-center text-brand-black font-bold text-xl">
-                                        {profile?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+                                        {(profile?.full_name || user?.user_metadata?.full_name || user.email || '?').charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                        <p className="text-white font-bold">{profile?.full_name || 'Usuário'}</p>
+                                        <p className="text-white font-bold">{profile?.full_name || user?.user_metadata?.full_name || 'Usuário'}</p>
                                         <p className="text-xs text-gray-400">{user.email}</p>
                                     </div>
                                 </div>
