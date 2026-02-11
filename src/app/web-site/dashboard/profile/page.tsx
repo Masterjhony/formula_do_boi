@@ -10,6 +10,7 @@ export default function ProfilePage() {
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
     const [formData, setFormData] = useState({
         full_name: '',
+        avatar_url: '',
         email: '',
         cpf: '',
         phone: '',
@@ -37,6 +38,7 @@ export default function ProfilePage() {
                 if (data) {
                     setFormData({
                         full_name: data.full_name || '',
+                        avatar_url: data.avatar_url || '',
                         email: data.email || user.email || '',
                         cpf: data.cpf || '',
                         phone: data.phone || '',
@@ -65,6 +67,7 @@ export default function ProfilePage() {
             const updates = {
                 id: user.id,
                 full_name: formData.full_name,
+                avatar_url: formData.avatar_url,
                 email: formData.email,
                 cpf: formData.cpf,
                 phone: formData.phone,
@@ -104,6 +107,7 @@ export default function ProfilePage() {
             </div>
 
             <form onSubmit={updateProfile} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
                 {/* Personal Info */}
                 <div className="space-y-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -112,6 +116,65 @@ export default function ProfilePage() {
                     </h2>
 
                     <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 space-y-4 shadow-sm dark:shadow-none">
+
+                        {/* Avatar Upload */}
+                        <div className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-[#222222]">
+                            <div className="relative group">
+                                <div className="w-20 h-20 rounded-full bg-[#B8860B] flex items-center justify-center text-black font-bold text-2xl overflow-hidden relative">
+                                    {formData.avatar_url ? (
+                                        <img
+                                            src={formData.avatar_url}
+                                            alt="Profile"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        (formData.full_name || formData.email || '?').charAt(0).toUpperCase()
+                                    )}
+                                </div>
+                                <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 rounded-full cursor-pointer transition-opacity">
+                                    <span className="text-white text-xs font-medium">Alterar</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+
+                                            try {
+                                                setUpdating(true);
+                                                const fileExt = file.name.split('.').pop();
+                                                const fileName = `${Math.random()}.${fileExt}`;
+                                                const filePath = `${fileName}`;
+
+                                                const { error: uploadError } = await supabase.storage
+                                                    .from('avatars')
+                                                    .upload(filePath, file);
+
+                                                if (uploadError) throw uploadError;
+
+                                                const { data: { publicUrl } } = supabase.storage
+                                                    .from('avatars')
+                                                    .getPublicUrl(filePath);
+
+                                                setFormData({ ...formData, avatar_url: publicUrl });
+                                                setMessage({ type: 'success', text: 'Foto carregada! Clique em Salvar para confirmar.' });
+                                            } catch (error) {
+                                                console.error('Error uploading avatar:', error);
+                                                setMessage({ type: 'error', text: 'Erro ao carregar foto.' });
+                                            } finally {
+                                                setUpdating(false);
+                                            }
+                                        }}
+                                    />
+                                </label>
+                            </div>
+                            <div>
+                                <h3 className="font-medium text-gray-900 dark:text-white">Foto de Perfil</h3>
+                                <p className="text-sm text-gray-500">Clique na imagem para alterar</p>
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nome Completo</label>
                             <input
@@ -237,7 +300,7 @@ export default function ProfilePage() {
                         )}
                     </button>
                 </div>
-            </form>
-        </div>
+            </form >
+        </div >
     )
 }

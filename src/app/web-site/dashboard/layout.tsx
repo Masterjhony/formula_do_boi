@@ -54,11 +54,22 @@ export default async function DashboardLayout({
 
                 <div className="px-6 mb-8">
                     <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222222] shadow-sm dark:shadow-none transition-colors duration-300">
-                        <div className="w-10 h-10 rounded-full bg-[#B8860B] flex items-center justify-center text-black font-bold text-lg">
-                            {profile?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+                        <div className="w-10 h-10 rounded-full bg-[#B8860B] flex items-center justify-center text-black font-bold text-lg overflow-hidden relative">
+                            {profile?.avatar_url ? (
+                                <Image
+                                    src={profile.avatar_url}
+                                    alt={profile?.full_name || 'Usuário'}
+                                    fill
+                                    className="object-cover"
+                                />
+                            ) : (
+                                (profile?.full_name || user.email || '?').charAt(0).toUpperCase()
+                            )}
                         </div>
                         <div className="flex-1 overflow-hidden">
-                            <h3 className="text-gray-900 dark:text-white text-sm font-medium truncate">{profile?.full_name || 'Usuário'}</h3>
+                            <h3 className="text-gray-900 dark:text-white text-sm font-medium truncate">
+                                {profile?.full_name || user?.user_metadata?.full_name || 'Usuário'}
+                            </h3>
                             <p className="text-gray-500 text-xs truncate">{user.email}</p>
                         </div>
                     </div>
