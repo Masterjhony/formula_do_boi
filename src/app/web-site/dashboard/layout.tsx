@@ -14,6 +14,9 @@ import {
 } from 'lucide-react'
 
 import { ThemeToggle } from '@/components/theme-toggle'
+import { NavLink } from './components/nav-link'
+import { MobileNav } from './components/mobile-nav'
+import { SidebarNav } from './components/sidebar-nav'
 
 export default async function DashboardLayout({
     children,
@@ -37,7 +40,9 @@ export default async function DashboardLayout({
         .single()
 
     return (
-        <div className="min-h-screen bg-background flex transition-colors duration-300">
+        <div className="min-h-screen bg-background flex flex-col md:flex-row transition-colors duration-300">
+            {/* Mobile Header */}
+            <MobileNav user={user} profile={profile} />
             {/* Sidebar */}
             <aside className="w-64 bg-gray-50 dark:bg-[#111111] border-r border-gray-200 dark:border-[#222222] hidden md:flex flex-col transition-colors duration-300">
                 <div className="p-6">
@@ -75,25 +80,7 @@ export default async function DashboardLayout({
                     </div>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-2">
-                    {user?.email?.toLowerCase() === 'formuladoboi@gmail.com' && (
-                        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-[#222222]">
-                            <NavLink href="/admin" icon={User}>Acessar Painel Admin</NavLink>
-                        </div>
-                    )}
-
-                    {/* Debug info - Remove later */}
-                    <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-600">
-                        Logado como: {user.email}
-                    </div>
-
-                    <NavLink href="/dashboard" icon={LayoutDashboard}>Visão Geral</NavLink>
-                    <NavLink href="/dashboard/ads" icon={Store}>Meus Anúncios</NavLink>
-                    <NavLink href="/dashboard/proposals" icon={FileText}>Minhas Propostas</NavLink>
-                    <NavLink href="/dashboard/favorites" icon={Heart}>Meus Favoritos</NavLink>
-                    <NavLink href="/dashboard/herds" icon={Beef}>Dados do Rebanho</NavLink>
-                    <NavLink href="/dashboard/profile" icon={User}>Dados Cadastrais</NavLink>
-                </nav>
+                <SidebarNav userEmail={user.email} />
 
                 <div className="p-4 border-t border-gray-200 dark:border-[#222222]">
                     <form action="/auth/signout" method="post">
@@ -108,8 +95,8 @@ export default async function DashboardLayout({
             {/* Mobile Header (Visible only on mobile) */}
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto relative">
-                <div className="absolute top-4 right-4 z-10">
+            <main className="flex-1 overflow-auto relative w-full">
+                <div className="absolute top-4 right-4 z-10 hidden md:block">
                     <ThemeToggle />
                 </div>
                 <div className="max-w-7xl mx-auto p-6 md:p-12">
@@ -120,14 +107,4 @@ export default async function DashboardLayout({
     )
 }
 
-function NavLink({ href, icon: Icon, children }: { href: string; icon: any; children: React.ReactNode }) {
-    return (
-        <Link
-            href={href}
-            className="flex items-center gap-3 px-4 py-3 group text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-xl transition-all"
-        >
-            <Icon className="w-5 h-5 text-gray-500 group-hover:text-[#B8860B] transition-colors" />
-            <span className="flex-1 font-medium">{children}</span>
-        </Link>
-    )
-}
+
