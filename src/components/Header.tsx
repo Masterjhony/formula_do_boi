@@ -13,6 +13,7 @@ const navItems = [
     { href: "/touros", label: "Touros" },
     { href: "/embrioes", label: "Embriões" },
     { href: "/semen", label: "Sêmen" },
+    { href: "/top-criadores", label: "Top Criadores" },
     { href: "/venda-conosco", label: "Venda Conosco" },
 ];
 
