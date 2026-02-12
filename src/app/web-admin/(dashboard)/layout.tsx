@@ -8,6 +8,7 @@ import { LayoutDashboard, Package, LogOut, Menu, X, User } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function AdminLayout({
     children,
@@ -48,7 +49,7 @@ export default function AdminLayout({
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-100 dark:bg-[#0A0A0A] flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold"></div>
             </div>
         );
@@ -68,13 +69,13 @@ export default function AdminLayout({
     ];
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] flex font-sans text-gray-100">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* Sidebar */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#111111] border-r border-[#222222] transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-[#222222] transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     } lg:relative lg:translate-x-0 flex flex-col`}
             >
-                <div className="p-8 border-b border-[#222222] flex justify-center items-center relative">
+                <div className="p-8 border-b border-gray-200 dark:border-[#222222] flex justify-center items-center relative">
                     <Link href="/" className="block relative h-24 w-full max-w-[240px]">
                         {/* Ensure you have this logo, otherwise fallback to text */}
                         <Image
@@ -82,11 +83,12 @@ export default function AdminLayout({
                             alt="Fórmula do Boi"
                             fill
                             className="object-contain"
+                            style={{ filter: "brightness(0) saturate(100%) invert(62%) sepia(34%) saturate(762%) hue-rotate(2deg) brightness(89%) contrast(85%)" }}
                             priority
                         />
                     </Link>
                     <button
-                        className="lg:hidden absolute right-4 text-gray-400 hover:text-white"
+                        className="lg:hidden absolute right-4 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                         onClick={() => setIsSidebarOpen(false)}
                     >
                         <X size={24} />
@@ -94,12 +96,12 @@ export default function AdminLayout({
                 </div>
 
                 <div className="px-6 py-6">
-                    <div className="flex items-center gap-3 p-4 bg-[#1A1A1A] rounded-2xl border border-[#222222]/50 shadow-inner">
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-2xl border border-gray-200 dark:border-[#222222]/50 shadow-inner">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-[#B8860B]/20">
                             A
                         </div>
                         <div className="flex-1 overflow-hidden">
-                            <h3 className="text-white text-sm font-bold truncate">Administrador</h3>
+                            <h3 className="text-gray-900 dark:text-white text-sm font-bold truncate">Administrador</h3>
                             <p className="text-gray-500 text-xs truncate">Gestão Global</p>
                         </div>
                     </div>
@@ -115,10 +117,10 @@ export default function AdminLayout({
                                 href={item.href}
                                 className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
                                     ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-bold shadow-lg shadow-[#B8860B]/20'
-                                    : 'text-gray-400 hover:bg-[#1A1A1A] hover:text-white'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:text-gray-900 dark:hover:text-white'
                                     }`}
                             >
-                                <Icon size={20} className={`${isActive ? 'text-black' : 'text-gray-500 group-hover:text-[#B8860B]'} transition-colors`} />
+                                <Icon size={20} className={`${isActive ? 'text-black' : 'text-gray-400 dark:text-gray-500 group-hover:text-[#B8860B]'} transition-colors`} />
                                 <span>{item.label}</span>
                                 {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-black/40" />}
                             </Link>
@@ -126,15 +128,19 @@ export default function AdminLayout({
                     })}
                 </nav>
 
-                <div className="p-6 border-t border-[#222222]">
+                <div className="p-6 border-t border-gray-200 dark:border-[#222222] space-y-4">
+                    <div className="flex items-center justify-between px-4">
+                        <span className="text-sm font-medium text-gray-500">Tema</span>
+                        <ThemeToggle />
+                    </div>
                     <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-3 w-full px-4 py-3.5 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-all"
+                        className="flex items-center gap-3 w-full px-4 py-3.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300 rounded-xl transition-all"
                     >
                         <LogOut size={20} />
                         <span className="font-medium">Sair do Painel</span>
                     </button>
-                    <div className="text-center mt-4 text-[10px] text-gray-700 uppercase tracking-widest">
+                    <div className="text-center mt-4 text-[10px] text-gray-400 dark:text-gray-700 uppercase tracking-widest">
                         Fórmula do Boi v1.0
                     </div>
                 </div>
@@ -143,10 +149,10 @@ export default function AdminLayout({
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
                 {/* Mobile Header */}
-                <header className="lg:hidden bg-[#111111] border-b border-[#222222] p-4 flex items-center justify-between z-40">
+                <header className="lg:hidden bg-white dark:bg-[#111111] border-b border-gray-200 dark:border-[#222222] p-4 flex items-center justify-between z-40">
                     <button
                         onClick={() => setIsSidebarOpen(true)}
-                        className="text-gray-400 hover:text-white"
+                        className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                     >
                         <Menu size={24} />
                     </button>
@@ -156,11 +162,12 @@ export default function AdminLayout({
                         width={120}
                         height={40}
                         className="h-8 w-auto object-contain"
+                        style={{ filter: "brightness(0) saturate(100%) invert(62%) sepia(34%) saturate(762%) hue-rotate(2deg) brightness(89%) contrast(85%)" }}
                     />
-                    <div className="w-6" /> {/* Spacer */}
+                    <ThemeToggle />
                 </header>
 
-                <main className="flex-1 overflow-auto bg-[#0A0A0A] p-6 lg:p-10 scrollbar-thin scrollbar-thumb-[#222222] scrollbar-track-transparent">
+                <main className="flex-1 overflow-auto bg-gray-50 dark:bg-[#0A0A0A] p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
                     <div className="max-w-7xl mx-auto space-y-8">
                         {children}
                     </div>

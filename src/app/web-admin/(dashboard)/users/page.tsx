@@ -72,8 +72,8 @@ export default function UsersPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Usuários do Sistema</h1>
-                    <p className="text-gray-400">Gerencie os usuários e suas permissões de acesso.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Usuários do Sistema</h1>
+                    <p className="text-gray-500 dark:text-gray-400">Gerencie os usuários e suas permissões de acesso.</p>
                 </div>
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
@@ -82,13 +82,13 @@ export default function UsersPage() {
                         placeholder="Buscar por email..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9 pr-4 py-2 bg-[#1A1A1A] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold w-full md:w-64"
+                        className="pl-9 pr-4 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold w-full md:w-64"
                     />
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-200 bg-gray-50 font-medium text-gray-500 grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center">
+            <div className="bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#111111] font-medium text-gray-500 dark:text-gray-400 grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center">
                     <div>Email / ID</div>
                     <div className="text-center w-32">Data Cadastro</div>
                     <div className="text-center w-24">Função</div>
@@ -107,10 +107,10 @@ export default function UsersPage() {
                 ) : (
                     <div className="divide-y divide-gray-100">
                         {filteredUsers.map((user) => (
-                            <div key={user.id} className="p-4 grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center hover:bg-gray-50 transition-colors">
+                            <div key={user.id} className="p-4 grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center hover:bg-gray-50 dark:hover:bg-[#111111] transition-colors">
                                 <div className="space-y-1 overflow-hidden">
-                                    <div className="font-medium text-gray-900 flex items-center gap-2 truncate" title={user.email}>
-                                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-500">
+                                    <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 truncate" title={user.email}>
+                                        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 text-gray-500 dark:text-gray-400">
                                             <User className="w-4 h-4" />
                                         </div>
                                         {user.email || 'Sem email'}
@@ -118,7 +118,7 @@ export default function UsersPage() {
                                     <div className="text-xs text-gray-400 pl-10 truncate font-mono">ID: {user.id}</div>
                                 </div>
 
-                                <div className="text-center text-sm text-gray-600 w-32">
+                                <div className="text-center text-sm text-gray-600 dark:text-gray-400 w-32">
                                     {new Date(user.created_at).toLocaleDateString('pt-BR')}
                                 </div>
 

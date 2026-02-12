@@ -233,8 +233,8 @@ export default function EditProductForm({ product }: { product: any }) {
                         <ArrowLeft size={20} className="text-gray-600" />
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold text-white">Editar Card</h1>
-                        <p className="text-gray-400 text-sm">Atualize as informações do animal.</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Editar Card</h1>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">Atualize as informações do animal.</p>
                     </div>
                 </div>
                 <button

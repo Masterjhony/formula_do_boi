@@ -219,8 +219,8 @@ export default function NewProductPage() {
                     <ArrowLeft size={20} className="text-gray-600" />
                 </Link>
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Novo Card</h1>
-                    <p className="text-gray-400 text-sm">Preencha as informações do animal.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Novo Card</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Preencha as informações do animal.</p>
                 </div>
             </div>
 

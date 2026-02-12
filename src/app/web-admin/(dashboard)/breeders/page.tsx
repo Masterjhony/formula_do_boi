@@ -157,8 +157,8 @@ export default function BreedersPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Criadores e Proprietários</h1>
-                    <p className="text-gray-400">Gerencie a lista de criadores disponíveis para cadastro nos animais.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Criadores e Proprietários</h1>
+                    <p className="text-gray-500 dark:text-gray-400">Gerencie a lista de criadores disponíveis para cadastro nos animais.</p>
                 </div>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
@@ -171,16 +171,16 @@ export default function BreedersPage() {
 
             {/* Add Form */}
             {isAdding && (
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm animate-in slide-in-from-top-2">
-                    <h3 className="font-bold text-gray-900 mb-4">Novo Cadastro</h3>
+                <div className="bg-white dark:bg-[#1A1A1A] p-6 rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm animate-in slide-in-from-top-2">
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4">Novo Cadastro</h3>
                     <form onSubmit={handleAddBreeder} className="flex gap-4 items-end">
                         <div className="flex-1 space-y-1">
-                            <label className="text-sm font-medium text-gray-700">Nome do Criador / Fazenda</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Criador / Fazenda</label>
                             <input
                                 autoFocus
                                 value={newBreederName}
                                 onChange={(e) => setNewBreederName(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand-gold/50"
+                                className="w-full p-2 border border-gray-300 dark:border-[#333333] bg-white dark:bg-[#111111] text-gray-900 dark:text-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-brand-gold/50"
                                 placeholder="Ex: Agropecuária Visual"
                             />
                         </div>
@@ -205,16 +205,16 @@ export default function BreedersPage() {
             {/* Edit Modal (Simple Inline or Overlay? Let's do Overlay for clarity) */}
             {isEditing && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-                        <h3 className="font-bold text-lg text-gray-900 mb-4">Editar Criador</h3>
+                    <div className="bg-white dark:bg-[#1A1A1A] p-6 rounded-xl shadow-xl w-full max-w-md border border-gray-200 dark:border-[#333333]">
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-4">Editar Criador</h3>
                         <form onSubmit={handleUpdateBreeder} className="space-y-4">
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Nome do Criador / Fazenda</label>
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Criador / Fazenda</label>
                                 <input
                                     autoFocus
                                     value={editName}
                                     onChange={(e) => setEditName(e.target.value)}
-                                    className="w-full mt-1 p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand-gold/50"
+                                    className="w-full mt-1 p-2 border border-gray-300 dark:border-[#333333] bg-white dark:bg-[#111111] text-gray-900 dark:text-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-brand-gold/50"
                                 />
                                 <p className="text-xs text-yellow-600 mt-1">
                                     Nota: Isso também atualizará o nome nos animais vinculados.
@@ -241,8 +241,8 @@ export default function BreedersPage() {
                 </div>
             )}
 
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-200 bg-gray-50 font-medium text-gray-500 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center">
+            <div className="bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-gray-200 dark:border-[#333333] bg-gray-50 dark:bg-[#111111] font-medium text-gray-500 dark:text-gray-400 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center">
                     <div className="w-12 text-center">#</div>
                     <div>Nome</div>
                     <div className="text-center w-32">Animais</div>
@@ -259,18 +259,18 @@ export default function BreedersPage() {
                         Nenhum criador cadastrado.
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-gray-100 dark:divide-[#333333]">
                         {breeders.map((breeder, index) => (
-                            <div key={breeder.id} className="p-4 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-50 transition-colors">
-                                <div className="w-12 text-center text-gray-400 text-sm">{index + 1}</div>
-                                <div className="font-medium text-gray-900 flex items-center gap-2">
+                            <div key={breeder.id} className="p-4 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-50 dark:hover:bg-[#111111] transition-colors">
+                                <div className="w-12 text-center text-gray-400 dark:text-gray-600 text-sm">{index + 1}</div>
+                                <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                                     <User className="w-4 h-4 text-gray-400" />
                                     {breeder.name}
                                 </div>
                                 <div className="flex items-center justify-center gap-1.5 w-32">
                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${(productCounts[breeder.name] || 0) > 0
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-gray-100 text-gray-500'
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                                         }`}>
                                         {(productCounts[breeder.name] || 0)} lotes
                                     </span>

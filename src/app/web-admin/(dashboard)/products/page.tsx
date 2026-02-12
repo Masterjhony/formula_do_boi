@@ -18,10 +18,10 @@ export default async function AdminProductsPage() {
 
     return (
         <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#222222] pb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 dark:border-[#222222] pb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Gerenciar Cards</h1>
-                    <p className="text-gray-400 text-sm">Visualize, cadastre e gerencie o estoque de animais.</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Gerenciar Cards</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Visualize, cadastre e gerencie o estoque de animais.</p>
                 </div>
                 <Link
                     href="/products/new"
