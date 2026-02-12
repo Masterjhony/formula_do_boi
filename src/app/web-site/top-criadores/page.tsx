@@ -3,28 +3,38 @@
 import { useEffect, useState } from "react";
 import BreederCard from "@/components/BreederCard";
 import { BreedersService, Breeder } from "@/services/breedersService";
+import { SettingsService } from "@/services/settingsService";
 import { Loader2, Shield, Crown, TrendingUp, Search, Filter } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useRouter } from "next/navigation";
 
 export default function TopCriadoresPage() {
     const [breeders, setBreeders] = useState<Breeder[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("geral");
+    const router = useRouter();
 
     useEffect(() => {
-        async function fetchBreeders() {
+        async function checkVisibilityAndFetch() {
             try {
+                // Check visibility first
+                const isEnabled = await SettingsService.getSetting('top_breeders_enabled');
+                if (!isEnabled) {
+                    router.push('/');
+                    return;
+                }
+
                 const data = await BreedersService.getTopBreeders();
                 setBreeders(data);
             } catch (error) {
-                console.error("Failed to load breeders", error);
+                console.error("Failed to load data", error);
             } finally {
                 setLoading(false);
             }
         }
-        fetchBreeders();
-    }, []);
+        checkVisibilityAndFetch();
+    }, [router]);
 
     return (
         <main className="min-h-screen bg-[#050505] text-white selection:bg-brand-gold selection:text-black flex flex-col">
