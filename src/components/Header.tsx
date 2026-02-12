@@ -6,8 +6,9 @@ import { useState, useEffect, useRef } from "react";
 import SearchBar from "./SearchBar";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { SettingsService } from "@/services/settingsService";
 
-const navItems = [
+const defaultNavItems = [
     { href: "/", label: "Início" },
     { href: "/matrizes", label: "Matrizes" },
     { href: "/touros", label: "Touros" },
@@ -22,9 +23,22 @@ export default function Header() {
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<any>(null);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [navItems, setNavItems] = useState(defaultNavItems);
     const supabase = createClient();
     const router = useRouter();
     const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const isEnabled = await SettingsService.getSetting('top_breeders_enabled');
+            if (isEnabled === false) {
+                setNavItems(prev => prev.filter(item => item.href !== "/top-criadores"));
+            } else {
+                setNavItems(defaultNavItems);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     useEffect(() => {
         const getUser = async () => {
