@@ -57,6 +57,7 @@ export default function EditProductForm({ product }: { product: any }) {
         pdf: product.details?.pdf || '',
         videoUrl: product.image,
         special_price: product.details?.special_price || false,
+        display_order: product.display_order || 0,
     });
 
 
@@ -191,7 +192,8 @@ export default function EditProductForm({ product }: { product: any }) {
                     comentario: formData.comentario,
                     pdf: formData.pdf,
                     special_price: formData.special_price,
-                }
+                },
+                display_order: (formData as any).display_order || 0,
             };
 
             const { error } = await supabase.from('products').update(productPayload).eq('id', product.id);
@@ -431,6 +433,11 @@ export default function EditProductForm({ product }: { product: any }) {
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Peso</label>
                             <input name="peso" value={formData.peso} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
+                            <input type="number" name="display_order" value={(formData as any).display_order} onChange={handleChange} placeholder="0" className="w-full p-2 border border-blue-200 bg-blue-50/50 rounded-lg text-gray-900 outline-none" />
+                            <p className="text-xs text-gray-500">Quanto maior o número, mais acima aparece. Padrão: 0.</p>
                         </div>
                     </div>
                 </div>

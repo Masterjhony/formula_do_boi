@@ -18,12 +18,13 @@ const mapProduct = (data: any): Product => ({
     mgte: data.mgte || data.details?.mgte || '',
     iqg: data.iqg || data.details?.iqg || '',
     special_price: data.details?.special_price || false,
+    display_order: data.display_order || 0,
 });
 
 // For Server Components
 export const getProductsServer = async () => {
     const supabase = await createServerClient();
-    const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
+    const { data, error } = await supabase.from('products').select('*').order('display_order', { ascending: false }).order('id', { ascending: true });
 
     if (error) {
         console.error('Error fetching products:', error);
@@ -48,7 +49,7 @@ export const getProductById = async (id: number) => {
 export const getNavigationData = async (currentId: number) => {
     // 1. Get all products (static + DB)
     const supabase = await createServerClient();
-    const { data: dbProducts, error } = await supabase.from('products').select('*').order('id', { ascending: true });
+    const { data: dbProducts, error } = await supabase.from('products').select('*').order('display_order', { ascending: false }).order('id', { ascending: true });
 
     if (error) {
         console.error('Error fetching navigation data:', error);

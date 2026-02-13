@@ -23,6 +23,7 @@ export interface Product {
     mgte?: string;
     iqg?: string;
     special_price?: boolean;
+    display_order?: number;
 }
 
 // Helper to format currency
