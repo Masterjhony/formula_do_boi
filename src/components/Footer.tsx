@@ -1,7 +1,28 @@
+"use client";
+
 import Link from "next/link";
 import { Facebook, Instagram, Youtube, Phone, Mail, MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
+import { SettingsService } from "@/services/settingsService";
 
 export default function Footer() {
+    const [showTopBreeders, setShowTopBreeders] = useState(false);
+    const [showSemen, setShowSemen] = useState(false);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const topBreedersEnabled = await SettingsService.getSetting('top_breeders_enabled');
+            const semenEnabled = await SettingsService.getSetting('semen_page_enabled');
+
+            // Only show if explicitly not false (or however we want to handle defaults)
+            // Since we want to avoid flicker, default state is false (hidden).
+            // We update to true only if check passes.
+            setShowTopBreeders(topBreedersEnabled !== false);
+            setShowSemen(semenEnabled !== false);
+        };
+        fetchSettings();
+    }, []);
+
     return (
         <footer className="bg-brand-black text-white pt-10 pb-6 md:pt-16 md:pb-8 border-t border-gray-800">
             <div className="container mx-auto px-4">
@@ -36,7 +57,12 @@ export default function Footer() {
                             <li><Link href="/" className="hover:text-white transition-colors">Início</Link></li>
                             <li><Link href="/animais" className="hover:text-white transition-colors">Animais</Link></li>
                             <li><Link href="/embrioes" className="hover:text-white transition-colors">Embriões</Link></li>
-                            <li><Link href="/semen" className="hover:text-white transition-colors">Sêmen</Link></li>
+                            {showSemen && (
+                                <li><Link href="/semen" className="hover:text-white transition-colors">Sêmen</Link></li>
+                            )}
+                            {showTopBreeders && (
+                                <li><Link href="/top-criadores" className="hover:text-white transition-colors">Top Criadores</Link></li>
+                            )}
                             <li><Link href="/venda-conosco" className="hover:text-white transition-colors">Venda Conosco</Link></li>
                         </ul>
                     </div>

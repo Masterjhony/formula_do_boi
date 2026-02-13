@@ -13,8 +13,6 @@ const defaultNavItems = [
     { href: "/matrizes", label: "Matrizes" },
     { href: "/touros", label: "Touros" },
     { href: "/embrioes", label: "Embriões" },
-    { href: "/semen", label: "Sêmen" },
-    { href: "/top-criadores", label: "Top Criadores" },
     { href: "/venda-conosco", label: "Venda Conosco" },
 ];
 
@@ -30,12 +28,22 @@ export default function Header() {
 
     useEffect(() => {
         const fetchSettings = async () => {
-            const isEnabled = await SettingsService.getSetting('top_breeders_enabled');
-            if (isEnabled === false) {
-                setNavItems(prev => prev.filter(item => item.href !== "/top-criadores"));
-            } else {
-                setNavItems(defaultNavItems);
-            }
+            const topBreedersEnabled = await SettingsService.getSetting('top_breeders_enabled');
+            const semenEnabled = await SettingsService.getSetting('semen_page_enabled');
+
+            setNavItems(prev => {
+                let items = [...defaultNavItems];
+
+                if (topBreedersEnabled === false) {
+                    items = items.filter(item => item.href !== "/top-criadores");
+                }
+
+                if (semenEnabled === false) {
+                    items = items.filter(item => item.href !== "/semen");
+                }
+
+                return items;
+            });
         };
         fetchSettings();
     }, []);

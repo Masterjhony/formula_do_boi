@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Globe, User } from "lucide-react";
@@ -8,7 +8,32 @@ import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import { EMBRYOS } from "@/data/embryos";
 
+import { useRouter } from "next/navigation";
+import { SettingsService } from "@/services/settingsService";
+
 export default function SemenPage() {
+    const router = useRouter();
+    const [pageVisible, setPageVisible] = useState(false); // Start hidden until check passes
+
+    useEffect(() => {
+        async function checkVisibility() {
+            try {
+                const isEnabled = await SettingsService.getSetting('semen_page_enabled');
+                if (isEnabled === false) { // Explicit check for false
+                    router.push('/');
+                    return;
+                }
+                setPageVisible(true);
+            } catch (error) {
+                console.error("Failed to load settings", error);
+                setPageVisible(true); // Default show on error to not block users accidentally? Or hide? 
+                // Let's safe default to show if error, or maybe hide. 
+                // Given the requirement is to HIDE, maybe safe default is hide? 
+                // But for now let's stick to simple logic: check false -> redirect.
+            }
+        }
+        checkVisibility();
+    }, [router]);
     // Extract unique breeders for filter options
     const breederOptions = useMemo(() => {
         const breeders = new Set<string>();
@@ -184,6 +209,11 @@ export default function SemenPage() {
             return true;
         });
     }, [selectedFilters, hasFilters]);
+
+    // Prevent flash of content
+    if (!pageVisible) {
+        return null; // Or a loader if preferred, but null is fine for 'hidden' page
+    }
 
     return (
         <main className="min-h-screen bg-gray-50">
