@@ -8,6 +8,7 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [topBreedersEnabled, setTopBreedersEnabled] = useState(false);
+    const [rankingPageEnabled, setRankingPageEnabled] = useState(false);
     const [semenPageEnabled, setSemenPageEnabled] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -20,6 +21,10 @@ export default function SettingsPage() {
             const enabled = await SettingsService.getSetting('top_breeders_enabled');
             // If setting doesn't exist yet, it might return null, default to false
             setTopBreedersEnabled(enabled === true);
+
+            const rankingEnabled = await SettingsService.getSetting('ranking_page_enabled');
+            // If setting doesn't exist yet, it might return null, default to false (as per request)
+            setRankingPageEnabled(rankingEnabled === true); // Default is false anyway if null
 
             const semenEnabled = await SettingsService.getSetting('semen_page_enabled');
             // Default to false if not set, or whatever strict check you prefer
@@ -36,6 +41,7 @@ export default function SettingsPage() {
         setMessage(null);
         try {
             await SettingsService.updateSetting('top_breeders_enabled', topBreedersEnabled);
+            await SettingsService.updateSetting('ranking_page_enabled', rankingPageEnabled);
             await SettingsService.updateSetting('semen_page_enabled', semenPageEnabled);
             setMessage({ type: 'success', text: 'Configurações salvas com sucesso!' });
         } catch (error) {
@@ -106,6 +112,32 @@ export default function SettingsPage() {
                                 className="sr-only peer"
                                 checked={topBreedersEnabled}
                                 onChange={(e) => setTopBreedersEnabled(e.target.checked)}
+                            />
+                            <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-gold/30 dark:peer-focus:ring-brand-gold/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-brand-gold"></div>
+                        </label>
+                    </div>
+
+                    {/* Ranking Page Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#0a0a0a] rounded-lg border border-gray-200 dark:border-[#333]">
+                        <div>
+                            <h3 className="font-bold text-gray-900 dark:text-white mb-1">Página de Ranking</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Ativar ou desativar o acesso público à página de Ranking.
+                            </p>
+                            <div className="mt-2 text-xs flex items-center gap-1.5">
+                                <span className={`w-2 h-2 rounded-full ${rankingPageEnabled ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                <span className={rankingPageEnabled ? 'text-green-500' : 'text-red-500'}>
+                                    {rankingPageEnabled ? 'Página Visível' : 'Página Oculta (Redireciona para Home)'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={rankingPageEnabled}
+                                onChange={(e) => setRankingPageEnabled(e.target.checked)}
                             />
                             <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-gold/30 dark:peer-focus:ring-brand-gold/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-brand-gold"></div>
                         </label>

@@ -10,6 +10,8 @@ import ComparisonModal from "@/components/rankings/ComparisonModal";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Pagination from "@/components/Pagination";
+import { useRouter } from "next/navigation";
+import { SettingsService } from "@/services/settingsService";
 
 export default function RankingsPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -28,9 +30,18 @@ export default function RankingsPage() {
     const [comparisonList, setComparisonList] = useState<number[]>([]);
     const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
+    const router = useRouter(); // Import useRouter
+
     useEffect(() => {
         async function loadData() {
             try {
+                // Check Visibility
+                const isEnabled = await SettingsService.getSetting('ranking_page_enabled');
+                if (isEnabled === false) {
+                    router.push('/'); // Redirect if disabled
+                    return;
+                }
+
                 const data = await getProductsClient();
                 // Filter only Animals (exclude Semen if needed, or keep all)
                 // Assuming we want animals for ranking

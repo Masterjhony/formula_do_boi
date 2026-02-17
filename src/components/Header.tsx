@@ -30,6 +30,7 @@ export default function Header() {
     useEffect(() => {
         const fetchSettings = async () => {
             const topBreedersEnabled = await SettingsService.getSetting('top_breeders_enabled');
+            const rankingEnabled = await SettingsService.getSetting('ranking_page_enabled');
             const semenEnabled = await SettingsService.getSetting('semen_page_enabled');
 
             setNavItems(prev => {
@@ -37,6 +38,10 @@ export default function Header() {
 
                 if (topBreedersEnabled === false) {
                     items = items.filter(item => item.href !== "/top-criadores");
+                }
+
+                if (rankingEnabled === false) {
+                    items = items.filter(item => item.href !== "/rankings");
                 }
 
                 if (semenEnabled === false) {
