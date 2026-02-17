@@ -27,53 +27,78 @@ export default function Header() {
     const router = useRouter();
     const menuRef = useRef<HTMLDivElement>(null);
 
+    const CACHE_KEY = 'header_settings_cache';
+
     useEffect(() => {
         const fetchSettings = async () => {
+            // Check cache first
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    // Update state immediately with cached data
+                    updateNavItems(parsed.topBreedersEnabled, parsed.rankingEnabled, parsed.semenEnabled);
+                } catch (e) {
+                    // Ignore parse error
+                }
+            }
+
+            // Always fetch fresh data
             const topBreedersEnabled = await SettingsService.getSetting('top_breeders_enabled');
             const rankingEnabled = await SettingsService.getSetting('ranking_page_enabled');
             const semenEnabled = await SettingsService.getSetting('semen_page_enabled');
 
-            setNavItems(prev => {
-                let items = [...defaultNavItems];
-                const newItems = [];
+            // Save to cache
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                topBreedersEnabled,
+                rankingEnabled,
+                semenEnabled,
+                timestamp: Date.now()
+            }));
 
-                // Reconstruct the list based on settings to ensure correct order
-                // 1. Início (Index 0)
-                newItems.push(defaultNavItems[0]);
-
-                // 2. Rankings (Index 1 - if enabled)
-                if (rankingEnabled !== false) { // Default false, but we treat not-false as potential enable if logic changes? No, logic is 'false' in DB = disabled.
-                    // Wait, getSetting returns null if missing? My service returns value or null.
-                    // Assuming defaulting to FALSE for safety if missing.
-                    if (rankingEnabled === true) {
-                        newItems.push({ href: "/rankings", label: "Rankings" });
-                    }
-                }
-
-                // 3. Top Criadores (Index ? - User mentioned it existed. Let's put it after Rankings or before?)
-                // Previous logic filtered it OUT if false. Implies it was supposed to be there.
-                // I'll put it after Rankings.
-                if (topBreedersEnabled === true) {
-                    newItems.push({ href: "/top-criadores", label: "Top Criadores" });
-                }
-
-                // 4. Matrizes, Touros, Embriões (Indices 1, 2, 3 of default)
-                newItems.push(defaultNavItems[1]); // Matrizes
-                newItems.push(defaultNavItems[2]); // Touros
-
-                // 5. Semen (Between Touros and Embriões?)
-                if (semenEnabled === true) {
-                    newItems.push({ href: "/semen", label: "Sêmen" });
-                }
-
-                newItems.push(defaultNavItems[3]); // Embriões
-                newItems.push(defaultNavItems[4]); // Venda Conosco
-
-                return newItems;
-            });
+            updateNavItems(topBreedersEnabled, rankingEnabled, semenEnabled);
         };
+
         fetchSettings();
     }, []);
+
+    const updateNavItems = (topBreedersEnabled: any, rankingEnabled: any, semenEnabled: any) => {
+        setNavItems(prev => {
+            const newItems = [];
+
+            // Reconstruct the list based on settings to ensure correct order
+            // 1. Início (Index 0)
+            newItems.push(defaultNavItems[0]);
+
+            // 2. Rankings (Index 1 - if enabled)
+            if (rankingEnabled !== false) { // Default false, but we treat not-false as potential enable if logic changes? No, logic is 'false' in DB = disabled.
+                // Wait, getSetting returns null if missing? My service returns value or null.
+                // Assuming defaulting to FALSE for safety if missing.
+                if (rankingEnabled === true) {
+                    newItems.push({ href: "/rankings", label: "Rankings" });
+                }
+            }
+
+            // 3. Top Criadores
+            if (topBreedersEnabled === true) {
+                newItems.push({ href: "/top-criadores", label: "Top Criadores" });
+            }
+
+            // 4. Matrizes, Touros, Embriões (Indices 1, 2, 3 of default)
+            newItems.push(defaultNavItems[1]); // Matrizes
+            newItems.push(defaultNavItems[2]); // Touros
+
+            // 5. Semen
+            if (semenEnabled === true) {
+                newItems.push({ href: "/semen", label: "Sêmen" });
+            }
+
+            newItems.push(defaultNavItems[3]); // Embriões
+            newItems.push(defaultNavItems[4]); // Venda Conosco
+
+            return newItems;
+        });
+    };
 
     useEffect(() => {
         const getUser = async () => {
