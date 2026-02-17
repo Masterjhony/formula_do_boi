@@ -10,6 +10,7 @@ import { SettingsService } from "@/services/settingsService";
 
 const defaultNavItems = [
     { href: "/", label: "Início" },
+    { href: "/rankings", label: "Rankings" },
     { href: "/matrizes", label: "Matrizes" },
     { href: "/touros", label: "Touros" },
     { href: "/embrioes", label: "Embriões" },
