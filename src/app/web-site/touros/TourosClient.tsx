@@ -67,6 +67,9 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
         faixa_valor: [],
         forma_pagamento: [],
         logistica: [],
+        iabcz: [],
+        mgte: [],
+        iqg: [],
     });
 
     const handleFilterChange = (sectionId: string, value: string, checked: boolean) => {
@@ -88,6 +91,9 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
             faixa_valor: [],
             forma_pagamento: [],
             logistica: [],
+            iabcz: [],
+            mgte: [],
+            iqg: [],
         });
     };
 
@@ -123,7 +129,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
         return items.filter((product) => {
             // Check Breeder/Owner
             if (selectedFilters.criador.length > 0) {
-                const breeder = product.details?.breeder || product.details?.proprietario;
+                const breeder = product.breeder || product.proprietario || product.details?.breeder || product.details?.proprietario;
                 if (!breeder || !selectedFilters.criador.includes(breeder.trim())) {
                     return false;
                 }
@@ -137,7 +143,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
 
             // Check Idade 
             if (selectedFilters.idade.length > 0) {
-                const nascimento = (product.details as any)?.nascimento;
+                const nascimento = product.nascimento || (product.details as any)?.nascimento;
                 if (!nascimento) return false;
 
                 const [day, month, year] = nascimento.split('/');
@@ -155,17 +161,72 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
                 if (!matchesIdade) return false;
             }
 
-            // Check Indice
+            // Check Indice (TOP %)
             if (selectedFilters.indice.length > 0) {
-                const topVal = (product.details as any)?.top;
+                const topVal = product.top || (product.details as any)?.top;
                 if (!topVal) return false;
-                const productTop = parseFloat(topVal.replace('%', '').replace(',', '.'));
+                // Handle "Deca 1", "0.5%", "Top 0.1%" etc.
+                const cleanTop = topVal.toLowerCase().replace('top', '').replace('%', '').replace('deca', '').replace(',', '.').trim();
+                const productTop = parseFloat(cleanTop);
+
+                if (isNaN(productTop)) return false;
 
                 const matchesIndice = selectedFilters.indice.some(filter => {
                     const filterTop = parseFloat(filter);
                     return productTop <= filterTop;
                 });
                 if (!matchesIndice) return false;
+            }
+
+            // Check iABCZ
+            if (selectedFilters.iabcz.length > 0) {
+                const val = product.iabcz || (product.details as any)?.iabcz;
+                if (!val) return false;
+                const numVal = parseFloat(val.replace(',', '.'));
+                if (isNaN(numVal)) return false;
+
+                const matches = selectedFilters.iabcz.some(filter => {
+                    if (filter === "acima_30") return numVal > 30;
+                    if (filter === "20_30") return numVal >= 20 && numVal <= 30;
+                    if (filter === "10_20") return numVal >= 10 && numVal < 20;
+                    if (filter === "abaixo_10") return numVal < 10;
+                    return false;
+                });
+                if (!matches) return false;
+            }
+
+            // Check MGTe
+            if (selectedFilters.mgte.length > 0) {
+                const val = product.mgte || (product.details as any)?.mgte;
+                if (!val) return false;
+                const numVal = parseFloat(val.replace(',', '.'));
+                if (isNaN(numVal)) return false;
+
+                const matches = selectedFilters.mgte.some(filter => {
+                    if (filter === "acima_30") return numVal > 30;
+                    if (filter === "25_30") return numVal >= 25 && numVal <= 30;
+                    if (filter === "20_25") return numVal >= 20 && numVal < 25;
+                    if (filter === "abaixo_20") return numVal < 20;
+                    return false;
+                });
+                if (!matches) return false;
+            }
+
+            // Check IQG
+            if (selectedFilters.iqg.length > 0) {
+                const val = product.iqg || (product.details as any)?.iqg;
+                if (!val) return false;
+                const numVal = parseFloat(val.replace(',', '.'));
+                if (isNaN(numVal)) return false;
+
+                const matches = selectedFilters.iqg.some(filter => {
+                    if (filter === "acima_30") return numVal > 30;
+                    if (filter === "20_30") return numVal >= 20 && numVal <= 30;
+                    if (filter === "10_20") return numVal >= 10 && numVal < 20;
+                    if (filter === "abaixo_10") return numVal < 10;
+                    return false;
+                });
+                if (!matches) return false;
             }
 
             // Check Logistics
