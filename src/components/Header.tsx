@@ -10,7 +10,7 @@ import { SettingsService } from "@/services/settingsService";
 
 const defaultNavItems = [
     { href: "/", label: "Início" },
-    { href: "/rankings", label: "Rankings" },
+    // Rankings removed from default
     { href: "/matrizes", label: "Matrizes" },
     { href: "/touros", label: "Touros" },
     { href: "/embrioes", label: "Embriões" },
@@ -35,20 +35,41 @@ export default function Header() {
 
             setNavItems(prev => {
                 let items = [...defaultNavItems];
+                const newItems = [];
 
-                if (topBreedersEnabled === false) {
-                    items = items.filter(item => item.href !== "/top-criadores");
+                // Reconstruct the list based on settings to ensure correct order
+                // 1. Início (Index 0)
+                newItems.push(defaultNavItems[0]);
+
+                // 2. Rankings (Index 1 - if enabled)
+                if (rankingEnabled !== false) { // Default false, but we treat not-false as potential enable if logic changes? No, logic is 'false' in DB = disabled.
+                    // Wait, getSetting returns null if missing? My service returns value or null.
+                    // Assuming defaulting to FALSE for safety if missing.
+                    if (rankingEnabled === true) {
+                        newItems.push({ href: "/rankings", label: "Rankings" });
+                    }
                 }
 
-                if (rankingEnabled === false) {
-                    items = items.filter(item => item.href !== "/rankings");
+                // 3. Top Criadores (Index ? - User mentioned it existed. Let's put it after Rankings or before?)
+                // Previous logic filtered it OUT if false. Implies it was supposed to be there.
+                // I'll put it after Rankings.
+                if (topBreedersEnabled === true) {
+                    newItems.push({ href: "/top-criadores", label: "Top Criadores" });
                 }
 
-                if (semenEnabled === false) {
-                    items = items.filter(item => item.href !== "/semen");
+                // 4. Matrizes, Touros, Embriões (Indices 1, 2, 3 of default)
+                newItems.push(defaultNavItems[1]); // Matrizes
+                newItems.push(defaultNavItems[2]); // Touros
+
+                // 5. Semen (Between Touros and Embriões?)
+                if (semenEnabled === true) {
+                    newItems.push({ href: "/semen", label: "Sêmen" });
                 }
 
-                return items;
+                newItems.push(defaultNavItems[3]); // Embriões
+                newItems.push(defaultNavItems[4]); // Venda Conosco
+
+                return newItems;
             });
         };
         fetchSettings();
