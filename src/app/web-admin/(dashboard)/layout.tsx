@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, LogOut, Menu, X, User, Settings, Activity } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, Menu, X, User, Settings, Activity, Calendar } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -67,6 +67,7 @@ export default function AdminLayout({
         { href: '/breeders', label: 'Criadores', icon: User },
         { href: '/users', label: 'Usuários', icon: User },
         { href: '/analytics', label: 'Analytics', icon: Activity },
+        { href: '/tactical-plan', label: 'Plano Tático', icon: Calendar }, // Using Calendar icon for now or Trello/Kanban if avail
         { href: '/settings', label: 'Configurações', icon: Settings },
     ];
 
