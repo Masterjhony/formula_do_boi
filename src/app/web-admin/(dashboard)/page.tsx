@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { Package, DollarSign, Users, UserCheck, MapPin, TrendingUp, Activity } from 'lucide-react';
 import Link from 'next/link';
+import AnalyticsDashboardCard from '@/components/admin/AnalyticsDashboardCard';
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
@@ -213,30 +214,8 @@ export default async function AdminDashboard() {
             {/* Insights & Placeholder Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {/* Google Analytics Placeholder */}
-                <div className="bg-white dark:bg-[#111111] p-6 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl opacity-80">
-                    <div className="flex justify-between items-start mb-6 border-b border-gray-200 dark:border-[#222222] pb-4">
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <Activity className="w-5 h-5 text-blue-400" />
-                            Google Analytics
-                        </h2>
-                        <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/20">Em Breve</span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222222] flex flex-col gap-1">
-                            <span className="text-gray-500 text-xs uppercase">Acessos (Mês)</span>
-                            <span className="text-2xl font-bold text-gray-900 dark:text-white">--</span>
-                        </div>
-                        <div className="p-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222222] flex flex-col gap-1">
-                            <span className="text-gray-500 text-xs uppercase">Tempo Médio</span>
-                            <span className="text-2xl font-bold text-gray-900 dark:text-white">--:--</span>
-                        </div>
-                    </div>
-                    <p className="mt-4 text-sm text-gray-500">
-                        A integração com Google Analytics trará dados reais sobre o tráfego e comportamento dos usuários nas páginas.
-                    </p>
-                </div>
+                {/* Google Analytics */}
+                <AnalyticsDashboardCard />
 
                 {/* User Insights Information Placeholder */}
                 <div className="bg-white dark:bg-[#111111] p-6 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
