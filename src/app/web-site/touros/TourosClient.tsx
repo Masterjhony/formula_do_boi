@@ -72,6 +72,8 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
         iqg: [],
     });
 
+    const [neloreFilter, setNeloreFilter] = useState<string | null>(null);
+
     const handleFilterChange = (sectionId: string, value: string, checked: boolean) => {
         setSelectedFilters((prev) => {
             const current = prev[sectionId] || [];
@@ -123,6 +125,13 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
             p.category !== 'Embrião' &&
             p.category !== 'DOADORA'
         );
+
+        if (neloreFilter) {
+            items = items.filter(product => {
+                const raca = (product as any).raca || (product.details as any)?.raca;
+                return raca === neloreFilter;
+            });
+        }
 
         if (!hasFilters) return items;
 
@@ -245,7 +254,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
 
             return true;
         });
-    }, [selectedFilters, hasFilters, allProducts]);
+    }, [selectedFilters, hasFilters, allProducts, neloreFilter]);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -256,7 +265,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
     // Reset to page 1 when filters change
     useMemo(() => {
         setCurrentPage(1);
-    }, [selectedFilters]);
+    }, [selectedFilters, neloreFilter]);
 
     const paginatedProducts = filteredProducts.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
@@ -304,6 +313,8 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
                                 totalCount={filteredProducts.length}
                                 onClearFilters={handleClearFilters}
                                 hasFilters={hasFilters}
+                                neloreFilter={neloreFilter}
+                                onNeloreFilterChange={setNeloreFilter}
                             />
                             <Pagination
                                 currentPage={currentPage}

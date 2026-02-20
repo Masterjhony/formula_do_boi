@@ -29,6 +29,8 @@ interface CatalogGridProps {
     totalCount: number;
     onClearFilters: () => void;
     hasFilters: boolean;
+    neloreFilter?: string | null;
+    onNeloreFilterChange?: (filter: string | null) => void;
 }
 
 export default function CatalogGrid({
@@ -36,9 +38,44 @@ export default function CatalogGrid({
     totalCount,
     onClearFilters,
     hasFilters,
+    neloreFilter,
+    onNeloreFilterChange,
 }: CatalogGridProps) {
     return (
         <div className="flex-1">
+            {/* Special Type Filter */}
+            {onNeloreFilterChange && (
+                <div className="mb-6 p-1.5 bg-white border border-gray-200 rounded-2xl inline-flex shadow-sm gap-1">
+                    <button
+                        onClick={() => onNeloreFilterChange(null)}
+                        className={`px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${!neloreFilter
+                                ? "bg-gray-100 text-gray-900 shadow-sm"
+                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                            }`}
+                    >
+                        Todos
+                    </button>
+                    <button
+                        onClick={() => onNeloreFilterChange('Nelore Padrão')}
+                        className={`px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${neloreFilter === 'Nelore Padrão'
+                                ? "bg-[#0a0a0a] text-brand-gold shadow-sm"
+                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                            }`}
+                    >
+                        Nelore Padrão
+                    </button>
+                    <button
+                        onClick={() => onNeloreFilterChange('Nelore Pintado')}
+                        className={`px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${neloreFilter === 'Nelore Pintado'
+                                ? "bg-brand-gold text-brand-black shadow-sm"
+                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                            }`}
+                    >
+                        Nelore Pintado
+                    </button>
+                </div>
+            )}
+
             {/* Results Header */}
             <div className="flex items-center justify-between mb-6">
                 <p className="text-gray-600">
