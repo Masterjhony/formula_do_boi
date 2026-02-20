@@ -78,6 +78,8 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
         logistica: [],
     });
 
+    const [neloreFilter, setNeloreFilter] = useState<string | null>(null);
+
     const handleFilterChange = (sectionId: string, value: string, checked: boolean) => {
         setSelectedFilters((prev) => {
             const current = prev[sectionId] || [];
@@ -143,6 +145,13 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
     const filteredProducts = useMemo(() => {
         let items = allProducts;
 
+        if (neloreFilter) {
+            items = items.filter(product => {
+                const raca = (product as any).raca || (product.details as any)?.raca;
+                return raca === neloreFilter;
+            });
+        }
+
         if (!hasFilters) return items;
 
         return items.filter((product) => {
@@ -206,7 +215,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
 
             return true;
         });
-    }, [selectedFilters, hasFilters, allProducts]);
+    }, [selectedFilters, hasFilters, allProducts, neloreFilter]);
 
     return (
         <main className="min-h-screen bg-gray-50">
@@ -243,6 +252,8 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                             totalCount={filteredProducts.length}
                             onClearFilters={handleClearFilters}
                             hasFilters={hasFilters}
+                            neloreFilter={neloreFilter}
+                            onNeloreFilterChange={setNeloreFilter}
                         />
                     </div>
                 </div>

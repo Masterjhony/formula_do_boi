@@ -59,6 +59,8 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
         logistica: [],
     });
 
+    const [neloreFilter, setNeloreFilter] = useState<string | null>(null);
+
     const [currentPage, setCurrentPage] = useState(1);
 
     const handleFilterChange = (sectionId: string, value: string, checked: boolean) => {
@@ -116,6 +118,13 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
     const filteredProducts = useMemo(() => {
         // Show all products with category containing 'Matriz'
         let items = allProducts.filter(p => p.category?.includes('Matriz'));
+
+        if (neloreFilter) {
+            items = items.filter(product => {
+                const raca = (product as any).raca || (product.details as any)?.raca;
+                return raca === neloreFilter;
+            });
+        }
 
         if (!hasFilters) return items;
 
@@ -196,9 +205,13 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
 
             return true;
         });
-    }, [selectedFilters, hasFilters, allProducts]);
+    }, [selectedFilters, hasFilters, allProducts, neloreFilter]);
 
     // Pagination Logic
+    useMemo(() => {
+        setCurrentPage(1);
+    }, [selectedFilters, neloreFilter]);
+
     const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
     const displayedProducts = filteredProducts.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
@@ -246,6 +259,8 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
                                 totalCount={filteredProducts.length}
                                 onClearFilters={handleClearFilters}
                                 hasFilters={hasFilters}
+                                neloreFilter={neloreFilter}
+                                onNeloreFilterChange={setNeloreFilter}
                             />
 
                             {/* Pagination */}

@@ -349,7 +349,21 @@ export default function EditProductForm({ product }: { product: any }) {
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Raça</label>
-                            <input name="raca" value={formData.raca} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none" />
+                            <div className="space-y-1">
+                                <input
+                                    name="raca"
+                                    value={formData.raca}
+                                    onChange={handleChange}
+                                    list="raca_options"
+                                    className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none"
+                                />
+                                <datalist id="raca_options">
+                                    <option value="Nelore Padrão">Nelore Padrão</option>
+                                    <option value="Nelore Pintado">Nelore Pintado</option>
+                                    <option value="Nelore">Nelore</option>
+                                </datalist>
+                                <p className="text-xs text-gray-500">Digite ou selecione uma opção.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
