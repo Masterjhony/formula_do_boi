@@ -56,6 +56,7 @@ export default function EditProductForm({ product }: { product: any }) {
         comentario: product.details?.comentario || '',
         pdf: product.details?.pdf || '',
         videoUrl: product.image,
+        video_object_position: product.details?.video_object_position || 'center center',
         special_price: product.details?.special_price || false,
         display_order: product.display_order || 0,
     });
@@ -191,6 +192,7 @@ export default function EditProductForm({ product }: { product: any }) {
                     tipo: formData.reproductive_status, // Sync type with reproductive status
                     comentario: formData.comentario,
                     pdf: formData.pdf,
+                    video_object_position: formData.video_object_position,
                     special_price: formData.special_price,
                 },
                 display_order: (formData as any).display_order || 0,
@@ -496,6 +498,17 @@ export default function EditProductForm({ product }: { product: any }) {
                                 </div>
                                 <p className="text-xs text-gray-500">Faça upload do vídeo/imagem ou cole o link direto.</p>
                             </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Enquadramento do Vídeo</label>
+                            <select name="video_object_position" value={formData.video_object_position} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none">
+                                <option value="center center">Centralizado (Padrão)</option>
+                                <option value="center top">Alinhar ao Topo (Cabeça do Touro)</option>
+                                <option value="center bottom">Alinhar à Base (Patas)</option>
+                                <option value="left center">Alinhar à Esquerda</option>
+                                <option value="right center">Alinhar à Direita</option>
+                            </select>
+                            <p className="text-xs text-gray-500">Ajuste o foco do vídeo principal caso o animal esteja sendo cortado no card.</p>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Link da Ficha Técnica (PDF)</label>

@@ -19,6 +19,7 @@ const mapProduct = (data: any): Product => ({
     iqg: data.iqg || data.details?.iqg || '',
     special_price: data.details?.special_price || false,
     display_order: data.display_order || 0,
+    video_object_position: data.details?.video_object_position || '',
 });
 
 // For Server Components

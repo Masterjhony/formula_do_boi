@@ -195,6 +195,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                     playsInline
                                     controls
                                     className="w-full h-full object-cover"
+                                    style={{ objectPosition: product.video_object_position || 'center center' }}
                                 />
                             ) : (product.image?.includes('youtube.com') || product.image?.includes('youtu.be')) ? (
                                 <iframe
@@ -208,6 +209,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                     src={product.image}
                                     alt={product.name}
                                     className="w-full h-full object-cover"
+                                    style={{ objectPosition: product.video_object_position || 'center center' }}
                                 />
                             )}
                             <div className="absolute top-4 right-4 flex gap-2">

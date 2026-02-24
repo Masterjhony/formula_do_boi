@@ -138,6 +138,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                                 src={`https://img.youtube.com/vi/${product.image.includes('v=') ? product.image.split('v=')[1].split('&')[0] : product.image.split('/').pop()}/hqdefault.jpg`}
                                 alt={product.name}
                                 className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
+                                style={{ objectPosition: product.video_object_position || 'center center' }}
                             />
                             {/* YouTube Icon Overlay */}
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -154,6 +155,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                             src={product.image}
                             alt={product.name}
                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
+                            style={{ objectPosition: product.video_object_position || 'center center' }}
                         />
                     )}
                 </div>
