@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, LogOut, Menu, X, User, Settings, Activity, Calendar } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, Menu, X, User, Settings, Activity, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -15,7 +16,8 @@ export default function AdminLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const pathname = usePathname();
     const router = useRouter();
@@ -75,42 +77,61 @@ export default function AdminLayout({
         <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* Sidebar */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-[#222222] transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                    } lg:relative lg:translate-x-0 flex flex-col`}
+                className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-[#222222] transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    } lg:relative lg:translate-x-0 flex flex-col ${isCollapsed ? 'lg:w-20' : 'lg:w-72'} w-72`}
             >
-                <div className="p-8 border-b border-gray-200 dark:border-[#222222] flex justify-center items-center relative">
-                    <Link href="/" className="block relative h-24 w-full max-w-[240px]">
-                        {/* Ensure you have this logo, otherwise fallback to text */}
-                        <Image
-                            src="/logo_complete.svg"
-                            alt="Fórmula do Boi"
-                            fill
-                            className="object-contain"
-                            style={{ filter: "brightness(0) saturate(100%) invert(62%) sepia(34%) saturate(762%) hue-rotate(2deg) brightness(89%) contrast(85%)" }}
-                            priority
-                        />
-                    </Link>
+                <div className={`p-8 border-b border-gray-200 dark:border-[#222222] flex justify-center items-center relative transition-all duration-300 ${isCollapsed ? 'px-4' : ''}`}>
+                    {!isCollapsed ? (
+                        <Link href="/" className="block relative h-24 w-full max-w-[240px]">
+                            <Image
+                                src="/logo_complete.svg"
+                                alt="Fórmula do Boi"
+                                fill
+                                className="object-contain"
+                                style={{ filter: "brightness(0) saturate(100%) invert(62%) sepia(34%) saturate(762%) hue-rotate(2deg) brightness(89%) contrast(85%)" }}
+                                priority
+                            />
+                        </Link>
+                    ) : (
+                        <Link href="/" className="block relative h-10 w-10">
+                            <Image
+                                src="/icon.svg"
+                                alt="Fórmula do Boi"
+                                fill
+                                className="object-contain"
+                            />
+                        </Link>
+                    )}
                     <button
                         className="lg:hidden absolute right-4 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                         onClick={() => setIsSidebarOpen(false)}
                     >
                         <X size={24} />
                     </button>
+                    {/* Desktop Collapse Toggle */}
+                    <button
+                        className="hidden lg:flex absolute -right-3 top-10 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-full p-1 text-gray-500 hover:text-black dark:hover:text-white z-50 shadow-md transition-colors"
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                    >
+                        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                    </button>
                 </div>
 
-                <div className="px-6 py-6">
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-2xl border border-gray-200 dark:border-[#222222]/50 shadow-inner">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-[#B8860B]/20">
+                <div className={`px-6 py-6 transition-all duration-300 ${isCollapsed ? 'px-3' : ''}`}>
+                    <div className={`flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-2xl border border-gray-200 dark:border-[#222222]/50 shadow-inner ${isCollapsed ? 'p-2 justify-center' : ''}`}>
+                        <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-[#B8860B]/20">
                             A
                         </div>
-                        <div className="flex-1 overflow-hidden">
-                            <h3 className="text-gray-900 dark:text-white text-sm font-bold truncate">Administrador</h3>
-                            <p className="text-gray-500 text-xs truncate">Gestão Global</p>
-                        </div>
+                        {!isCollapsed && (
+                            <div className="flex-1 overflow-hidden">
+                                <h3 className="text-gray-900 dark:text-white text-sm font-bold truncate">Administrador</h3>
+                                <p className="text-gray-500 text-xs truncate">Gestão Global</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+                <nav className="flex-1 px-4 space-y-2 overflow-y-auto overflow-x-hidden">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
@@ -118,34 +139,42 @@ export default function AdminLayout({
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                title={isCollapsed ? item.label : undefined}
                                 className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
                                     ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-bold shadow-lg shadow-[#B8860B]/20'
                                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:text-gray-900 dark:hover:text-white'
-                                    }`}
+                                    } ${isCollapsed ? 'justify-center px-0' : ''}`}
                             >
-                                <Icon size={20} className={`${isActive ? 'text-black' : 'text-gray-400 dark:text-gray-500 group-hover:text-[#B8860B]'} transition-colors`} />
-                                <span>{item.label}</span>
-                                {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-black/40" />}
+                                <Icon size={20} className={`${isActive ? 'text-black' : 'text-gray-400 dark:text-gray-500 group-hover:text-[#B8860B]'} transition-colors shrink-0`} />
+                                {!isCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
+                                {isActive && !isCollapsed && <div className="ml-auto shrink-0 w-1.5 h-1.5 rounded-full bg-black/40" />}
                             </Link>
                         );
                     })}
                 </nav>
 
-                <div className="p-6 border-t border-gray-200 dark:border-[#222222] space-y-4">
-                    <div className="flex items-center justify-between px-4">
-                        <span className="text-sm font-medium text-gray-500">Tema</span>
+                <div className={`p-6 border-t border-gray-200 dark:border-[#222222] space-y-4 transition-all duration-300 ${isCollapsed ? 'px-3 flex flex-col items-center' : ''}`}>
+                    {!isCollapsed ? (
+                        <div className="flex items-center justify-between px-4">
+                            <span className="text-sm font-medium text-gray-500">Tema</span>
+                            <ThemeToggle />
+                        </div>
+                    ) : (
                         <ThemeToggle />
-                    </div>
+                    )}
                     <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-3 w-full px-4 py-3.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300 rounded-xl transition-all"
+                        title={isCollapsed ? "Sair do Painel" : undefined}
+                        className={`flex items-center gap-3 w-full px-4 py-3.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300 rounded-xl transition-all ${isCollapsed ? 'justify-center px-0' : ''}`}
                     >
-                        <LogOut size={20} />
-                        <span className="font-medium">Sair do Painel</span>
+                        <LogOut size={20} className="shrink-0" />
+                        {!isCollapsed && <span className="font-medium whitespace-nowrap">Sair do Painel</span>}
                     </button>
-                    <div className="text-center mt-4 text-[10px] text-gray-400 dark:text-gray-700 uppercase tracking-widest">
-                        Fórmula do Boi v1.0
-                    </div>
+                    {!isCollapsed && (
+                        <div className="text-center mt-4 text-[10px] text-gray-400 dark:text-gray-700 uppercase tracking-widest whitespace-nowrap">
+                            Fórmula do Boi v1.0
+                        </div>
+                    )}
                 </div>
             </aside>
 
