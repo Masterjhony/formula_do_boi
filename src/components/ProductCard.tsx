@@ -259,7 +259,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         </span>
                         <div className="flex flex-col gap-0.5">
                             {/* Casos onde há parcelamento e preço à vista definidos */}
-                            {product.category !== 'Sêmen' && product.special_price && product.installments !== 'À Vista' && product.price && product.price !== 'Consultar' ? (
+                            {product.category !== 'Sêmen' && product.special_price && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && product.price && product.price !== 'Consultar' ? (
                                 <div className="flex flex-col">
                                     <div className="flex items-baseline gap-1">
                                         <span className="text-xl font-bold text-gray-900">
@@ -286,7 +286,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                             ) : (
                                 /* Fallback para visualização padrão (Sêmen ou Sem Parcelas) */
                                 <div className="flex items-baseline gap-1">
-                                    {product.category !== 'Sêmen' && product.installments !== 'À Vista' && (
+                                    {product.category !== 'Sêmen' && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && (
                                         <span className="text-sm text-gray-500 font-medium">
                                             {product.forma_pagamento && product.forma_pagamento.includes('x')
                                                 ? product.forma_pagamento.match(/(\d+)x/)?.[1] + 'x'
@@ -294,11 +294,11 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                                         </span>
                                     )}
                                     <span className="text-xl font-bold text-gray-900">
-                                        {product.category === 'Sêmen' || product.installments === 'À Vista'
+                                        {product.category === 'Sêmen' || product.installments?.toLowerCase() === 'à vista' || product.forma_pagamento === 'a_vista'
                                             ? `R$ ${product.price}`
                                             : `R$ ${product.installments}`}
                                     </span>
-                                    {(product.category === 'Sêmen' || product.installments === 'À Vista') && (
+                                    {(product.category === 'Sêmen' || product.installments?.toLowerCase() === 'à vista' || product.forma_pagamento === 'a_vista') && (
                                         <span className="text-sm text-gray-500 font-medium ml-1">
                                             {product.category === 'Sêmen' ? '1 dose' : 'À Vista'}
                                         </span>

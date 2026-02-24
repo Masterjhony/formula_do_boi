@@ -270,7 +270,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                         </div>
 
                         <div className="border-t border-b border-gray-100 py-6 mb-6 space-y-4">
-                            {product.special_price && product.price && product.price !== 'Consultar' && product.installments && product.installments !== 'À Vista' && product.category !== 'Sêmen' ? (
+                            {product.special_price && product.price && product.price !== 'Consultar' && product.installments && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && product.category !== 'Sêmen' ? (
                                 <div className="space-y-4">
                                     {/* Opção À Vista */}
                                     <div className="flex justify-between items-end">
