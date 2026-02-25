@@ -153,6 +153,60 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
         seeMoreLabel = 'Veja mais Sêmen';
     }
 
+    const paymentInfo = (() => {
+        const isSemen = product.category === 'Sêmen';
+        const isAvista = product.installments?.toLowerCase() === 'à vista' || product.forma_pagamento === 'a_vista';
+
+        if (isSemen || isAvista) {
+            return {
+                type: 'avista',
+                label: isSemen ? '1 dose' : 'À Vista',
+                value: product.price === 'Consultar' ? 'Consultar' : `R$ ${product.price}`
+            };
+        }
+
+        const matchX = product.installments?.match(/^(\d+)\s*[xX]$/);
+        if (matchX) {
+            const numInstallments = parseInt(matchX[1], 10);
+            let installmentValueStr = "Consultar";
+
+            if (product.price && product.price !== 'Consultar') {
+                const priceStr = String(product.price);
+                let numPrice = 0;
+                if (priceStr.includes(',') && priceStr.includes('.')) {
+                    numPrice = parseFloat(priceStr.replace(/\./g, '').replace(',', '.'));
+                } else if (priceStr.includes(',')) {
+                    numPrice = parseFloat(priceStr.replace(',', '.'));
+                } else {
+                    numPrice = parseFloat(priceStr);
+                }
+
+                if (!isNaN(numPrice) && numPrice > 0 && numInstallments > 0) {
+                    const installmentValue = numPrice / numInstallments;
+                    installmentValueStr = installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+            }
+
+            return {
+                type: 'parcelado_calculado',
+                multiplier: `${numInstallments}x`,
+                value: installmentValueStr === 'Consultar' ? 'Consultar' : `R$ ${installmentValueStr}`
+            };
+        }
+
+        let multiplier = '30x';
+        if (product.forma_pagamento && product.forma_pagamento.toLowerCase().includes('x')) {
+            const match = product.forma_pagamento.match(/(\d+)x/i);
+            if (match) multiplier = match[1] + 'x';
+        }
+
+        return {
+            type: 'parcelado_padrao',
+            multiplier: multiplier,
+            value: product.installments === 'Consultar' ? 'Consultar' : `R$ ${product.installments}`
+        };
+    })();
+
     return (
         <main className="min-h-screen bg-gray-50">
             <Header />
@@ -307,12 +361,10 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                         </div>
                                         <div className="flex items-baseline gap-2 text-brand-gold">
                                             <span className="text-3xl font-bold">
-                                                {product.forma_pagamento && product.forma_pagamento.includes('x')
-                                                    ? product.forma_pagamento.match(/(\d+)x/)?.[1] + 'x'
-                                                    : '30x'}
+                                                {paymentInfo.type === 'parcelado_calculado' ? paymentInfo.multiplier : paymentInfo.type === 'parcelado_padrao' ? paymentInfo.multiplier : '30x'}
                                             </span>
                                             <span className="text-xl font-medium text-gray-600">de</span>
-                                            <span className="text-3xl font-bold">R$ {product.installments}</span>
+                                            <span className="text-3xl font-bold">{paymentInfo.type === 'parcelado_calculado' ? paymentInfo.value : `R$ ${product.installments}`}</span>
                                         </div>
                                         <p className="text-xs text-gray-400 mt-1">* Sujeito a análise de cadastro</p>
                                     </div>
@@ -321,38 +373,30 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <div className="flex justify-between items-end">
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">
-                                            {'forma_pagamento' in product && product.forma_pagamento ?
-                                                (product.forma_pagamento === 'a_vista' ? 'À Vista' : product.forma_pagamento)
-                                                : 'Valor'}
+                                            {paymentInfo.type === 'avista' ? 'À Vista' : 'Valor'}
                                         </p>
                                         {'downPaymentValue' in product && (
                                             <p className="text-sm font-semibold text-brand-gold mb-1">
                                                 Entrada: R$ {product.downPaymentValue}
                                             </p>
                                         )}
-                                        <p className="text-4xl font-bold text-brand-black">
-                                            {(() => {
-                                                if (product.price === 'Consultar') return 'Consultar';
-                                                if (product.category === 'Sêmen') return `R$ ${product.price}`;
-
-                                                // Extract count
-                                                let count = 1;
-                                                if ('forma_pagamento' in product && product.forma_pagamento) {
-                                                    const match = product.forma_pagamento.match(/(\d+)x/);
-                                                    if (match) count = parseInt(match[1]);
-                                                }
-
-                                                if (count > 1) return `${count}x R$ ${product.installments}`;
-                                                return `R$ ${product.price}`;
-                                            })()}
-                                        </p>
+                                        <div className="flex items-baseline gap-2">
+                                            {paymentInfo.type !== 'avista' && (
+                                                <span className="text-lg text-gray-500 font-medium">
+                                                    {paymentInfo.multiplier}
+                                                </span>
+                                            )}
+                                            <p className="text-4xl font-bold text-brand-black">
+                                                {paymentInfo.value}
+                                            </p>
+                                        </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xs text-gray-400">
-                                            {product.category === 'Sêmen' ? 'Condição' : 'Valor Total'}
+                                            {paymentInfo.type === 'avista' ? 'Condição' : 'Valor Total'}
                                         </p>
                                         <p className="text-lg font-semibold text-gray-700">
-                                            {product.category === 'Sêmen' ? product.installments : `R$ ${product.price}`}
+                                            {paymentInfo.type === 'avista' ? paymentInfo.label : `R$ ${product.price}`}
                                         </p>
                                     </div>
                                 </div>

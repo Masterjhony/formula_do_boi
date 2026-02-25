@@ -75,6 +75,60 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
         }
     };
 
+    const paymentInfo = (() => {
+        const isSemen = product.category === 'Sêmen';
+        const isAvista = product.installments?.toLowerCase() === 'à vista' || product.forma_pagamento === 'a_vista';
+
+        if (isSemen || isAvista) {
+            return {
+                type: 'avista',
+                label: isSemen ? '1 dose' : 'À Vista',
+                value: `R$ ${product.price}`
+            };
+        }
+
+        const matchX = product.installments?.match(/^(\d+)\s*[xX]$/);
+        if (matchX) {
+            const numInstallments = parseInt(matchX[1], 10);
+            let installmentValueStr = "Consultar";
+
+            if (product.price && product.price !== 'Consultar') {
+                const priceStr = String(product.price);
+                let numPrice = 0;
+                if (priceStr.includes(',') && priceStr.includes('.')) {
+                    numPrice = parseFloat(priceStr.replace(/\./g, '').replace(',', '.'));
+                } else if (priceStr.includes(',')) {
+                    numPrice = parseFloat(priceStr.replace(',', '.'));
+                } else {
+                    numPrice = parseFloat(priceStr);
+                }
+
+                if (!isNaN(numPrice) && numPrice > 0 && numInstallments > 0) {
+                    const installmentValue = numPrice / numInstallments;
+                    installmentValueStr = installmentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+            }
+
+            return {
+                type: 'parcelado_calculado',
+                multiplier: `${numInstallments}x`,
+                value: `R$ ${installmentValueStr}`
+            };
+        }
+
+        let multiplier = '30x';
+        if (product.forma_pagamento && product.forma_pagamento.toLowerCase().includes('x')) {
+            const match = product.forma_pagamento.match(/(\d+)x/i);
+            if (match) multiplier = match[1] + 'x';
+        }
+
+        return {
+            type: 'parcelado_padrao',
+            multiplier: multiplier,
+            value: `R$ ${product.installments}`
+        };
+    })();
+
     return (
         <div
             onMouseEnter={handleMouseEnter}
@@ -274,33 +328,27 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                                     </div>
                                     <div className="flex items-center gap-1 text-base text-brand-gold">
                                         <span className="font-bold">
-                                            {product.forma_pagamento && product.forma_pagamento.includes('x')
-                                                ? product.forma_pagamento.match(/(\d+)x/)?.[1] + 'x'
-                                                : '30x'}
+                                            {paymentInfo.type === 'parcelado_calculado' ? paymentInfo.multiplier : paymentInfo.type === 'parcelado_padrao' ? paymentInfo.multiplier : '30x'}
                                         </span>
                                         <span className="text-xs font-medium text-gray-500">de</span>
-                                        <span className="font-bold">R$ {product.installments}</span>
+                                        <span className="font-bold">{paymentInfo.type === 'parcelado_calculado' ? paymentInfo.value : `R$ ${product.installments}`}</span>
                                         <span className="text-[10px] font-medium text-gray-400 ml-1">no boleto</span>
                                     </div>
                                 </div>
                             ) : (
                                 /* Fallback para visualização padrão (Sêmen ou Sem Parcelas) */
                                 <div className="flex items-baseline gap-1">
-                                    {product.category !== 'Sêmen' && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && (
+                                    {paymentInfo.type !== 'avista' && (
                                         <span className="text-sm text-gray-500 font-medium">
-                                            {product.forma_pagamento && product.forma_pagamento.includes('x')
-                                                ? product.forma_pagamento.match(/(\d+)x/)?.[1] + 'x'
-                                                : '30x'}
+                                            {paymentInfo.multiplier}
                                         </span>
                                     )}
                                     <span className="text-xl font-bold text-gray-900">
-                                        {product.category === 'Sêmen' || product.installments?.toLowerCase() === 'à vista' || product.forma_pagamento === 'a_vista'
-                                            ? `R$ ${product.price}`
-                                            : `R$ ${product.installments}`}
+                                        {paymentInfo.value}
                                     </span>
-                                    {(product.category === 'Sêmen' || product.installments?.toLowerCase() === 'à vista' || product.forma_pagamento === 'a_vista') && (
+                                    {paymentInfo.type === 'avista' && (
                                         <span className="text-sm text-gray-500 font-medium ml-1">
-                                            {product.category === 'Sêmen' ? '1 dose' : 'À Vista'}
+                                            {paymentInfo.label}
                                         </span>
                                     )}
                                 </div>
