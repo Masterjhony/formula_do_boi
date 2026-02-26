@@ -77,7 +77,11 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
 
     const paymentInfo = (() => {
         const isSemen = product.category === 'Sêmen';
-        const isAvista = product.installments?.toLowerCase() === 'à vista' || product.forma_pagamento === 'a_vista';
+        const isAvista =
+            product.installments?.toLowerCase() === 'à vista' ||
+            product.installments?.toLowerCase() === 'a vista' ||
+            product.forma_pagamento === 'a_vista';
+
 
         if (isSemen || isAvista) {
             return {
