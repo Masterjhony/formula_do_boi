@@ -69,7 +69,8 @@ export default function AdminLayout({
         { href: '/breeders', label: 'Criadores', icon: User },
         { href: '/users', label: 'Usuários', icon: User },
         { href: '/analytics', label: 'Analytics', icon: Activity },
-        { href: '/tactical-plan', label: 'Plano Tático', icon: Calendar }, // Using Calendar icon for now or Trello/Kanban if avail
+        { href: '/crm', label: 'CRM de Vendas', icon: User }, // Using User/Target icon; let's use User or maybe an Inbox icon but User is imported
+        { href: '/tactical-plan', label: 'Plano Tático', icon: Calendar },
         { href: '/settings', label: 'Configurações', icon: Settings },
     ];
 
