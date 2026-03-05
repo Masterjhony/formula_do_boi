@@ -438,7 +438,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-gray-900 uppercase">Frete & Comissão</p>
-                                    <p className="text-sm text-gray-600">Frete facilitado para todo Brasil. <span className="font-medium text-green-700">Comissão de 4%</span> para o comprador e para o vendedor.</p>
+                                    <p className="text-sm text-gray-600">Frete por conta do Comprador. <span className="font-medium text-green-700">Comissão de 4%</span> para o comprador e para o vendedor.</p>
                                 </div>
                             </div>
                         </div>
