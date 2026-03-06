@@ -96,3 +96,105 @@ export async function getDetailedReport(): Promise<DetailedAnalyticsReport[]> {
         return [];
     }
 }
+
+export interface PageViewsReport {
+    pagePath: string;
+    pageTitle: string;
+    views: number;
+}
+
+export async function getPageViews(): Promise<PageViewsReport[]> {
+    try {
+        const [response] = await analyticsDataClient.runReport({
+            property: `properties/${PROPERTY_ID}`,
+            dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+            dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
+            metrics: [{ name: 'screenPageViews' }],
+            orderBys: [
+                {
+                    metric: { metricName: 'screenPageViews' },
+                    desc: true,
+                },
+            ],
+            limit: 10,
+        });
+
+        if (!response.rows) return [];
+
+        return response.rows.map(row => ({
+            pagePath: row.dimensionValues?.[0].value || '',
+            pageTitle: row.dimensionValues?.[1].value || '',
+            views: parseInt(row.metricValues?.[0].value || '0', 10),
+        }));
+    } catch (error) {
+        console.error('Error fetching GA4 page views:', error);
+        return [];
+    }
+}
+
+export interface SessionChannelsReport {
+    channelGroup: string;
+    sessions: number;
+}
+
+export async function getSessionChannels(): Promise<SessionChannelsReport[]> {
+    try {
+        const [response] = await analyticsDataClient.runReport({
+            property: `properties/${PROPERTY_ID}`,
+            dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+            dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+            metrics: [{ name: 'sessions' }],
+            orderBys: [
+                {
+                    metric: { metricName: 'sessions' },
+                    desc: true,
+                },
+            ],
+            limit: 10,
+        });
+
+        if (!response.rows) return [];
+
+        return response.rows.map(row => ({
+            channelGroup: row.dimensionValues?.[0].value || '',
+            sessions: parseInt(row.metricValues?.[0].value || '0', 10),
+        }));
+    } catch (error) {
+        console.error('Error fetching GA4 channels:', error);
+        return [];
+    }
+}
+
+export interface AverageTimeReport {
+    date: string;
+    averageSessionDuration: number;
+}
+
+export async function getAverageTimeReport(): Promise<AverageTimeReport[]> {
+    try {
+        const [response] = await analyticsDataClient.runReport({
+            property: `properties/${PROPERTY_ID}`,
+            dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+            dimensions: [{ name: 'date' }],
+            metrics: [{ name: 'averageSessionDuration' }],
+            orderBys: [
+                {
+                    dimension: {
+                        orderType: 'ALPHANUMERIC',
+                        dimensionName: 'date',
+                    },
+                },
+            ],
+        });
+
+        if (!response.rows) return [];
+
+        return response.rows.map(row => ({
+            date: row.dimensionValues?.[0].value || '',
+            averageSessionDuration: parseFloat(row.metricValues?.[0].value || '0'),
+        }));
+    } catch (error) {
+        console.error('Error fetching GA4 average time report:', error);
+        return [];
+    }
+}
