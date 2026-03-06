@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
     DndContext,
     closestCorners,
@@ -18,22 +18,33 @@ import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { TaskColumn } from './TaskColumn';
 import { TaskCard } from './TaskCard';
 import { TaskModal } from './TaskModal';
-import { TacticalTask, updateTask, createTask, moveTask, deleteTask } from '@/app/web-admin/actions/tactical-tasks';
+
+import { GanttView } from './GanttView';
+import { TacticalTask, TacticalColumn, updateTask, createTask, moveTask, deleteTask, createColumn, updateColumn, deleteColumn } from '@/app/web-admin/actions/tactical-tasks';
 import { createPortal } from 'react-dom';
+import { Plus, LayoutGrid, Calendar as CalendarIcon, Filter } from 'lucide-react';
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];
     profiles: any[];
+    initialColumns: TacticalColumn[];
 }
 
-export function KanbanBoard({ initialTasks, profiles }: KanbanBoardProps) {
+export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBoardProps) {
     const [tasks, setTasks] = useState<TacticalTask[]>(initialTasks);
+    const [columns, setColumns] = useState<TacticalColumn[]>(initialColumns);
+    const [isCreatingColumn, setIsCreatingColumn] = useState(false);
+    const [newColumnTitle, setNewColumnTitle] = useState('');
     // Assuming initialTasks are sorted by position from server
 
     const [activeTask, setActiveTask] = useState<TacticalTask | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<TacticalTask | undefined>(undefined);
     const [defaultStatus, setDefaultStatus] = useState('A fazer');
+
+    // New Feature States
+    const [viewMode, setViewMode] = useState<'kanban' | 'gantt'>('kanban');
+    const [filterAssignee, setFilterAssignee] = useState<string>('all');
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -46,7 +57,10 @@ export function KanbanBoard({ initialTasks, profiles }: KanbanBoardProps) {
         })
     );
 
-    const columns = ['A fazer', 'Em andamento', 'Completa'];
+    const filteredTasks = useMemo(() => {
+        if (filterAssignee === 'all') return tasks;
+        return tasks.filter(t => t.assignees?.includes(filterAssignee));
+    }, [tasks, filterAssignee]);
 
     const handleTaskClick = (task: TacticalTask) => {
         setEditingTask(task);
@@ -135,54 +149,33 @@ export function KanbanBoard({ initialTasks, profiles }: KanbanBoardProps) {
         // Only trigger server update if changed
         if (over) {
             const activeId = active.id as string;
-            const overId = over.id as string;
+            // overId might be a column ID or a task ID, we already set the status locally in DragOver.
+            // So we find its newly assigned status from local state.
+            const changedTask = tasks.find(t => t.id === activeId);
 
-            const task = tasks.find(t => t.id === activeId);
+            if (changedTask) {
+                // Determine new positioning relative to others in the column
+                const columnTasks = tasks.filter(t => t.status === changedTask.status);
+                const indexInColumn = columnTasks.findIndex(t => t.id === changedTask.id);
+                const prevTask = columnTasks[indexInColumn - 1];
+                const nextTask = columnTasks[indexInColumn + 1];
 
-            if (task) {
-                // Calculate new position is complex in simple arrayMove
-                // For now, we persist the new status. 
-                // Persisting exact position requires calculating and sending index/position to server.
-                // We will just update status for now if changed.
+                let newPosition = changedTask.position; // Default to existing if no change
 
-                // If status changed in DragOver, it's already in local state 'tasks', but we need to sync with DB.
-                // We need to know the final status and index.
+                if (!prevTask && !nextTask) {
+                    newPosition = 1000;
+                } else if (!prevTask) {
+                    newPosition = (nextTask?.position || 2000) / 2;
+                } else if (!nextTask) {
+                    newPosition = (prevTask?.position || 0) + 1000;
+                } else {
+                    newPosition = (prevTask.position + nextTask.position) / 2;
+                }
 
-                // Finding the task in CURRENT state (modified by DragOver)
-                const currentTask = tasks.find(t => t.id === activeId);
-                if (currentTask) {
-                    // We should recalculate positions for the whole column or just update this task's position based on neighbors
-                    // For MVP, updating Status is priority.
-                    // Position persistence:
-                    // We can update the task with new status.
-
-                    // Warning: if we only update status, reordering within column won't persist.
-                    // To persist reorder: calculate new position float based on prev/next tasks.
-
-                    // Simplification: We update the task's Status and Position.
-                    // We find its index in the filtered column list.
-                    const columnTasks = tasks.filter(t => t.status === currentTask.status);
-                    const indexInColumn = columnTasks.findIndex(t => t.id === currentTask.id);
-                    const prevTask = columnTasks[indexInColumn - 1];
-                    const nextTask = columnTasks[indexInColumn + 1];
-
-                    let newPosition = currentTask.position; // Default to existing if no change
-
-                    if (!prevTask && !nextTask) {
-                        // Only task
-                        newPosition = 1000;
-                    } else if (!prevTask) {
-                        // First
-                        newPosition = (nextTask?.position || 2000) / 2;
-                    } else if (!nextTask) {
-                        // Last
-                        newPosition = (prevTask?.position || 0) + 1000;
-                    } else {
-                        // Middle
-                        newPosition = (prevTask.position + nextTask.position) / 2;
-                    }
-
-                    await moveTask(currentTask.id, currentTask.status, newPosition);
+                try {
+                    await moveTask(changedTask.id, changedTask.status, newPosition);
+                } catch {
+                    setTasks(initialTasks); // fallback
                 }
             }
         }
@@ -201,37 +194,167 @@ export function KanbanBoard({ initialTasks, profiles }: KanbanBoardProps) {
     };
 
     return (
-        <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={onDragStart}
-            onDragOver={onDragOver}
-            onDragEnd={onDragEnd}
-        >
-            <div className="flex gap-6 overflow-x-auto pb-4 h-full snap-x">
-                {columns.map((colId) => (
-                    <TaskColumn
-                        key={colId}
-                        id={colId}
-                        title={colId}
-                        tasks={tasks.filter((t) => t.status === colId)}
-                        onTaskClick={handleTaskClick}
-                        onAddTask={handleAddTask}
-                    />
-                ))}
+        <div className="h-full flex flex-col pt-4">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-6 shrink-0 gap-4">
+                <div className="flex gap-2 bg-gray-100 dark:bg-[#1A1A1A] p-1 rounded-lg border border-gray-200 dark:border-[#222222]">
+                    <button
+                        onClick={() => setViewMode('kanban')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'kanban'
+                            ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                            }`}
+                    >
+                        <LayoutGrid size={16} /> Kanban
+                    </button>
+                    <button
+                        onClick={() => setViewMode('gantt')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'gantt'
+                            ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                            }`}
+                    >
+                        <CalendarIcon size={16} /> Gantt
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    {/* Assignee Filter */}
+                    <div className="flex items-center gap-2">
+                        <Filter size={16} className="text-gray-400" />
+                        <select
+                            value={filterAssignee}
+                            onChange={(e) => setFilterAssignee(e.target.value)}
+                            className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#B8860B]"
+                        >
+                            <option value="all">Todos os Responsáveis</option>
+                            {profiles.map(p => (
+                                <option key={p.id} value={p.full_name || p.email}>
+                                    {p.full_name || p.email}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            setEditingTask(undefined);
+                            setDefaultStatus('A fazer');
+                            setIsModalOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-lg font-bold hover:shadow-lg hover:shadow-[#B8860B]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap"
+                    >
+                        <Plus size={20} />
+                        Nova Tarefa
+                    </button>
+                </div>
             </div>
 
-            {createPortal(
-                <DragOverlay dropAnimation={dropAnimation}>
-                    {activeTask && (
-                        <TaskCard
-                            task={activeTask}
-                            onClick={() => { }}
+            <div className="flex-1 min-h-[0px] overflow-hidden flex flex-col pb-2">
+                {viewMode === 'kanban' ? (
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCorners}
+                        onDragStart={onDragStart}
+                        onDragOver={onDragOver}
+                        onDragEnd={onDragEnd}
+                    >
+                        <div className="flex-1 flex gap-6 overflow-x-auto overflow-y-hidden custom-scrollbar pb-4 h-full snap-x pr-4">
+                            {columns.map((col) => (
+                                <TaskColumn
+                                    key={col.id}
+                                    id={col.title}
+                                    title={col.title}
+                                    tasks={filteredTasks.filter((t) => t.status === col.title)}
+                                    onTaskClick={handleTaskClick}
+                                    onAddTask={handleAddTask}
+                                    onUpdateColumn={async (id, newTitle) => {
+                                        try {
+                                            const colId = col.id;
+                                            await updateColumn(colId, newTitle);
+                                            setColumns(columns.map(c => c.id === colId ? { ...c, title: newTitle } : c));
+                                            // Optional: if task status is the title, update tasks locally
+                                            setTasks(tasks.map(t => t.status === id ? { ...t, status: newTitle } : t));
+                                        } catch (err) {
+                                            console.error(err);
+                                        }
+                                    }}
+                                    onDeleteColumn={async (id) => {
+                                        try {
+                                            const colId = col.id;
+                                            await deleteColumn(colId);
+                                            setColumns(columns.filter(c => c.id !== colId));
+                                        } catch (err) {
+                                            console.error(err);
+                                        }
+                                    }}
+                                />
+                            ))}
+                            {/* New Column Button/Input */}
+                            <div className="shrink-0 w-[320px] bg-gray-50 dark:bg-[#1A1A1A] rounded-2xl p-4 border border-gray-200 dark:border-[#222222] h-fit flex flex-col items-start justify-center">
+                                {isCreatingColumn ? (
+                                    <div className="w-full flex items-center gap-2">
+                                        <input
+                                            autoFocus
+                                            type="text"
+                                            value={newColumnTitle}
+                                            onChange={(e) => setNewColumnTitle(e.target.value)}
+                                            onKeyDown={async (e) => {
+                                                if (e.key === 'Enter' && newColumnTitle.trim()) {
+                                                    try {
+                                                        const newCol = await createColumn(newColumnTitle.trim());
+                                                        setColumns([...columns, newCol]);
+                                                        setNewColumnTitle('');
+                                                        setIsCreatingColumn(false);
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                    }
+                                                } else if (e.key === 'Escape') {
+                                                    setIsCreatingColumn(false);
+                                                    setNewColumnTitle('');
+                                                }
+                                            }}
+                                            onBlur={() => {
+                                                setIsCreatingColumn(false);
+                                                setNewColumnTitle('');
+                                            }}
+                                            className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#B8860B] rounded-lg focus:outline-none text-sm text-gray-900 dark:text-white"
+                                            placeholder="Nome da coluna..."
+                                        />
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => setIsCreatingColumn(true)}
+                                        className="flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors w-full p-2"
+                                    >
+                                        <Plus size={18} />
+                                        <span className="font-medium text-sm">Adicionar Coluna</span>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {createPortal(
+                            <DragOverlay dropAnimation={dropAnimation}>
+                                {activeTask && (
+                                    <TaskCard
+                                        task={activeTask}
+                                        onClick={() => { }}
+                                    />
+                                )}
+                            </DragOverlay>,
+                            document.body
+                        )}
+                    </DndContext>
+                ) : (
+                    <div className="flex-1 min-h-[0px] pb-2 pr-2">
+                        <GanttView
+                            tasks={filteredTasks}
+                            onTaskClick={handleTaskClick}
                         />
-                    )}
-                </DragOverlay>,
-                document.body
-            )}
+                    </div>
+                )}
+            </div>
 
             <TaskModal
                 isOpen={isModalOpen}
@@ -241,6 +364,6 @@ export function KanbanBoard({ initialTasks, profiles }: KanbanBoardProps) {
                 onSave={handleSaveTask}
                 profiles={profiles}
             />
-        </DndContext>
+        </div>
     );
 }

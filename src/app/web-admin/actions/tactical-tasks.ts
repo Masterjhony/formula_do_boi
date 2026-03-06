@@ -4,6 +4,26 @@ import { createClient } from '@/utils/supabase/server';
 
 import { revalidatePath } from 'next/cache';
 
+export interface TacticalColumn {
+    id: string;
+    title: string;
+    position: number;
+    created_at: string;
+}
+
+export interface TacticalComment {
+    id: string;
+    task_id: string;
+    profile_id: string;
+    content: string;
+    created_at: string;
+    profiles?: {
+        full_name: string;
+        email: string;
+    };
+}
+
+
 export interface TacticalTask {
     id: string;
     title: string;
@@ -14,13 +34,15 @@ export interface TacticalTask {
     assignees?: string[];
     position: number;
     created_at: string;
+    checklists?: { id: string, title: string, completed: boolean }[];
+    tactical_task_comments?: { count: number }[];
 }
 
 export async function getTasks() {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from('tactical_tasks')
-        .select('*')
+        .select('*, tactical_task_comments(count)')
         .order('position', { ascending: true }); // We might want to order by status then position, or handle sorting in JS
 
     if (error) {
@@ -116,14 +138,134 @@ export async function getProfiles() {
 
     const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role'); // Assuming these fields exist
+        .select('id, full_name, email, role')
+        .neq('role', 'user');
 
     if (error) {
         // If profiles table isn't readable or fields missing, return empty or handle.
         // For now, log and return empty.
-        console.error('Error fetching profiles:', error);
+        console.error('Error fetching internal profiles:', error);
         return [];
     }
 
     return data;
+}
+
+// --- Columns Actions ---
+export async function getColumns() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('tactical_kanban_columns')
+        .select('*')
+        .order('position', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching columns:', error);
+        return [];
+    }
+    return data as TacticalColumn[];
+}
+
+export async function createColumn(title: string) {
+    const supabase = await createClient();
+
+    // Get max position to append
+    const { data: maxPosData } = await supabase
+        .from('tactical_kanban_columns')
+        .select('position')
+        .order('position', { ascending: false })
+        .limit(1)
+        .single();
+
+    const newPosition = (maxPosData?.position || 0) + 1000;
+
+    const { data, error } = await supabase
+        .from('tactical_kanban_columns')
+        .insert({ title, position: newPosition })
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating column:', error);
+        throw new Error('Failed to create column');
+    }
+
+    revalidatePath('/web-admin/tactical-plan');
+    return data as TacticalColumn;
+}
+
+export async function updateColumn(id: string, title: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('tactical_kanban_columns')
+        .update({ title })
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating column:', error);
+        throw new Error('Failed to update column');
+    }
+
+    revalidatePath('/web-admin/tactical-plan');
+    return data as TacticalColumn;
+}
+
+export async function deleteColumn(id: string) {
+    const supabase = await createClient();
+    const { error } = await supabase
+        .from('tactical_kanban_columns')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting column:', error);
+        throw new Error('Failed to delete column');
+    }
+
+    revalidatePath('/web-admin/tactical-plan');
+}
+
+// --- Comments Actions ---
+export async function getComments(taskId: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('tactical_task_comments')
+        .select('*, profiles(full_name, email)')
+        .eq('task_id', taskId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching comments:', error);
+        return [];
+    }
+    return data as TacticalComment[];
+}
+
+export async function addComment(taskId: string, content: string) {
+    const supabase = await createClient();
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !userData?.user) {
+        throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase
+        .from('tactical_task_comments')
+        .insert({
+            task_id: taskId,
+            profile_id: userData.user.id,
+            content
+        })
+        .select('*, profiles(full_name, email)')
+        .single();
+
+    if (error) {
+        console.error('Error adding comment:', error);
+        throw new Error('Failed to add comment');
+    }
+
+    revalidatePath('/web-admin/tactical-plan');
+    return data as TacticalComment;
 }
