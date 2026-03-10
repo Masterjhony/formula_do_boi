@@ -85,6 +85,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Categoria</th>
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Preço</th>
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Disponibilidade</th>
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Ações</th>
                             </tr>
                         </thead>
@@ -153,6 +154,16 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                             {product.details?.status || 'Disponível'}
                                         </span>
                                     </td>
+                                    <td className="px-6 py-4">
+                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${product.details?.status?.includes('Vendido')
+                                                ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                                                : product.details?.status?.includes('Reservado')
+                                                    ? 'bg-yellow-500/10 text-yellow-600 border border-yellow-500/20'
+                                                    : 'bg-green-500/10 text-green-500 border border-green-500/20'
+                                            }`}>
+                                            {product.details?.status?.includes('Vendido') ? 'Vendido' : (product.details?.status?.includes('Reservado') ? 'Reservado' : 'Disponível')}
+                                        </span>
+                                    </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <Link href={`/products/${product.id}`} className="p-2.5 text-gray-400 hover:text-[#B8860B] hover:bg-[#B8860B]/10 rounded-lg transition-all" title="Editar">
@@ -173,7 +184,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
 
                             {(!filteredProducts || filteredProducts.length === 0) && (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-16 text-center">
+                                    <td colSpan={6} className="px-6 py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-12 h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-full flex items-center justify-center">
                                                 <AlertCircle className="w-6 h-6 text-gray-500 dark:text-gray-600" />
