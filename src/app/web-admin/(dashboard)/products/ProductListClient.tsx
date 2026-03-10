@@ -9,6 +9,8 @@ import { createClient } from '@/utils/supabase/client';
 export default function ProductListClient({ initialProducts }: { initialProducts: any[] }) {
     const [products, setProducts] = useState(initialProducts);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [isBatchUpdating, setIsBatchUpdating] = useState(false);
     const supabase = createClient();
 
     const handleDelete = async (id: number) => {
@@ -49,6 +51,62 @@ export default function ProductListClient({ initialProducts }: { initialProducts
         return matchesSearch && matchesCategory;
     });
 
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            setSelectedIds(filteredProducts.map(p => p.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleSelectOne = (id: number) => {
+        setSelectedIds(prev => 
+            prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
+        );
+    };
+
+    const handleBatchStatusUpdate = async (newStatus: string) => {
+        if (!selectedIds.length) return;
+        if (!window.confirm(`Tem certeza que deseja marcar ${selectedIds.length} cards como "${newStatus}"?`)) return;
+
+        setIsBatchUpdating(true);
+        try {
+            const updates = selectedIds.map(async (id) => {
+                const product = products.find(p => p.id === id);
+                if (!product) return;
+                
+                const currentDetails = product.details || {};
+                const newDetails = { ...currentDetails, status: newStatus };
+
+                const { error } = await supabase
+                    .from('products')
+                    .update({ details: newDetails })
+                    .eq('id', id);
+
+                if (error) throw error;
+                
+                return { id, newDetails };
+            });
+
+            const results = await Promise.all(updates);
+
+            setProducts(currentProducts => currentProducts.map(p => {
+                const updated = results.find(r => r && r.id === p.id);
+                if (updated) {
+                    return { ...p, details: updated.newDetails };
+                }
+                return p;
+            }));
+
+            setSelectedIds([]);
+        } catch (error) {
+            console.error('Error in batch update:', error);
+            alert('Erro ao atualizar status em lote.');
+        } finally {
+            setIsBatchUpdating(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row gap-4">
@@ -76,11 +134,54 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                 </select>
             </div>
 
+            {selectedIds.length > 0 && (
+                <div className="bg-white dark:bg-[#111111] border border-[#B8860B]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2">
+                    <div className="flex items-center gap-3">
+                        <span className="bg-[#B8860B]/10 text-[#B8860B] font-bold px-3 py-1 rounded-full text-sm">
+                            {selectedIds.length} selecionado{selectedIds.length > 1 ? 's' : ''}
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400 text-sm">Ações em lote:</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button 
+                            onClick={() => handleBatchStatusUpdate('Disponível')}
+                            disabled={isBatchUpdating}
+                            className="px-4 py-2 bg-green-500/10 text-green-600 dark:text-green-500 hover:bg-green-500/20 text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                        >
+                            Marcar Disponível
+                        </button>
+                        <button 
+                            onClick={() => handleBatchStatusUpdate('Reservado')}
+                            disabled={isBatchUpdating}
+                            className="px-4 py-2 bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 hover:bg-yellow-500/20 text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                        >
+                            Marcar Reservado
+                        </button>
+                        <button 
+                            onClick={() => handleBatchStatusUpdate('Vendido')}
+                            disabled={isBatchUpdating}
+                            className="px-4 py-2 bg-red-500/10 text-red-600 dark:text-red-500 hover:bg-red-500/20 text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                        >
+                            Marcar Vendido
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white dark:bg-[#111111] rounded-2xl shadow-xl border border-gray-200 dark:border-[#222222] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-[#222222]">
                             <tr>
+                                <th className="px-6 py-5 w-12 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    <input 
+                                        type="checkbox" 
+                                        className="w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#B8860B] focus:ring-[#B8860B]"
+                                        checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
+                                        onChange={handleSelectAll}
+                                        disabled={isBatchUpdating}
+                                    />
+                                </th>
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Animal</th>
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Categoria</th>
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Preço</th>
@@ -92,6 +193,16 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                         <tbody className="divide-y divide-gray-100 dark:divide-[#222222]">
                             {filteredProducts?.map((product) => (
                                 <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-[#1A1A1A]/50 transition-colors group">
+                                    <td className="px-6 py-4 text-center">
+                                        <input 
+                                            type="checkbox" 
+                                            className="w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#B8860B] focus:ring-[#B8860B]"
+                                            checked={selectedIds.includes(product.id)}
+                                            onChange={() => handleSelectOne(product.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            disabled={isBatchUpdating}
+                                        />
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-4">
                                             <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-[#222222] overflow-hidden relative flex-shrink-0 border border-gray-200 dark:border-[#333333] group-hover:border-[#B8860B]/50 transition-colors">
@@ -184,7 +295,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
 
                             {(!filteredProducts || filteredProducts.length === 0) && (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-16 text-center">
+                                    <td colSpan={7} className="px-6 py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-12 h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-full flex items-center justify-center">
                                                 <AlertCircle className="w-6 h-6 text-gray-500 dark:text-gray-600" />
