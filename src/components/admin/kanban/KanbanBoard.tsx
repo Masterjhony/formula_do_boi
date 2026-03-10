@@ -81,7 +81,7 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
             setTasks(tasks.map(t => t.id === updated.id ? updated : t));
         } else {
             // Create
-            const newTask = await createTask({ ...taskData, status: defaultStatus });
+            const newTask = await createTask(taskData);
             setTasks([...tasks, newTask]);
         }
     };
@@ -363,6 +363,7 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
                 defaultStatus={defaultStatus}
                 onSave={handleSaveTask}
                 profiles={profiles}
+                columns={columns}
             />
         </div>
     );

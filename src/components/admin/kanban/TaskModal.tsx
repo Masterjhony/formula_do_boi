@@ -11,9 +11,10 @@ interface TaskModalProps {
     defaultStatus?: string;
     onSave: (taskData: any) => Promise<void>;
     profiles: any[];
+    columns: { title: string }[];
 }
 
-export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, profiles }: TaskModalProps) {
+export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, profiles, columns }: TaskModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [status, setStatus] = useState('A fazer');
@@ -182,10 +183,9 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, profil
                                 onChange={(e) => setStatus(e.target.value)}
                                 className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white"
                             >
-                                <option value="Idéias">Idéias</option>
-                                <option value="A fazer">A fazer</option>
-                                <option value="Em andamento">Em andamento</option>
-                                <option value="Completa">Completa</option>
+                                {columns.map((col) => (
+                                    <option key={col.title} value={col.title}>{col.title}</option>
+                                ))}
                             </select>
                         </div>
                         <div>
