@@ -48,6 +48,7 @@ export default function NewProductPage() {
         video_object_position: 'center center',
         special_price: false,
         display_order: 0,
+        active: true,
     });
 
     useEffect(() => {
@@ -179,6 +180,7 @@ export default function NewProductPage() {
                 iabcz: formData.iabcz,
                 iqg: formData.iqg,
                 mgte: formData.mgte, // Explicitly add mgte to root as well
+                active: formData.active,
                 details: {
                     registro: formData.registro,
                     raca: formData.raca,
@@ -306,18 +308,36 @@ export default function NewProductPage() {
                                 </Link>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 pt-6">
-                            <input
-                                type="checkbox"
-                                id="featured"
-                                name="featured"
-                                checked={formData.featured}
-                                onChange={handleChange}
-                                className="w-5 h-5 text-brand-gold border-gray-300 rounded focus:ring-brand-gold"
-                            />
-                            <label htmlFor="featured" className="text-sm font-medium text-gray-900 cursor-pointer select-none">
-                                Marcar como DESTAQUE
-                            </label>
+                        <div className="flex flex-col gap-4 pt-6 md:col-span-2">
+                            <div className="flex items-center gap-2 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                <input
+                                    type="checkbox"
+                                    id="active"
+                                    name="active"
+                                    checked={formData.active}
+                                    onChange={handleChange}
+                                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <div>
+                                    <label htmlFor="active" className="text-sm font-bold text-gray-900 cursor-pointer select-none block">
+                                        Card Visível (Público)
+                                    </label>
+                                    <p className="text-xs text-gray-600 mt-1">Desmarque para ocultar este card do site público (ele continuará visível aqui no painel).</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="featured"
+                                    name="featured"
+                                    checked={formData.featured}
+                                    onChange={handleChange}
+                                    className="w-5 h-5 text-brand-gold border-gray-300 rounded focus:ring-brand-gold"
+                                />
+                                <label htmlFor="featured" className="text-sm font-medium text-gray-900 cursor-pointer select-none">
+                                    Marcar como DESTAQUE
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>

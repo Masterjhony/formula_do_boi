@@ -37,6 +37,7 @@ export interface Product {
     iqg?: string;
     special_price?: boolean;
     display_order?: number;
+    active?: boolean;
 }
 
 // Helper to format currency
@@ -71,12 +72,13 @@ const mapProduct = (data: any): Product => ({
     special_price: data.details?.special_price || false,
     display_order: data.display_order || 0,
     video_object_position: data.details?.video_object_position || '',
+    active: data.active ?? true,
 });
 
 // For Client Components
 export const getProductsClient = async () => {
     const supabase = createClient();
-    const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
+    const { data, error } = await supabase.from('products').select('*').eq('active', true).order('id', { ascending: true });
 
     if (error) {
         console.error('Error fetching products:', error);

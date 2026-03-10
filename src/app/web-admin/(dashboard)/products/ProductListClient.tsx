@@ -34,7 +34,22 @@ export default function ProductListClient({ initialProducts }: { initialProducts
     };
 
     const handleToggleActive = async (product: any) => {
-        // Toggle active status logic could go here
+        const newActiveStatus = !product.active;
+        try {
+            const { error } = await supabase
+                .from('products')
+                .update({ active: newActiveStatus })
+                .eq('id', product.id);
+
+            if (error) throw error;
+
+            setProducts(products.map(p => 
+                p.id === product.id ? { ...p, active: newActiveStatus } : p
+            ));
+        } catch (error) {
+            console.error('Error toggling visibility:', error);
+            alert('Erro ao atualizar visibilidade.');
+        }
     };
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -164,6 +179,51 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                         >
                             Marcar Vendido
                         </button>
+                        <div className="h-6 w-px bg-gray-200 dark:bg-[#333333] hidden sm:block mx-1"></div>
+                        <button 
+                            onClick={async () => {
+                                if (!selectedIds.length) return;
+                                if (!window.confirm(`Tem certeza que deseja OCULTAR ${selectedIds.length} cards?`)) return;
+                                setIsBatchUpdating(true);
+                                try {
+                                    const { error } = await supabase.from('products').update({ active: false }).in('id', selectedIds);
+                                    if (error) throw error;
+                                    setProducts(products.map(p => selectedIds.includes(p.id) ? { ...p, active: false } : p));
+                                    setSelectedIds([]);
+                                } catch (error) {
+                                    console.error('Error hiding cards:', error);
+                                    alert('Erro ao ocultar cards.');
+                                } finally {
+                                    setIsBatchUpdating(false);
+                                }
+                            }}
+                            disabled={isBatchUpdating}
+                            className="px-4 py-2 bg-gray-500/10 text-gray-600 dark:text-gray-400 hover:bg-gray-500/20 text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                        >
+                            Ocultar
+                        </button>
+                        <button 
+                            onClick={async () => {
+                                if (!selectedIds.length) return;
+                                if (!window.confirm(`Tem certeza que deseja MOSTRAR ${selectedIds.length} cards?`)) return;
+                                setIsBatchUpdating(true);
+                                try {
+                                    const { error } = await supabase.from('products').update({ active: true }).in('id', selectedIds);
+                                    if (error) throw error;
+                                    setProducts(products.map(p => selectedIds.includes(p.id) ? { ...p, active: true } : p));
+                                    setSelectedIds([]);
+                                } catch (error) {
+                                    console.error('Error showing cards:', error);
+                                    alert('Erro ao mostrar cards.');
+                                } finally {
+                                    setIsBatchUpdating(false);
+                                }
+                            }}
+                            disabled={isBatchUpdating}
+                            className="px-4 py-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 hover:bg-blue-500/20 text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                        >
+                            Mostrar
+                        </button>
                     </div>
                 </div>
             )}
@@ -187,6 +247,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Preço</th>
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Disponibilidade</th>
+                                <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Visibilidade</th>
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Ações</th>
                             </tr>
                         </thead>
@@ -274,6 +335,27 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                             }`}>
                                             {product.details?.status?.includes('Vendido') ? 'Vendido' : (product.details?.status?.includes('Reservado') ? 'Reservado' : 'Disponível')}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleToggleActive(product);
+                                            }}
+                                            className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                                                product.active !== false
+                                                    ? 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20'
+                                                    : 'bg-gray-500/10 text-gray-500 hover:bg-gray-500/20'
+                                            }`}
+                                            title={product.active !== false ? 'Ocultar Card' : 'Mostrar Card'}
+                                        >
+                                            {product.active !== false ? (
+                                                <Eye size={14} className="mr-1" />
+                                            ) : (
+                                                <Eye size={14} className="mr-1 opacity-50" />
+                                            )}
+                                            {product.active !== false ? 'Visível' : 'Oculto'}
+                                        </button>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
