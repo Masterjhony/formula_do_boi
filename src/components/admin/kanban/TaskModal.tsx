@@ -141,7 +141,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, profil
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 custom-scrollbar">
+                <form id="task-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 custom-scrollbar">
                     {/* Title */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -225,20 +225,20 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, profil
                                 Responsáveis
                             </label>
                             <div className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-3 max-h-32 overflow-y-auto space-y-2 custom-scrollbar">
-                                {profiles.map((profile) => (
-                                    <label key={profile.id} className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-lg cursor-pointer transition-colors">
+                                {['Marcelo', 'João Eduardo', 'Matheus', 'Joao Gabriel', 'Hugo (saiu)', 'Fabrício'].map((name) => (
+                                    <label key={name} className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-lg cursor-pointer transition-colors">
                                         <input
                                             type="checkbox"
-                                            checked={assignees.includes(profile.full_name || profile.email)}
-                                            onChange={() => toggleAssignee(profile.full_name || profile.email)}
+                                            checked={assignees.includes(name)}
+                                            onChange={() => toggleAssignee(name)}
                                             className="w-4 h-4 text-[#B8860B] border-gray-300 rounded focus:ring-[#B8860B]"
                                         />
                                         <div className="flex items-center gap-2">
                                             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-[10px] font-bold text-black border border-[#1A1A1A]">
-                                                {(profile.full_name || profile.email).charAt(0).toUpperCase()}
+                                                {name.charAt(0).toUpperCase()}
                                             </div>
                                             <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                                                {profile.full_name || profile.email}
+                                                {name}
                                             </span>
                                         </div>
                                     </label>
@@ -381,7 +381,8 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, profil
                         Cancelar
                     </button>
                     <button
-                        onClick={handleSubmit}
+                        type="submit"
+                        form="task-form"
                         disabled={isSaving}
                         className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-bold shadow-lg shadow-[#B8860B]/20 hover:shadow-[#B8860B]/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >

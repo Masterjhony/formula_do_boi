@@ -228,9 +228,9 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
                             className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#B8860B]"
                         >
                             <option value="all">Todos os Responsáveis</option>
-                            {profiles.map(p => (
-                                <option key={p.id} value={p.full_name || p.email}>
-                                    {p.full_name || p.email}
+                            {['Marcelo', 'João Eduardo', 'Matheus', 'Joao Gabriel', 'Hugo (saiu)', 'Fabrício'].map(name => (
+                                <option key={name} value={name}>
+                                    {name}
                                 </option>
                             ))}
                         </select>
