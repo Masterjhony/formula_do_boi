@@ -10,11 +10,12 @@ interface TaskModalProps {
     task?: TacticalTask;
     defaultStatus?: string;
     onSave: (taskData: any) => Promise<void>;
+    onDelete?: (taskId: string) => Promise<void>;
     profiles: any[];
     columns: { title: string }[];
 }
 
-export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, profiles, columns }: TaskModalProps) {
+export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDelete, profiles, columns }: TaskModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [status, setStatus] = useState('A fazer');
@@ -373,13 +374,36 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, profil
                 </form>
 
                 <div className="p-6 flex justify-between gap-3 shrink-0 bg-gray-50 dark:bg-[#1A1A1A] rounded-b-2xl border-t border-gray-200 dark:border-[#222222]">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-5 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-200 dark:hover:bg-[#222222] transition-colors"
-                    >
-                        Cancelar
-                    </button>
+                    <div className="flex gap-3">
+                        {task && onDelete && (
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    if (window.confirm("Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.")) {
+                                        setIsSaving(true);
+                                        try {
+                                            await onDelete(task.id);
+                                            onClose();
+                                        } finally {
+                                            setIsSaving(false);
+                                        }
+                                    }
+                                }}
+                                disabled={isSaving}
+                                className="px-5 py-2.5 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-all flex items-center gap-2"
+                            >
+                                <Trash2 size={18} />
+                                Excluir
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-5 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-200 dark:hover:bg-[#222222] transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                    </div>
                     <button
                         type="submit"
                         form="task-form"

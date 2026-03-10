@@ -86,6 +86,15 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
         }
     };
 
+    const handleDeleteTask = async (taskId: string) => {
+        try {
+            await deleteTask(taskId);
+            setTasks(tasks.filter(t => t.id !== taskId));
+        } catch (error) {
+            console.error('Failed to delete task', error);
+        }
+    };
+
     // Drag Handlers
     const onDragStart = (event: DragStartEvent) => {
         const { active } = event;
@@ -362,6 +371,7 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
                 task={editingTask}
                 defaultStatus={defaultStatus}
                 onSave={handleSaveTask}
+                onDelete={handleDeleteTask}
                 profiles={profiles}
                 columns={columns}
             />
