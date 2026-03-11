@@ -8,29 +8,42 @@ export async function middleware(request: NextRequest) {
     // Check if we are on the admin subdomain
     // Allowed values: "admin.formuladoboi.com", "admin.localhost:3000"
     const isAdminSubdomain = hostname.startsWith('admin.')
+    const isErpSubdomain = hostname.startsWith('erp.')
 
     // Rewrite path based on subdomain
     if (isAdminSubdomain) {
         url.pathname = `/web-admin${url.pathname}`
+    } else if (isErpSubdomain) {
+        url.pathname = `/web-erp${url.pathname}`
     } else {
         // If on site subdomain but trying to access /admin, redirect to admin subdomain
-        if (url.pathname === '/admin') {
+        if (url.pathname.startsWith('/admin')) {
             const protocol = request.headers.get('x-forwarded-proto') || 'http'
             const newHost = hostname.startsWith('www.')
                 ? hostname.replace('www.', 'admin.')
-                : hostname === 'localhost:3000'
-                    ? 'admin.localhost:3000'
-                    : `admin.${hostname}`
+                : hostname.startsWith('app.')
+                    ? hostname.replace('app.', 'admin.')
+                    : hostname === 'localhost:3000'
+                        ? 'admin.localhost:3000'
+                        : `admin.${hostname}`
 
-            // Handle specific case where hostname might already be something else
-            // If hostname is "app.formuladoboi.com", we want "admin.formuladoboi.com"
-            let adminHost = newHost
-            if (hostname.startsWith('app.')) {
-                adminHost = hostname.replace('app.', 'admin.')
-            }
-
-            return NextResponse.redirect(`${protocol}://${adminHost}`)
+            return NextResponse.redirect(`${protocol}://${newHost}${url.pathname.replace('/admin', '')}`)
         }
+        
+        // If on site subdomain but trying to access /erp, redirect to erp subdomain
+        if (url.pathname.startsWith('/erp')) {
+            const protocol = request.headers.get('x-forwarded-proto') || 'http'
+            const newHost = hostname.startsWith('www.')
+                ? hostname.replace('www.', 'erp.')
+                : hostname.startsWith('app.')
+                    ? hostname.replace('app.', 'erp.')
+                    : hostname === 'localhost:3000'
+                        ? 'erp.localhost:3000'
+                        : `erp.${hostname}`
+
+            return NextResponse.redirect(`${protocol}://${newHost}${url.pathname.replace('/erp', '')}`)
+        }
+
         url.pathname = `/web-site${url.pathname}`
     }
 
