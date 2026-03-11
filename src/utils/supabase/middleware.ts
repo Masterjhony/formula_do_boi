@@ -68,26 +68,10 @@ export async function updateSession(request: NextRequest, rewrittenPath?: string
                 .single()
 
             if (profile?.role !== 'admin') {
-                // Not an admin, redirect to main site
-                // We need to know the main site domain. 
-                // For now, let's redirect to a "not authorized" page or just root of main site if possible.
-                // Or just sign them out?
-                // Let's redirect to the site dashboard on the app domain
-                // Assuming app.formuladoboi.com or localhost:3000
-
-                // Hard to know exact "site" domain dynamically if not env var, 
-                // but we can try to construct it or just error.
-                // Let's just redirect to '/dashboard' but on the current domain it would fail loop?
-                // No, if we are on admin.domain.com, /dashboard is admin dashboard.
-                // We should redirect to the main domain.
-
-                // Construct main domain URL
                 const host = request.headers.get('host') || ''
                 const protocol = request.headers.get('x-forwarded-proto') || 'http'
                 let mainDomain = host.replace('admin.', '')
                 if (mainDomain === host) {
-                    // specific for localhost if logic differs, but usually admin.localhost -> localhost:3000
-                    // If we are mostly testing on localhost, admin.localhost -> localhost
                     if (host.startsWith('admin.')) mainDomain = host.replace('admin.', '')
                 }
 
@@ -95,6 +79,21 @@ export async function updateSession(request: NextRequest, rewrittenPath?: string
                 url.pathname = '/dashboard'
                 return NextResponse.redirect(url)
             }
+        }
+    }
+
+    // 1.5 ERP Protection
+    const isErpRoute = rewrittenPath?.startsWith('/web-erp')
+    if (isErpRoute) {
+        if (!rewrittenPath?.includes('/login')) {
+            if (!user) {
+                const url = request.nextUrl.clone()
+                url.pathname = '/login'
+                url.searchParams.set('next', request.nextUrl.pathname)
+                return NextResponse.redirect(url)
+            }
+            // For now, any authenticated user can access ERP. 
+            // In the future, we could check profile roles here.
         }
     }
 
