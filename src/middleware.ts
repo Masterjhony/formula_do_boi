@@ -5,6 +5,11 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl
     const hostname = request.headers.get('host')!
 
+    // API routes should not be rewritten — let them pass through directly
+    if (url.pathname.startsWith('/api/')) {
+        return NextResponse.next()
+    }
+
     // Check if we are on the admin subdomain
     // Allowed values: "admin.formuladoboi.com", "admin.localhost:3000"
     const isAdminSubdomain = hostname.startsWith('admin.')
