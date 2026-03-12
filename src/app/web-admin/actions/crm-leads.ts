@@ -18,6 +18,17 @@ export interface CRMLead {
     created_at: string;
     updated_at: string;
     position: number;
+    // Campos da integração Google Sheets
+    instagram?: string | null;
+    estado?: string | null;
+    cidade?: string | null;
+    o_que_busca?: string | null;
+    quantidade_animais?: string | null;
+    source_page?: string | null;
+    source?: string | null;
+    medium?: string | null;
+    campaign?: string | null;
+    data_entrada?: string | null;
 }
 
 export async function getLeads(): Promise<CRMLead[]> {

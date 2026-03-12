@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Save, Trash2 } from 'lucide-react';
+import { X, Save, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { CRMLead, deleteLead } from '@/app/web-admin/actions/crm-leads';
 import { CRM_COLUMNS } from './CRMKanbanBoard';
 
@@ -24,13 +24,23 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelet
         telefone: '',
         celular: '',
         responsavel: '',
+        instagram: '',
+        estado: '',
+        cidade: '',
+        o_que_busca: '',
+        quantidade_animais: '',
     });
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showOrigemSection, setShowOrigemSection] = useState(false);
 
     useEffect(() => {
         if (lead) {
             setFormData(lead);
+            // Auto-expand origem section if lead has source data
+            if (lead.source || lead.medium || lead.campaign) {
+                setShowOrigemSection(true);
+            }
         } else {
             setFormData({
                 nome: '',
@@ -41,7 +51,13 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelet
                 telefone: '',
                 celular: '',
                 responsavel: '',
+                instagram: '',
+                estado: '',
+                cidade: '',
+                o_que_busca: '',
+                quantidade_animais: '',
             });
+            setShowOrigemSection(false);
         }
     }, [lead, defaultStatus, isOpen]);
 
@@ -67,7 +83,6 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelet
         try {
             await deleteLead(lead.id);
             onClose();
-            // Optional: A more robust way is to trigger a re-fetch or state update in parent context if delete not via onSave
             window.location.reload();
         } catch (error) {
             console.error('Failed to delete:', error);
@@ -76,6 +91,9 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelet
             setIsDeleting(false);
         }
     };
+
+    const inputClass = "w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all";
+    const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -92,25 +110,35 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelet
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     <div className="space-y-4">
+                        {/* Data de entrada (exibido apenas se existir) */}
+                        {lead?.data_entrada && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg px-3 py-2 border border-gray-200 dark:border-[#333]">
+                                <span>📅 Entrada:</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">
+                                    {new Date(lead.data_entrada).toLocaleDateString('pt-BR')} às {new Date(lead.data_entrada).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                            </div>
+                        )}
+
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome do Lead / Contato *</label>
+                            <label className={labelClass}>Nome do Lead / Contato *</label>
                             <input
                                 type="text"
                                 required
                                 value={formData.nome || ''}
                                 onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all"
+                                className={inputClass}
                                 placeholder="Ex: [Local] Nome do Cliente"
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                                <label className={labelClass}>Status</label>
                                 <select
                                     value={formData.status || 'Lead'}
                                     onChange={e => setFormData({ ...formData, status: e.target.value })}
-                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all appearance-none"
+                                    className={`${inputClass} appearance-none`}
                                 >
                                     {CRM_COLUMNS.map(col => (
                                         <option key={col} value={col}>{col}</option>
@@ -118,11 +146,11 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelet
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prioridade</label>
+                                <label className={labelClass}>Prioridade</label>
                                 <select
                                     value={formData.prioridade || ''}
                                     onChange={e => setFormData({ ...formData, prioridade: e.target.value })}
-                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all appearance-none"
+                                    className={`${inputClass} appearance-none`}
                                 >
                                     <option value="">Nenhuma</option>
                                     <option value="Alta">Alta</option>
@@ -132,57 +160,168 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelet
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Interesse</label>
+                            <label className={labelClass}>Interesse / Momento Pecuária</label>
                             <textarea
                                 value={formData.interesse || ''}
                                 onChange={e => setFormData({ ...formData, interesse: e.target.value })}
                                 rows={2}
-                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all"
+                                className={inputClass}
                                 placeholder="O que o cliente deseja comprar?"
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Celular</label>
+                                <label className={labelClass}>Celular / WhatsApp</label>
                                 <input
                                     type="text"
                                     value={formData.celular || ''}
                                     onChange={e => setFormData({ ...formData, celular: e.target.value })}
-                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all"
+                                    className={inputClass}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefone Fixo</label>
+                                <label className={labelClass}>Telefone Fixo</label>
                                 <input
                                     type="text"
                                     value={formData.telefone || ''}
                                     onChange={e => setFormData({ ...formData, telefone: e.target.value })}
-                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all"
+                                    className={inputClass}
                                 />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Empresa / Fazenda</label>
+                                <label className={labelClass}>Instagram</label>
+                                <input
+                                    type="text"
+                                    value={formData.instagram || ''}
+                                    onChange={e => setFormData({ ...formData, instagram: e.target.value })}
+                                    className={inputClass}
+                                    placeholder="@usuario"
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Empresa / Fazenda</label>
                                 <input
                                     type="text"
                                     value={formData.empresa || ''}
                                     onChange={e => setFormData({ ...formData, empresa: e.target.value })}
-                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all"
+                                    className={inputClass}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className={labelClass}>Cidade</label>
+                                <input
+                                    type="text"
+                                    value={formData.cidade || ''}
+                                    onChange={e => setFormData({ ...formData, cidade: e.target.value })}
+                                    className={inputClass}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Responsável pela Conta</label>
+                                <label className={labelClass}>Estado (UF)</label>
                                 <input
                                     type="text"
-                                    value={formData.responsavel || ''}
-                                    onChange={e => setFormData({ ...formData, responsavel: e.target.value })}
-                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all"
-                                    placeholder="Ex: Matheus Amormino"
+                                    value={formData.estado || ''}
+                                    onChange={e => setFormData({ ...formData, estado: e.target.value })}
+                                    className={inputClass}
+                                    placeholder="MG, SP, etc."
                                 />
                             </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className={labelClass}>O que busca</label>
+                                <input
+                                    type="text"
+                                    value={formData.o_que_busca || ''}
+                                    onChange={e => setFormData({ ...formData, o_que_busca: e.target.value })}
+                                    className={inputClass}
+                                    placeholder="Touro, Matrizes, etc."
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Qtd. Animais</label>
+                                <input
+                                    type="text"
+                                    value={formData.quantidade_animais || ''}
+                                    onChange={e => setFormData({ ...formData, quantidade_animais: e.target.value })}
+                                    className={inputClass}
+                                    placeholder="0 a 100"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className={labelClass}>Responsável pela Conta</label>
+                            <input
+                                type="text"
+                                value={formData.responsavel || ''}
+                                onChange={e => setFormData({ ...formData, responsavel: e.target.value })}
+                                className={inputClass}
+                                placeholder="Ex: Matheus Amormino"
+                            />
+                        </div>
+
+                        {/* Seção Origem (colapsável) */}
+                        <div className="border border-gray-200 dark:border-[#333] rounded-xl overflow-hidden">
+                            <button
+                                type="button"
+                                onClick={() => setShowOrigemSection(!showOrigemSection)}
+                                className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-[#1A1A1A] hover:bg-gray-100 dark:hover:bg-[#222] transition-colors text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                <span>📊 Origem / Campanha</span>
+                                {showOrigemSection ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </button>
+                            {showOrigemSection && (
+                                <div className="p-4 space-y-3 border-t border-gray-200 dark:border-[#333]">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">Source</label>
+                                            <input
+                                                type="text"
+                                                value={formData.source || ''}
+                                                onChange={e => setFormData({ ...formData, source: e.target.value })}
+                                                className={inputClass}
+                                                placeholder="facebook, google..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">Medium</label>
+                                            <input
+                                                type="text"
+                                                value={formData.medium || ''}
+                                                onChange={e => setFormData({ ...formData, medium: e.target.value })}
+                                                className={inputClass}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 mb-1">Campaign</label>
+                                        <input
+                                            type="text"
+                                            value={formData.campaign || ''}
+                                            onChange={e => setFormData({ ...formData, campaign: e.target.value })}
+                                            className={inputClass}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 mb-1">Page</label>
+                                        <input
+                                            type="text"
+                                            value={formData.source_page || ''}
+                                            onChange={e => setFormData({ ...formData, source_page: e.target.value })}
+                                            className={inputClass}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

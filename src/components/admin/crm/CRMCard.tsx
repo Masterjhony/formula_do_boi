@@ -3,7 +3,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CRMLead } from '@/app/web-admin/actions/crm-leads';
-import { Phone, Building, Calendar, DollarSign, User } from 'lucide-react';
+import { Phone, Building, Calendar, DollarSign, User, MapPin } from 'lucide-react';
 
 interface CRMCardProps {
     lead: CRMLead;
@@ -62,6 +62,16 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
                 </h4>
             </div>
 
+            {/* Cidade/Estado */}
+            {(lead.cidade || lead.estado) && (
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <MapPin size={12} className="shrink-0 text-orange-400" />
+                    <span className="truncate">
+                        {lead.cidade && lead.estado ? `${lead.cidade}/${lead.estado}` : (lead.cidade || lead.estado)}
+                    </span>
+                </div>
+            )}
+
             {/* Empresa (if exists) */}
             {lead.empresa && (
                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
@@ -104,10 +114,13 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
                 )}
             </div>
 
-            {lead.ultimo_contato && (
+            {(lead.ultimo_contato || lead.data_entrada) && (
                 <div className="flex items-center justify-center mt-2 pb-1">
                     <span className="text-[10px] bg-gray-100 dark:bg-[#222222] text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full border border-gray-200 dark:border-[#333] w-full text-center">
-                        Contatado {new Date(lead.ultimo_contato).toLocaleDateString('pt-BR')}
+                        {lead.ultimo_contato
+                            ? `Contatado ${new Date(lead.ultimo_contato).toLocaleDateString('pt-BR')}`
+                            : `Entrada ${new Date(lead.data_entrada!).toLocaleDateString('pt-BR')}`
+                        }
                     </span>
                 </div>
             )}
