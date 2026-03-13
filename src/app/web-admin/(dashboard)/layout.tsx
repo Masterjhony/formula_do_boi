@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, LogOut, Menu, X, User, Settings, Activity, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, Menu, X, User, Settings, Activity, Calendar, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -71,6 +71,7 @@ export default function AdminLayout({
         { href: '/analytics', label: 'Analytics', icon: Activity },
         { href: '/crm', label: 'CRM de Vendas', icon: User }, // Using User/Target icon; let's use User or maybe an Inbox icon but User is imported
         { href: '/tactical-plan', label: 'Plano Tático', icon: Calendar },
+        { href: '/whatsapp', label: 'WhatsApp', icon: MessageCircle },
         { href: '/settings', label: 'Configurações', icon: Settings },
     ];
 
