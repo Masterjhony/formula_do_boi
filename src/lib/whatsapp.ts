@@ -169,13 +169,13 @@ function formatBRNumber(phone: string) {
   if (cleaned.startsWith('55')) {
     cleaned = cleaned.substring(2)
   }
-  
+
   // Basic validation, length should be 10 (fixed line) or 11 (mobile)
   if (cleaned.length < 10 || cleaned.length > 11) return null
 
   // Ensure it's a mobile number (starts with 9 after DDD)
   if (cleaned.length === 11 && cleaned[2] !== '9') return null
-  
+
   // Baileys requires @s.whatsapp.net suffix
   return `55${cleaned}@s.whatsapp.net`
 }
@@ -192,18 +192,18 @@ export async function sendWelcomeMessage(phone: string, name: string) {
     throw new Error('WhatsApp service not connected')
   }
 
-  const messageText = `Olá ${name}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a **Fórmula do Boi**!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas clicando no link abaixo:\n👉 https://formuladoboi.com.br`
+  const messageText = `Olá ${name}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a **Fórmula do Boi**!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas clicando no link abaixo:\n👉 https://app.formuladoboi.com`
 
   try {
     const result = await socket.onWhatsApp(formattedPhone)
-    
+
     if (result && result.length > 0 && result[0].exists) {
       await socket.sendMessage(formattedPhone, { text: messageText })
       console.log(`[WhatsApp] Welcome message sent to ${formattedPhone}`)
       return true
     } else {
-       console.log(`[WhatsApp] Number ${formattedPhone} is not registered on WhatsApp.`)
-       return false
+      console.log(`[WhatsApp] Number ${formattedPhone} is not registered on WhatsApp.`)
+      return false
     }
   } catch (error) {
     console.error(`[WhatsApp] Failed to send message to ${formattedPhone}`, error)
