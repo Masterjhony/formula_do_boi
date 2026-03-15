@@ -102,24 +102,27 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                     </div>
 
                     {/* Assignees */}
-                    {task.assignees && task.assignees.length > 0 && (
-                        <div className="flex pl-2 -space-x-2">
-                            {task.assignees.map((assignee, index) => (
-                                <div
-                                    key={index}
-                                    className="w-6 h-6 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-[8px] font-bold text-black border border-[#1A1A1A] shrink-0 transform transition-transform hover:scale-110 hover:z-10"
-                                    title={assignee}
-                                >
-                                    {assignee.charAt(0).toUpperCase()}
-                                </div>
-                            ))}
-                            {task.assignees.length > 3 && (
-                                <div className="w-6 h-6 rounded-full bg-[#222222] flex items-center justify-center text-[8px] text-gray-400 border border-[#1A1A1A] shrink-0 z-0">
-                                    +{task.assignees.length - 3}
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    {task.assignees && task.assignees.length > 0 && (() => {
+                        const uniqueAssignees = Array.from(new Set(task.assignees));
+                        return (
+                            <div className="flex pl-2 -space-x-2">
+                                {uniqueAssignees.slice(0, 3).map((assignee, index) => (
+                                    <div
+                                        key={index}
+                                        className="w-6 h-6 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-[8px] font-bold text-black border border-[#1A1A1A] shrink-0 transform transition-transform hover:scale-110 hover:z-10"
+                                        title={assignee}
+                                    >
+                                        {assignee.charAt(0).toUpperCase()}
+                                    </div>
+                                ))}
+                                {uniqueAssignees.length > 3 && (
+                                    <div className="w-6 h-6 rounded-full bg-[#222222] flex items-center justify-center text-[8px] text-gray-400 border border-[#1A1A1A] shrink-0 z-0">
+                                        +{uniqueAssignees.length - 3}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
         </div>

@@ -39,7 +39,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
             setStatus(task.status);
             setPriority(task.priority);
             setDueDate(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
-            setAssignees(task.assignees || []);
+            setAssignees(task.assignees ? Array.from(new Set(task.assignees)) : []);
             setChecklists(task.checklists || []);
 
             // Load Comments
@@ -80,7 +80,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                 status,
                 priority,
                 due_date: dueDate ? new Date(dueDate).toISOString() : null,
-                assignees,
+                assignees: Array.from(new Set(assignees)),
                 checklists,
             });
             onClose();
