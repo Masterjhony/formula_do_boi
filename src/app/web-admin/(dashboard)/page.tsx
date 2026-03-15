@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
-import { Package, DollarSign, Users, UserCheck, MapPin, TrendingUp, Activity } from 'lucide-react';
+import { Package, DollarSign, Users, UserCheck, MapPin, TrendingUp, Activity, ExternalLink, Database } from 'lucide-react';
 import Link from 'next/link';
 import AnalyticsDashboardCard from '@/components/admin/AnalyticsDashboardCard';
 
@@ -150,6 +150,41 @@ export default async function AdminDashboard() {
                     </div>
                 </div>
             </div>
+
+            {/* ERP System Access Banner */}
+            <Link href="https://erp.formuladoboi.com" target="_blank" rel="noopener noreferrer" className="block relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 via-gray-800 to-black dark:from-[#0a0a0a] dark:via-[#111111] dark:to-[#1a1a1a] border border-[#B8860B]/30 shadow-2xl group transition-all duration-500 hover:shadow-[#B8860B]/20 hover:border-[#B8860B]/60">
+                {/* Decorative background elements */}
+                <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-[#B8860B] rounded-full mix-blend-multiply filter blur-[80px] opacity-40 dark:opacity-20 group-hover:opacity-60 dark:group-hover:opacity-40 transition-opacity duration-500"></div>
+                <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-[#B8860B] rounded-full mix-blend-multiply filter blur-[80px] opacity-30 dark:opacity-10 group-hover:opacity-50 dark:group-hover:opacity-30 transition-opacity duration-500"></div>
+                
+                <div className="relative p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 z-10">
+                    <div className="flex items-center gap-6">
+                        <div className="hidden sm:flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#B8860B]/20 to-transparent border border-[#B8860B]/30 text-[#B8860B] shadow-[0_0_15px_rgba(184,134,11,0.2)] group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(184,134,11,0.4)] transition-all duration-500">
+                            <Database size={32} />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
+                                    FÓRMULA DO BOI | <span className="text-[#B8860B]">ERP</span>
+                                </h2>
+                                <span className="px-2.5 py-1 rounded-md bg-[#B8860B]/20 border border-[#B8860B]/50 text-[#B8860B] text-xs font-bold tracking-wider uppercase backdrop-blur-sm">
+                                    Acesso Exclusivo
+                                </span>
+                            </div>
+                            <p className="text-gray-300 dark:text-gray-400 text-sm md:text-base max-w-2xl leading-relaxed">
+                                Acesse o Sistema de Gestão Empresarial integrado. Controle financeiro, estoque, contábil e muito mais em um ambiente premium e centralizado.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex-shrink-0 w-full md:w-auto">
+                        <div className="flex items-center justify-center gap-2 bg-[#B8860B] hover:bg-[#9a7009] text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-[0_4px_14px_0_rgba(184,134,11,0.39)] hover:shadow-[0_6px_20px_rgba(184,134,11,0.23)] group-hover:-translate-y-1 w-full md:w-auto cursor-pointer">
+                            <span>Acessar o ERP</span>
+                            <ExternalLink size={18} className="group-hover:translate-x-1 transition-transform" />
+                        </div>
+                    </div>
+                </div>
+            </Link>
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
