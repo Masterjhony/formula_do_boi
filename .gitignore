@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -53,5 +54,13 @@ excel_data.json
 # Temporary folders
 temp_planotatico/
 temp_planotatico_part1/
+plano_tatico_recente/
 crm_formula/
 crm_formula_content/
+
+# Dev/test scripts and output files (local use only)
+test_webhook.*
+query_leads.ts
+leads_output.*
+generate_sql.js
+vacaaa.webp
