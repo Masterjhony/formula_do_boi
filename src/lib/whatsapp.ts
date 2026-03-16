@@ -162,6 +162,20 @@ export async function getWhatsAppService() {
 }
 
 /**
+ * Helper to wait for the connection to be established
+ */
+export async function waitForConnection(timeoutMs = 15000): Promise<boolean> {
+  const start = Date.now()
+  while (Date.now() - start < timeoutMs) {
+    const { status } = await getWhatsAppService()
+    if (status === 'connected') return true
+    if (status === 'qr') return false // Needs scanning, cannot connect automatically
+    await new Promise(resolve => setTimeout(resolve, 500))
+  }
+  return false
+}
+
+/**
  * Format a Brazilian phone number to standard format
  */
 function formatBRNumber(phone: string) {
@@ -189,16 +203,28 @@ export async function sendWelcomeMessage(phone: string, name: string) {
   const { socket, status } = await getWhatsAppService()
 
   if (status !== 'connected' || !socket) {
-    throw new Error('WhatsApp service not connected')
+    console.log('[WhatsApp] Service not connected, waiting for connection...')
+    const connected = await waitForConnection()
+    if (!connected) {
+      throw new Error('WhatsApp service not connected after waiting')
+    }
+  }
+
+  // Get socket again after potentially waiting
+  const svc = await getWhatsAppService()
+  const activeSocket = svc.socket
+
+  if (!activeSocket) {
+      throw new Error('WhatsApp service not connected')
   }
 
   const messageText = `Olá ${name}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a **Fórmula do Boi**!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas clicando no link abaixo:\n👉 https://app.formuladoboi.com`
 
   try {
-    const result = await socket.onWhatsApp(formattedPhone)
+    const result = await activeSocket.onWhatsApp(formattedPhone)
 
     if (result && result.length > 0 && result[0].exists) {
-      await socket.sendMessage(formattedPhone, { text: messageText })
+      await activeSocket.sendMessage(formattedPhone, { text: messageText })
       console.log(`[WhatsApp] Welcome message sent to ${formattedPhone}`)
       return true
     } else {

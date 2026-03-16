@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendWelcomeMessage } from '@/lib/whatsapp';
 
 // Use direct Supabase client (not the SSR one) since this is an API route called by external webhook
 function getSupabaseAdmin() {
@@ -104,6 +105,13 @@ export async function POST(request: NextRequest) {
                 errors.push({ lead: nomeCompleto, error: error.message });
             } else {
                 inserted.push(data);
+                
+                // Fire and forget welcome message to WhatsApp
+                if (record.telefone) {
+                    sendWelcomeMessage(record.telefone, nomeCompleto).catch(e => {
+                        console.error('[GoogleSheets Webhook] Failed to send WhatsApp message:', e);
+                    });
+                }
             }
         }
 
