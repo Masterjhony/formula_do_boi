@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  whatsapp-server:
+    build:
+      context: ./whatsapp-server
+      dockerfile: Dockerfile
+    container_name: formula_boi_whatsapp
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - WHATSAPP_SERVER_PORT=3001
+    # O container vai pegar as vars do .env.local automaticamente via --env-file
+    # docker compose --env-file .env.local up -d

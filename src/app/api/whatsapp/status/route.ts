@@ -1,25 +1,25 @@
 import { NextResponse } from 'next/server'
-import { getWhatsAppService } from '@/lib/whatsapp'
-import QRCode from 'qrcode'
+
+const WHATSAPP_SERVER_URL = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001'
 
 export async function GET() {
   try {
-    const { status, qr } = await getWhatsAppService()
+    const res = await fetch(`${WHATSAPP_SERVER_URL}/status`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
+    })
 
-    let qrImageStr = ''
-    if (qr) {
-      qrImageStr = await QRCode.toDataURL(qr)
+    if (!res.ok) {
+      throw new Error(`WhatsApp server responded with ${res.status}`)
     }
 
-    return NextResponse.json({
-      status,
-      qr: qrImageStr,
-    })
+    const data = await res.json()
+    return NextResponse.json(data)
   } catch (error: any) {
     console.error('API /whatsapp/status error:', error)
     return NextResponse.json(
-      { error: error.message || 'Error occurred retrieving WhatsApp status' },
-      { status: 500 }
+      { status: 'disconnected', qr: null, error: error.message },
+      { status: 200 }
     )
   }
 }

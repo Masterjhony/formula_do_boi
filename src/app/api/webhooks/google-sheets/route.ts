@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendWelcomeMessage } from '@/lib/whatsapp';
+
+const WHATSAPP_SERVER_URL = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001';
 
 // Use direct Supabase client (not the SSR one) since this is an API route called by external webhook
 function getSupabaseAdmin() {
@@ -64,8 +65,22 @@ export async function POST(request: NextRequest) {
             let dataEntrada: string | null = null;
             if (lead.data) {
                 try {
-                    // Handle formats like "09/02/2026 12:19" or ISO
-                    const dataStr = lead.hora ? `${lead.data} ${lead.hora}` : lead.data;
+                    // Handle Brazilian format DD/MM/YYYY
+                    let datePart = lead.data;
+                    let timePart = lead.hora ? lead.hora : '00:00';
+                    
+                    if (datePart.includes('/')) {
+                        const parts = datePart.split('/');
+                        if (parts.length === 3) {
+                            // Extract DD/MM/YYYY -> YYYY-MM-DD
+                            const day = parts[0];
+                            const month = parts[1];
+                            const year = parts[2].substring(0, 4); // Handle potential "YYYY HH:MM" inside 'data'
+                            datePart = `${year}-${month}-${day}`;
+                        }
+                    }
+                    
+                    const dataStr = `${datePart} ${timePart}`;
                     const parsed = new Date(dataStr);
                     if (!isNaN(parsed.getTime())) {
                         dataEntrada = parsed.toISOString();
@@ -106,9 +121,14 @@ export async function POST(request: NextRequest) {
             } else {
                 inserted.push(data);
                 
-                // Fire and forget welcome message to WhatsApp
+                // Fire and forget welcome message via whatsapp-server
                 if (record.telefone) {
-                    sendWelcomeMessage(record.telefone, nomeCompleto).catch(e => {
+                    fetch(`${WHATSAPP_SERVER_URL}/send`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: record.telefone, name: nomeCompleto }),
+                        signal: AbortSignal.timeout(15000),
+                    }).catch(e => {
                         console.error('[GoogleSheets Webhook] Failed to send WhatsApp message:', e);
                     });
                 }
