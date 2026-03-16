@@ -120,7 +120,6 @@ const MG_REGIONS: Record<string, string> = {
     'Ponte Nova': 'Zona da Mata',
     'Santos Dumont': 'Zona da Mata',
     'Além Paraíba': 'Zona da Mata',
-    'Muriaé': 'Zona da Mata',
     'Tombos': 'Zona da Mata',
 
     // Sul de Minas
