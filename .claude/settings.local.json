@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\" && npx tsc --noEmit --project tsconfig.json 2>&1 | head -40)"
+    ]
+  }
+}
