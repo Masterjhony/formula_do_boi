@@ -138,7 +138,7 @@ async function startSocket() {
 
     sock = makeWASocket({
       version,
-      logger: pino({ level: 'silent' }),
+      logger: pino({ level: 'warn' }),
       printQRInTerminal: true,   // Mostra QR no terminal (e no Docker logs)
       auth: state,
     });
@@ -219,13 +219,18 @@ async function sendWelcomeMessage(phone, name) {
 
   // Verifica se o número existe no WhatsApp
   const result = await sock.onWhatsApp(formattedPhone);
+  console.log(`[WhatsApp Server] onWhatsApp result for ${formattedPhone}:`, JSON.stringify(result));
   if (!result || result.length === 0 || !result[0].exists) {
     console.log(`[WhatsApp Server] Número ${formattedPhone} não encontrado no WhatsApp.`);
     return { sent: false, reason: 'not_on_whatsapp' };
   }
 
-  await sock.sendMessage(formattedPhone, { text: messageText });
-  console.log(`[WhatsApp Server] ✉️  Mensagem enviada para ${formattedPhone} (${name})`);
+  // Use the JID returned by onWhatsApp (may differ from input)
+  const jid = result[0].jid || formattedPhone;
+  console.log(`[WhatsApp Server] Enviando para JID: ${jid}`);
+  const msgResult = await sock.sendMessage(jid, { text: messageText });
+  console.log(`[WhatsApp Server] ✉️  sendMessage result:`, JSON.stringify({ id: msgResult?.key?.id, status: msgResult?.status }));
+  console.log(`[WhatsApp Server] ✉️  Mensagem enviada para ${jid} (${name})`);
   return { sent: true };
 }
 
