@@ -23,7 +23,9 @@
       "Bash(docker exec:*)",
       "Bash(cd \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\" && docker compose --env-file .env.local up -d --build whatsapp-server 2>&1 | tail -5)",
       "Bash(curl -s -X POST http://localhost:3001/send -H \"Content-Type: application/json\" -d \"{\\\\\"phone\\\\\": \\\\\"5537999537045\\\\\", \\\\\"name\\\\\": \\\\\"Teste\\\\\"}\" && echo \"\" && sleep 3 && docker logs formula_boi_whatsapp --tail 15 2>&1 | grep -E \"\\\\[WhatsApp|warn|error\" -i)",
-      "Bash(ls \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\\\\public\\\\cattle\\\\\" 2>/dev/null || ls \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\\\\public\\\\\")"
+      "Bash(ls \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\\\\public\\\\cattle\\\\\" 2>/dev/null || ls \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\\\\public\\\\\")",
+      "Bash(find /c/Users/Notebook-Acer/Desktop/formula_boi/formula_boi/database -name \"*.sql\" | xargs grep -l \"CREATE TABLE.*products\" | head -5)",
+      "Bash(ls -la /c/Users/Notebook-Acer/Desktop/formula_boi/formula_boi/database/*.sql | wc -l)"
     ]
   }
 }
