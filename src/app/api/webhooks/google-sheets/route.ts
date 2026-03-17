@@ -140,6 +140,25 @@ export async function POST(request: NextRequest) {
                         console.error('[GoogleSheets Webhook] Failed to send WhatsApp message:', e);
                     }
                 }
+                // Log message to whatsapp_messages (fire-and-forget)
+                const msgStatus = !record.telefone
+                    ? 'no_phone'
+                    : whatsappResult.sent
+                        ? 'sent'
+                        : whatsappResult.reason === 'not_on_whatsapp'
+                            ? 'not_on_whatsapp'
+                            : 'failed';
+                void Promise.resolve(
+                    supabase.from('whatsapp_messages').insert({
+                        phone: record.telefone ?? null,
+                        name: nomeCompleto,
+                        status: msgStatus,
+                        reason: whatsappResult.reason ?? null,
+                        error_msg: whatsappResult.error ?? null,
+                        lead_id: data.id,
+                    })
+                ).catch(console.error);
+
                 inserted.push({ ...data, whatsapp: whatsappResult });
             }
         }
