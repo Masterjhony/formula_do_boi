@@ -162,15 +162,25 @@ Google Sheets (novo lead)
 
 A sessão do Baileys (credenciais e chaves de criptografia) é persistida na tabela `whatsapp_auth` do Supabase, permitindo que o container reinicie sem perder a sessão autenticada.
 
-**Para reconectar** (sessão expirada pelo WA):
-```sql
-DELETE FROM whatsapp_auth;
-```
+**Conflito de sessão (erro 440):** o WhatsApp permite apenas uma instância ativa por número. Se um servidor local subir com as mesmas credenciais do Supabase, a sessão do VPS cai imediatamente com código 440. Nunca rodar o servidor local em paralelo com o VPS de produção.
+
+**Para reconectar** (sessão expirada ou após conflito):
 ```bash
+# 1. Limpar sessão via API REST do Supabase
+curl -X DELETE \
+  "https://hghtikjaqixglmpujbwj.supabase.co/rest/v1/whatsapp_auth?id=neq.null" \
+  -H "apikey: <SUPABASE_SERVICE_ROLE_KEY>" \
+  -H "Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>"
+
+# 2. O container reconecta automaticamente em até 5s e gera novo QR
+# Acompanhar pelo painel: admin.formuladoboi.com/whatsapp
+```
+
+```bash
+# Alternativa via SSH (se precisar ver o QR no terminal)
 ssh root@165.232.142.37
 docker restart formula_boi_whatsapp
-docker logs -f formula_boi_whatsapp  # escanear QR que aparecer
-# Ou pelo painel: admin.formuladoboi.com/whatsapp
+docker logs -f formula_boi_whatsapp
 ```
 
 ---

@@ -138,6 +138,10 @@ Acesse:
 
 ### Iniciar WhatsApp Server (desenvolvimento local)
 
+> **Atenção**: o WhatsApp permite apenas **uma sessão ativa por número**. O VPS de produção (`165.232.142.37`) mantém a sessão ativa permanentemente. Rodar um servidor WhatsApp local simultaneamente causa conflito de sessão (erro 440) e derruba a conexão do VPS.
+>
+> **Só suba o servidor local se o VPS estiver parado ou para testes com um número diferente.**
+
 ```bash
 # Com Docker (recomendado)
 docker compose --env-file .env.local up -d whatsapp-server
@@ -212,15 +216,22 @@ vercel ls
 
 #### Checklist de variáveis na Vercel
 
-| Variável | Descrição |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública do Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | Chave admin (bypassa RLS) |
-| `SHEETS_WEBHOOK_SECRET` | Segredo compartilhado com o Apps Script |
-| `WHATSAPP_SERVER_URL` | `http://165.232.142.37:3001` |
-| `GOOGLE_GA4_PROPERTY_ID` | ID da propriedade GA4 |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | JSON da service account GA4 |
+| Variável | Valor em produção | Descrição |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://hghtikjaqixglmpujbwj.supabase.co` | URL do projeto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | — | Chave pública do Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | — | Chave admin (bypassa RLS) |
+| `SHEETS_WEBHOOK_SECRET` | — | Segredo compartilhado com o Apps Script |
+| `WHATSAPP_SERVER_URL` | `http://165.232.142.37:3001` | URL do servidor WhatsApp no VPS |
+| `GOOGLE_GA4_PROPERTY_ID` | `483341191` | ID da propriedade GA4 |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | — | JSON da service account GA4 |
+
+> Para alterar uma variável na Vercel e fazer redeploy sem subir arquivos locais (evita erro de limite de 100 MB):
+> ```bash
+> vercel env rm NOME_DA_VAR production --yes
+> vercel env add NOME_DA_VAR production --value "novo_valor" --yes
+> vercel redeploy <url-do-ultimo-deploy> --target production
+> ```
 
 ---
 
@@ -306,5 +317,6 @@ formula_boi/
 ├── scripts/                   # Scripts utilitários locais
 ├── public/                    # Assets estáticos
 ├── docker-compose.yml
-└── .env.example
+├── .env.example
+└── .vercelignore          # Exclui .next e node_modules do upload da Vercel CLI
 ```
