@@ -8,6 +8,8 @@ const MG_REGIONS: Record<string, string> = {
     'Contagem': 'Metropolitana de BH',
     'Betim': 'Metropolitana de BH',
     'Esmeraldas': 'Metropolitana de BH',
+    'Juatuba': 'Metropolitana de BH',
+    'São Joaquim de Bicas': 'Metropolitana de BH',
     'Ribeirão das Neves': 'Metropolitana de BH',
     'Santa Luzia': 'Metropolitana de BH',
     'Sabará': 'Metropolitana de BH',
@@ -29,6 +31,7 @@ const MG_REGIONS: Record<string, string> = {
     'Araguari': 'Triângulo Mineiro',
     'Ituiutaba': 'Triângulo Mineiro',
     'Frutal': 'Triângulo Mineiro',
+    'Comendador Gomes': 'Triângulo Mineiro',
     'Araxá': 'Triângulo Mineiro',
     'Sacramento': 'Triângulo Mineiro',
     'Abadia dos Dourados': 'Triângulo Mineiro',
@@ -60,6 +63,7 @@ const MG_REGIONS: Record<string, string> = {
     'Itacarambi': 'Norte de Minas',
     'Januária': 'Norte de Minas',
     'Bocaiúva': 'Norte de Minas',
+    'Riachinho': 'Norte de Minas',
     'Janaúba': 'Norte de Minas',
     'Manga': 'Norte de Minas',
     'São Francisco': 'Norte de Minas',
@@ -99,6 +103,7 @@ const MG_REGIONS: Record<string, string> = {
     'Ponto dos Volantes': 'Jequitinhonha',
 
     // Vale do Mucuri
+    'Jordânia': 'Vale do Mucuri',
     'Nanuque': 'Vale do Mucuri',
     'Novo Cruzeiro': 'Vale do Mucuri',
     'Caraí': 'Vale do Mucuri',
@@ -192,9 +197,15 @@ function parseLocation(location: string | null): { city: string; state: string }
     return { city: location.trim(), state: location.trim().toUpperCase() };
 }
 
+const VALID_STATUSES = new Set(['Disponível', 'Vendido', 'Reservado', 'Inativo']);
+
 function getAnimalStatus(product: Record<string, unknown>): string {
     const details = product.details as Record<string, string> | null;
-    if (details?.status) return details.status;
+    const detailsStatus = details?.status;
+    // Só aceita o valor de details.status se for um status de disponibilidade válido.
+    // Valores como 'Touro', 'Matriz', 'Em Estoque', 'Matriz Parida e Prenha' são
+    // tipo/estado reprodutivo — não status de venda — e devem ser ignorados aqui.
+    if (detailsStatus && VALID_STATUSES.has(detailsStatus)) return detailsStatus;
     if (product.sold) return 'Vendido';
     if (!product.active) return 'Inativo';
     return 'Disponível';

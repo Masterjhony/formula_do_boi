@@ -29,6 +29,7 @@ export default function EditProductForm({ product }: { product: any }) {
     const [formData, setFormData] = useState({
         name: product.name,
         category: product.category,
+        grau_sangue: product.grau_sangue || '',
         classificacao: product.classificacao,
         modalidade: product.modalidade,
         logistica: product.logistica,
@@ -163,6 +164,7 @@ export default function EditProductForm({ product }: { product: any }) {
             const productPayload = {
                 name: formData.name,
                 category: formData.category,
+                grau_sangue: (formData as any).grau_sangue || null,
                 classificacao: formData.classificacao,
                 modalidade: formData.modalidade,
                 logistica: formData.logistica,
@@ -267,15 +269,19 @@ export default function EditProductForm({ product }: { product: any }) {
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Categoria</label>
                             <select name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none">
-                                <option value="Touro PO">Touro PO</option>
                                 <option value="Touro">Touro</option>
-                                <option value="Matriz PO">Matriz PO</option>
                                 <option value="Matriz">Matriz</option>
-                                <option value="Novilha PO">Novilha PO</option>
                                 <option value="Novilha">Novilha</option>
                                 <option value="Doadora">Doadora</option>
                                 <option value="Sêmen">Sêmen</option>
                                 <option value="Embrião">Embrião</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Grau de Sangue</label>
+                            <select name="grau_sangue" value={(formData as any).grau_sangue} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none">
+                                <option value="">Não especificado</option>
+                                <option value="PO">PO — Puro de Origem</option>
                             </select>
                         </div>
                         <div className="space-y-2">
