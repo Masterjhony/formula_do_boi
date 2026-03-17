@@ -271,7 +271,9 @@ export default function EditProductForm({ product }: { product: any }) {
                             <select name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none">
                                 <option value="Touro">Touro</option>
                                 <option value="Matriz">Matriz</option>
-                                <option value="Novilha">Novilha</option>
+                                <option value="Matriz prenha">Matriz prenha</option>
+                                <option value="Matriz parida">Matriz parida</option>
+                                <option value="Matriz prenha e parida">Matriz prenha e parida</option>
                                 <option value="Doadora">Doadora</option>
                                 <option value="Sêmen">Sêmen</option>
                                 <option value="Embrião">Embrião</option>

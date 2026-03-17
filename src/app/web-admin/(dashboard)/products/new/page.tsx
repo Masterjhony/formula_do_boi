@@ -258,7 +258,9 @@ export default function NewProductPage() {
                             >
                                 <option value="Touro">Touro</option>
                                 <option value="Matriz">Matriz</option>
-                                <option value="Novilha">Novilha</option>
+                                <option value="Matriz prenha">Matriz prenha</option>
+                                <option value="Matriz parida">Matriz parida</option>
+                                <option value="Matriz prenha e parida">Matriz prenha e parida</option>
                                 <option value="Doadora">Doadora</option>
                                 <option value="Sêmen">Sêmen</option>
                                 <option value="Embrião">Embrião</option>
