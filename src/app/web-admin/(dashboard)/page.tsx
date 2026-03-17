@@ -3,7 +3,7 @@ import {
     Package, DollarSign, Users, UserCheck, MapPin, TrendingUp,
     ExternalLink, Database, PhoneCall, CheckCircle2, Clock,
     AlertTriangle, ArrowRight, BarChart3, Target, Flame,
-    CircleDot, ListTodo, Activity,
+    CircleDot, ListTodo, Activity, ShoppingBag,
 } from 'lucide-react';
 import Link from 'next/link';
 import AnalyticsDashboardCard from '@/components/admin/AnalyticsDashboardCard';
@@ -313,6 +313,39 @@ export default async function AdminDashboard() {
                             )}
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* ── Marketplace ─────────────────────────────────────────────── */}
+            <div className="bg-white dark:bg-[#111111] border border-green-500/30 rounded-2xl shadow-xl overflow-hidden relative">
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute -top-10 -left-10 w-40 h-40 bg-green-500 rounded-full blur-[80px] opacity-10 dark:opacity-15" />
+                </div>
+                <div className="relative p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                    {/* Ícone + texto */}
+                    <div className="flex items-center gap-4 flex-1">
+                        <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-2xl shrink-0">
+                            <ShoppingBag className="w-6 h-6 text-green-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-medium">Plataforma</p>
+                            <h3 className="text-gray-900 dark:text-white font-bold text-base leading-tight">
+                                Fórmula do Boi <span className="text-green-500">Marketplace</span>
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                                Compra e venda de animais, insumos e serviços do agronegócio.
+                            </p>
+                        </div>
+                    </div>
+                    {/* Botão */}
+                    <Link
+                        href="https://app.formuladoboi.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors shrink-0"
+                    >
+                        Acessar o Marketplace <ExternalLink size={14} />
+                    </Link>
                 </div>
             </div>
 
