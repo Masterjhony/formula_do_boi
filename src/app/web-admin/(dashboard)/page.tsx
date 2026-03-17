@@ -70,7 +70,7 @@ export default async function AdminDashboard() {
     const avgValue = totalAnimals > 0 ? totalValue / totalAnimals : 0;
     const formattedAvg = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(avgValue);
     const sortedCategories = Object.entries(categoryStats).sort(([, a], [, b]) => b - a).slice(0, 6);
-    const sortedRegions   = Object.entries(regionStats).sort(([, a], [, b]) => b - a).slice(0, 5);
+    const sortedRegions = Object.entries(regionStats).sort(([, a], [, b]) => b - a).slice(0, 5);
 
     // ── métricas de CRM ────────────────────────────────────────────────────
     const allLeads = leads || [];
@@ -120,10 +120,10 @@ export default async function AdminDashboard() {
             {/* ── KPI Cards ──────────────────────────────────────────────── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                    { label: 'Total de Animais', value: totalAnimals, icon: Package,    color: 'text-[#B8860B]', bg: 'bg-[#B8860B]/10' },
-                    { label: 'Criadores',         value: breedersCount || 0, icon: UserCheck, color: 'text-blue-500',   bg: 'bg-blue-500/10' },
-                    { label: 'Disponíveis',        value: available,          icon: CircleDot, color: 'text-green-500',  bg: 'bg-green-500/10' },
-                    { label: 'Valor Médio',        value: formattedAvg,       icon: DollarSign, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                    { label: 'Total de Animais', value: totalAnimals, icon: Package, color: 'text-[#B8860B]', bg: 'bg-[#B8860B]/10' },
+                    { label: 'Criadores', value: breedersCount || 0, icon: UserCheck, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                    { label: 'Disponíveis', value: available, icon: CircleDot, color: 'text-green-500', bg: 'bg-green-500/10' },
+                    { label: 'Valor Médio', value: formattedAvg, icon: DollarSign, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                 ].map(({ label, value, icon: Icon, color, bg }) => (
                     <div key={label} className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
                         <div className="flex items-center gap-3 mb-3">
@@ -333,7 +333,7 @@ export default async function AdminDashboard() {
                                 Fórmula do Boi <span className="text-green-500">Marketplace</span>
                             </h3>
                             <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-                                Compra e venda de animais, insumos e serviços do agronegócio.
+                                Comercialização de Nelore PO.
                             </p>
                         </div>
                     </div>
@@ -411,12 +411,12 @@ export default async function AdminDashboard() {
                     <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5 border-b border-gray-100 dark:border-[#1E1E1E] pb-3">Atalhos Rápidos</h2>
                     <div className="grid grid-cols-2 gap-3">
                         {[
-                            { href: '/products/new',   icon: Package,   label: 'Novo Card',      color: 'hover:border-[#B8860B] hover:text-[#B8860B]' },
-                            { href: '/breeders',        icon: UserCheck,  label: 'Criadores',      color: 'hover:border-blue-500 hover:text-blue-500' },
-                            { href: '/crm',             icon: PhoneCall,  label: 'CRM',            color: 'hover:border-violet-500 hover:text-violet-500' },
-                            { href: '/tactical-plan',   icon: ListTodo,   label: 'Plano Tático',   color: 'hover:border-sky-500 hover:text-sky-500' },
+                            { href: '/products/new', icon: Package, label: 'Novo Card', color: 'hover:border-[#B8860B] hover:text-[#B8860B]' },
+                            { href: '/breeders', icon: UserCheck, label: 'Criadores', color: 'hover:border-blue-500 hover:text-blue-500' },
+                            { href: '/crm', icon: PhoneCall, label: 'CRM', color: 'hover:border-violet-500 hover:text-violet-500' },
+                            { href: '/tactical-plan', icon: ListTodo, label: 'Plano Tático', color: 'hover:border-sky-500 hover:text-sky-500' },
                             { href: '/animal-availability', icon: Activity, label: 'Disponibilidade', color: 'hover:border-green-500 hover:text-green-500' },
-                            { href: '/products',        icon: BarChart3,  label: 'Produtos',       color: 'hover:border-amber-500 hover:text-amber-500' },
+                            { href: '/products', icon: BarChart3, label: 'Produtos', color: 'hover:border-amber-500 hover:text-amber-500' },
                         ].map(({ href, icon: Icon, label, color }) => (
                             <Link
                                 key={href}
