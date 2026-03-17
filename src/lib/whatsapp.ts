@@ -195,44 +195,19 @@ function formatBRNumber(phone: string) {
 }
 
 export async function sendWelcomeMessage(phone: string, name: string) {
-  const formattedPhone = formatBRNumber(phone)
-  if (!formattedPhone) {
-    throw new Error(`Invalid phone number: ${phone}`)
+  // Delega ao servidor WhatsApp dedicado no VPS para não criar um socket Baileys
+  // concorrente que derrubaria a sessão com erro 440.
+  const serverUrl = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001'
+  const res = await fetch(`${serverUrl}/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, name }),
+    signal: AbortSignal.timeout(30_000),
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`WhatsApp server error ${res.status}: ${text}`)
   }
-
-  const { socket, status } = await getWhatsAppService()
-
-  if (status !== 'connected' || !socket) {
-    console.log('[WhatsApp] Service not connected, waiting for connection...')
-    const connected = await waitForConnection()
-    if (!connected) {
-      throw new Error('WhatsApp service not connected after waiting')
-    }
-  }
-
-  // Get socket again after potentially waiting
-  const svc = await getWhatsAppService()
-  const activeSocket = svc.socket
-
-  if (!activeSocket) {
-      throw new Error('WhatsApp service not connected')
-  }
-
-  const messageText = `Olá ${name}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a **Fórmula do Boi**!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas clicando no link abaixo:\n👉 https://app.formuladoboi.com`
-
-  try {
-    const result = await activeSocket.onWhatsApp(formattedPhone)
-
-    if (result && result.length > 0 && result[0].exists) {
-      await activeSocket.sendMessage(formattedPhone, { text: messageText })
-      console.log(`[WhatsApp] Welcome message sent to ${formattedPhone}`)
-      return true
-    } else {
-      console.log(`[WhatsApp] Number ${formattedPhone} is not registered on WhatsApp.`)
-      return false
-    }
-  } catch (error) {
-    console.error(`[WhatsApp] Failed to send message to ${formattedPhone}`, error)
-    throw error
-  }
+  const data = await res.json()
+  return data.sent !== false
 }

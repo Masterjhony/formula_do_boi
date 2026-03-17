@@ -17,8 +17,11 @@ const http = require('http');
 const { createClient } = require('@supabase/supabase-js');
 
 // Tentamos importar Baileys. Suporte a ESM via dynamic import.
-let makeWASocket, DisconnectReason, useMultiFileAuthState, 
+let makeWASocket, DisconnectReason, useMultiFileAuthState,
     fetchLatestBaileysVersion, initAuthCreds, BufferJSON;
+
+// Cache da versão do WA para não buscar a cada reconexão
+let cachedWAVersion = null;
 
 const PORT = process.env.WHATSAPP_SERVER_PORT || 3001;
 
@@ -129,18 +132,23 @@ async function startSocket() {
   console.log('[WhatsApp Server] Iniciando conexão Baileys...');
 
   try {
-    const { version } = await fetchLatestBaileysVersion();
-    console.log(`[WhatsApp Server] Usando WA v${version.join('.')}`);
+    if (!cachedWAVersion) {
+      const fetched = await fetchLatestBaileysVersion();
+      cachedWAVersion = fetched.version;
+      console.log(`[WhatsApp Server] Versão WA obtida: ${cachedWAVersion.join('.')}`);
+    }
 
     const { state, saveCreds } = await useSupabaseAuthState();
 
     const pino = (await import('pino')).default;
 
     sock = makeWASocket({
-      version,
+      version: cachedWAVersion,
       logger: pino({ level: 'warn' }),
-      printQRInTerminal: true,   // Mostra QR no terminal (e no Docker logs)
+      printQRInTerminal: true,
       auth: state,
+      keepAliveIntervalMs: 30_000,
+      getMessage: async () => ({ conversation: '' }),
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -158,23 +166,25 @@ async function startSocket() {
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const loggedOut = statusCode === DisconnectReason.loggedOut;
 
-        if (loggedOut) {
-          console.log('[WhatsApp Server] Deslogado do WhatsApp. Limpando sessão...');
-          // Apaga as credenciais para forçar novo QR
-          supabase.from('whatsapp_auth').delete().neq('id', '').then(() => {
-            console.log('[WhatsApp Server] Sessão limpa. Reconectando para novo QR...');
-          });
-        } else {
-          console.log(`[WhatsApp Server] Conexão fechada (código ${statusCode}). Reconectando em 5s...`);
-        }
-
         sock = null;
-        currentStatus = 'disconnected';
         currentQr = null;
 
-        // Reconecta automaticamente após 5 segundos
-        if (reconnectTimeout) clearTimeout(reconnectTimeout);
-        reconnectTimeout = setTimeout(startSocket, 5000);
+        if (loggedOut) {
+          console.log('[WhatsApp Server] Deslogado do WhatsApp. Limpando sessão...');
+          currentStatus = 'disconnected';
+          supabase.from('whatsapp_auth').delete().neq('id', '').then(() => {
+            console.log('[WhatsApp Server] Sessão limpa. Reconectando para novo QR...');
+            if (reconnectTimeout) clearTimeout(reconnectTimeout);
+            reconnectTimeout = setTimeout(startSocket, 3000);
+          });
+        } else {
+          // Mantém status 'connecting' para a UI não oscilar durante reconexão automática
+          currentStatus = 'connecting';
+          const delay = statusCode === 408 ? 3000 : 5000;
+          console.log(`[WhatsApp Server] Conexão fechada (código ${statusCode}). Reconectando em ${delay / 1000}s...`);
+          if (reconnectTimeout) clearTimeout(reconnectTimeout);
+          reconnectTimeout = setTimeout(startSocket, delay);
+        }
       } else if (connection === 'open') {
         currentStatus = 'connected';
         currentQr = null;
