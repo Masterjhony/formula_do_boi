@@ -141,9 +141,9 @@ export default async function AdminDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* ERP — card compacto */}
-                <div className="bg-gradient-to-br from-gray-900 to-black border border-[#B8860B]/30 rounded-2xl shadow-xl overflow-hidden relative">
+                <div className="bg-white dark:bg-[#111111] border border-[#B8860B]/30 dark:border-[#B8860B]/30 rounded-2xl shadow-xl overflow-hidden relative">
                     <div className="absolute inset-0 pointer-events-none">
-                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#B8860B] rounded-full blur-[60px] opacity-20" />
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#B8860B] rounded-full blur-[60px] opacity-10 dark:opacity-20" />
                     </div>
                     <div className="relative p-6 flex flex-col h-full gap-4">
                         <div className="flex items-center gap-3">
@@ -151,19 +151,19 @@ export default async function AdminDashboard() {
                                 <Database className="w-5 h-5 text-[#B8860B]" />
                             </div>
                             <div>
-                                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-medium">Sistema</p>
-                                <h3 className="text-white font-bold leading-tight">Fórmula do Boi <span className="text-[#B8860B]">ERP</span></h3>
+                                <p className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-widest font-medium">Sistema</p>
+                                <h3 className="text-gray-900 dark:text-white font-bold leading-tight">Fórmula do Boi <span className="text-[#B8860B]">ERP</span></h3>
                             </div>
                         </div>
-                        <p className="text-gray-400 text-xs leading-relaxed flex-1">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed flex-1">
                             Controle financeiro, estoque, contábil e gestão integrada da operação.
                         </p>
                         <div className="grid grid-cols-2 gap-2 text-center">
-                            <div className="bg-white/5 rounded-xl p-2">
+                            <div className="bg-gray-100 dark:bg-white/5 rounded-xl p-2">
                                 <p className="text-[#B8860B] font-bold text-lg">{totalAnimals}</p>
                                 <p className="text-gray-500 text-[10px]">Animais</p>
                             </div>
-                            <div className="bg-white/5 rounded-xl p-2">
+                            <div className="bg-gray-100 dark:bg-white/5 rounded-xl p-2">
                                 <p className="text-[#B8860B] font-bold text-lg">{sold}</p>
                                 <p className="text-gray-500 text-[10px]">Vendidos</p>
                             </div>
