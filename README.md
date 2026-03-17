@@ -11,7 +11,7 @@ Plataforma completa para gestão e venda de genética bovina — marketplace pú
 | Marketplace (público) | `app.formuladoboi.com` | `localhost:3000` |
 | Painel Admin | `admin.formuladoboi.com` | `admin.localhost:3000` |
 | ERP | `erp.formuladoboi.com` | `erp.localhost:3000` |
-| WhatsApp Server | serviço separado (Docker) | `localhost:3001` |
+| WhatsApp Server | `http://165.232.142.37:3001` (VPS DigitalOcean) | `localhost:3001` |
 
 O roteamento por subdomínio é feito via `src/middleware.ts`:
 - `admin.*` → `/web-admin`
@@ -46,7 +46,8 @@ Header: x-webhook-secret: <SHEETS_WEBHOOK_SECRET>
 
 O webhook:
 1. Insere o lead na tabela `crm_leads` do Supabase
-2. Dispara (fire-and-forget) uma mensagem de boas-vindas via WhatsApp Server
+2. Aguarda (`await`) o resultado do envio da mensagem de boas-vindas via WhatsApp Server
+3. Retorna no response o status de cada lead com o resultado do WhatsApp (`{ sent, reason?, error? }`)
 
 ### ERP (`/web-erp`)
 Módulo interno de gestão operacional.
@@ -73,7 +74,7 @@ Módulo interno de gestão operacional.
 ## Arquitetura de Serviços
 
 ```
-Vercel (Next.js)          Docker (VPS/servidor)
+Vercel (Next.js)          DigitalOcean Droplet (165.232.142.37)
 ┌────────────────┐         ┌──────────────────────┐
 │  app.*         │         │  whatsapp-server.js  │
 │  admin.*  ────────────▶  │  porta 3001          │
@@ -87,7 +88,7 @@ Vercel (Next.js)          Docker (VPS/servidor)
   whatsapp_auth)               no Supabase)
 ```
 
-O **WhatsApp Server** é um processo Node.js separado porque o Baileys mantém uma conexão WebSocket persistente — incompatível com o modelo serverless da Vercel. Ele roda em Docker com `restart: unless-stopped`.
+O **WhatsApp Server** é um processo Node.js separado porque o Baileys mantém uma conexão WebSocket persistente — incompatível com o modelo serverless da Vercel. Ele roda em Docker com `restart: unless-stopped` num Droplet DigitalOcean.
 
 ---
 
@@ -135,7 +136,7 @@ Acesse:
 - Admin: http://admin.localhost:3000
 - ERP: http://erp.localhost:3000
 
-### Iniciar WhatsApp Server
+### Iniciar WhatsApp Server (desenvolvimento local)
 
 ```bash
 # Com Docker (recomendado)
@@ -162,27 +163,116 @@ DELETE FROM whatsapp_auth;
 ```
 
 ```bash
+# Em produção (VPS)
+ssh root@165.232.142.37
+docker restart formula_boi_whatsapp
+docker logs -f formula_boi_whatsapp  # ver novo QR
+
+# Em desenvolvimento local
 docker restart formula_boi_whatsapp
 ```
 
-Escaneie o novo QR em `http://admin.localhost:3000/whatsapp`.
+Escaneie o novo QR em `http://admin.formuladoboi.com/whatsapp` (produção) ou `http://admin.localhost:3000/whatsapp` (local).
 
 ---
 
-## Deploy (Vercel)
+## Infraestrutura de Produção
 
-O deploy é automático a cada `git push` para `main`.
+### Vercel (Next.js)
 
-**Checklist de variáveis na Vercel** (conferir após qualquer `.env.local` novo):
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `SHEETS_WEBHOOK_SECRET`
-- `WHATSAPP_SERVER_URL` (URL pública do servidor Docker, ex: `http://seu-servidor:3001`)
-- `GOOGLE_GA4_PROPERTY_ID`
-- `GOOGLE_SERVICE_ACCOUNT_JSON`
+- **Conta**: `masterjhony` em `joaos-projects-4fb95c65`
+- **Projeto**: `formula_do_boii`
+- **URL de produção**: `https://app.formuladoboi.com`
+- **Deploy**: automático a cada `git push` para `main`
 
-> O WhatsApp Server **não roda na Vercel** — deve estar em um servidor dedicado (VPS, Railway, Fly.io, etc.) com Docker.
+#### Gerenciar via Vercel CLI
+
+```bash
+# Instalar CLI (se necessário)
+npm install -g vercel
+
+# Login (abre browser)
+vercel login
+
+# Vincular o repositório local ao projeto
+vercel link --scope joaos-projects-4fb95c65 --project formula_do_boii
+
+# Listar variáveis de ambiente
+vercel env ls
+
+# Adicionar variável
+vercel env add NOME_DA_VAR production
+
+# Redeploy sem alterar código (ex: após mudar env vars)
+vercel redeploy <deployment-url> --target production
+
+# Ver deployments recentes
+vercel ls
+```
+
+#### Checklist de variáveis na Vercel
+
+| Variável | Descrição |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública do Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave admin (bypassa RLS) |
+| `SHEETS_WEBHOOK_SECRET` | Segredo compartilhado com o Apps Script |
+| `WHATSAPP_SERVER_URL` | `http://165.232.142.37:3001` |
+| `GOOGLE_GA4_PROPERTY_ID` | ID da propriedade GA4 |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | JSON da service account GA4 |
+
+---
+
+### VPS DigitalOcean (WhatsApp Server)
+
+- **Provedor**: DigitalOcean
+- **IP**: `165.232.142.37`
+- **OS**: Ubuntu 24.04 LTS x64
+- **Recursos**: 1 GB RAM
+- **Arquivos**: `/opt/whatsapp-server/`
+
+> O WhatsApp Server **não roda na Vercel** — requer conexão WebSocket persistente, incompatível com serverless.
+
+#### Acessar via SSH
+
+```bash
+ssh root@165.232.142.37
+```
+
+#### Comandos úteis no servidor
+
+```bash
+# Ver status do container
+docker ps
+
+# Ver logs em tempo real
+docker logs -f formula_boi_whatsapp
+
+# Reiniciar container (ex: após atualizar código)
+docker restart formula_boi_whatsapp
+
+# Parar container
+docker stop formula_boi_whatsapp
+
+# Rebuild após alterar whatsapp-server.js
+cd /opt/whatsapp-server
+docker build -t whatsapp-server .
+docker stop formula_boi_whatsapp && docker rm formula_boi_whatsapp
+docker run -d --name formula_boi_whatsapp --restart unless-stopped --env-file .env -p 3001:3001 whatsapp-server
+
+# Verificar status do WhatsApp (conectado, qr, etc.)
+curl http://localhost:3001/status
+```
+
+#### Atualizar o servidor WhatsApp
+
+Quando `whatsapp-server.js` for alterado localmente, enviar para o servidor:
+
+```bash
+scp whatsapp-server/whatsapp-server.js root@165.232.142.37:/opt/whatsapp-server/
+ssh root@165.232.142.37 "cd /opt/whatsapp-server && docker build -t whatsapp-server . && docker restart formula_boi_whatsapp"
+```
 
 ---
 

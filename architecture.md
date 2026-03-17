@@ -55,7 +55,7 @@ graph TD
     end
 
     %% WhatsApp Server — Docker
-    subgraph Docker ["Servidor Dedicado — Docker"]
+    subgraph Docker ["DigitalOcean Droplet 165.232.142.37 — Docker"]
         WAServer[whatsapp-server.js\nporta 3001]
         Baileys[Baileys WebSocket]
         WAServer --> Baileys
@@ -96,7 +96,7 @@ graph TD
     %% Fluxo Automação: Google Sheets → CRM → WhatsApp
     GoogleSheets -->|"POST (x-webhook-secret)"| WebhookSheets
     WebhookSheets -->|Insere lead| DB_Leads
-    WebhookSheets -->|"POST /send (fire-and-forget)"| WAServer
+    WebhookSheets -->|"POST /send (await + resultado no response)"| WAServer
 
     %% WhatsApp Server
     WhatsAppStatus -->|"GET /status"| WAServer
@@ -135,8 +135,11 @@ Google Sheets (novo lead)
   │ 2. Normaliza campos (nome,      │
   │    data DD/MM/YYYY, telefone)   │
   │ 3. INSERT → crm_leads           │
-  │ 4. fire-and-forget:             │
-  │    POST whatsapp-server/send    │
+  │ 4. await POST /send             │
+  │    → captura { sent, reason,    │
+  │      error } por lead           │
+  │ 5. Retorna leads[] com status   │
+  │    WhatsApp no response         │
   └─────────────────────────────────┘
         │
         ▼
@@ -164,8 +167,10 @@ A sessão do Baileys (credenciais e chaves de criptografia) é persistida na tab
 DELETE FROM whatsapp_auth;
 ```
 ```bash
+ssh root@165.232.142.37
 docker restart formula_boi_whatsapp
-# Depois, escanear novo QR em admin.formuladoboi.com/whatsapp
+docker logs -f formula_boi_whatsapp  # escanear QR que aparecer
+# Ou pelo painel: admin.formuladoboi.com/whatsapp
 ```
 
 ---
@@ -195,3 +200,41 @@ Tabelas principais:
 | `whatsapp_auth` | Credenciais da sessão Baileys (chaves de criptografia) |
 
 Migrations SQL em `/database/`.
+
+---
+
+## Infraestrutura de Produção
+
+| Componente | Serviço | Detalhes |
+|---|---|---|
+| Next.js App | Vercel | Conta `masterjhony`, projeto `formula_do_boii` |
+| WhatsApp Server | DigitalOcean Droplet | IP `165.232.142.37`, Ubuntu 24.04, 1GB RAM |
+| Banco de Dados | Supabase | `hghtikjaqixglmpujbwj.supabase.co` |
+
+### Acesso ao Droplet
+
+```bash
+ssh root@165.232.142.37
+```
+
+Arquivos do servidor em `/opt/whatsapp-server/`:
+- `whatsapp-server.js` — código do servidor
+- `package.json` — dependências
+- `Dockerfile` — build da imagem
+- `.env` — variáveis de ambiente (Supabase keys)
+
+Container: `formula_boi_whatsapp`, porta `3001`, `restart: unless-stopped`.
+
+### Acesso à Vercel
+
+```bash
+# Requer login prévio
+vercel login
+
+# Vincular repositório local
+vercel link --scope joaos-projects-4fb95c65 --project formula_do_boii
+
+# Gerenciar env vars, deployments, etc.
+vercel env ls
+vercel ls
+```

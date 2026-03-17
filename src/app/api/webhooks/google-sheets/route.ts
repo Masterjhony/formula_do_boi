@@ -119,28 +119,45 @@ export async function POST(request: NextRequest) {
             if (error) {
                 errors.push({ lead: nomeCompleto, error: error.message });
             } else {
-                inserted.push(data);
-                
-                // Fire and forget welcome message via whatsapp-server
+                // Await WhatsApp send and capture result for diagnostic response
+                let whatsappResult: { sent: boolean; reason?: string; error?: string } = { sent: false, reason: 'no_phone' };
                 if (record.telefone) {
-                    fetch(`${WHATSAPP_SERVER_URL}/send`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ phone: record.telefone, name: nomeCompleto }),
-                        signal: AbortSignal.timeout(15000),
-                    }).catch(e => {
+                    try {
+                        const waRes = await fetch(`${WHATSAPP_SERVER_URL}/send`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone: record.telefone, name: nomeCompleto }),
+                            signal: AbortSignal.timeout(15000),
+                        });
+                        const waBody = await waRes.json().catch(() => ({}));
+                        if (waRes.ok) {
+                            whatsappResult = waBody; // { sent: true } or { sent: false, reason: '...' }
+                        } else {
+                            whatsappResult = { sent: false, error: waBody.error || `HTTP ${waRes.status}` };
+                        }
+                    } catch (e: any) {
+                        whatsappResult = { sent: false, error: e.message };
                         console.error('[GoogleSheets Webhook] Failed to send WhatsApp message:', e);
-                    });
+                    }
                 }
+                inserted.push({ ...data, whatsapp: whatsappResult });
             }
         }
 
-        return NextResponse.json({
-            success: true,
-            inserted: inserted.length,
-            errors: errors.length,
-            details: errors.length > 0 ? errors : undefined,
-        });
+        const allFailed = inserted.length === 0 && errors.length > 0;
+        return NextResponse.json(
+            {
+                success: !allFailed,
+                inserted: inserted.length,
+                leads: inserted.map(l => ({
+                    id: l.id,
+                    nome: l.nome,
+                    whatsapp: l.whatsapp,
+                })),
+                errors: errors.length > 0 ? errors : undefined,
+            },
+            { status: allFailed ? 500 : 200 }
+        );
     } catch (error: any) {
         console.error('Webhook error:', error);
         return NextResponse.json(
