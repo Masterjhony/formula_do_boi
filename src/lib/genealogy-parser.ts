@@ -164,9 +164,11 @@ export async function extractGenealogyFromPdfUrl(pdfUrl: string): Promise<{
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Importação dinâmica evita conflito com Next.js (pdf-parse tenta ler arquivos de teste em require-time)
+    // pdf-parse@1.1.1: apontar para o módulo interno evita que ele tente ler
+    // arquivos de teste ao ser carregado no contexto do Next.js.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse: (buf: Buffer) => Promise<{ text: string }> = require('pdf-parse');
+    const pdfParse: (buf: Buffer, opts?: object) => Promise<{ text: string }> =
+        require('pdf-parse/lib/pdf-parse.js');
     const parsed = await pdfParse(buffer);
     const rawText = parsed.text;
 
