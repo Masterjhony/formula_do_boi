@@ -17,11 +17,8 @@
 const http = require('http');
 const { createClient } = require('@supabase/supabase-js');
 
-// Tentamos importar Baileys. Suporte a ESM via dynamic import.
-let makeWASocket, DisconnectReason, useMultiFileAuthState,
-    fetchLatestBaileysVersion, initAuthCreds, BufferJSON;
+let makeWASocket, DisconnectReason, fetchLatestBaileysVersion, initAuthCreds, BufferJSON;
 
-// Cache da versão do WA para não buscar a cada reconexão
 let cachedWAVersion = null;
 
 const PORT = process.env.WHATSAPP_SERVER_PORT || 3001;
@@ -33,7 +30,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('[WhatsApp Server] ERRO: Variáveis de ambiente NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias.');
+  console.error('[WA] ERRO: NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias.');
   process.exit(1);
 }
 
@@ -115,26 +112,26 @@ async function useSupabaseAuthState() {
 }
 
 // =============================================================================
-// Estado global do socket
+// Estado global — UM único socket, gerenciado de forma estrita
 // =============================================================================
 let sock = null;
-let starting = false; // flag para evitar chamadas paralelas de startSocket
-let currentStatus = 'disconnected'; // 'disconnected' | 'connecting' | 'qr' | 'connected'
+let socketGeneration = 0;      // incrementa a cada startSocket para invalidar handlers antigos
+let currentStatus = 'disconnected';
 let currentQr = null;
 let reconnectTimeout = null;
 let reconnectAttempts = 0;
-const MAX_RECONNECT_DELAY_MS = 60_000; // máximo de 60s entre tentativas
 
-function getReconnectDelay(statusCode) {
-  // Backoff exponencial com limite: 5s, 10s, 20s, 40s, 60s, 60s, ...
-  const base = statusCode === 408 ? 3000 : 5000;
-  const delay = Math.min(base * Math.pow(1.5, reconnectAttempts), MAX_RECONNECT_DELAY_MS);
-  reconnectAttempts = Math.min(reconnectAttempts + 1, 10);
-  return Math.floor(delay);
+// Fecha o socket antigo de verdade — mata o WebSocket, remove listeners
+function destroySocket(oldSock) {
+  if (!oldSock) return;
+  try { oldSock.ev.removeAllListeners(); } catch (_) {}
+  try { oldSock.ws?.close(); } catch (_) {}
+  try { oldSock.end(); } catch (_) {}
 }
 
 function scheduleReconnect(delayMs) {
   if (reconnectTimeout) clearTimeout(reconnectTimeout);
+  console.log(`[WA] Reconectando em ${(delayMs / 1000).toFixed(1)}s...`);
   reconnectTimeout = setTimeout(() => {
     reconnectTimeout = null;
     startSocket();
@@ -142,7 +139,7 @@ function scheduleReconnect(delayMs) {
 }
 
 // =============================================================================
-// Fila de envio — serializa mensagens com delay para evitar MessageCounterError
+// Fila de envio
 // =============================================================================
 const msgQueue = [];
 let queueRunning = false;
@@ -167,12 +164,12 @@ async function runMsgQueue() {
 
 function enqueueSend(phone, name) {
   if (msgQueue.length >= 200) {
-    throw new Error('Fila de envio cheia (máx 200). Tente novamente em alguns minutos.');
+    throw new Error('Fila de envio cheia (max 200). Tente novamente em alguns minutos.');
   }
   msgQueue.push({ phone, name });
   const position = msgQueue.length;
   const estimatedSeconds = (position - 1) * (QUEUE_DELAY_MS / 1000);
-  runMsgQueue(); // dispara sem await — processa em background
+  runMsgQueue();
   return { queued: true, position, estimatedSeconds };
 }
 
@@ -180,28 +177,47 @@ function enqueueSend(phone, name) {
 // Inicializar/Reconectar o Baileys
 // =============================================================================
 async function startSocket() {
-  // Evita chamadas paralelas: se já há um socket ativo ou estamos iniciando, sai
-  if (sock || starting) return;
-  starting = true;
+  // Se já tem socket ativo, destruir primeiro para não ter dois WebSockets
+  if (sock) {
+    console.log('[WA] Destruindo socket anterior antes de reconectar...');
+    const old = sock;
+    sock = null;
+    destroySocket(old);
+  }
+
+  // Cancela qualquer reconexão pendente
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
+
+  // Gera uma "geração" para este socket — se o handler que dispara pertence
+  // a uma geração anterior, ignora (evita fantasmas).
+  const myGen = ++socketGeneration;
 
   currentStatus = 'connecting';
   currentQr = null;
-  console.log('[WhatsApp Server] Iniciando conexão Baileys...');
+  console.log(`[WA] Iniciando conexao (gen=${myGen})...`);
 
   try {
-    // Busca versão do WA apenas uma vez; em falha, usa fallback fixo
     if (!cachedWAVersion) {
       try {
         const fetched = await fetchLatestBaileysVersion();
         cachedWAVersion = fetched.version;
-        console.log(`[WhatsApp Server] Versão WA obtida: ${cachedWAVersion.join('.')}`);
-      } catch (vErr) {
-        cachedWAVersion = [2, 3000, 1023270955]; // versão estável conhecida como fallback
-        console.warn('[WhatsApp Server] Falha ao buscar versão WA, usando fallback:', cachedWAVersion.join('.'));
+        console.log(`[WA] Versao WA: ${cachedWAVersion.join('.')}`);
+      } catch (_) {
+        cachedWAVersion = [2, 3000, 1023270955];
+        console.warn(`[WA] Falha ao buscar versao, usando fallback`);
       }
     }
 
     const { state, saveCreds } = await useSupabaseAuthState();
+
+    // Se outra chamada a startSocket já tomou nosso lugar, abortar
+    if (myGen !== socketGeneration) {
+      console.log(`[WA] gen=${myGen} abortada, gen=${socketGeneration} em andamento`);
+      return;
+    }
 
     const pino = (await import('pino')).default;
 
@@ -217,79 +233,84 @@ async function startSocket() {
       syncFullHistory: false,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: false,
-      fireInitQueries: false,
       shouldSyncHistoryMessage: () => false,
     });
 
-    sock = newSock;
-    starting = false; // socket criado com sucesso
+    // Verifica de novo — entre o await acima e aqui, outra gen pode ter tomado lugar
+    if (myGen !== socketGeneration) {
+      console.log(`[WA] gen=${myGen} abortada apos makeWASocket`);
+      destroySocket(newSock);
+      return;
+    }
 
-    sock.ev.on('creds.update', saveCreds);
+    sock = newSock;
+
+    sock.ev.on('creds.update', () => {
+      if (myGen !== socketGeneration) return; // handler fantasma, ignorar
+      saveCreds();
+    });
 
     sock.ev.on('connection.update', (update) => {
+      // Se este handler pertence a uma geração antiga, ignorar completamente
+      if (myGen !== socketGeneration) return;
+
       const { connection, lastDisconnect, qr } = update;
 
       if (qr) {
         currentQr = qr;
         currentStatus = 'qr';
-        console.log('[WhatsApp Server] QR Code gerado — escaneie com o WhatsApp.');
+        console.log('[WA] QR Code gerado — escaneie com o WhatsApp.');
       }
 
       if (connection === 'close') {
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const loggedOut = statusCode === DisconnectReason.loggedOut;
-        // 440 = conflict:replaced — outro cliente deslocou nossa sessão WebSocket.
-        // As credenciais ainda são válidas. NÃO limpar a sessão, apenas reconectar
-        // com backoff. Limpar a sessão causaria loop infinito: reconecta → 440 → limpa → reconecta.
-        const replaced = statusCode === 440;
 
+        console.log(`[WA] Conexao fechada (code=${statusCode}, loggedOut=${loggedOut}, gen=${myGen})`);
+
+        // IMPORTANTE: destruir o socket ANTES de reconectar
+        const old = sock;
         sock = null;
         currentQr = null;
+        destroySocket(old);
 
         if (loggedOut) {
-          console.log('[WhatsApp Server] Deslogado do WhatsApp. Limpando sessão para novo QR...');
-          currentStatus = 'qr';
+          currentStatus = 'disconnected';
           reconnectAttempts = 0;
-          supabase.from('whatsapp_auth').delete().neq('id', '').then(() => {
-            console.log('[WhatsApp Server] Sessão limpa. Aguardando novo QR...');
+          console.log('[WA] Logout detectado. Limpando sessao para novo QR...');
+          supabase.from('whatsapp_auth').delete().neq('id', 'null').then(() => {
+            console.log('[WA] Sessao limpa. Reconectando para gerar QR...');
             scheduleReconnect(3000);
-          }).catch((err) => {
-            console.error('[WhatsApp Server] Erro ao limpar sessão:', err.message);
+          }).catch(() => {
             scheduleReconnect(5000);
           });
-        } else if (replaced) {
-          // 440: reconectar sem limpar — credenciais ainda válidas
-          currentStatus = 'connecting';
-          const delay = Math.min(3000 * Math.pow(1.5, reconnectAttempts), 30_000);
-          reconnectAttempts = Math.min(reconnectAttempts + 1, 8);
-          console.log(`[WhatsApp Server] Sessão substituída (440). Reconectando com mesmas credenciais em ${(delay/1000).toFixed(1)}s...`);
-          scheduleReconnect(Math.floor(delay));
         } else {
+          // Para QUALQUER outro código (incluindo 440), reconectar com backoff
           currentStatus = 'connecting';
-          const delay = getReconnectDelay(statusCode);
-          console.log(`[WhatsApp Server] Conexão fechada (código ${statusCode}). Reconectando em ${delay / 1000}s... (tentativa ${reconnectAttempts})`);
-          scheduleReconnect(delay);
+          const base = 5000;
+          const delay = Math.min(base * Math.pow(2, reconnectAttempts), 60_000);
+          reconnectAttempts = Math.min(reconnectAttempts + 1, 8);
+          scheduleReconnect(Math.floor(delay));
         }
       } else if (connection === 'open') {
         currentStatus = 'connected';
         currentQr = null;
-        reconnectAttempts = 0; // reset backoff ao conectar com sucesso
-        console.log('[WhatsApp Server] ✅ Conectado ao WhatsApp com sucesso!');
+        reconnectAttempts = 0;
+        console.log(`[WA] Conectado com sucesso (gen=${myGen})`);
       }
     });
   } catch (error) {
-    console.error('[WhatsApp Server] Erro ao iniciar socket:', error);
-    sock = null;
-    starting = false;
+    console.error('[WA] Erro ao iniciar socket:', error.message);
+    if (sock) { destroySocket(sock); sock = null; }
     currentStatus = 'disconnected';
-    const delay = getReconnectDelay(null);
-    console.log(`[WhatsApp Server] Tentando novamente em ${delay / 1000}s...`);
-    scheduleReconnect(delay);
+    const delay = Math.min(5000 * Math.pow(2, reconnectAttempts), 60_000);
+    reconnectAttempts = Math.min(reconnectAttempts + 1, 8);
+    scheduleReconnect(Math.floor(delay));
   }
 }
 
 // =============================================================================
-// Formatar número brasileiro
+// Formatar numero brasileiro
 // =============================================================================
 function formatBRNumber(phone) {
   let cleaned = phone.toString().replace(/\D/g, '');
@@ -301,30 +322,29 @@ function formatBRNumber(phone) {
 }
 
 // =============================================================================
-// Envio direto (interno — chamado pela fila, nunca diretamente pelo HTTP)
+// Envio direto (interno)
 // =============================================================================
 async function _executeSend(phone, name) {
   if (currentStatus !== 'connected' || !sock) {
-    throw new Error(`WhatsApp não está conectado. Status atual: ${currentStatus}`);
+    throw new Error(`WhatsApp nao conectado. Status: ${currentStatus}`);
   }
 
   const formattedPhone = formatBRNumber(phone);
   if (!formattedPhone) {
-    throw new Error(`Número inválido: ${phone}`);
+    throw new Error(`Numero invalido: ${phone}`);
   }
 
   const messageText = `Olá ${name}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas clicando no link abaixo:\n👉 https://app.formuladoboi.com`;
 
   const result = await sock.onWhatsApp(formattedPhone);
-  console.log(`[Queue] onWhatsApp(${formattedPhone}):`, JSON.stringify(result));
   if (!result || result.length === 0 || !result[0].exists) {
-    console.log(`[Queue] ${formattedPhone} não está no WhatsApp.`);
+    console.log(`[Queue] ${formattedPhone} nao esta no WhatsApp.`);
     return { sent: false, reason: 'not_on_whatsapp' };
   }
 
   const jid = result[0].jid || formattedPhone;
   const msgResult = await sock.sendMessage(jid, { text: messageText });
-  console.log(`[Queue] ✉️ Enviado para ${jid} (${name}) — id: ${msgResult?.key?.id}`);
+  console.log(`[Queue] Enviado para ${jid} (${name}) — id: ${msgResult?.key?.id}`);
   return { sent: true };
 }
 
@@ -336,7 +356,6 @@ async function handleRequest(req, res) {
 
   res.setHeader('Content-Type', 'application/json');
 
-  // GET /status
   if (req.method === 'GET' && url.pathname === '/status') {
     let qrDataUrl = null;
     if (currentQr) {
@@ -352,7 +371,6 @@ async function handleRequest(req, res) {
     return;
   }
 
-  // POST /send — adiciona à fila e retorna imediatamente
   if (req.method === 'POST' && url.pathname === '/send') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
@@ -361,14 +379,14 @@ async function handleRequest(req, res) {
         const { phone, name } = JSON.parse(body);
         if (!phone || !name) {
           res.writeHead(400);
-          res.end(JSON.stringify({ error: 'phone e name são obrigatórios' }));
+          res.end(JSON.stringify({ error: 'phone e name sao obrigatorios' }));
           return;
         }
         const result = enqueueSend(phone, name);
         res.writeHead(200);
         res.end(JSON.stringify({ success: true, sent: true, ...result }));
       } catch (error) {
-        console.error('[WhatsApp Server] Erro ao enfileirar:', error.message);
+        console.error('[WA] Erro ao enfileirar:', error.message);
         res.writeHead(500);
         res.end(JSON.stringify({ error: error.message }));
       }
@@ -376,7 +394,6 @@ async function handleRequest(req, res) {
     return;
   }
 
-  // GET /queue — tamanho atual da fila
   if (req.method === 'GET' && url.pathname === '/queue') {
     res.writeHead(200);
     res.end(JSON.stringify({
@@ -387,21 +404,19 @@ async function handleRequest(req, res) {
     return;
   }
 
-  // 404
   res.writeHead(404);
   res.end(JSON.stringify({ error: 'Not found' }));
 }
 
 // =============================================================================
-// Bootstrap: importar Baileys (ESM) e iniciar tudo
+// Bootstrap
 // =============================================================================
 async function main() {
-  console.log('[WhatsApp Server] Carregando Baileys...');
+  console.log('[WA] Carregando Baileys...');
 
   const baileys = await import('@whiskeysockets/baileys');
   makeWASocket = baileys.default;
   DisconnectReason = baileys.DisconnectReason;
-  useMultiFileAuthState = baileys.useMultiFileAuthState;
   fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
   initAuthCreds = baileys.initAuthCreds;
   BufferJSON = baileys.BufferJSON;
@@ -410,18 +425,13 @@ async function main() {
 
   const server = http.createServer(handleRequest);
   server.listen(PORT, () => {
-    console.log(`[WhatsApp Server] 🚀 Servidor HTTP rodando na porta ${PORT}`);
-    console.log(`[WhatsApp Server]    GET  http://localhost:${PORT}/status`);
-    console.log(`[WhatsApp Server]    POST http://localhost:${PORT}/send`);
+    console.log(`[WA] Servidor HTTP na porta ${PORT}`);
   });
 
-  // Graceful shutdown
   const shutdown = () => {
-    console.log('[WhatsApp Server] Encerrando servidor...');
-    if (sock) {
-      try { sock.end(); } catch (_) {}
-      sock = null;
-    }
+    console.log('[WA] Encerrando...');
+    if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    if (sock) { destroySocket(sock); sock = null; }
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 5000);
   };
@@ -430,6 +440,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('[WhatsApp Server] Erro fatal:', err);
+  console.error('[WA] Erro fatal:', err);
   process.exit(1);
 });
