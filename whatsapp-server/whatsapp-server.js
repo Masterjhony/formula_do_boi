@@ -169,11 +169,15 @@ async function startSocket() {
         sock = null;
         currentQr = null;
 
-        if (loggedOut) {
-          console.log('[WhatsApp Server] Deslogado do WhatsApp. Limpando sessão...');
-          currentStatus = 'disconnected';
+        // 440 = conflict:replaced (outra sessão tomou o lugar) → limpar e gerar novo QR
+        const replaced = statusCode === 440;
+
+        if (loggedOut || replaced) {
+          const reason = loggedOut ? 'Deslogado' : 'Sessão substituída (conflict:replaced)';
+          console.log(`[WhatsApp Server] ${reason}. Limpando sessão para novo QR...`);
+          currentStatus = 'qr';
           supabase.from('whatsapp_auth').delete().neq('id', '').then(() => {
-            console.log('[WhatsApp Server] Sessão limpa. Reconectando para novo QR...');
+            console.log('[WhatsApp Server] Sessão limpa. Aguardando novo QR...');
             if (reconnectTimeout) clearTimeout(reconnectTimeout);
             reconnectTimeout = setTimeout(startSocket, 3000);
           });
