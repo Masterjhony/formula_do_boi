@@ -145,10 +145,13 @@ async function startSocket() {
     sock = makeWASocket({
       version: cachedWAVersion,
       logger: pino({ level: 'warn' }),
-      printQRInTerminal: true,
+      printQRInTerminal: false,
       auth: state,
       keepAliveIntervalMs: 30_000,
       getMessage: async () => ({ conversation: '' }),
+      syncFullHistory: false,
+      markOnlineOnConnect: false,
+      generateHighQualityLinkPreview: false,
     });
 
     sock.ev.on('creds.update', saveCreds);
