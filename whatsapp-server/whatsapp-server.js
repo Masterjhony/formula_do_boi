@@ -238,23 +238,32 @@ async function startSocket() {
       if (connection === 'close') {
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const loggedOut = statusCode === DisconnectReason.loggedOut;
-        const replaced = statusCode === 440; // conflict:replaced
+        // 440 = conflict:replaced — outro cliente deslocou nossa sessão WebSocket.
+        // As credenciais ainda são válidas. NÃO limpar a sessão, apenas reconectar
+        // com backoff. Limpar a sessão causaria loop infinito: reconecta → 440 → limpa → reconecta.
+        const replaced = statusCode === 440;
 
         sock = null;
         currentQr = null;
 
-        if (loggedOut || replaced) {
-          const reason = loggedOut ? 'Deslogado' : 'Sessão substituída (conflict:replaced)';
-          console.log(`[WhatsApp Server] ${reason}. Limpando sessão para novo QR...`);
+        if (loggedOut) {
+          console.log('[WhatsApp Server] Deslogado do WhatsApp. Limpando sessão para novo QR...');
           currentStatus = 'qr';
           reconnectAttempts = 0;
           supabase.from('whatsapp_auth').delete().neq('id', '').then(() => {
-            console.log('[WhatsApp Server] Sessão limpa. Reconectando em 3s...');
+            console.log('[WhatsApp Server] Sessão limpa. Aguardando novo QR...');
             scheduleReconnect(3000);
           }).catch((err) => {
             console.error('[WhatsApp Server] Erro ao limpar sessão:', err.message);
             scheduleReconnect(5000);
           });
+        } else if (replaced) {
+          // 440: reconectar sem limpar — credenciais ainda válidas
+          currentStatus = 'connecting';
+          const delay = Math.min(3000 * Math.pow(1.5, reconnectAttempts), 30_000);
+          reconnectAttempts = Math.min(reconnectAttempts + 1, 8);
+          console.log(`[WhatsApp Server] Sessão substituída (440). Reconectando com mesmas credenciais em ${(delay/1000).toFixed(1)}s...`);
+          scheduleReconnect(Math.floor(delay));
         } else {
           currentStatus = 'connecting';
           const delay = getReconnectDelay(statusCode);

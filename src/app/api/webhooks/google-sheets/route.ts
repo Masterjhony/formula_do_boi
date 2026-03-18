@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
                 errors.push({ lead: nomeCompleto, error: error.message });
             } else {
                 // Await WhatsApp send and capture result for diagnostic response
-                let whatsappResult: { sent: boolean; reason?: string; error?: string } = { sent: false, reason: 'no_phone' };
+                let whatsappResult: { sent: boolean; queued?: boolean; reason?: string; error?: string } = { sent: false, reason: 'no_phone' };
                 if (record.telefone) {
                     try {
                         const waRes = await fetch(`${WHATSAPP_SERVER_URL}/send`, {
