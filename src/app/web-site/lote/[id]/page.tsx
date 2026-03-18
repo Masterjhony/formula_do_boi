@@ -792,6 +792,109 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                     })()}
                 </div>
 
+                {/* Avaliação Genética */}
+                {(() => {
+                    const av: any = product.avaliacao_genetica_json ?? null;
+                    if (!av) return null;
+
+                    const hasTopMetrics = av.iabcz != null || av.deca || av.percentil != null;
+                    const categorias: { key: string; label: string; color: string }[] = [
+                        { key: 'crescimento',  label: 'Crescimento',  color: 'text-sky-600 bg-sky-50 border-sky-200' },
+                        { key: 'maternas',     label: 'Maternas',     color: 'text-rose-600 bg-rose-50 border-rose-200' },
+                        { key: 'reprodutivas', label: 'Reprodutivas', color: 'text-purple-600 bg-purple-50 border-purple-200' },
+                        { key: 'acabamento',   label: 'Acabamento',   color: 'text-amber-600 bg-amber-50 border-amber-200' },
+                        { key: 'carcaca',      label: 'Carcaça',      color: 'text-orange-600 bg-orange-50 border-orange-200' },
+                        { key: 'morfologicas', label: 'Morfológicas', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+                    ].filter(c => (av.caracteristicas?.[c.key]?.length ?? 0) > 0);
+
+                    if (!hasTopMetrics && categorias.length === 0) return null;
+
+                    return (
+                        <div className="mt-10 pt-8 border-t border-gray-100">
+                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-6 flex items-center gap-2">
+                                <svg className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M2 12h4M18 12h4M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                                </svg>
+                                Avaliação Genética
+                            </h3>
+
+                            {/* Métricas de destaque */}
+                            {hasTopMetrics && (
+                                <div className="flex flex-wrap gap-3 mb-6">
+                                    {av.iabcz != null && (
+                                        <div className="bg-amber-50 border border-brand-gold/40 rounded-xl px-5 py-3 text-center min-w-[100px]">
+                                            <p className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-0.5">iABCZ</p>
+                                            <p className="text-2xl font-black text-gray-900 leading-none">{av.iabcz}</p>
+                                        </div>
+                                    )}
+                                    {av.deca && (
+                                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-3 text-center min-w-[100px]">
+                                            <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-0.5">DECA</p>
+                                            <p className="text-lg font-black text-emerald-700 leading-tight">{av.deca}</p>
+                                        </div>
+                                    )}
+                                    {av.percentil != null && (
+                                        <div className="bg-sky-50 border border-sky-200 rounded-xl px-5 py-3 text-center min-w-[90px]">
+                                            <p className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-0.5">P%</p>
+                                            <p className="text-2xl font-black text-sky-700 leading-none">{av.percentil}%</p>
+                                        </div>
+                                    )}
+                                    {av.f != null && (
+                                        <div className="bg-gray-50 border border-gray-200 rounded-xl px-5 py-3 text-center min-w-[90px]">
+                                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-0.5">F</p>
+                                            <p className="text-2xl font-black text-gray-700 leading-none">{av.f}%</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Tabelas de características por categoria */}
+                            {categorias.length > 0 && (
+                                <div className="space-y-4">
+                                    {categorias.map(({ key, label, color }) => {
+                                        const traits: any[] = av.caracteristicas[key];
+                                        return (
+                                            <div key={key} className={`rounded-xl border ${color.split(' ').find(c => c.startsWith('border-'))}`}>
+                                                <div className={`px-4 py-2 rounded-t-xl ${color.split(' ').filter(c => c.startsWith('bg-') || c.startsWith('text-')).join(' ')}`}>
+                                                    <p className="text-xs font-bold uppercase tracking-wider">{label}</p>
+                                                </div>
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full text-sm">
+                                                        <thead>
+                                                            <tr className="border-b border-gray-100">
+                                                                <th className="text-left px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Característica</th>
+                                                                <th className="text-right px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">DEP</th>
+                                                                <th className="text-right px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">AC%</th>
+                                                                <th className="text-right px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">DECA</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-gray-50">
+                                                            {traits.map((t: any, i: number) => (
+                                                                <tr key={i} className="hover:bg-gray-50 transition-colors">
+                                                                    <td className="px-4 py-2 font-semibold text-gray-800">{t.nome}</td>
+                                                                    <td className={`px-4 py-2 text-right font-mono font-bold ${t.dep > 0 ? 'text-emerald-600' : t.dep < 0 ? 'text-red-500' : 'text-gray-600'}`}>
+                                                                        {t.dep != null ? (t.dep > 0 ? `+${t.dep}` : t.dep) : '-'}
+                                                                    </td>
+                                                                    <td className="px-4 py-2 text-right text-gray-500 font-medium">{t.ac != null ? `${t.ac}%` : '-'}</td>
+                                                                    <td className="px-4 py-2 text-right">
+                                                                        {t.deca ? (
+                                                                            <span className="inline-block text-xs font-semibold bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{t.deca}</span>
+                                                                        ) : '-'}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })()}
+
                 {/* Related Products / See More Section */}
                 {relatedProducts.length > 0 && (
                     <div className="mt-16 pt-8 border-t border-gray-200">

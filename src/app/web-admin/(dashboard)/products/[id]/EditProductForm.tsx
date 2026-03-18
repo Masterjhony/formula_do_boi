@@ -14,6 +14,8 @@ export default function EditProductForm({ product }: { product: any }) {
     const [uploadingVideo, setUploadingVideo] = useState(false);
     const [extractingGenealogy, setExtractingGenealogy] = useState(false);
     const [genealogyStatus, setGenealogyStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+    const [extractingAvaliacao, setExtractingAvaliacao] = useState(false);
+    const [avaliacaoStatus, setAvaliacaoStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [breeders, setBreeders] = useState<any[]>([]);
 
@@ -241,6 +243,33 @@ export default function EditProductForm({ product }: { product: any }) {
             setGenealogyStatus({ type: 'error', msg: 'Erro de rede ao processar o PDF.' });
         } finally {
             setExtractingGenealogy(false);
+        }
+    };
+
+    const handleExtractAvaliacao = async () => {
+        if (!formData.pdf) {
+            setAvaliacaoStatus({ type: 'error', msg: 'Nenhum PDF cadastrado. Faça o upload da ficha técnica primeiro.' });
+            return;
+        }
+        setExtractingAvaliacao(true);
+        setAvaliacaoStatus(null);
+        try {
+            const res = await fetch('/api/parse-avaliacao-genetica', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: product.id }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                const hasIabcz = data.avaliacao?.iabcz != null;
+                setAvaliacaoStatus({ type: 'success', msg: `Avaliação genética extraída com sucesso.${hasIabcz ? ` iABCZ: ${data.avaliacao.iabcz}` : ''}` });
+            } else {
+                setAvaliacaoStatus({ type: 'error', msg: data.error ?? 'Erro desconhecido.' });
+            }
+        } catch {
+            setAvaliacaoStatus({ type: 'error', msg: 'Erro de rede ao processar o PDF.' });
+        } finally {
+            setExtractingAvaliacao(false);
         }
     };
 
@@ -597,11 +626,29 @@ export default function EditProductForm({ product }: { product: any }) {
                                     )}
                                     {extractingGenealogy ? 'Extraindo...' : 'Extrair Genealogia do PDF'}
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={handleExtractAvaliacao}
+                                    disabled={extractingAvaliacao || !formData.pdf}
+                                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {extractingAvaliacao ? <Loader2 className="animate-spin w-4 h-4" /> : (
+                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M2 12h4M18 12h4M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                                        </svg>
+                                    )}
+                                    {extractingAvaliacao ? 'Extraindo...' : 'Extrair Avaliação Genética'}
+                                </button>
                                 {formData.pdf && <span className="text-xs text-green-600 font-medium">PDF cadastrado ✓</span>}
                             </div>
                             {genealogyStatus && (
                                 <p className={`text-xs mt-2 font-medium ${genealogyStatus.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
                                     {genealogyStatus.msg}
+                                </p>
+                            )}
+                            {avaliacaoStatus && (
+                                <p className={`text-xs mt-1 font-medium ${avaliacaoStatus.type === 'success' ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    {avaliacaoStatus.msg}
                                 </p>
                             )}
                         </div>
