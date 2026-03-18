@@ -180,14 +180,16 @@ async function startSocket() {
 
     sock = makeWASocket({
       version: cachedWAVersion,
-      logger: pino({ level: 'warn' }),
+      logger: pino({ level: 'silent' }), // suprime todos os logs de erros internos do Baileys
       printQRInTerminal: false,
       auth: state,
       keepAliveIntervalMs: 30_000,
-      getMessage: async () => ({ conversation: '' }),
+      getMessage: async () => undefined, // não tentar reenviar mensagens ausentes
       syncFullHistory: false,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: false,
+      fireInitQueries: false,            // não buscar histórico/grupos ao conectar
+      shouldSyncHistoryMessage: () => false, // ignorar sync de histórico de grupos
     });
 
     sock.ev.on('creds.update', saveCreds);
