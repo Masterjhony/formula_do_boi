@@ -581,6 +581,66 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </div>
                         )}
                     </div>
+
+                    {/* Genealogy Tree */}
+                    {(product.details?.pai || product.details?.mae) && (
+                        <div className="mt-10 pt-8 border-t border-gray-100">
+                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-8 flex items-center gap-2">
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="5" r="2" />
+                                    <circle cx="5" cy="19" r="2" />
+                                    <circle cx="19" cy="19" r="2" />
+                                    <path d="M12 7v4M8.5 17.5l3.5-6.5M15.5 17.5L12 11" />
+                                </svg>
+                                Árvore Genealógica
+                            </h3>
+
+                            <div className="max-w-2xl mx-auto">
+                                {/* Parents Row */}
+                                <div className="grid grid-cols-2">
+                                    {/* PAI */}
+                                    <div className="relative pr-4 pb-8">
+                                        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-center">
+                                            <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-2">♂ Pai</p>
+                                            <p className="font-bold text-gray-900 text-sm leading-snug">
+                                                {product.details?.pai || '—'}
+                                            </p>
+                                        </div>
+                                        {/* Connector: stem from PAI center down + horizontal to tree center */}
+                                        <div className="absolute bottom-0 left-1/2 right-0 h-8 border-l-2 border-b-2 border-gray-200 rounded-bl-lg" />
+                                    </div>
+
+                                    {/* MÃE */}
+                                    <div className="relative pl-4 pb-8">
+                                        <div className="bg-rose-50 border-2 border-rose-200 rounded-xl p-4 text-center">
+                                            <p className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-2">♀ Mãe</p>
+                                            <p className="font-bold text-gray-900 text-sm leading-snug">
+                                                {product.details?.mae || '—'}
+                                            </p>
+                                        </div>
+                                        {/* Connector: horizontal from tree center + stem to MÃE center */}
+                                        <div className="absolute bottom-0 left-0 right-1/2 h-8 border-r-2 border-b-2 border-gray-200 rounded-br-lg" />
+                                    </div>
+                                </div>
+
+                                {/* Vertical line from junction to animal */}
+                                <div className="flex justify-center">
+                                    <div className="w-0.5 h-6 bg-gray-200" />
+                                </div>
+
+                                {/* Animal Node */}
+                                <div className="flex justify-center">
+                                    <div className="bg-amber-50 border-2 border-brand-gold rounded-xl px-6 py-4 text-center shadow-sm min-w-[200px]">
+                                        <p className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1">Animal</p>
+                                        <p className="font-bold text-gray-900 text-base">{product.name}</p>
+                                        {product.details?.registro && (
+                                            <p className="text-xs text-gray-500 mt-1.5 font-medium">{product.details.registro}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Related Products / See More Section */}
