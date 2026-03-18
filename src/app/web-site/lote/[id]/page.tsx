@@ -650,12 +650,12 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 </div>
                             );
                             return (
-                                <div className={`border-2 rounded-xl p-3 text-center ${color}`}>
-                                    <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${labelColor}`}>
+                                <div className={`border-2 rounded-lg p-2 text-center ${color}`}>
+                                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${labelColor}`}>
                                         {male ? '♂' : '♀'} {label}
                                     </p>
-                                    <p className="font-bold text-gray-900 text-sm leading-tight">{node.nome}</p>
-                                    {node.rg && <p className="text-xs text-gray-500 mt-0.5">{node.rg}</p>}
+                                    <p className="font-bold text-gray-900 text-xs leading-tight">{node.nome}</p>
+                                    {node.rg && <p className="text-[10px] text-gray-500 mt-0.5">{node.rg}</p>}
                                 </div>
                             );
                         };
@@ -670,7 +670,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                     Árvore Genealógica
                                 </h3>
 
-                                <div className="max-w-3xl mx-auto">
+                                {/* Scroll horizontal no mobile para preservar os conectores visuais */}
+                                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                                <div className="max-w-3xl mx-auto min-w-[520px] sm:min-w-0">
 
                                     {/* ── Nível 3: Avós (se existirem) ── */}
                                     {hasAvos && (
@@ -757,6 +759,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                         </div>
                                     </div>
 
+                                </div>
                                 </div>
                             </div>
                         );
