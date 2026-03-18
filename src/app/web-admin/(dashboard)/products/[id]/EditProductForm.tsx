@@ -12,6 +12,8 @@ export default function EditProductForm({ product }: { product: any }) {
     const [loading, setLoading] = useState(false);
     const [uploadingPdf, setUploadingPdf] = useState(false);
     const [uploadingVideo, setUploadingVideo] = useState(false);
+    const [extractingGenealogy, setExtractingGenealogy] = useState(false);
+    const [genealogyStatus, setGenealogyStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [breeders, setBreeders] = useState<any[]>([]);
 
@@ -213,6 +215,32 @@ export default function EditProductForm({ product }: { product: any }) {
             alert('Erro ao atualizar produto.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleExtractGenealogy = async () => {
+        if (!formData.pdf) {
+            setGenealogyStatus({ type: 'error', msg: 'Nenhum PDF cadastrado. Faça o upload da ficha técnica primeiro.' });
+            return;
+        }
+        setExtractingGenealogy(true);
+        setGenealogyStatus(null);
+        try {
+            const res = await fetch('/api/parse-genealogy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: product.id }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setGenealogyStatus({ type: 'success', msg: `Genealogia extraída com sucesso: ${data.ancestralCount} ancestral(is) encontrado(s).` });
+            } else {
+                setGenealogyStatus({ type: 'error', msg: data.error ?? 'Erro desconhecido.' });
+            }
+        } catch {
+            setGenealogyStatus({ type: 'error', msg: 'Erro de rede ao processar o PDF.' });
+        } finally {
+            setExtractingGenealogy(false);
         }
     };
 
@@ -543,7 +571,7 @@ export default function EditProductForm({ product }: { product: any }) {
                             <input name="pdf" value={formData.pdf} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg text-gray-900 outline-none" placeholder="https://... ou /arquivo.pdf" />
                             <p className="text-xs text-gray-500">Cole aqui o link do PDF ou o caminho relativo.</p>
 
-                            <div className="flex items-center gap-2 mt-2">
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
                                 <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
                                     {uploadingPdf ? <Loader2 className="animate-spin w-4 h-4" /> : <Upload className="w-4 h-4" />}
                                     {uploadingPdf ? 'Enviando...' : 'Fazer Upload de PDF'}
@@ -555,8 +583,27 @@ export default function EditProductForm({ product }: { product: any }) {
                                         disabled={uploadingPdf}
                                     />
                                 </label>
-                                {formData.pdf && <span className="text-xs text-green-600 font-medium">Arquivo selecionado!</span>}
+                                <button
+                                    type="button"
+                                    onClick={handleExtractGenealogy}
+                                    disabled={extractingGenealogy || !formData.pdf}
+                                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {extractingGenealogy ? <Loader2 className="animate-spin w-4 h-4" /> : (
+                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="12" cy="5" r="2" /><circle cx="5" cy="19" r="2" /><circle cx="19" cy="19" r="2" />
+                                            <path d="M12 7v4M8.5 17.5l3.5-6.5M15.5 17.5L12 11" />
+                                        </svg>
+                                    )}
+                                    {extractingGenealogy ? 'Extraindo...' : 'Extrair Genealogia do PDF'}
+                                </button>
+                                {formData.pdf && <span className="text-xs text-green-600 font-medium">PDF cadastrado ✓</span>}
                             </div>
+                            {genealogyStatus && (
+                                <p className={`text-xs mt-2 font-medium ${genealogyStatus.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                                    {genealogyStatus.msg}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

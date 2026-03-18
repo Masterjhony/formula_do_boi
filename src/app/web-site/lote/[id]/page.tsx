@@ -583,64 +583,213 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                     </div>
 
                     {/* Genealogy Tree */}
-                    {(product.details?.pai || product.details?.mae) && (
-                        <div className="mt-10 pt-8 border-t border-gray-100">
-                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-8 flex items-center gap-2">
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="5" r="2" />
-                                    <circle cx="5" cy="19" r="2" />
-                                    <circle cx="19" cy="19" r="2" />
-                                    <path d="M12 7v4M8.5 17.5l3.5-6.5M15.5 17.5L12 11" />
-                                </svg>
-                                Árvore Genealógica
-                            </h3>
+                    {(() => {
+                        // Prefer rich genealogia_json; fall back to details.pai / details.mae
+                        const g: any = product.genealogia_json ?? null;
+                        const tree = {
+                            pai:          g?.pai          ?? (product.details?.pai  ? { nome: product.details.pai  } : null),
+                            mae:          g?.mae          ?? (product.details?.mae  ? { nome: product.details.mae  } : null),
+                            avo_paterno:  g?.avo_paterno  ?? null,
+                            avo_paterna:  g?.avo_paterna  ?? null,
+                            avo_materno:  g?.avo_materno  ?? null,
+                            avo_materna:  g?.avo_materna  ?? null,
+                            bisavo_ppp:   g?.bisavo_ppp   ?? null,
+                            bisavo_mpp:   g?.bisavo_mpp   ?? null,
+                            bisavo_pmp:   g?.bisavo_pmp   ?? null,
+                            bisavo_mmp:   g?.bisavo_mmp   ?? null,
+                            bisavo_ppm:   g?.bisavo_ppm   ?? null,
+                            bisavo_mpm:   g?.bisavo_mpm   ?? null,
+                            bisavo_pmm:   g?.bisavo_pmm   ?? null,
+                            bisavo_mmm:   g?.bisavo_mmm   ?? null,
+                        };
 
-                            <div className="max-w-2xl mx-auto">
-                                {/* Parents Row */}
-                                <div className="grid grid-cols-2">
-                                    {/* PAI */}
-                                    <div className="relative pr-4 pb-8">
-                                        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-center">
-                                            <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-2">♂ Pai</p>
-                                            <p className="font-bold text-gray-900 text-sm leading-snug">
-                                                {product.details?.pai || '—'}
-                                            </p>
-                                        </div>
-                                        {/* Connector: stem from PAI center down + horizontal to tree center */}
-                                        <div className="absolute bottom-0 left-1/2 right-0 h-8 border-l-2 border-b-2 border-gray-200 rounded-bl-lg" />
-                                    </div>
+                        if (!tree.pai && !tree.mae) return null;
 
-                                    {/* MÃE */}
-                                    <div className="relative pl-4 pb-8">
-                                        <div className="bg-rose-50 border-2 border-rose-200 rounded-xl p-4 text-center">
-                                            <p className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-2">♀ Mãe</p>
-                                            <p className="font-bold text-gray-900 text-sm leading-snug">
-                                                {product.details?.mae || '—'}
-                                            </p>
-                                        </div>
-                                        {/* Connector: horizontal from tree center + stem to MÃE center */}
-                                        <div className="absolute bottom-0 left-0 right-1/2 h-8 border-r-2 border-b-2 border-gray-200 rounded-br-lg" />
-                                    </div>
+                        const hasAvos = tree.avo_paterno || tree.avo_paterna || tree.avo_materno || tree.avo_materna;
+
+                        // Small card for a single ancestor node
+                        const Node = ({ node, label, male, compact = false }: {
+                            node: { nome: string; rg?: string } | null;
+                            label: string;
+                            male: boolean;
+                            compact?: boolean;
+                        }) => {
+                            if (!node) return (
+                                <div className={`border-2 border-dashed border-gray-200 rounded-xl text-center ${compact ? 'p-2' : 'p-3'}`}>
+                                    <p className="text-xs text-gray-400 italic">não informado</p>
                                 </div>
-
-                                {/* Vertical line from junction to animal */}
-                                <div className="flex justify-center">
-                                    <div className="w-0.5 h-6 bg-gray-200" />
+                            );
+                            const color = male
+                                ? 'bg-sky-50 border-sky-200'
+                                : 'bg-rose-50 border-rose-200';
+                            const labelColor = male ? 'text-sky-500' : 'text-rose-500';
+                            return (
+                                <div className={`border-2 rounded-xl text-center ${color} ${compact ? 'p-2' : 'p-3'}`}>
+                                    <p className={`font-bold uppercase tracking-wider ${labelColor} ${compact ? 'text-[10px] mb-0.5' : 'text-xs mb-1'}`}>
+                                        {male ? '♂' : '♀'} {label}
+                                    </p>
+                                    <p className={`font-bold text-gray-900 leading-tight ${compact ? 'text-xs' : 'text-sm'}`}>{node.nome}</p>
+                                    {node.rg && (
+                                        <p className={`text-gray-500 mt-0.5 font-medium ${compact ? 'text-[10px]' : 'text-xs'}`}>{node.rg}</p>
+                                    )}
                                 </div>
+                            );
+                        };
 
-                                {/* Animal Node */}
-                                <div className="flex justify-center">
-                                    <div className="bg-amber-50 border-2 border-brand-gold rounded-xl px-6 py-4 text-center shadow-sm min-w-[200px]">
-                                        <p className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1">Animal</p>
-                                        <p className="font-bold text-gray-900 text-base">{product.name}</p>
-                                        {product.details?.registro && (
-                                            <p className="text-xs text-gray-500 mt-1.5 font-medium">{product.details.registro}</p>
-                                        )}
+                        // Grandparent card — optionally shows bisavós inside
+                        const AvoCard = ({ node, label, male, bisavoPai, bisavoMae }: {
+                            node: { nome: string; rg?: string } | null;
+                            label: string;
+                            male: boolean;
+                            bisavoPai?: { nome: string; rg?: string } | null;
+                            bisavoMae?: { nome: string; rg?: string } | null;
+                        }) => {
+                            const hasBisavos = bisavoPai || bisavoMae;
+                            const color = male ? 'bg-sky-50 border-sky-200' : 'bg-rose-50 border-rose-200';
+                            const labelColor = male ? 'text-sky-500' : 'text-rose-500';
+                            if (!node) return (
+                                <div className="border-2 border-dashed border-gray-200 rounded-xl p-3 text-center">
+                                    <p className="text-xs text-gray-400 italic">não inf.</p>
+                                </div>
+                            );
+                            return (
+                                <div className={`border-2 rounded-xl p-3 text-center ${color}`}>
+                                    <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${labelColor}`}>
+                                        {male ? '♂' : '♀'} {label}
+                                    </p>
+                                    <p className="font-bold text-gray-900 text-sm leading-tight">{node.nome}</p>
+                                    {node.rg && <p className="text-xs text-gray-500 mt-0.5">{node.rg}</p>}
+                                    {hasBisavos && (
+                                        <div className="mt-2 pt-2 border-t border-gray-200 space-y-1 text-left">
+                                            {bisavoPai && (
+                                                <p className="text-[11px] text-gray-600 leading-tight">
+                                                    <span className="text-sky-400 font-bold">♂ </span>
+                                                    <span className="font-medium">{bisavoPai.nome}</span>
+                                                    {bisavoPai.rg && <span className="text-gray-400"> · {bisavoPai.rg}</span>}
+                                                </p>
+                                            )}
+                                            {bisavoMae && (
+                                                <p className="text-[11px] text-gray-600 leading-tight">
+                                                    <span className="text-rose-400 font-bold">♀ </span>
+                                                    <span className="font-medium">{bisavoMae.nome}</span>
+                                                    {bisavoMae.rg && <span className="text-gray-400"> · {bisavoMae.rg}</span>}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        };
+
+                        return (
+                            <div className="mt-10 pt-8 border-t border-gray-100">
+                                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-8 flex items-center gap-2">
+                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="5" r="2" /><circle cx="5" cy="19" r="2" /><circle cx="19" cy="19" r="2" />
+                                        <path d="M12 7v4M8.5 17.5l3.5-6.5M15.5 17.5L12 11" />
+                                    </svg>
+                                    Árvore Genealógica
+                                </h3>
+
+                                <div className="max-w-3xl mx-auto">
+
+                                    {/* ── Nível 3: Avós (se existirem) ── */}
+                                    {hasAvos && (
+                                        <>
+                                            <div className="grid grid-cols-2 gap-0">
+                                                {/* Lado paterno: avô + avó do pai */}
+                                                <div className="grid grid-cols-2 gap-0 pr-2">
+                                                    <div className="relative pb-6 pr-1">
+                                                        <AvoCard
+                                                            node={tree.avo_paterno}
+                                                            label="Avô Pat."
+                                                            male={true}
+                                                            bisavoPai={tree.bisavo_ppp}
+                                                            bisavoMae={tree.bisavo_mpp}
+                                                        />
+                                                        <div className="absolute bottom-0 left-1/2 right-0 h-6 border-l-2 border-b-2 border-gray-200 rounded-bl-md" />
+                                                    </div>
+                                                    <div className="relative pb-6 pl-1">
+                                                        <AvoCard
+                                                            node={tree.avo_paterna}
+                                                            label="Avó Pat."
+                                                            male={false}
+                                                            bisavoPai={tree.bisavo_pmp}
+                                                            bisavoMae={tree.bisavo_mmp}
+                                                        />
+                                                        <div className="absolute bottom-0 left-0 right-1/2 h-6 border-r-2 border-b-2 border-gray-200 rounded-br-md" />
+                                                    </div>
+                                                </div>
+
+                                                {/* Lado materno: avô + avó da mãe */}
+                                                <div className="grid grid-cols-2 gap-0 pl-2">
+                                                    <div className="relative pb-6 pr-1">
+                                                        <AvoCard
+                                                            node={tree.avo_materno}
+                                                            label="Avô Mat."
+                                                            male={true}
+                                                            bisavoPai={tree.bisavo_ppm}
+                                                            bisavoMae={tree.bisavo_mpm}
+                                                        />
+                                                        <div className="absolute bottom-0 left-1/2 right-0 h-6 border-l-2 border-b-2 border-gray-200 rounded-bl-md" />
+                                                    </div>
+                                                    <div className="relative pb-6 pl-1">
+                                                        <AvoCard
+                                                            node={tree.avo_materna}
+                                                            label="Avó Mat."
+                                                            male={false}
+                                                            bisavoPai={tree.bisavo_pmm}
+                                                            bisavoMae={tree.bisavo_mmm}
+                                                        />
+                                                        <div className="absolute bottom-0 left-0 right-1/2 h-6 border-r-2 border-b-2 border-gray-200 rounded-br-md" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Hastes verticais avós → pais */}
+                                            <div className="grid grid-cols-2 gap-0">
+                                                <div className="flex justify-center">
+                                                    <div className="w-px h-5 bg-gray-200" />
+                                                </div>
+                                                <div className="flex justify-center">
+                                                    <div className="w-px h-5 bg-gray-200" />
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* ── Nível 2: Pai + Mãe ── */}
+                                    <div className="grid grid-cols-2 gap-0">
+                                        <div className="relative pb-7 pr-2">
+                                            <Node node={tree.pai} label="Pai" male={true} />
+                                            <div className="absolute bottom-0 left-1/2 right-0 h-7 border-l-2 border-b-2 border-gray-200 rounded-bl-lg" />
+                                        </div>
+                                        <div className="relative pb-7 pl-2">
+                                            <Node node={tree.mae} label="Mãe" male={false} />
+                                            <div className="absolute bottom-0 left-0 right-1/2 h-7 border-r-2 border-b-2 border-gray-200 rounded-br-lg" />
+                                        </div>
                                     </div>
+
+                                    {/* Haste vertical pais → animal */}
+                                    <div className="flex justify-center">
+                                        <div className="w-px h-5 bg-gray-200" />
+                                    </div>
+
+                                    {/* ── Nível 1: Animal ── */}
+                                    <div className="flex justify-center">
+                                        <div className="bg-amber-50 border-2 border-brand-gold rounded-xl px-6 py-4 text-center shadow-sm min-w-[200px] max-w-xs">
+                                            <p className="text-xs font-bold text-brand-gold uppercase tracking-wider mb-1">Animal</p>
+                                            <p className="font-bold text-gray-900 text-base leading-tight">{product.name}</p>
+                                            {product.details?.registro && (
+                                                <p className="text-xs text-gray-500 mt-1.5 font-medium">{product.details.registro}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
                 </div>
 
                 {/* Related Products / See More Section */}
