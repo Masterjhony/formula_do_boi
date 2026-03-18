@@ -122,6 +122,42 @@ let currentQr = null;
 let reconnectTimeout = null;
 
 // =============================================================================
+// Fila de envio — serializa mensagens com delay para evitar MessageCounterError
+// e risco de ban por envios em massa
+// =============================================================================
+const msgQueue = [];
+let queueRunning = false;
+const QUEUE_DELAY_MS = 4000; // 4 segundos entre cada envio
+
+async function runMsgQueue() {
+  if (queueRunning) return;
+  queueRunning = true;
+  while (msgQueue.length > 0) {
+    const { phone, name } = msgQueue.shift();
+    try {
+      await _executeSend(phone, name);
+    } catch (err) {
+      console.error(`[Queue] Falha ao enviar para ${phone}:`, err.message);
+    }
+    if (msgQueue.length > 0) {
+      await new Promise(r => setTimeout(r, QUEUE_DELAY_MS));
+    }
+  }
+  queueRunning = false;
+}
+
+function enqueueSend(phone, name) {
+  if (msgQueue.length >= 200) {
+    throw new Error('Fila de envio cheia (máx 200). Tente novamente em alguns minutos.');
+  }
+  msgQueue.push({ phone, name });
+  const position = msgQueue.length;
+  const estimatedSeconds = (position - 1) * (QUEUE_DELAY_MS / 1000);
+  runMsgQueue(); // dispara sem await — processa em background
+  return { queued: true, position, estimatedSeconds };
+}
+
+// =============================================================================
 // Inicializar/Reconectar o Baileys
 // =============================================================================
 async function startSocket() {
@@ -220,9 +256,9 @@ function formatBRNumber(phone) {
 }
 
 // =============================================================================
-// Enviar mensagem de boas-vindas
+// Envio direto (interno — chamado pela fila, nunca diretamente pelo HTTP)
 // =============================================================================
-async function sendWelcomeMessage(phone, name) {
+async function _executeSend(phone, name) {
   if (currentStatus !== 'connected' || !sock) {
     throw new Error(`WhatsApp não está conectado. Status atual: ${currentStatus}`);
   }
@@ -234,21 +270,24 @@ async function sendWelcomeMessage(phone, name) {
 
   const messageText = `Olá ${name}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas clicando no link abaixo:\n👉 https://app.formuladoboi.com`;
 
-  // Verifica se o número existe no WhatsApp
   const result = await sock.onWhatsApp(formattedPhone);
-  console.log(`[WhatsApp Server] onWhatsApp result for ${formattedPhone}:`, JSON.stringify(result));
+  console.log(`[Queue] onWhatsApp(${formattedPhone}):`, JSON.stringify(result));
   if (!result || result.length === 0 || !result[0].exists) {
-    console.log(`[WhatsApp Server] Número ${formattedPhone} não encontrado no WhatsApp.`);
+    console.log(`[Queue] ${formattedPhone} não está no WhatsApp.`);
     return { sent: false, reason: 'not_on_whatsapp' };
   }
 
-  // Use the JID returned by onWhatsApp (may differ from input)
   const jid = result[0].jid || formattedPhone;
-  console.log(`[WhatsApp Server] Enviando para JID: ${jid}`);
   const msgResult = await sock.sendMessage(jid, { text: messageText });
-  console.log(`[WhatsApp Server] ✉️  sendMessage result:`, JSON.stringify({ id: msgResult?.key?.id, status: msgResult?.status }));
-  console.log(`[WhatsApp Server] ✉️  Mensagem enviada para ${jid} (${name})`);
+  console.log(`[Queue] ✉️ Enviado para ${jid} (${name}) — id: ${msgResult?.key?.id}`);
   return { sent: true };
+}
+
+// =============================================================================
+// Enviar mensagem de boas-vindas — entrada pública via fila
+// =============================================================================
+function sendWelcomeMessage(phone, name) {
+  return enqueueSend(phone, name);
 }
 
 // =============================================================================
@@ -276,11 +315,11 @@ async function handleRequest(req, res) {
     return;
   }
 
-  // POST /send
+  // POST /send — adiciona à fila e retorna imediatamente
   if (req.method === 'POST' && url.pathname === '/send') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
-    req.on('end', async () => {
+    req.on('end', () => {
       try {
         const { phone, name } = JSON.parse(body);
         if (!phone || !name) {
@@ -288,15 +327,26 @@ async function handleRequest(req, res) {
           res.end(JSON.stringify({ error: 'phone e name são obrigatórios' }));
           return;
         }
-        const result = await sendWelcomeMessage(phone, name);
+        const result = sendWelcomeMessage(phone, name); // síncrono — só enfileira
         res.writeHead(200);
-        res.end(JSON.stringify({ success: true, ...result }));
+        res.end(JSON.stringify({ success: true, sent: true, ...result }));
       } catch (error) {
-        console.error('[WhatsApp Server] Erro ao enviar:', error.message);
+        console.error('[WhatsApp Server] Erro ao enfileirar:', error.message);
         res.writeHead(500);
         res.end(JSON.stringify({ error: error.message }));
       }
     });
+    return;
+  }
+
+  // GET /queue — tamanho atual da fila
+  if (req.method === 'GET' && url.pathname === '/queue') {
+    res.writeHead(200);
+    res.end(JSON.stringify({
+      queueSize: msgQueue.length,
+      processing: queueRunning,
+      delayBetweenSendsMs: QUEUE_DELAY_MS,
+    }));
     return;
   }
 

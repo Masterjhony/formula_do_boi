@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
                 // Log message to whatsapp_messages (fire-and-forget)
                 const msgStatus = !record.telefone
                     ? 'no_phone'
-                    : whatsappResult.sent
+                    : (whatsappResult.sent || whatsappResult.queued)
                         ? 'sent'
                         : whatsappResult.reason === 'not_on_whatsapp'
                             ? 'not_on_whatsapp'
