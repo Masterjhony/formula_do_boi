@@ -797,66 +797,70 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                     const av: any = product.avaliacao_genetica_json ?? null;
                     if (!av) return null;
 
+                    // Suporte ao schema novo (composem_iabcz / nao_composem_iabcz)
+                    // e fallback para schema antigo (caracteristicas flat)
+                    const composemData: any = av.composem_iabcz ?? av.caracteristicas ?? {};
+                    const naoComposemData: any = av.nao_composem_iabcz ?? {};
+
+                    const catMeta: Record<string, { label: string; headerBg: string; headerText: string; border: string }> = {
+                        crescimento:  { label: 'Crescimento',  headerBg: 'bg-sky-50',     headerText: 'text-sky-700',     border: 'border-sky-200' },
+                        maternas:     { label: 'Maternas',     headerBg: 'bg-rose-50',    headerText: 'text-rose-700',    border: 'border-rose-200' },
+                        reprodutivas: { label: 'Reprodutivas', headerBg: 'bg-purple-50',  headerText: 'text-purple-700',  border: 'border-purple-200' },
+                        acabamento:   { label: 'Acabamento',   headerBg: 'bg-amber-50',   headerText: 'text-amber-700',   border: 'border-amber-200' },
+                        carcaca:      { label: 'Carcaça',      headerBg: 'bg-orange-50',  headerText: 'text-orange-700',  border: 'border-orange-200' },
+                        morfologicas: { label: 'Morfológicas', headerBg: 'bg-emerald-50', headerText: 'text-emerald-700', border: 'border-emerald-200' },
+                    };
+
+                    // Ordem de exibição dentro de cada bloco
+                    const catOrder = ['crescimento', 'maternas', 'reprodutivas', 'acabamento', 'carcaca', 'morfologicas'];
+
+                    const catsCompoem  = catOrder.filter(k => (composemData[k]?.length ?? 0) > 0);
+                    const catsNaoComp  = catOrder.filter(k => (naoComposemData[k]?.length ?? 0) > 0);
                     const hasTopMetrics = av.iabcz != null || av.deca || av.percentil != null || av.f != null;
-                    const allCatMeta: { key: string; label: string; headerBg: string; headerText: string; border: string }[] = [
-                        { key: 'crescimento',  label: 'Crescimento',  headerBg: 'bg-sky-50',     headerText: 'text-sky-700',    border: 'border-sky-200' },
-                        { key: 'maternas',     label: 'Maternas',     headerBg: 'bg-rose-50',    headerText: 'text-rose-700',   border: 'border-rose-200' },
-                        { key: 'reprodutivas', label: 'Reprodutivas', headerBg: 'bg-purple-50',  headerText: 'text-purple-700', border: 'border-purple-200' },
-                        { key: 'acabamento',   label: 'Acabamento',   headerBg: 'bg-amber-50',   headerText: 'text-amber-700',  border: 'border-amber-200' },
-                        { key: 'carcaca',      label: 'Carcaça',      headerBg: 'bg-orange-50',  headerText: 'text-orange-700', border: 'border-orange-200' },
-                        { key: 'morfologicas', label: 'Morfológicas', headerBg: 'bg-emerald-50', headerText: 'text-emerald-700',border: 'border-emerald-200' },
-                    ];
 
-                    // Separa categorias nos dois blocos com base no campo composem_iabcz
-                    const composemKeys: string[] = Array.isArray(av.composem_iabcz) && av.composem_iabcz.length > 0
-                        ? av.composem_iabcz
-                        : ['crescimento', 'maternas', 'reprodutivas'];
+                    if (!hasTopMetrics && catsCompoem.length === 0 && catsNaoComp.length === 0) return null;
 
-                    const catsCompoem = allCatMeta.filter(c =>
-                        composemKeys.includes(c.key) && (av.caracteristicas?.[c.key]?.length ?? 0) > 0
-                    );
-                    const catsNaoCompoem = allCatMeta.filter(c =>
-                        !composemKeys.includes(c.key) && (av.caracteristicas?.[c.key]?.length ?? 0) > 0
-                    );
-
-                    if (!hasTopMetrics && catsCompoem.length === 0 && catsNaoCompoem.length === 0) return null;
+                    // Formata valor DEP: +12,34 / -3,45 / 0 / —
+                    const fmtDep = (dep: number | null) => {
+                        if (dep === null) return '—';
+                        const s = Math.abs(dep) % 1 === 0 ? dep.toString() : dep.toFixed(2).replace('.', ',');
+                        return dep > 0 ? `+${s}` : dep < 0 ? `${dep < 0 ? '-' : ''}${s.replace('-', '')}` : `${s}`;
+                    };
 
                     // Tabela de características de uma categoria
-                    const CatTable = ({ catKey, label, headerBg, headerText, border }: {
-                        catKey: string; label: string; headerBg: string; headerText: string; border: string;
-                    }) => {
-                        const traits: any[] = av.caracteristicas[catKey] ?? [];
+                    const CatTable = ({ traits, catKey }: { traits: any[]; catKey: string }) => {
+                        const meta = catMeta[catKey];
                         return (
-                            <div className={`rounded-xl border ${border} overflow-hidden`}>
-                                <div className={`px-4 py-2.5 ${headerBg}`}>
-                                    <p className={`text-xs font-bold uppercase tracking-wider ${headerText}`}>{label}</p>
+                            <div className={`rounded-xl border ${meta.border} overflow-hidden`}>
+                                <div className={`px-4 py-2.5 ${meta.headerBg}`}>
+                                    <p className={`text-xs font-bold uppercase tracking-wider ${meta.headerText}`}>{meta.label}</p>
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
                                             <tr className="border-b border-gray-100 bg-gray-50/60">
-                                                <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider w-1/2">Característica</th>
-                                                <th className="text-right px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">DEP</th>
-                                                <th className="text-right px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">AC%</th>
-                                                <th className="text-right px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">DECA</th>
+                                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Característica</th>
+                                                <th className="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-20">DEP</th>
+                                                <th className="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-16">AC%</th>
+                                                <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">DECA</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-50">
                                             {traits.map((t: any, i: number) => (
                                                 <tr key={i} className="hover:bg-gray-50/80 transition-colors">
-                                                    <td className="px-4 py-2.5 font-semibold text-gray-800 text-sm">{t.nome}</td>
-                                                    <td className={`px-4 py-2.5 text-right font-mono font-bold text-sm tabular-nums ${
-                                                        t.dep > 0 ? 'text-emerald-600' : t.dep < 0 ? 'text-red-500' : 'text-gray-600'
+                                                    <td className="px-4 py-2.5 font-medium text-gray-800 text-sm leading-snug">{t.nome}</td>
+                                                    <td className={`px-3 py-2.5 text-right font-mono font-bold text-sm tabular-nums ${
+                                                        t.dep > 0 ? 'text-emerald-600' : t.dep < 0 ? 'text-red-500' : 'text-gray-500'
                                                     }`}>
-                                                        {t.dep != null ? (t.dep > 0 ? `+${t.dep}` : `${t.dep}`) : '—'}
+                                                        {fmtDep(t.dep ?? null)}
                                                     </td>
-                                                    <td className="px-4 py-2.5 text-right text-gray-500 font-medium text-sm tabular-nums">
+                                                    <td className="px-3 py-2.5 text-right text-gray-500 font-medium text-sm tabular-nums">
                                                         {t.ac != null ? `${t.ac}%` : '—'}
                                                     </td>
                                                     <td className="px-4 py-2.5 text-right">
                                                         {t.deca ? (
                                                             <span className="inline-block text-[11px] font-semibold bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 whitespace-nowrap">{t.deca}</span>
-                                                        ) : '—'}
+                                                        ) : <span className="text-gray-300">—</span>}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -869,7 +873,6 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
 
                     return (
                         <div className="mt-10 pt-8 border-t border-gray-100">
-                            {/* Título da seção */}
                             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-6 flex items-center gap-2">
                                 <svg className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M2 12h4M18 12h4M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
@@ -877,67 +880,69 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 Avaliação Genética
                             </h3>
 
-                            {/* ── Índices principais em destaque ── */}
+                            {/* ── 4 cards de índices ── */}
                             {hasTopMetrics && (
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-                                    <div className={`rounded-2xl px-4 py-4 text-center border ${av.iabcz != null ? 'bg-amber-50 border-brand-gold/40' : 'bg-gray-50 border-gray-200 opacity-40'}`}>
+                                    {/* iABCZ */}
+                                    <div className="rounded-2xl px-4 py-4 text-center border bg-amber-50 border-brand-gold/40">
                                         <p className="text-[11px] font-bold text-brand-gold uppercase tracking-widest mb-1">iABCZ</p>
                                         <p className="text-3xl font-black text-gray-900 leading-none tabular-nums">
-                                            {av.iabcz != null ? av.iabcz : '—'}
+                                            {av.iabcz != null ? String(av.iabcz).replace('.', ',') : '—'}
                                         </p>
                                     </div>
-                                    <div className={`rounded-2xl px-4 py-4 text-center border ${av.deca ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200 opacity-40'}`}>
+                                    {/* DECA */}
+                                    <div className="rounded-2xl px-4 py-4 text-center border bg-emerald-50 border-emerald-200">
                                         <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest mb-1">DECA</p>
-                                        <p className="text-xl font-black text-emerald-700 leading-tight">
-                                            {av.deca || '—'}
+                                        <p className="text-3xl font-black text-emerald-700 leading-none tabular-nums">
+                                            {av.deca ?? '—'}
                                         </p>
                                     </div>
-                                    <div className={`rounded-2xl px-4 py-4 text-center border ${av.percentil != null ? 'bg-sky-50 border-sky-200' : 'bg-gray-50 border-gray-200 opacity-40'}`}>
+                                    {/* P% */}
+                                    <div className="rounded-2xl px-4 py-4 text-center border bg-sky-50 border-sky-200">
                                         <p className="text-[11px] font-bold text-sky-600 uppercase tracking-widest mb-1">P%</p>
                                         <p className="text-3xl font-black text-sky-700 leading-none tabular-nums">
-                                            {av.percentil != null ? `${av.percentil}` : '—'}
+                                            {av.percentil != null ? String(av.percentil) : '—'}
                                         </p>
                                     </div>
-                                    <div className={`rounded-2xl px-4 py-4 text-center border ${av.f != null ? 'bg-gray-50 border-gray-300' : 'bg-gray-50 border-gray-200 opacity-40'}`}>
+                                    {/* F */}
+                                    <div className="rounded-2xl px-4 py-4 text-center border bg-gray-50 border-gray-300">
                                         <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">F</p>
                                         <p className="text-3xl font-black text-gray-700 leading-none tabular-nums">
-                                            {av.f != null ? `${av.f}%` : '—'}
+                                            {av.f != null ? `${String(av.f).replace('.', ',')}%` : '—'}
                                         </p>
                                     </div>
                                 </div>
                             )}
 
-                            {/* ── Bloco: Características que compõem o iABCZ ── */}
+                            {/* ── Bloco 1: Características que compõem o iABCZ ── */}
                             {catsCompoem.length > 0 && (
                                 <div className="mb-6">
                                     <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-3 h-3 rounded-sm bg-brand-gold/80 shrink-0" />
+                                        <div className="w-2.5 h-2.5 rounded-sm bg-brand-gold shrink-0" />
                                         <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Características que compõem o iABCZ
                                         </p>
                                     </div>
                                     <div className="space-y-3">
-                                        {catsCompoem.map(c => (
-                                            <CatTable key={c.key} catKey={c.key} label={c.label}
-                                                headerBg={c.headerBg} headerText={c.headerText} border={c.border} />
+                                        {catsCompoem.map(k => (
+                                            <CatTable key={k} catKey={k} traits={composemData[k]} />
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* ── Bloco: Características que não compõem o iABCZ ── */}
-                            {catsNaoCompoem.length > 0 && (
+                            {/* ── Bloco 2: Características que não compõem o iABCZ ── */}
+                            {catsNaoComp.length > 0 && (
                                 <div>
                                     <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-3 h-3 rounded-sm bg-gray-400/60 shrink-0" />
+                                        <div className="w-2.5 h-2.5 rounded-sm bg-gray-400 shrink-0" />
                                         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                                             Características que não compõem o iABCZ
                                         </p>
                                     </div>
                                     <div className="space-y-3">
-                                        {catsNaoCompoem.map(c => (
-                                            <CatTable key={c.key} catKey={c.key} label={c.label}
-                                                headerBg={c.headerBg} headerText={c.headerText} border={c.border} />
+                                        {catsNaoComp.map(k => (
+                                            <CatTable key={k} catKey={k} traits={naoComposemData[k]} />
                                         ))}
                                     </div>
                                 </div>
