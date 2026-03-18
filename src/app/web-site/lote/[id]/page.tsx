@@ -636,15 +636,12 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             );
                         };
 
-                        // Grandparent card — optionally shows bisavós inside
-                        const AvoCard = ({ node, label, male, bisavoPai, bisavoMae }: {
+                        // Grandparent card — shows only label, nome and RG
+                        const AvoCard = ({ node, label, male }: {
                             node: { nome: string; rg?: string } | null;
                             label: string;
                             male: boolean;
-                            bisavoPai?: { nome: string; rg?: string } | null;
-                            bisavoMae?: { nome: string; rg?: string } | null;
                         }) => {
-                            const hasBisavos = bisavoPai || bisavoMae;
                             const color = male ? 'bg-sky-50 border-sky-200' : 'bg-rose-50 border-rose-200';
                             const labelColor = male ? 'text-sky-500' : 'text-rose-500';
                             if (!node) return (
@@ -659,24 +656,6 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                     </p>
                                     <p className="font-bold text-gray-900 text-sm leading-tight">{node.nome}</p>
                                     {node.rg && <p className="text-xs text-gray-500 mt-0.5">{node.rg}</p>}
-                                    {hasBisavos && (
-                                        <div className="mt-2 pt-2 border-t border-gray-200 space-y-1 text-left">
-                                            {bisavoPai && (
-                                                <p className="text-[11px] text-gray-600 leading-tight">
-                                                    <span className="text-sky-400 font-bold">♂ </span>
-                                                    <span className="font-medium">{bisavoPai.nome}</span>
-                                                    {bisavoPai.rg && <span className="text-gray-400"> · {bisavoPai.rg}</span>}
-                                                </p>
-                                            )}
-                                            {bisavoMae && (
-                                                <p className="text-[11px] text-gray-600 leading-tight">
-                                                    <span className="text-rose-400 font-bold">♀ </span>
-                                                    <span className="font-medium">{bisavoMae.nome}</span>
-                                                    {bisavoMae.rg && <span className="text-gray-400"> · {bisavoMae.rg}</span>}
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
                                 </div>
                             );
                         };
@@ -704,8 +683,6 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                                             node={tree.avo_paterno}
                                                             label="Avô Pat."
                                                             male={true}
-                                                            bisavoPai={tree.bisavo_ppp}
-                                                            bisavoMae={tree.bisavo_mpp}
                                                         />
                                                         <div className="absolute bottom-0 left-1/2 right-0 h-6 border-l-2 border-b-2 border-gray-200 rounded-bl-md" />
                                                     </div>
@@ -714,8 +691,6 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                                             node={tree.avo_paterna}
                                                             label="Avó Pat."
                                                             male={false}
-                                                            bisavoPai={tree.bisavo_pmp}
-                                                            bisavoMae={tree.bisavo_mmp}
                                                         />
                                                         <div className="absolute bottom-0 left-0 right-1/2 h-6 border-r-2 border-b-2 border-gray-200 rounded-br-md" />
                                                     </div>
@@ -728,8 +703,6 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                                             node={tree.avo_materno}
                                                             label="Avô Mat."
                                                             male={true}
-                                                            bisavoPai={tree.bisavo_ppm}
-                                                            bisavoMae={tree.bisavo_mpm}
                                                         />
                                                         <div className="absolute bottom-0 left-1/2 right-0 h-6 border-l-2 border-b-2 border-gray-200 rounded-bl-md" />
                                                     </div>
@@ -738,8 +711,6 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                                             node={tree.avo_materna}
                                                             label="Avó Mat."
                                                             male={false}
-                                                            bisavoPai={tree.bisavo_pmm}
-                                                            bisavoMae={tree.bisavo_mmm}
                                                         />
                                                         <div className="absolute bottom-0 left-0 right-1/2 h-6 border-r-2 border-b-2 border-gray-200 rounded-br-md" />
                                                     </div>
