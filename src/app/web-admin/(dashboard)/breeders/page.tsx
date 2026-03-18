@@ -29,9 +29,13 @@ export default function BreedersPage() {
     };
 
     const fetchProductCounts = async () => {
-        const { data: products } = await supabase
+        const { data: products, error } = await supabase
             .from('products')
-            .select('id, name, category, image, price, location, details');
+            .select('id, name, category, image_url, price, location, details');
+
+        if (error) {
+            console.error('Erro ao buscar produtos:', error);
+        }
 
         if (products) {
             const counts: Record<string, number> = {};
@@ -335,9 +339,9 @@ export default function BreedersPage() {
                                                 {animals.map((animal) => (
                                                     <div key={animal.id} className="px-6 py-3 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-colors">
                                                         <div className="w-12 flex justify-center">
-                                                            {animal.image ? (
+                                                            {animal.image_url ? (
                                                                 <img
-                                                                    src={animal.image}
+                                                                    src={animal.image_url}
                                                                     alt={animal.name}
                                                                     className="w-10 h-10 rounded-lg object-cover"
                                                                 />
