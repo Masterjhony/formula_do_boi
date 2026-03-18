@@ -1,14 +1,15 @@
 /**
  * WhatsApp Server — Servidor dedicado ao Baileys
- * 
+ *
  * Roda separado do Next.js para manter a conexão WebSocket ativa.
  * Expõe:
  *   GET  /status  → retorna {status, qr}
- *   POST /send    → recebe {phone, name} e envia mensagem de boas-vindas
- * 
+ *   POST /send    → recebe {phone, name} e adiciona à fila de envio
+ *   GET  /queue   → retorna tamanho da fila
+ *
  * Uso:
  *   node whatsapp-server.js
- * 
+ *
  * Via Docker:
  *   docker compose up -d whatsapp-server
  */
@@ -117,17 +118,35 @@ async function useSupabaseAuthState() {
 // Estado global do socket
 // =============================================================================
 let sock = null;
+let starting = false; // flag para evitar chamadas paralelas de startSocket
 let currentStatus = 'disconnected'; // 'disconnected' | 'connecting' | 'qr' | 'connected'
 let currentQr = null;
 let reconnectTimeout = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_DELAY_MS = 60_000; // máximo de 60s entre tentativas
+
+function getReconnectDelay(statusCode) {
+  // Backoff exponencial com limite: 5s, 10s, 20s, 40s, 60s, 60s, ...
+  const base = statusCode === 408 ? 3000 : 5000;
+  const delay = Math.min(base * Math.pow(1.5, reconnectAttempts), MAX_RECONNECT_DELAY_MS);
+  reconnectAttempts = Math.min(reconnectAttempts + 1, 10);
+  return Math.floor(delay);
+}
+
+function scheduleReconnect(delayMs) {
+  if (reconnectTimeout) clearTimeout(reconnectTimeout);
+  reconnectTimeout = setTimeout(() => {
+    reconnectTimeout = null;
+    startSocket();
+  }, delayMs);
+}
 
 // =============================================================================
 // Fila de envio — serializa mensagens com delay para evitar MessageCounterError
-// e risco de ban por envios em massa
 // =============================================================================
 const msgQueue = [];
 let queueRunning = false;
-const QUEUE_DELAY_MS = 4000; // 4 segundos entre cada envio
+const QUEUE_DELAY_MS = 4000;
 
 async function runMsgQueue() {
   if (queueRunning) return;
@@ -161,36 +180,49 @@ function enqueueSend(phone, name) {
 // Inicializar/Reconectar o Baileys
 // =============================================================================
 async function startSocket() {
-  if (sock) return; // já iniciado
+  // Evita chamadas paralelas: se já há um socket ativo ou estamos iniciando, sai
+  if (sock || starting) return;
+  starting = true;
 
   currentStatus = 'connecting';
   currentQr = null;
   console.log('[WhatsApp Server] Iniciando conexão Baileys...');
 
   try {
+    // Busca versão do WA apenas uma vez; em falha, usa fallback fixo
     if (!cachedWAVersion) {
-      const fetched = await fetchLatestBaileysVersion();
-      cachedWAVersion = fetched.version;
-      console.log(`[WhatsApp Server] Versão WA obtida: ${cachedWAVersion.join('.')}`);
+      try {
+        const fetched = await fetchLatestBaileysVersion();
+        cachedWAVersion = fetched.version;
+        console.log(`[WhatsApp Server] Versão WA obtida: ${cachedWAVersion.join('.')}`);
+      } catch (vErr) {
+        cachedWAVersion = [2, 3000, 1023270955]; // versão estável conhecida como fallback
+        console.warn('[WhatsApp Server] Falha ao buscar versão WA, usando fallback:', cachedWAVersion.join('.'));
+      }
     }
 
     const { state, saveCreds } = await useSupabaseAuthState();
 
     const pino = (await import('pino')).default;
 
-    sock = makeWASocket({
+    const newSock = makeWASocket({
       version: cachedWAVersion,
-      logger: pino({ level: 'silent' }), // suprime todos os logs de erros internos do Baileys
+      logger: pino({ level: 'silent' }),
       printQRInTerminal: false,
       auth: state,
-      keepAliveIntervalMs: 30_000,
-      getMessage: async () => undefined, // não tentar reenviar mensagens ausentes
+      keepAliveIntervalMs: 25_000,
+      connectTimeoutMs: 60_000,
+      retryRequestDelayMs: 2000,
+      getMessage: async () => undefined,
       syncFullHistory: false,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: false,
-      fireInitQueries: false,            // não buscar histórico/grupos ao conectar
-      shouldSyncHistoryMessage: () => false, // ignorar sync de histórico de grupos
+      fireInitQueries: false,
+      shouldSyncHistoryMessage: () => false,
     });
+
+    sock = newSock;
+    starting = false; // socket criado com sucesso
 
     sock.ev.on('creds.update', saveCreds);
 
@@ -206,42 +238,44 @@ async function startSocket() {
       if (connection === 'close') {
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const loggedOut = statusCode === DisconnectReason.loggedOut;
+        const replaced = statusCode === 440; // conflict:replaced
 
         sock = null;
         currentQr = null;
-
-        // 440 = conflict:replaced (outra sessão tomou o lugar) → limpar e gerar novo QR
-        const replaced = statusCode === 440;
 
         if (loggedOut || replaced) {
           const reason = loggedOut ? 'Deslogado' : 'Sessão substituída (conflict:replaced)';
           console.log(`[WhatsApp Server] ${reason}. Limpando sessão para novo QR...`);
           currentStatus = 'qr';
+          reconnectAttempts = 0;
           supabase.from('whatsapp_auth').delete().neq('id', '').then(() => {
-            console.log('[WhatsApp Server] Sessão limpa. Aguardando novo QR...');
-            if (reconnectTimeout) clearTimeout(reconnectTimeout);
-            reconnectTimeout = setTimeout(startSocket, 3000);
+            console.log('[WhatsApp Server] Sessão limpa. Reconectando em 3s...');
+            scheduleReconnect(3000);
+          }).catch((err) => {
+            console.error('[WhatsApp Server] Erro ao limpar sessão:', err.message);
+            scheduleReconnect(5000);
           });
         } else {
-          // Mantém status 'connecting' para a UI não oscilar durante reconexão automática
           currentStatus = 'connecting';
-          const delay = statusCode === 408 ? 3000 : 5000;
-          console.log(`[WhatsApp Server] Conexão fechada (código ${statusCode}). Reconectando em ${delay / 1000}s...`);
-          if (reconnectTimeout) clearTimeout(reconnectTimeout);
-          reconnectTimeout = setTimeout(startSocket, delay);
+          const delay = getReconnectDelay(statusCode);
+          console.log(`[WhatsApp Server] Conexão fechada (código ${statusCode}). Reconectando em ${delay / 1000}s... (tentativa ${reconnectAttempts})`);
+          scheduleReconnect(delay);
         }
       } else if (connection === 'open') {
         currentStatus = 'connected';
         currentQr = null;
+        reconnectAttempts = 0; // reset backoff ao conectar com sucesso
         console.log('[WhatsApp Server] ✅ Conectado ao WhatsApp com sucesso!');
       }
     });
   } catch (error) {
     console.error('[WhatsApp Server] Erro ao iniciar socket:', error);
     sock = null;
+    starting = false;
     currentStatus = 'disconnected';
-    if (reconnectTimeout) clearTimeout(reconnectTimeout);
-    reconnectTimeout = setTimeout(startSocket, 10000);
+    const delay = getReconnectDelay(null);
+    console.log(`[WhatsApp Server] Tentando novamente em ${delay / 1000}s...`);
+    scheduleReconnect(delay);
   }
 }
 
@@ -286,13 +320,6 @@ async function _executeSend(phone, name) {
 }
 
 // =============================================================================
-// Enviar mensagem de boas-vindas — entrada pública via fila
-// =============================================================================
-function sendWelcomeMessage(phone, name) {
-  return enqueueSend(phone, name);
-}
-
-// =============================================================================
 // Servidor HTTP
 // =============================================================================
 async function handleRequest(req, res) {
@@ -302,7 +329,6 @@ async function handleRequest(req, res) {
 
   // GET /status
   if (req.method === 'GET' && url.pathname === '/status') {
-    // Gerar QR code em data URL se necessário
     let qrDataUrl = null;
     if (currentQr) {
       try {
@@ -329,7 +355,7 @@ async function handleRequest(req, res) {
           res.end(JSON.stringify({ error: 'phone e name são obrigatórios' }));
           return;
         }
-        const result = sendWelcomeMessage(phone, name); // síncrono — só enfileira
+        const result = enqueueSend(phone, name);
         res.writeHead(200);
         res.end(JSON.stringify({ success: true, sent: true, ...result }));
       } catch (error) {
@@ -363,7 +389,6 @@ async function handleRequest(req, res) {
 async function main() {
   console.log('[WhatsApp Server] Carregando Baileys...');
 
-  // Baileys é ESM, então usamos dynamic import
   const baileys = await import('@whiskeysockets/baileys');
   makeWASocket = baileys.default;
   DisconnectReason = baileys.DisconnectReason;
@@ -372,16 +397,27 @@ async function main() {
   initAuthCreds = baileys.initAuthCreds;
   BufferJSON = baileys.BufferJSON;
 
-  // Inicia o socket do WhatsApp
   await startSocket();
 
-  // Inicia o servidor HTTP
   const server = http.createServer(handleRequest);
   server.listen(PORT, () => {
     console.log(`[WhatsApp Server] 🚀 Servidor HTTP rodando na porta ${PORT}`);
     console.log(`[WhatsApp Server]    GET  http://localhost:${PORT}/status`);
     console.log(`[WhatsApp Server]    POST http://localhost:${PORT}/send`);
   });
+
+  // Graceful shutdown
+  const shutdown = () => {
+    console.log('[WhatsApp Server] Encerrando servidor...');
+    if (sock) {
+      try { sock.end(); } catch (_) {}
+      sock = null;
+    }
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(1), 5000);
+  };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }
 
 main().catch(err => {
