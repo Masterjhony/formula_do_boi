@@ -15,6 +15,12 @@ import { createClient as createServerClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { extractGenealogyFromPdfUrl } from '@/lib/genealogy-parser';
 
+/** Resolve caminhos relativos (/arquivo.pdf) para URL absoluta. */
+function resolvePdfUrl(raw: string, origin: string): string {
+    if (raw.startsWith('http')) return raw;
+    return `${origin}${raw.startsWith('/') ? '' : '/'}${raw}`;
+}
+
 export const runtime = 'nodejs';
 export const maxDuration = 60; // segundos (Vercel Pro permite até 300)
 
@@ -35,10 +41,11 @@ async function assertAdmin() {
 }
 
 // ── GET: lista produtos com PDF ──────────────────────────────────────────────
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         await assertAdmin();
         const admin = getAdminClient();
+        const origin = new URL(request.url).origin;
 
         const { data: products, error } = await admin
             .from('products')
@@ -53,7 +60,7 @@ export async function GET() {
             .map((p: any) => ({
                 id: p.id,
                 name: p.name,
-                pdfUrl: p.details.pdf,
+                pdfUrl: resolvePdfUrl(p.details.pdf, origin),
                 hasGenealogia: !!p.genealogia_json,
                 ancestralCount: p.genealogia_json ? Object.keys(p.genealogia_json).length : 0,
             }));
@@ -78,6 +85,7 @@ export async function POST(request: NextRequest) {
         const dryRun: boolean = body.dryRun ?? false;
         const onlyMissing: boolean = body.onlyMissing ?? true; // padrão: apenas quem ainda não tem
 
+        const origin = new URL(request.url).origin;
         const admin = getAdminClient();
 
         const { data: products, error } = await admin
@@ -99,7 +107,8 @@ export async function POST(request: NextRequest) {
         for (const product of targets) {
             const result: any = { id: product.id, name: product.name, status: 'ok', ancestralCount: 0 };
             try {
-                const { data: genealogia } = await extractGenealogyFromPdfUrl(product.details.pdf);
+                const pdfUrl = resolvePdfUrl(product.details.pdf, origin);
+                const { data: genealogia } = await extractGenealogyFromPdfUrl(pdfUrl);
                 result.ancestralCount = Object.keys(genealogia).length;
                 result.genealogia = genealogia;
 

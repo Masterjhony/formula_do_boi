@@ -58,12 +58,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Produto não encontrado.' }, { status: 404 });
         }
 
-        const pdfUrl: string | undefined = product.details?.pdf;
-        if (!pdfUrl) {
+        const rawPdfPath: string | undefined = product.details?.pdf;
+        if (!rawPdfPath) {
             return NextResponse.json({
                 error: 'Nenhum PDF cadastrado neste lote. Faça o upload da ficha técnica primeiro.',
             }, { status: 422 });
         }
+
+        // Resolve caminho relativo (/arquivo.pdf) para URL absoluta usando o origin da requisição.
+        // PDFs na pasta public/ do Next.js são servidos em https://dominio.com/arquivo.pdf.
+        const pdfUrl = rawPdfPath.startsWith('http')
+            ? rawPdfPath
+            : `${new URL(request.url).origin}${rawPdfPath.startsWith('/') ? '' : '/'}${rawPdfPath}`;
 
         // ---- Extrai genealogia do PDF ----
         const { data: genealogia, rawText, section } = await extractGenealogyFromPdfUrl(pdfUrl);
