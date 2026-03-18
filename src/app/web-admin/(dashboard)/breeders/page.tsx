@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Plus, Trash2, User, Loader2, Edit2, Package } from 'lucide-react';
+import { Plus, Trash2, User, Loader2, Edit2, Package, ChevronDown, ChevronRight } from 'lucide-react';
 
 export default function BreedersPage() {
     const [breeders, setBreeders] = useState<any[]>([]);
@@ -13,6 +13,8 @@ export default function BreedersPage() {
     const [newBreederName, setNewBreederName] = useState('');
     const [saving, setSaving] = useState(false);
     const [productCounts, setProductCounts] = useState<Record<string, number>>({});
+    const [productsByBreeder, setProductsByBreeder] = useState<Record<string, any[]>>({});
+    const [expandedBreeders, setExpandedBreeders] = useState<Set<string>>(new Set());
 
     const supabase = createClient();
 
@@ -27,25 +29,37 @@ export default function BreedersPage() {
     };
 
     const fetchProductCounts = async () => {
-        // Fetch all products to count by breeder
-        // Since breeder info is in details->breeder or details->proprietario
         const { data: products } = await supabase
             .from('products')
-            .select('details');
+            .select('id, name, category, image, price, location, details');
 
         if (products) {
             const counts: Record<string, number> = {};
+            const grouped: Record<string, any[]> = {};
             products.forEach((p: any) => {
                 const breederName = p.details?.breeder || p.details?.proprietario;
                 if (breederName) {
-                    // Normalize for counting (optional, but good for loose matches)
-                    // For now, exact match to breeder name
                     const name = breederName.trim();
                     counts[name] = (counts[name] || 0) + 1;
+                    if (!grouped[name]) grouped[name] = [];
+                    grouped[name].push(p);
                 }
             });
             setProductCounts(counts);
+            setProductsByBreeder(grouped);
         }
+    };
+
+    const toggleExpanded = (breederName: string) => {
+        setExpandedBreeders(prev => {
+            const next = new Set(prev);
+            if (next.has(breederName)) {
+                next.delete(breederName);
+            } else {
+                next.add(breederName);
+            }
+            return next;
+        });
     };
 
     const fetchBreeders = async () => {
@@ -260,39 +274,101 @@ export default function BreedersPage() {
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-100 dark:divide-[#333333]">
-                        {breeders.map((breeder, index) => (
-                            <div key={breeder.id} className="p-4 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-50 dark:hover:bg-[#111111] transition-colors">
-                                <div className="w-12 text-center text-gray-400 dark:text-gray-600 text-sm">{index + 1}</div>
-                                <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                                    <User className="w-4 h-4 text-gray-400" />
-                                    {breeder.name}
+                        {breeders.map((breeder, index) => {
+                            const count = productCounts[breeder.name] || 0;
+                            const isExpanded = expandedBreeders.has(breeder.name);
+                            const animals = productsByBreeder[breeder.name] || [];
+
+                            return (
+                                <div key={breeder.id}>
+                                    <div className="p-4 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-50 dark:hover:bg-[#111111] transition-colors">
+                                        <div className="w-12 text-center text-gray-400 dark:text-gray-600 text-sm">{index + 1}</div>
+                                        <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                                            <User className="w-4 h-4 text-gray-400" />
+                                            {breeder.name}
+                                        </div>
+                                        <div className="flex items-center justify-center gap-1.5 w-32">
+                                            <button
+                                                onClick={() => count > 0 && toggleExpanded(breeder.name)}
+                                                disabled={count === 0}
+                                                className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold transition-colors ${count > 0
+                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 cursor-pointer'
+                                                    : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 cursor-default'
+                                                    }`}
+                                            >
+                                                {count > 0 && (
+                                                    isExpanded
+                                                        ? <ChevronDown className="w-3 h-3" />
+                                                        : <ChevronRight className="w-3 h-3" />
+                                                )}
+                                                {count} lotes
+                                            </button>
+                                        </div>
+                                        <div className="text-right w-24 flex justify-end gap-1">
+                                            <button
+                                                onClick={() => handleEditInit(breeder)}
+                                                className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                title="Editar"
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(breeder.id)}
+                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Remover"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Expanded animals list */}
+                                    {isExpanded && animals.length > 0 && (
+                                        <div className="bg-gray-50 dark:bg-[#111111] border-t border-gray-100 dark:border-[#2a2a2a]">
+                                            <div className="px-6 py-3 grid grid-cols-[auto_1fr_auto_auto] gap-4 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                                                <div className="w-12"></div>
+                                                <div>Animal</div>
+                                                <div className="w-32 text-center">Categoria</div>
+                                                <div className="w-24 text-right">Preço</div>
+                                            </div>
+                                            <div className="divide-y divide-gray-100 dark:divide-[#2a2a2a]">
+                                                {animals.map((animal) => (
+                                                    <div key={animal.id} className="px-6 py-3 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-colors">
+                                                        <div className="w-12 flex justify-center">
+                                                            {animal.image ? (
+                                                                <img
+                                                                    src={animal.image}
+                                                                    alt={animal.name}
+                                                                    className="w-10 h-10 rounded-lg object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                                                    <Package className="w-4 h-4 text-gray-400" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{animal.name}</p>
+                                                            {animal.details?.raca && (
+                                                                <p className="text-xs text-gray-500 dark:text-gray-400">{animal.details.raca}</p>
+                                                            )}
+                                                        </div>
+                                                        <div className="w-32 text-center">
+                                                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                                                                {animal.category || '—'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-24 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            {animal.price || '—'}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex items-center justify-center gap-1.5 w-32">
-                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${(productCounts[breeder.name] || 0) > 0
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-                                        }`}>
-                                        {(productCounts[breeder.name] || 0)} lotes
-                                    </span>
-                                </div>
-                                <div className="text-right w-24 flex justify-end gap-1">
-                                    <button
-                                        onClick={() => handleEditInit(breeder)}
-                                        className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Editar"
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(breeder.id)}
-                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Remover"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
