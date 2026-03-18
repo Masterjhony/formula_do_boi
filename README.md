@@ -83,12 +83,16 @@ Vercel (Next.js)          DigitalOcean Droplet (165.232.142.37)
         │                           │
         ▼                           ▼
    Supabase                    WhatsApp Web
-  (crm_leads,                  (sessão salva
-  products,                    em whatsapp_auth
-  whatsapp_auth)               no Supabase)
+  (crm_leads,                  (sessão salva em
+  products, etc.)              arquivos locais via
+                               Docker volume)
 ```
 
 O **WhatsApp Server** é um processo Node.js separado porque o Baileys mantém uma conexão WebSocket persistente — incompatível com o modelo serverless da Vercel. Ele roda em Docker com `restart: unless-stopped` num Droplet DigitalOcean.
+
+A sessão do Baileys é persistida em **arquivos locais** (`useMultiFileAuthState`) via Docker volume (`/opt/whatsapp-auth/`). O `src/lib/whatsapp.ts` no Next.js é um proxy HTTP puro — **não importa Baileys**.
+
+> Documentação detalhada do servidor: [whatsapp-server/README.md](./whatsapp-server/README.md)
 
 ---
 
@@ -103,7 +107,7 @@ cp .env.example .env.local
 ### Vercel
 Na Vercel, configure as mesmas variáveis em **Settings → Environment Variables**. As prefixadas com `NEXT_PUBLIC_` ficam expostas ao browser; as demais são server-only.
 
-> **WhatsApp Server**: as variáveis `NEXT_PUBLIC_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` também precisam estar no ambiente Docker (ver `docker-compose.yml`).
+> **WhatsApp Server**: o servidor não depende mais do Supabase — a sessão é persistida em arquivos locais via Docker volume. Apenas a variável `WHATSAPP_SERVER_PORT` é necessária (ver [whatsapp-server/README.md](./whatsapp-server/README.md)).
 
 ---
 
@@ -159,17 +163,14 @@ Depois, acesse o painel em `http://admin.localhost:3000/whatsapp` para escanear 
 
 ### Reconectar WhatsApp (sessão expirada)
 
-Se o WhatsApp pedir novo QR mesmo com container rodando, a sessão expirou no lado do WA. Limpe a tabela e reinicie:
-
-```sql
--- No Supabase Studio ou psql
-DELETE FROM whatsapp_auth;
-```
+Se o WhatsApp pedir novo QR mesmo com container rodando, a sessão expirou. Limpe os arquivos de auth e reinicie:
 
 ```bash
 # Em produção (VPS)
 ssh root@165.232.142.37
-docker restart formula_boi_whatsapp
+docker stop formula_boi_whatsapp
+rm -rf /opt/whatsapp-auth/*
+docker start formula_boi_whatsapp
 docker logs -f formula_boi_whatsapp  # ver novo QR
 
 # Em desenvolvimento local
@@ -268,21 +269,29 @@ docker stop formula_boi_whatsapp
 
 # Rebuild após alterar whatsapp-server.js
 cd /opt/whatsapp-server
-docker build -t whatsapp-server .
+docker build -t formula_boi_whatsapp_img .
 docker stop formula_boi_whatsapp && docker rm formula_boi_whatsapp
-docker run -d --name formula_boi_whatsapp --restart unless-stopped --env-file .env -p 3001:3001 whatsapp-server
+docker run -d --name formula_boi_whatsapp --restart unless-stopped \
+  -p 3001:3001 -v /opt/whatsapp-auth:/data/auth \
+  -e WHATSAPP_SERVER_PORT=3001 formula_boi_whatsapp_img
 
 # Verificar status do WhatsApp (conectado, qr, etc.)
 curl http://localhost:3001/status
 ```
 
+> A sessão é preservada no volume `/opt/whatsapp-auth/` — não precisa escanear QR ao fazer rebuild.
+
 #### Atualizar o servidor WhatsApp
 
-Quando `whatsapp-server.js` for alterado localmente, enviar para o servidor:
+Quando `whatsapp-server.js` for alterado localmente, enviar para o servidor. Veja [whatsapp-server/README.md](./whatsapp-server/README.md) para instruções detalhadas.
 
 ```bash
 scp whatsapp-server/whatsapp-server.js root@165.232.142.37:/opt/whatsapp-server/
-ssh root@165.232.142.37 "cd /opt/whatsapp-server && docker build -t whatsapp-server . && docker restart formula_boi_whatsapp"
+ssh root@165.232.142.37 "cd /opt/whatsapp-server && docker build -t formula_boi_whatsapp_img . && \
+  docker stop formula_boi_whatsapp && docker rm formula_boi_whatsapp && \
+  docker run -d --name formula_boi_whatsapp --restart unless-stopped \
+  -p 3001:3001 -v /opt/whatsapp-auth:/data/auth \
+  -e WHATSAPP_SERVER_PORT=3001 formula_boi_whatsapp_img"
 ```
 
 ---
