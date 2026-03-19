@@ -13,9 +13,11 @@ interface FeaturedLotsProps {
 
 export default function FeaturedLots({ products, isAuthenticated = true }: FeaturedLotsProps) {
     // Combine products and embryos for the home page display, deduplicating by ID
-    // Combine products and embryos, giving priority to static EMBRYOS
-    // We spread products first, then EMBRYOS, so EMBRYOS overwrite DB data for same IDs
-    const combinedItems = [...products, ...EMBRYOS];
+    // Strip sensitive data from static EMBRYOS when not authenticated
+    const embryosData = !isAuthenticated
+        ? EMBRYOS.map(e => ({ ...e, price: null, installments: null, downPaymentValue: null, forma_pagamento: null, details: { ...e.details, breeder: null, proprietario: null, pdf: null } }))
+        : EMBRYOS;
+    const combinedItems = [...products, ...embryosData];
     const uniqueItemsMap = new Map();
     combinedItems.forEach(item => {
         uniqueItemsMap.set(item.id, item);
@@ -88,7 +90,7 @@ export default function FeaturedLots({ products, isAuthenticated = true }: Featu
                         >
                             {featuredProducts.map((product) => (
                                 <div key={product.id} className="w-full flex-shrink-0 px-2 box-border">
-                                    <ProductCard product={product} featured={true} />
+                                    <ProductCard product={product} featured={true} isAuthenticated={isAuthenticated} />
                                 </div>
                             ))}
                         </div>

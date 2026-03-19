@@ -70,7 +70,7 @@ export default function ProductSection({ title, items, link, linkText, isAuthent
                     >
                         {items.map((product) => (
                             <div key={product.id} className="w-full flex-shrink-0 px-2 box-border">
-                                <ProductCard product={product} />
+                                <ProductCard product={product} isAuthenticated={isAuthenticated} />
                             </div>
                         ))}
                     </div>

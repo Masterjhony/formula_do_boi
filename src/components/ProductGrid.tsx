@@ -10,8 +10,12 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ products, isAuthenticated = true }: ProductGridProps) {
+    // Strip sensitive data from static EMBRYOS when not authenticated
+    const embryosData = !isAuthenticated
+        ? EMBRYOS.map(e => ({ ...e, price: null, installments: null, downPaymentValue: null, forma_pagamento: null, details: { ...e.details, breeder: null, proprietario: null, pdf: null } }))
+        : EMBRYOS;
     // Combine products and embryos, deduplicating by ID
-    const combinedItems = [...EMBRYOS, ...products];
+    const combinedItems = [...embryosData, ...products];
     const uniqueItemsMap = new Map();
     combinedItems.forEach(item => {
         uniqueItemsMap.set(item.id, item);
