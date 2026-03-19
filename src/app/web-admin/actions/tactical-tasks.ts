@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 import { revalidatePath } from 'next/cache';
 
@@ -307,15 +308,17 @@ export async function saveAttachmentRecord(
     fileType: string,
     fileSize: number
 ) {
+    // Obtém o user id via client de sessão (só para preencher uploaded_by)
     const supabase = await createClient();
-    const { data: userData, error: authError } = await supabase.auth.getUser();
-    console.log('[saveAttachment] auth state:', {
-        userId: userData?.user?.id ?? null,
-        role: userData?.user?.role ?? null,
-        authError: authError?.message ?? null,
-    });
+    const { data: userData } = await supabase.auth.getUser();
 
-    const { data, error } = await supabase
+    // Usa service role para o INSERT — bypassa RLS em server action confiável
+    const admin = createServiceClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data, error } = await admin
         .from('tactical_task_attachments')
         .insert({
             task_id: taskId,
