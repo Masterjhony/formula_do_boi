@@ -142,12 +142,34 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
         setIsUploading(true);
         try {
             const supabase = createClient();
-            const filePath = `${task.id}/${Date.now()}_${file.name}`;
-            const { error: uploadError } = await supabase.storage
-                .from('tactical-attachments')
-                .upload(filePath, file);
 
-            if (uploadError) throw uploadError;
+            // Sanitiza o nome: remove acentos, espaços e chars especiais
+            const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
+            const baseName = file.name
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // remove diacríticos
+                .replace(/[^a-zA-Z0-9._-]/g, '_'); // substitui especiais por _
+            const safeName = ext ? baseName : `${baseName}`;
+            const filePath = `${task.id}/${Date.now()}_${safeName}`;
+
+            console.log('[Attachment] Iniciando upload:', { filePath, fileType: file.type, fileSize: file.size });
+
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('tactical-attachments')
+                .upload(filePath, file, { contentType: file.type || 'application/octet-stream' });
+
+            if (uploadError) {
+                console.error('[Attachment] Erro do Supabase Storage:', {
+                    message: uploadError.message,
+                    name: uploadError.name,
+                    cause: (uploadError as any).cause,
+                    statusCode: (uploadError as any).statusCode,
+                    error: uploadError,
+                });
+                throw new Error(uploadError.message);
+            }
+
+            console.log('[Attachment] Upload OK:', uploadData);
 
             const { data: urlData } = supabase.storage
                 .from('tactical-attachments')
@@ -155,16 +177,17 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
 
             const saved = await saveAttachmentRecord(
                 task.id,
-                file.name,
+                file.name,        // nome original legível no banco
                 urlData.publicUrl,
                 filePath,
-                file.type,
+                file.type || 'application/octet-stream',
                 file.size
             );
             setAttachments(prev => [...prev, saved]);
-        } catch (error) {
-            console.error('Failed to upload attachment:', error);
-            alert('Erro ao fazer upload do arquivo. Verifique se o bucket "tactical-attachments" existe no Supabase.');
+        } catch (error: any) {
+            const msg = error?.message || String(error);
+            console.error('[Attachment] Falha no upload:', msg, error);
+            alert(`Erro ao fazer upload: ${msg}`);
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';

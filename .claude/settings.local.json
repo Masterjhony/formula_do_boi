@@ -1,32 +1,5 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(cd \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\" && npx tsc --noEmit --project tsconfig.json 2>&1 | head -40)",
-      "Bash(docker --version 2>&1 && docker compose version 2>&1)",
-      "Bash(cd \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\" && docker compose --env-file .env.local up -d whatsapp-server 2>&1)",
-      "Bash(docker ps:*)",
-      "Bash(curl -s http://localhost:3001/status | python -m json.tool 2>/dev/null || curl -s http://localhost:3001/status)",
-      "Bash(sleep 8 && curl -s http://localhost:3000/api/whatsapp/status)",
-      "Bash(curl -s http://localhost:3000/api/webhooks/google-sheets)",
-      "Bash(cd \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\" && node test_webhook.js)",
-      "Bash(cd \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\" && curl -s -X POST http://localhost:3000/api/webhooks/google-sheets \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -H \"x-webhook-secret: 78e82b1aaeff0ac98b6436ead95f91930c7d5321a8c26c83219\" \\\\\n  -d '{\n    \"leads\": [{\n      \"nome_completo\": \"Lead Teste Simulado\",\n      \"celular\": \"5531988787208\",\n      \"data\": \"16/03/2026\",\n      \"hora\": \"13:25\",\n      \"cidade\": \"Belo Horizonte\",\n      \"estado\": \"MG\",\n      \"momento_pecuaria\": \"Tenho rebanho e quero melhorar\"\n    }]\n  }')",
-      "Bash(curl -s -X POST http://localhost:3001/send \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"phone\": \"5537999537045\", \"name\": \"Teste\"}')",
-      "Bash(curl -s http://localhost:3001/status)",
-      "Bash(docker restart:*)",
-      "Bash(curl -s http://localhost:3001/status | node -e \"\nconst d = require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\);\nconst j = JSON.parse\\(d\\);\nconsole.log\\('Status:', j.status\\);\nconsole.log\\('QR presente:', !!j.qr\\);\n\")",
-      "Bash(curl -s http://localhost:3001/status | python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Status:', d['status']\\); print\\('QR presente:', bool\\(d.get\\('qr'\\)\\)\\)\")",
-      "Read(//etc/**)",
-      "Bash(powershell.exe -Command 'Get-Content C:\\\\Windows\\\\System32\\\\drivers\\\\etc\\\\hosts')",
-      "Bash(grep -v \"^$\")",
-      "Bash(curl -s http://localhost:3001/status | python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Status:', d['status']\\)\")",
-      "Bash(curl -s -X POST http://localhost:3001/send -H \"Content-Type: application/json\" -d \"{\\\\\"phone\\\\\": \\\\\"5537999537045\\\\\", \\\\\"name\\\\\": \\\\\"Fulano\\\\\"}\")",
-      "Bash(docker exec:*)",
-      "Bash(cd \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\" && docker compose --env-file .env.local up -d --build whatsapp-server 2>&1 | tail -5)",
-      "Bash(curl -s -X POST http://localhost:3001/send -H \"Content-Type: application/json\" -d \"{\\\\\"phone\\\\\": \\\\\"5537999537045\\\\\", \\\\\"name\\\\\": \\\\\"Teste\\\\\"}\" && echo \"\" && sleep 3 && docker logs formula_boi_whatsapp --tail 15 2>&1 | grep -E \"\\\\[WhatsApp|warn|error\" -i)",
-      "Bash(ls \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\\\\public\\\\cattle\\\\\" 2>/dev/null || ls \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\\\\public\\\\\")",
-      "Bash(find /c/Users/Notebook-Acer/Desktop/formula_boi/formula_boi/database -name \"*.sql\" | xargs grep -l \"CREATE TABLE.*products\" | head -5)",
-      "Bash(ls -la /c/Users/Notebook-Acer/Desktop/formula_boi/formula_boi/database/*.sql | wc -l)",
-      "Bash(cd \"C:\\\\Users\\\\Notebook-Acer\\\\Desktop\\\\formula_boi\\\\formula_boi\" && npx tsc --noEmit 2>&1 | head -40)"
-    ]
+    "defaultMode": "bypassPermissions"
   }
 }
