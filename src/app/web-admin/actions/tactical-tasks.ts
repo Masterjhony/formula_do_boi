@@ -308,7 +308,12 @@ export async function saveAttachmentRecord(
     fileSize: number
 ) {
     const supabase = await createClient();
-    const { data: userData } = await supabase.auth.getUser();
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    console.log('[saveAttachment] auth state:', {
+        userId: userData?.user?.id ?? null,
+        role: userData?.user?.role ?? null,
+        authError: authError?.message ?? null,
+    });
 
     const { data, error } = await supabase
         .from('tactical_task_attachments')

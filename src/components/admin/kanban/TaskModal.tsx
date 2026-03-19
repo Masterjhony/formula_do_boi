@@ -140,9 +140,9 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
         if (!task || !e.target.files?.length) return;
         const file = e.target.files[0];
         setIsUploading(true);
+        const supabase = createClient();
+        let uploadedFilePath: string | null = null;
         try {
-            const supabase = createClient();
-
             // Sanitiza o nome: remove acentos, espaços e chars especiais
             const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
             const baseName = file.name
@@ -170,6 +170,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
             }
 
             console.log('[Attachment] Upload OK:', uploadData);
+            uploadedFilePath = filePath; // marca que arquivo existe no storage
 
             const { data: urlData } = supabase.storage
                 .from('tactical-attachments')
@@ -187,6 +188,11 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
         } catch (error: any) {
             const msg = error?.message || String(error);
             console.error('[Attachment] Falha no upload:', msg, error);
+            // Cleanup: remove arquivo órfão do storage se o record falhou
+            if (uploadedFilePath) {
+                supabase.storage.from('tactical-attachments').remove([uploadedFilePath])
+                    .catch(() => { /* silencioso */ });
+            }
             alert(`Erro ao fazer upload: ${msg}`);
         } finally {
             setIsUploading(false);
