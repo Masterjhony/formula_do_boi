@@ -10,9 +10,10 @@ interface ProductSectionProps {
     items: any[];
     link: string;
     linkText: string;
+    isAuthenticated?: boolean;
 }
 
-export default function ProductSection({ title, items, link, linkText }: ProductSectionProps) {
+export default function ProductSection({ title, items, link, linkText, isAuthenticated = true }: ProductSectionProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const nextSlide = () => {
@@ -56,7 +57,7 @@ export default function ProductSection({ title, items, link, linkText }: Product
             {/* Desktop Grid */}
             <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {items.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <ProductCard key={product.id} product={product} isAuthenticated={isAuthenticated} />
                 ))}
             </div>
 

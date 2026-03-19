@@ -1,18 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Loader2, Mail, Lock, Info } from 'lucide-react'
 
 export default function LoginPage() {
+    return (
+        <Suspense>
+            <LoginPageInner />
+        </Suspense>
+    )
+}
+
+function LoginPageInner() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
+    const searchParamsHook = useSearchParams()
+    const nextParam = searchParamsHook.get('next') || ''
     const supabase = createClient()
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -140,7 +150,7 @@ export default function LoginPage() {
                     <div className="mt-8 text-center">
                         <p className="text-gray-400 text-sm">
                             Não tem uma conta?{' '}
-                            <Link href="/auth/signup" className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">
+                            <Link href={nextParam ? `/auth/signup?redirect=${encodeURIComponent(nextParam)}` : '/auth/signup'} className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">
                                 Criar conta gratuita
                             </Link>
                         </p>

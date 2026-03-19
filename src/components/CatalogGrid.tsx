@@ -31,6 +31,7 @@ interface CatalogGridProps {
     hasFilters: boolean;
     neloreFilter?: string | null;
     onNeloreFilterChange?: (filter: string | null) => void;
+    isAuthenticated?: boolean;
 }
 
 export default function CatalogGrid({
@@ -40,6 +41,7 @@ export default function CatalogGrid({
     hasFilters,
     neloreFilter,
     onNeloreFilterChange,
+    isAuthenticated = true,
 }: CatalogGridProps) {
     return (
         <div className="flex-1">
@@ -95,7 +97,7 @@ export default function CatalogGrid({
             {products.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     {products.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                        <ProductCard key={product.id} product={product} isAuthenticated={isAuthenticated} />
                     ))}
                 </div>
             ) : (

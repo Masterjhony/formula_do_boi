@@ -11,9 +11,10 @@ import { Product } from "@/services/products";
 
 interface TourosClientProps {
     products: Product[];
+    isAuthenticated?: boolean;
 }
 
-export default function TourosClient({ products: allProducts }: TourosClientProps) {
+export default function TourosClient({ products: allProducts, isAuthenticated = true }: TourosClientProps) {
     // Extract unique breeders for filter options
     const breederOptions = useMemo(() => {
         const breeders = new Set<string>();
@@ -315,6 +316,7 @@ export default function TourosClient({ products: allProducts }: TourosClientProp
                                 hasFilters={hasFilters}
                                 neloreFilter={neloreFilter}
                                 onNeloreFilterChange={setNeloreFilter}
+                                isAuthenticated={isAuthenticated}
                             />
                             <Pagination
                                 currentPage={currentPage}

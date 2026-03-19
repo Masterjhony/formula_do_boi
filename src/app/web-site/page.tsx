@@ -5,9 +5,11 @@ import Footer from "@/components/Footer";
 import FeaturedLots from "@/components/FeaturedLots";
 import WhatsappSection from "@/components/WhatsappSection";
 import { getProductsServer } from "@/services/products.server";
+import { getIsAuthenticated } from "@/lib/auth-helpers";
 
 export default async function Home() {
-  const products = await getProductsServer();
+  const isAuthenticated = await getIsAuthenticated();
+  const products = await getProductsServer(isAuthenticated);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -15,12 +17,12 @@ export default async function Home() {
       <Hero />
 
       {/* Premium Highlighted Section */}
-      <FeaturedLots products={products} />
+      <FeaturedLots products={products} isAuthenticated={isAuthenticated} />
 
 
 
       {/* Standard Listings */}
-      <ProductGrid products={products} />
+      <ProductGrid products={products} isAuthenticated={isAuthenticated} />
 
 
 

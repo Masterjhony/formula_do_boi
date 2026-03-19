@@ -7,6 +7,9 @@ import { EMBRYOS } from "@/data/embryos";
 import { getProductById, getNavigationData } from "@/services/products.server";
 import { Metadata, ResolvingMetadata } from "next";
 import ProductCard from "@/components/ProductCard";
+import PaywallOverlay from "@/components/PaywallOverlay";
+import PaywallLink from "@/components/PaywallLink";
+import { getIsAuthenticated } from "@/lib/auth-helpers";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -105,9 +108,11 @@ export async function generateMetadata(
 export default async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const numericId = Number(id);
+    const isAuthenticated = await getIsAuthenticated();
+    const redirectPath = `/lote/${numericId}`;
 
     // Check DB first (Source of Truth)
-    let product: any = await getProductById(numericId);
+    let product: any = await getProductById(numericId, isAuthenticated);
 
     // If not found in DB, check static EMBRYOS
     if (!product) {
@@ -326,8 +331,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </span>
                         </div>
 
+                        <PaywallOverlay isAuthenticated={isAuthenticated} redirectPath={redirectPath}>
                         <div className="border-t border-b border-gray-100 py-6 mb-6 space-y-4">
-                            {product.special_price && product.price && product.price !== 'Consultar' && product.installments && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && product.category !== 'Sêmen' ? (
+                            {isAuthenticated && product.special_price && product.price && product.price !== 'Consultar' && product.installments && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && product.category !== 'Sêmen' ? (
                                 <div className="space-y-4">
                                     {/* Opção À Vista */}
                                     <div className="flex justify-between items-end">
@@ -376,24 +382,15 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <div className="flex justify-between items-end">
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">
-                                            {paymentInfo.type === 'avista' ? 'À Vista' : 'Valor'}
+                                            {!isAuthenticated ? 'Valor' : paymentInfo.type === 'avista' ? 'À Vista' : 'Valor'}
                                         </p>
-                                        {'downPaymentValue' in product && (
-                                            <p className="text-sm font-semibold text-brand-gold mb-1">
-                                                Entrada: R$ {product.downPaymentValue}
-                                            </p>
-                                        )}
                                         <div className="flex items-baseline gap-2">
-                                            {paymentInfo.type !== 'avista' && (
-                                                <span className="text-lg text-gray-500 font-medium">
-                                                    {paymentInfo.multiplier}
-                                                </span>
-                                            )}
                                             <p className="text-4xl font-bold text-brand-black">
-                                                {paymentInfo.value}
+                                                {!isAuthenticated ? 'R$ •••••' : paymentInfo.value}
                                             </p>
                                         </div>
                                     </div>
+                                    {isAuthenticated && (
                                     <div className="text-right">
                                         <p className="text-xs text-gray-400">
                                             {paymentInfo.type === 'avista' ? 'Condição' : 'Valor Total'}
@@ -402,9 +399,11 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                             {paymentInfo.type === 'avista' ? paymentInfo.label : `R$ ${product.price}`}
                                         </p>
                                     </div>
+                                    )}
                                 </div>
                             )}
                         </div>
+                        </PaywallOverlay>
 
                         {/* Payment Conditions Info Block */}
                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 mb-6 space-y-3">
@@ -448,7 +447,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
 
                         {!(product.tag === 'Vendido' || product.details?.status === 'Vendido') && (
                             <div className="space-y-3 mb-8">
-                                <a
+                                <PaywallLink
+                                    isAuthenticated={isAuthenticated}
+                                    redirectPath={redirectPath}
                                     href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Gostaria de mais informações. Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -456,15 +457,17 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 >
                                     Fazer uma Proposta
                                     <ArrowRight className="w-5 h-5" />
-                                </a>
-                                <a
+                                </PaywallLink>
+                                <PaywallLink
+                                    isAuthenticated={isAuthenticated}
+                                    redirectPath={redirectPath}
                                     href={`https://wa.me/553175659900?text=${encodeURIComponent(`Olá, tenho interesse em fazer uma proposta à vista no animal ${product.name} (ID: ${product.id}). Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="w-full py-3 bg-white border-2 border-brand-black text-brand-black font-bold rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wide text-sm flex items-center justify-center"
                                 >
                                     Proposta à Vista
-                                </a>
+                                </PaywallLink>
                             </div>
                         )}
 
@@ -480,7 +483,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
 
                             {/* PDF Button if available */}
                             {product.details?.pdf && (
-                                <a
+                                <PaywallLink
+                                    isAuthenticated={isAuthenticated}
+                                    redirectPath={redirectPath}
                                     href={product.details.pdf}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -490,7 +495,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 2H7a2 2 0 00-2 2v15a2 2 0 002 2z" />
                                     </svg>
                                     Baixar Ficha Técnica
-                                </a>
+                                </PaywallLink>
                             )}
                         </div>
                     </div>
@@ -575,7 +580,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             <span className="text-gray-500 font-medium">Raça</span>
                             <p className="text-gray-900 font-semibold text-lg">{product.details?.raca || 'Nelore'}</p>
                         </div>
-                        {(product.details?.breeder || product.details?.proprietario) && (
+                        {isAuthenticated && (product.details?.breeder || product.details?.proprietario) && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Criador / Proprietário</span>
                                 <p className="text-gray-900 font-semibold text-lg">{product.details?.breeder || product.details?.proprietario}</p>
@@ -607,31 +612,78 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.peso}</p>
                             </div>
                         )}
-                        {(product.mgte || product.details?.mgte) && (
+                        {isAuthenticated && (product.mgte || product.details?.mgte) && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Index (MGTe)</span>
                                 <p className="text-gray-900 font-semibold text-lg text-brand-black bg-brand-gold/10 px-2 py-0.5 rounded w-fit">{product.mgte || product.details.mgte}</p>
                             </div>
                         )}
-                        {(product.iabcz || product.details?.iabcz) && (
+                        {isAuthenticated && (product.iabcz || product.details?.iabcz) && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Index (iABCZ)</span>
                                 <p className="text-gray-900 font-semibold text-lg text-brand-black bg-brand-gold/10 px-2 py-0.5 rounded w-fit">{product.iabcz || product.details.iabcz}</p>
                             </div>
                         )}
-                        {(product.iqg || product.details?.iqg) && (
+                        {isAuthenticated && (product.iqg || product.details?.iqg) && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Index (IQG)</span>
                                 <p className="text-gray-900 font-semibold text-lg text-brand-black bg-brand-gold/10 px-2 py-0.5 rounded w-fit">{product.iqg || product.details.iqg}</p>
                             </div>
                         )}
-                        {product.details?.top && (
+                        {isAuthenticated && product.details?.top && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Top (MGTe)</span>
                                 <p className="text-gray-900 font-semibold text-lg">{product.details.top}</p>
                             </div>
                         )}
+                        {!isAuthenticated && (
+                            <div className="col-span-full">
+                                <PaywallOverlay isAuthenticated={false} redirectPath={redirectPath}>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {['MGTe', 'iABCZ', 'IQG', 'Top'].map(label => (
+                                            <div key={label} className="space-y-1">
+                                                <span className="text-gray-500 font-medium">{label}</span>
+                                                <p className="text-gray-900 font-semibold text-lg bg-brand-gold/10 px-2 py-0.5 rounded w-fit">••••</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </PaywallOverlay>
+                            </div>
+                        )}
                     </div>
+
+                    {/* Genealogy Tree — Placeholder for unauthenticated */}
+                    {!isAuthenticated && (
+                        <div className="mt-10 pt-8 border-t border-gray-100">
+                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-8 flex items-center gap-2">
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="5" r="2" /><circle cx="5" cy="19" r="2" /><circle cx="19" cy="19" r="2" />
+                                    <path d="M12 7v4M8.5 17.5l3.5-6.5M15.5 17.5L12 11" />
+                                </svg>
+                                Árvore Genealógica
+                            </h3>
+                            <PaywallOverlay isAuthenticated={false} redirectPath={redirectPath}>
+                                <div className="max-w-3xl mx-auto space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="border-2 rounded-xl p-3 text-center bg-sky-50 border-sky-200">
+                                            <p className="text-xs font-bold text-sky-500 uppercase mb-1">♂ Pai</p>
+                                            <p className="font-bold text-gray-900 text-sm">••••••••</p>
+                                        </div>
+                                        <div className="border-2 rounded-xl p-3 text-center bg-rose-50 border-rose-200">
+                                            <p className="text-xs font-bold text-rose-500 uppercase mb-1">♀ Mãe</p>
+                                            <p className="font-bold text-gray-900 text-sm">••••••••</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-center">
+                                        <div className="bg-amber-50 border-2 border-brand-gold rounded-xl px-6 py-4 text-center">
+                                            <p className="text-xs font-bold text-brand-gold uppercase mb-1">Animal</p>
+                                            <p className="font-bold text-gray-900 text-base">{product.name}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </PaywallOverlay>
+                        </div>
+                    )}
 
                     {/* Genealogy Tree */}
                     {(() => {
@@ -817,6 +869,51 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                     })()}
                 </div>
 
+                {/* Avaliação Genética — Placeholder for unauthenticated */}
+                {!isAuthenticated && (
+                    <div className="mt-10 pt-8 border-t border-gray-100">
+                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-6 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M2 12h4M18 12h4M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                            </svg>
+                            Avaliação Genética
+                        </h3>
+                        <PaywallOverlay isAuthenticated={false} redirectPath={redirectPath}>
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    {['iABCZ', 'DECA', 'P%', 'F'].map(label => (
+                                        <div key={label} className="rounded-2xl px-4 py-4 text-center border bg-gray-50 border-gray-200">
+                                            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{label}</p>
+                                            <p className="text-3xl font-black text-gray-300 leading-none">••</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="rounded-xl border border-gray-200 overflow-hidden">
+                                    <div className="px-4 py-2.5 bg-sky-50">
+                                        <p className="text-xs font-bold uppercase tracking-wider text-sky-700">Crescimento</p>
+                                    </div>
+                                    <table className="w-full text-sm">
+                                        <thead><tr className="border-b border-gray-100 bg-gray-50/60">
+                                            <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase">Característica</th>
+                                            <th className="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase w-20">DEP</th>
+                                            <th className="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase w-16">AC%</th>
+                                            <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase w-24">DECA</th>
+                                        </tr></thead>
+                                        <tbody className="divide-y divide-gray-50">
+                                            {['DP120', 'DP210', 'DP365', 'DP450'].map(n => (
+                                                <tr key={n}><td className="px-4 py-2.5 text-gray-300">{n}</td>
+                                                <td className="px-3 py-2.5 text-right text-gray-300">••</td>
+                                                <td className="px-3 py-2.5 text-right text-gray-300">••%</td>
+                                                <td className="px-4 py-2.5 text-right text-gray-300">••</td></tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </PaywallOverlay>
+                    </div>
+                )}
+
                 {/* Avaliação Genética */}
                 {(() => {
                     const av: any = product.avaliacao_genetica_json ?? null;
@@ -990,7 +1087,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 {relatedProducts.map((p) => (
                                     <div key={p.id} className="w-[280px] sm:w-[320px] flex-none snap-center first:pl-0 last:pr-4">
                                         <div className="h-full transform transition-transform hover:-translate-y-1 duration-300">
-                                            <ProductCard product={p} />
+                                            <ProductCard product={p} isAuthenticated={isAuthenticated} />
                                         </div>
                                     </div>
                                 ))}

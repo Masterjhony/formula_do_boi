@@ -44,9 +44,10 @@ interface ProductProps {
 interface ProductCardProps {
     product: ProductProps;
     featured?: boolean;
+    isAuthenticated?: boolean;
 }
 
-export default function ProductCard({ product, featured = false }: ProductCardProps) {
+export default function ProductCard({ product, featured = false, isAuthenticated = true }: ProductCardProps) {
     // Generate an animal code based on ID
     const animalCode = `FB-PO-${product.id.toString().padStart(3, '0')}`;
 
@@ -232,7 +233,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider border border-gray-200 px-2 py-0.5 rounded-full">
                         {product.category}
                     </span>
-                    {(product.details?.breeder || product.details?.proprietario) && (
+                    {isAuthenticated && (product.details?.breeder || product.details?.proprietario) && (
                         <span className="text-[10px] font-bold text-brand-gold uppercase tracking-wider border border-brand-gold/20 px-2 py-0.5 rounded-full bg-brand-gold/5 truncate max-w-[120px]">
                             {product.details?.breeder || product.details?.proprietario}
                         </span>
@@ -281,19 +282,19 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                             {/* Extra Details for Matrizes */}
                             {(product.details.mgte || product.details.status || product.iabcz || product.mgte || product.iqg) && (
                                 <div className="mt-2 pt-2 border-t border-gray-200 grid grid-cols-1 gap-1">
-                                    {(product.mgte || product.details.mgte) && (
+                                    {isAuthenticated && (product.mgte || product.details.mgte) && (
                                         <div className="flex justify-between items-center text-[10px]">
                                             <span className="font-bold text-gray-500 uppercase">MGTe</span>
                                             <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.mgte || product.details.mgte}</span>
                                         </div>
                                     )}
-                                    {product.iabcz && (
+                                    {isAuthenticated && product.iabcz && (
                                         <div className="flex justify-between items-center text-[10px]">
                                             <span className="font-bold text-gray-500 uppercase">iABCZ</span>
                                             <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.iabcz}</span>
                                         </div>
                                     )}
-                                    {product.iqg && (
+                                    {isAuthenticated && product.iqg && (
                                         <div className="flex justify-between items-center text-[10px]">
                                             <span className="font-bold text-gray-500 uppercase">IQG</span>
                                             <span className="font-bold text-brand-black bg-brand-gold/20 px-1.5 py-0.5 rounded">{product.iqg}</span>
@@ -310,6 +311,27 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                     )
                 }
 
+                {!isAuthenticated ? (
+                    <div className="mt-auto border-t border-gray-50 pt-4">
+                        <div className="bg-brand-gold/5 border border-brand-gold/20 rounded-lg p-4 text-center">
+                            <p className="text-xs font-semibold text-gray-600 mb-3">
+                                Cadastre-se para ver preço e condições
+                            </p>
+                            <Link
+                                href={`/auth/signup?redirect=/lote/${product.id}`}
+                                className="block w-full py-2.5 text-center text-sm font-bold uppercase tracking-wide rounded-lg bg-brand-gold text-brand-black hover:bg-yellow-500 transition-colors shadow-sm"
+                            >
+                                Criar Conta Gratuita
+                            </Link>
+                            <Link
+                                href={`/login?next=/lote/${product.id}`}
+                                className="block mt-2 text-xs text-gray-500 hover:text-brand-gold transition-colors"
+                            >
+                                Já tenho conta
+                            </Link>
+                        </div>
+                    </div>
+                ) : (
                 <div className="mt-auto border-t border-gray-50 pt-4">
                     <div className="flex flex-col">
                         <span className="text-xs text-brand-gold font-semibold uppercase tracking-wide">
@@ -405,6 +427,7 @@ export default function ProductCard({ product, featured = false }: ProductCardPr
                         </a>
                     )}
                 </div>
+                )}
             </div >
         </div >
     );

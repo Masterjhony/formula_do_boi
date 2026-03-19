@@ -1,13 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Loader2, Mail, Lock, User, Info, CheckCircle2 } from 'lucide-react'
 
 export default function SignupPage() {
+    return (
+        <Suspense>
+            <SignupPageInner />
+        </Suspense>
+    )
+}
+
+function SignupPageInner() {
+    const searchParams = useSearchParams()
+    const redirect = searchParams.get('redirect') || ''
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -69,7 +79,7 @@ export default function SignupPage() {
                     <h2 className="text-2xl font-bold text-white mb-2">Conta Criada com Sucesso!</h2>
                     <p className="text-gray-400 mb-8">Por favor, verifique seu email para confirmar seu cadastro antes de fazer login.</p>
                     <Link
-                        href="/login"
+                        href={redirect ? `/login?next=${encodeURIComponent(redirect)}` : '/login'}
                         className="inline-flex items-center justify-center w-full bg-[#B8860B] hover:bg-[#D4AF37] text-black font-bold py-3.5 rounded-xl transition-all"
                     >
                         Voltar para Login
@@ -196,7 +206,7 @@ export default function SignupPage() {
                     <div className="mt-8 text-center">
                         <p className="text-gray-400 text-sm">
                             Já tem uma conta?{' '}
-                            <Link href="/login" className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">
+                            <Link href={redirect ? `/login?next=${encodeURIComponent(redirect)}` : '/login'} className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">
                                 Fazer login
                             </Link>
                         </p>

@@ -6,9 +6,10 @@ import ProductSection from "./ProductSection";
 
 interface ProductGridProps {
     products: any[];
+    isAuthenticated?: boolean;
 }
 
-export default function ProductGrid({ products }: ProductGridProps) {
+export default function ProductGrid({ products, isAuthenticated = true }: ProductGridProps) {
     // Combine products and embryos, deduplicating by ID
     const combinedItems = [...EMBRYOS, ...products];
     const uniqueItemsMap = new Map();
@@ -50,9 +51,9 @@ export default function ProductGrid({ products }: ProductGridProps) {
                     </p>
                 </div>
 
-                <ProductSection title="Touros" items={touros} link="/touros" linkText="Ver todos os Touros" />
-                <ProductSection title="Matrizes" items={matrizes} link="/matrizes" linkText="Ver todas as Matrizes" />
-                <ProductSection title="Embriões" items={embrioes} link="/embrioes" linkText="Ver todos os Embriões" />
+                <ProductSection title="Touros" items={touros} link="/touros" linkText="Ver todos os Touros" isAuthenticated={isAuthenticated} />
+                <ProductSection title="Matrizes" items={matrizes} link="/matrizes" linkText="Ver todas as Matrizes" isAuthenticated={isAuthenticated} />
+                <ProductSection title="Embriões" items={embrioes} link="/embrioes" linkText="Ver todos os Embriões" isAuthenticated={isAuthenticated} />
             </div>
         </section>
     );

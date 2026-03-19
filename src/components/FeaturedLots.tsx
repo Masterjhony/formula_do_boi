@@ -8,9 +8,10 @@ import { useState, useEffect } from "react";
 
 interface FeaturedLotsProps {
     products: any[];
+    isAuthenticated?: boolean;
 }
 
-export default function FeaturedLots({ products }: FeaturedLotsProps) {
+export default function FeaturedLots({ products, isAuthenticated = true }: FeaturedLotsProps) {
     // Combine products and embryos for the home page display, deduplicating by ID
     // Combine products and embryos, giving priority to static EMBRYOS
     // We spread products first, then EMBRYOS, so EMBRYOS overwrite DB data for same IDs
@@ -74,7 +75,7 @@ export default function FeaturedLots({ products }: FeaturedLotsProps) {
                 {/* Desktop Grid */}
                 <div className="hidden lg:grid grid-cols-4 gap-6">
                     {featuredProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} featured={true} />
+                        <ProductCard key={product.id} product={product} featured={true} isAuthenticated={isAuthenticated} />
                     ))}
                 </div>
 

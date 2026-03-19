@@ -23,8 +23,39 @@ const mapProduct = (data: any): Product => ({
     active: data.active ?? true,
 });
 
+// Public mapper — strips sensitive fields for unauthenticated visitors
+const mapProductPublic = (data: any) => {
+    const product: any = mapProduct(data);
+    product.price = null;
+    product.installments = null;
+    product.forma_pagamento = null;
+    product.downPaymentValue = null;
+    product.special_price = false;
+    product.iabcz = null;
+    product.mgte = null;
+    product.iqg = null;
+    product.genealogia_json = null;
+    product.avaliacao_genetica_json = null;
+    product.breeder = null;
+    product.proprietario = null;
+    product.pdf = null;
+    if (product.details) {
+        product.details = {
+            ...product.details,
+            breeder: null,
+            proprietario: null,
+            pdf: null,
+            special_price: false,
+            iabcz: null,
+            mgte: null,
+            iqg: null,
+        };
+    }
+    return product as Product;
+};
+
 // For Server Components
-export const getProductsServer = async () => {
+export const getProductsServer = async (isAuthenticated = true) => {
     const supabase = await createServerClient();
     const { data, error } = await supabase.from('products').select('*').eq('active', true).order('display_order', { ascending: false }).order('id', { ascending: true });
 
@@ -33,10 +64,11 @@ export const getProductsServer = async () => {
         return [];
     }
 
-    return data.map(mapProduct);
+    const mapper = isAuthenticated ? mapProduct : mapProductPublic;
+    return data.map(mapper);
 };
 
-export const getProductById = async (id: number) => {
+export const getProductById = async (id: number, isAuthenticated = true) => {
     const supabase = await createServerClient();
     const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
 
@@ -45,7 +77,7 @@ export const getProductById = async (id: number) => {
         return null;
     }
 
-    return mapProduct(data);
+    return isAuthenticated ? mapProduct(data) : mapProductPublic(data);
 };
 
 export const getNavigationData = async (currentId: number) => {

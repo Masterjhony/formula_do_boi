@@ -11,11 +11,12 @@ import Pagination from "@/components/Pagination";
 
 interface MatrizesClientProps {
     products: Product[];
+    isAuthenticated?: boolean;
 }
 
 const ITEMS_PER_PAGE = 12;
 
-export default function MatrizesClient({ products: allProducts }: MatrizesClientProps) {
+export default function MatrizesClient({ products: allProducts, isAuthenticated = true }: MatrizesClientProps) {
     // Extract unique breeders for filter options
     const breederOptions = useMemo(() => {
         const breeders = new Set<string>();
@@ -261,6 +262,7 @@ export default function MatrizesClient({ products: allProducts }: MatrizesClient
                                 hasFilters={hasFilters}
                                 neloreFilter={neloreFilter}
                                 onNeloreFilterChange={setNeloreFilter}
+                                isAuthenticated={isAuthenticated}
                             />
 
                             {/* Pagination */}
