@@ -430,6 +430,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                                 product.forma_pagamento?.replace('_', ' ').replace('x', ' parcelas')) :
                                             'Consulte condições'}
                                     </p>
+                                    <p className="text-xs text-gray-400 mt-1 italic">
+                                        A Formula do Boi atua como intermediária e não se responsabiliza pela adimplência dos pagamentos entre as partes.
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
