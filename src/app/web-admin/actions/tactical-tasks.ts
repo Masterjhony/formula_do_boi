@@ -1,7 +1,6 @@
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
-import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 import { revalidatePath } from 'next/cache';
 
@@ -308,51 +307,27 @@ export async function saveAttachmentRecord(
     fileType: string,
     fileSize: number
 ) {
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-    console.log('[saveAttachment] env check:', {
-        hasServiceRoleKey: !!serviceRoleKey,
-        hasSupabaseUrl: !!supabaseUrl,
-    });
-
-    if (!serviceRoleKey || !supabaseUrl) {
-        throw new Error(
-            `Missing env vars: SUPABASE_SERVICE_ROLE_KEY=${!!serviceRoleKey}, NEXT_PUBLIC_SUPABASE_URL=${!!supabaseUrl}`
-        );
-    }
-
-    // Obtém o user id via client de sessão (só para preencher uploaded_by)
     const supabase = await createClient();
     const { data: userData } = await supabase.auth.getUser();
 
-    // Usa service role para o INSERT — bypassa RLS em server action confiável
-    const admin = createServiceClient(supabaseUrl, serviceRoleKey);
-
-    const insertPayload = {
-        task_id: taskId,
-        file_name: fileName,
-        file_url: fileUrl,
-        file_path: filePath,
-        file_type: fileType,
-        file_size: fileSize,
-        uploaded_by: userData?.user?.id ?? null,
-    };
-
-    console.log('[saveAttachment] inserting:', insertPayload);
-
-    const { data, error } = await admin
+    const { data, error } = await supabase
         .from('tactical_task_attachments')
-        .insert(insertPayload)
+        .insert({
+            task_id: taskId,
+            file_name: fileName,
+            file_url: fileUrl,
+            file_path: filePath,
+            file_type: fileType,
+            file_size: fileSize,
+            uploaded_by: userData?.user?.id ?? null,
+        })
         .select()
         .single();
 
     if (error) {
-        console.error('[saveAttachment] FULL ERROR:', JSON.stringify(error, null, 2));
-        throw new Error(`Failed to save attachment: ${error.message} (code: ${error.code})`);
+        console.error('[saveAttachment] error:', error);
+        throw new Error(`Failed to save attachment: ${error.message}`);
     }
-
-    console.log('[saveAttachment] success:', data?.id);
 
     revalidatePath('/web-admin/tactical-plan');
     return data as TacticalAttachment;
