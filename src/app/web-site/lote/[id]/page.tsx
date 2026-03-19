@@ -159,6 +159,11 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
     }
 
     const paymentInfo = (() => {
+        // When not authenticated, price data is stripped — return placeholder
+        if (!isAuthenticated) {
+            return { type: 'hidden' as const, label: '', value: '', multiplier: '' };
+        }
+
         const isSemen = product.category === 'Sêmen';
         const isAvista =
             product.installments?.toLowerCase() === 'à vista' ||
@@ -423,8 +428,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <div>
                                     <p className="text-xs font-bold text-gray-900 uppercase">Condições de Pagamento</p>
                                     <p className="text-sm text-gray-600">
-                                        {'forma_pagamento' in product ?
-                                            ('downPaymentValue' in product ?
+                                        {!isAuthenticated ? 'Cadastre-se para ver condições' :
+                                        product.forma_pagamento ?
+                                            (product.downPaymentValue ?
                                                 `Entrada de R$ ${product.downPaymentValue} + ${product.forma_pagamento?.replace('Entrada + ', '')}` :
                                                 product.forma_pagamento?.replace('_', ' ').replace('x', ' parcelas')) :
                                             'Consulte condições'}
