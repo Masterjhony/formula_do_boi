@@ -2,7 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Calendar, CheckSquare, MessageSquare } from 'lucide-react';
+import { Calendar, CheckSquare, MessageSquare, Paperclip } from 'lucide-react';
 import { TacticalTask } from '@/app/web-admin/actions/tactical-tasks';
 
 interface TaskCardProps {
@@ -53,6 +53,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
 
     // Fallback safely if tactical_task_comments is undefined
     const commentCount = task.tactical_task_comments?.[0]?.count || 0;
+    const attachmentCount = task.tactical_task_attachments?.[0]?.count || 0;
 
     return (
         <div
@@ -79,7 +80,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                 {task.title}
             </h3>
 
-            {(totalChecklists > 0 || commentCount > 0 || (task.assignees && task.assignees.length > 0)) && (
+            {(totalChecklists > 0 || commentCount > 0 || attachmentCount > 0 || (task.assignees && task.assignees.length > 0)) && (
                 <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#222222]">
 
                     {/* Indicators */}
@@ -97,6 +98,13 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                             <div className="flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md flex-shrink-0 bg-gray-50 text-gray-500 ring-1 ring-gray-200/50 dark:bg-[#222222] dark:text-gray-400 dark:ring-[#333333]">
                                 <MessageSquare size={10} />
                                 {commentCount}
+                            </div>
+                        )}
+
+                        {attachmentCount > 0 && (
+                            <div className="flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md flex-shrink-0 bg-gray-50 text-gray-500 ring-1 ring-gray-200/50 dark:bg-[#222222] dark:text-gray-400 dark:ring-[#333333]">
+                                <Paperclip size={10} />
+                                {attachmentCount}
                             </div>
                         )}
                     </div>

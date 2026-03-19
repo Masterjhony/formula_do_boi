@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Calendar, User, Save, Plus, Trash2, CheckCircle2, MessageSquare, Send } from 'lucide-react';
-import { TacticalTask, TacticalComment, getComments, addComment } from '@/app/web-admin/actions/tactical-tasks';
+import { useState, useEffect, useRef } from 'react';
+import { X, Calendar, Save, Plus, Trash2, CheckCircle2, MessageSquare, Send, Paperclip, Download, FileText, FileImage, FileVideo, File } from 'lucide-react';
+import { TacticalTask, TacticalComment, TacticalAttachment, getComments, addComment, getAttachments, saveAttachmentRecord, deleteAttachment } from '@/app/web-admin/actions/tactical-tasks';
+import { createClient } from '@/utils/supabase/client';
 
 interface TaskModalProps {
     isOpen: boolean;
@@ -32,6 +33,12 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
     const [isLoadingComments, setIsLoadingComments] = useState(false);
     const [isSendingComment, setIsSendingComment] = useState(false);
 
+    // Attachments State
+    const [attachments, setAttachments] = useState<TacticalAttachment[]>([]);
+    const [isLoadingAttachments, setIsLoadingAttachments] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     useEffect(() => {
         if (task) {
             setTitle(task.title);
@@ -55,6 +62,20 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                 }
             };
             loadComments();
+
+            // Load Attachments
+            const loadAttachments = async () => {
+                setIsLoadingAttachments(true);
+                try {
+                    const data = await getAttachments(task.id);
+                    setAttachments(data);
+                } catch (error) {
+                    console.error('Failed to load attachments:', error);
+                } finally {
+                    setIsLoadingAttachments(false);
+                }
+            };
+            loadAttachments();
         } else {
             setTitle('');
             setDescription('');
@@ -65,6 +86,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
             setChecklists([]);
             setComments([]);
             setNewComment('');
+            setAttachments([]);
         }
     }, [task, defaultStatus, isOpen]);
 
@@ -112,6 +134,66 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
         } finally {
             setIsSendingComment(false);
         }
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!task || !e.target.files?.length) return;
+        const file = e.target.files[0];
+        setIsUploading(true);
+        try {
+            const supabase = createClient();
+            const filePath = `${task.id}/${Date.now()}_${file.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('tactical-attachments')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = supabase.storage
+                .from('tactical-attachments')
+                .getPublicUrl(filePath);
+
+            const saved = await saveAttachmentRecord(
+                task.id,
+                file.name,
+                urlData.publicUrl,
+                filePath,
+                file.type,
+                file.size
+            );
+            setAttachments(prev => [...prev, saved]);
+        } catch (error) {
+            console.error('Failed to upload attachment:', error);
+            alert('Erro ao fazer upload do arquivo. Verifique se o bucket "tactical-attachments" existe no Supabase.');
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleDeleteAttachment = async (attachment: TacticalAttachment) => {
+        if (!window.confirm(`Excluir o anexo "${attachment.file_name}"?`)) return;
+        try {
+            await deleteAttachment(attachment.id, attachment.file_path);
+            setAttachments(prev => prev.filter(a => a.id !== attachment.id));
+        } catch (error) {
+            console.error('Failed to delete attachment:', error);
+        }
+    };
+
+    const getFileIcon = (fileType?: string) => {
+        if (!fileType) return <File size={16} />;
+        if (fileType.startsWith('image/')) return <FileImage size={16} />;
+        if (fileType.startsWith('video/')) return <FileVideo size={16} />;
+        if (fileType.includes('pdf') || fileType.includes('document') || fileType.includes('text')) return <FileText size={16} />;
+        return <File size={16} />;
+    };
+
+    const formatFileSize = (bytes?: number) => {
+        if (!bytes) return '';
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     };
 
     const addChecklistItem = () => {
@@ -311,6 +393,80 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                             ))}
                         </div>
                     </div>
+
+                    {/* Attachments */}
+                    {task && (
+                        <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
+                            <div className="flex items-center justify-between mb-4">
+                                <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    <Paperclip size={18} className="text-[#B8860B]" />
+                                    Anexos
+                                    {attachments.length > 0 && (
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">({attachments.length})</span>
+                                    )}
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isUploading}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-[#222222] hover:bg-gray-200 dark:hover:bg-[#333333] rounded-lg transition-colors disabled:opacity-50 border border-gray-200 dark:border-[#333333]"
+                                >
+                                    {isUploading ? (
+                                        <div className="w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin" />
+                                    ) : (
+                                        <Plus size={14} />
+                                    )}
+                                    {isUploading ? 'Enviando...' : 'Adicionar arquivo'}
+                                </button>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    className="hidden"
+                                    onChange={handleFileUpload}
+                                />
+                            </div>
+
+                            {isLoadingAttachments ? (
+                                <div className="text-sm text-gray-500">Carregando...</div>
+                            ) : attachments.length === 0 ? (
+                                <div className="text-sm text-gray-500">Nenhum anexo ainda.</div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {attachments.map(att => (
+                                        <div key={att.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#111111] border border-gray-100 dark:border-[#222222] rounded-lg group">
+                                            <span className="text-[#B8860B] shrink-0">{getFileIcon(att.file_type)}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{att.file_name}</p>
+                                                {att.file_size && (
+                                                    <p className="text-[11px] text-gray-400">{formatFileSize(att.file_size)}</p>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <a
+                                                    href={att.file_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    download={att.file_name}
+                                                    className="p-1.5 text-gray-400 hover:text-[#B8860B] rounded-md transition-colors"
+                                                    title="Baixar"
+                                                >
+                                                    <Download size={15} />
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteAttachment(att)}
+                                                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                                                    title="Excluir"
+                                                >
+                                                    <Trash2 size={15} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Comments */}
                     {task && (

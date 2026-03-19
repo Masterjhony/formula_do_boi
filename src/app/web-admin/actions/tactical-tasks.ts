@@ -24,6 +24,18 @@ export interface TacticalComment {
 }
 
 
+export interface TacticalAttachment {
+    id: string;
+    task_id: string;
+    file_name: string;
+    file_url: string;
+    file_path: string;
+    file_type?: string;
+    file_size?: number;
+    uploaded_by?: string;
+    created_at: string;
+}
+
 export interface TacticalTask {
     id: string;
     title: string;
@@ -36,13 +48,14 @@ export interface TacticalTask {
     created_at: string;
     checklists?: { id: string, title: string, completed: boolean }[];
     tactical_task_comments?: { count: number }[];
+    tactical_task_attachments?: { count: number }[];
 }
 
 export async function getTasks() {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from('tactical_tasks')
-        .select('*, tactical_task_comments(count)')
+        .select('*, tactical_task_comments(count), tactical_task_attachments(count)')
         .order('position', { ascending: true }); // We might want to order by status then position, or handle sorting in JS
 
     if (error) {
@@ -268,4 +281,79 @@ export async function addComment(taskId: string, content: string) {
 
     revalidatePath('/web-admin/tactical-plan');
     return data as TacticalComment;
+}
+
+// --- Attachments Actions ---
+export async function getAttachments(taskId: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('tactical_task_attachments')
+        .select('*')
+        .eq('task_id', taskId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching attachments:', error);
+        return [];
+    }
+    return data as TacticalAttachment[];
+}
+
+export async function saveAttachmentRecord(
+    taskId: string,
+    fileName: string,
+    fileUrl: string,
+    filePath: string,
+    fileType: string,
+    fileSize: number
+) {
+    const supabase = await createClient();
+    const { data: userData } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase
+        .from('tactical_task_attachments')
+        .insert({
+            task_id: taskId,
+            file_name: fileName,
+            file_url: fileUrl,
+            file_path: filePath,
+            file_type: fileType,
+            file_size: fileSize,
+            uploaded_by: userData?.user?.id ?? null,
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error saving attachment record:', error);
+        throw new Error('Failed to save attachment');
+    }
+
+    revalidatePath('/web-admin/tactical-plan');
+    return data as TacticalAttachment;
+}
+
+export async function deleteAttachment(attachmentId: string, filePath: string) {
+    const supabase = await createClient();
+
+    const { error: storageError } = await supabase.storage
+        .from('tactical-attachments')
+        .remove([filePath]);
+
+    if (storageError) {
+        console.error('Error deleting file from storage:', storageError);
+        // Continue to delete DB record even if storage fails
+    }
+
+    const { error } = await supabase
+        .from('tactical_task_attachments')
+        .delete()
+        .eq('id', attachmentId);
+
+    if (error) {
+        console.error('Error deleting attachment record:', error);
+        throw new Error('Failed to delete attachment');
+    }
+
+    revalidatePath('/web-admin/tactical-plan');
 }
