@@ -331,7 +331,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </span>
                         </div>
 
-                        <PaywallOverlay isAuthenticated={isAuthenticated} redirectPath={redirectPath}>
+                        <PaywallOverlay isAuthenticated={isAuthenticated} redirectPath={redirectPath} className="rounded-lg">
                         <div className="border-t border-b border-gray-100 py-6 mb-6 space-y-4">
                             {isAuthenticated && product.special_price && product.price && product.price !== 'Consultar' && product.installments && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && product.category !== 'Sêmen' ? (
                                 <div className="space-y-4">
@@ -637,12 +637,12 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </div>
                         )}
                         {!isAuthenticated && (
-                            <div className="col-span-full">
-                                <PaywallOverlay isAuthenticated={false} redirectPath={redirectPath}>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="col-span-full mt-2">
+                                <PaywallOverlay isAuthenticated={false} redirectPath={redirectPath} className="rounded-xl">
+                                    <div className="grid grid-cols-2 gap-4 p-4">
                                         {['MGTe', 'iABCZ', 'IQG', 'Top'].map(label => (
                                             <div key={label} className="space-y-1">
-                                                <span className="text-gray-500 font-medium">{label}</span>
+                                                <span className="text-gray-500 text-sm font-medium">{label}</span>
                                                 <p className="text-gray-900 font-semibold text-lg bg-brand-gold/10 px-2 py-0.5 rounded w-fit">••••</p>
                                             </div>
                                         ))}
@@ -662,9 +662,19 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 </svg>
                                 Árvore Genealógica
                             </h3>
-                            <PaywallOverlay isAuthenticated={false} redirectPath={redirectPath}>
-                                <div className="max-w-3xl mx-auto space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                            <PaywallOverlay isAuthenticated={false} redirectPath={redirectPath} className="rounded-xl">
+                                <div className="py-6 px-4 space-y-4">
+                                    <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
+                                        <div className="border-2 rounded-xl p-3 text-center bg-sky-50 border-sky-200">
+                                            <p className="text-[11px] font-bold text-sky-500 uppercase mb-1">♂ Avô Pat.</p>
+                                            <p className="font-bold text-gray-400 text-xs">••••••••</p>
+                                        </div>
+                                        <div className="border-2 rounded-xl p-3 text-center bg-rose-50 border-rose-200">
+                                            <p className="text-[11px] font-bold text-rose-500 uppercase mb-1">♀ Avó Pat.</p>
+                                            <p className="font-bold text-gray-400 text-xs">••••••••</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
                                         <div className="border-2 rounded-xl p-3 text-center bg-sky-50 border-sky-200">
                                             <p className="text-xs font-bold text-sky-500 uppercase mb-1">♂ Pai</p>
                                             <p className="font-bold text-gray-900 text-sm">••••••••</p>
@@ -675,9 +685,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                         </div>
                                     </div>
                                     <div className="flex justify-center">
-                                        <div className="bg-amber-50 border-2 border-brand-gold rounded-xl px-6 py-4 text-center">
+                                        <div className="bg-amber-50 border-2 border-brand-gold rounded-xl px-6 py-3 text-center">
                                             <p className="text-xs font-bold text-brand-gold uppercase mb-1">Animal</p>
-                                            <p className="font-bold text-gray-900 text-base">{product.name}</p>
+                                            <p className="font-bold text-gray-900 text-sm truncate max-w-[180px]">{product.name}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -878,36 +888,40 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             </svg>
                             Avaliação Genética
                         </h3>
-                        <PaywallOverlay isAuthenticated={false} redirectPath={redirectPath}>
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <PaywallOverlay isAuthenticated={false} redirectPath={redirectPath} className="rounded-xl">
+                            <div className="space-y-3 p-1">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                     {['iABCZ', 'DECA', 'P%', 'F'].map(label => (
-                                        <div key={label} className="rounded-2xl px-4 py-4 text-center border bg-gray-50 border-gray-200">
-                                            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">{label}</p>
-                                            <p className="text-3xl font-black text-gray-300 leading-none">••</p>
+                                        <div key={label} className="rounded-xl px-3 py-3 text-center border bg-gray-50 border-gray-200">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{label}</p>
+                                            <p className="text-2xl font-black text-gray-300 leading-none">••</p>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="rounded-xl border border-gray-200 overflow-hidden">
-                                    <div className="px-4 py-2.5 bg-sky-50">
+                                    <div className="px-3 py-2 bg-sky-50">
                                         <p className="text-xs font-bold uppercase tracking-wider text-sky-700">Crescimento</p>
                                     </div>
-                                    <table className="w-full text-sm">
+                                    <div className="overflow-x-auto">
+                                    <table className="w-full text-sm min-w-[300px]">
                                         <thead><tr className="border-b border-gray-100 bg-gray-50/60">
-                                            <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase">Característica</th>
-                                            <th className="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase w-20">DEP</th>
-                                            <th className="text-right px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase w-16">AC%</th>
-                                            <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase w-24">DECA</th>
+                                            <th className="text-left px-3 py-2 text-xs font-semibold text-gray-400 uppercase">Característica</th>
+                                            <th className="text-right px-2 py-2 text-xs font-semibold text-gray-400 uppercase w-16">DEP</th>
+                                            <th className="text-right px-2 py-2 text-xs font-semibold text-gray-400 uppercase w-14">AC%</th>
+                                            <th className="text-right px-3 py-2 text-xs font-semibold text-gray-400 uppercase w-16">DECA</th>
                                         </tr></thead>
                                         <tbody className="divide-y divide-gray-50">
-                                            {['DP120', 'DP210', 'DP365', 'DP450'].map(n => (
-                                                <tr key={n}><td className="px-4 py-2.5 text-gray-300">{n}</td>
-                                                <td className="px-3 py-2.5 text-right text-gray-300">••</td>
-                                                <td className="px-3 py-2.5 text-right text-gray-300">••%</td>
-                                                <td className="px-4 py-2.5 text-right text-gray-300">••</td></tr>
+                                            {['DP120', 'DP210', 'DP365'].map(n => (
+                                                <tr key={n}>
+                                                    <td className="px-3 py-2 text-gray-300 text-xs">{n}</td>
+                                                    <td className="px-2 py-2 text-right text-gray-300 text-xs">••</td>
+                                                    <td className="px-2 py-2 text-right text-gray-300 text-xs">••%</td>
+                                                    <td className="px-3 py-2 text-right text-gray-300 text-xs">••</td>
+                                                </tr>
                                             ))}
                                         </tbody>
                                     </table>
+                                    </div>
                                 </div>
                             </div>
                         </PaywallOverlay>

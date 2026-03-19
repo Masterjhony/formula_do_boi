@@ -14,23 +14,23 @@ export default function PaywallOverlay({ isAuthenticated, redirectPath, children
     if (isAuthenticated) return <>{children}</>;
 
     return (
-        <div className={`relative overflow-hidden ${className}`}>
-            <div className="blur-md pointer-events-none select-none" aria-hidden="true">
+        <div className={`relative overflow-hidden min-h-[200px] ${className}`}>
+            <div className="blur-sm pointer-events-none select-none" aria-hidden="true">
                 {children}
             </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm z-10">
-                <div className="flex flex-col items-center gap-3 text-center px-4 max-w-xs">
-                    <div className="w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center">
-                        <Lock className="w-5 h-5 text-brand-gold" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 backdrop-blur-[2px] z-10 p-4">
+                <div className="flex flex-col items-center gap-2.5 text-center w-full max-w-[260px]">
+                    <div className="w-9 h-9 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0">
+                        <Lock className="w-4 h-4 text-brand-gold" />
                     </div>
-                    <p className="text-sm font-semibold text-gray-700">
-                        Crie sua conta gratuita para acessar dados completos
+                    <p className="text-xs sm:text-sm font-semibold text-gray-700 leading-snug">
+                        Crie sua conta para ver dados completos
                     </p>
                     <Link
                         href={`/auth/signup?redirect=${encodeURIComponent(redirectPath)}`}
-                        className="px-5 py-2 bg-brand-gold text-brand-black text-sm font-bold rounded-lg hover:bg-yellow-500 transition-colors uppercase tracking-wide"
+                        className="w-full py-2 bg-brand-gold text-brand-black text-xs sm:text-sm font-bold rounded-lg hover:bg-yellow-500 transition-colors uppercase tracking-wide text-center"
                     >
-                        Criar Conta
+                        Criar Conta Grátis
                     </Link>
                     <Link
                         href={`/login?next=${encodeURIComponent(redirectPath)}`}

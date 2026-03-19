@@ -312,20 +312,20 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                 }
 
                 {!isAuthenticated ? (
-                    <div className="mt-auto border-t border-gray-50 pt-4">
-                        <div className="bg-brand-gold/5 border border-brand-gold/20 rounded-lg p-4 text-center">
-                            <p className="text-xs font-semibold text-gray-600 mb-3">
-                                Cadastre-se para ver preço e condições
+                    <div className="mt-auto border-t border-gray-50 pt-3">
+                        <div className="rounded-lg p-3 text-center bg-gradient-to-b from-brand-gold/5 to-brand-gold/10 border border-brand-gold/20">
+                            <p className="text-[11px] font-semibold text-gray-500 mb-2 leading-snug">
+                                Veja preço e condições — cadastro grátis
                             </p>
                             <Link
                                 href={`/auth/signup?redirect=/lote/${product.id}`}
-                                className="block w-full py-2.5 text-center text-sm font-bold uppercase tracking-wide rounded-lg bg-brand-gold text-brand-black hover:bg-yellow-500 transition-colors shadow-sm"
+                                className="block w-full py-2 text-center text-xs font-bold uppercase tracking-wide rounded-lg bg-brand-gold text-brand-black hover:bg-yellow-500 active:scale-95 transition-all shadow-sm"
                             >
-                                Criar Conta Gratuita
+                                Criar Conta Grátis
                             </Link>
                             <Link
                                 href={`/login?next=/lote/${product.id}`}
-                                className="block mt-2 text-xs text-gray-500 hover:text-brand-gold transition-colors"
+                                className="block mt-1.5 text-[11px] text-gray-400 hover:text-brand-gold transition-colors"
                             >
                                 Já tenho conta
                             </Link>
