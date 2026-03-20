@@ -889,7 +889,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                 {!isAuthenticated && (
                     <div className="mt-10 pt-8 border-t border-gray-100">
                         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-6 flex items-center gap-2">
-                            <svg className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                            <svg className="w-4 h-4 text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M2 12h4M18 12h4M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                             </svg>
                             Avaliação Genética
@@ -898,15 +898,15 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             <div className="space-y-3 p-1">
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                     {['iABCZ', 'DECA', 'P%', 'F'].map(label => (
-                                        <div key={label} className="rounded-xl px-3 py-3 text-center border bg-gray-50 border-gray-200">
+                                        <div key={label} className="rounded-xl px-3 py-3 text-center border bg-white border-brand-gold/30 shadow-sm">
                                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{label}</p>
                                             <p className="text-2xl font-black text-gray-300 leading-none">••</p>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="rounded-xl border border-gray-200 overflow-hidden">
-                                    <div className="px-3 py-2 bg-sky-50">
-                                        <p className="text-xs font-bold uppercase tracking-wider text-sky-700">Crescimento</p>
+                                <div className="rounded-xl border border-brand-gold/20 overflow-hidden">
+                                    <div className="px-3 py-2 bg-black">
+                                        <p className="text-xs font-bold uppercase tracking-wider text-brand-gold">Crescimento</p>
                                     </div>
                                     <div className="overflow-x-auto">
                                     <table className="w-full text-sm min-w-[300px]">
@@ -945,12 +945,12 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                     const naoComposemData: any = av.nao_composem_iabcz ?? {};
 
                     const catMeta: Record<string, { label: string; headerBg: string; headerText: string; border: string }> = {
-                        crescimento:  { label: 'Crescimento',  headerBg: 'bg-sky-50',     headerText: 'text-sky-700',     border: 'border-sky-200' },
-                        maternas:     { label: 'Maternas',     headerBg: 'bg-rose-50',    headerText: 'text-rose-700',    border: 'border-rose-200' },
-                        reprodutivas: { label: 'Reprodutivas', headerBg: 'bg-purple-50',  headerText: 'text-purple-700',  border: 'border-purple-200' },
-                        acabamento:   { label: 'Acabamento',   headerBg: 'bg-amber-50',   headerText: 'text-amber-700',   border: 'border-amber-200' },
-                        carcaca:      { label: 'Carcaça',      headerBg: 'bg-orange-50',  headerText: 'text-orange-700',  border: 'border-orange-200' },
-                        morfologicas: { label: 'Morfológicas', headerBg: 'bg-emerald-50', headerText: 'text-emerald-700', border: 'border-emerald-200' },
+                        crescimento:  { label: 'Crescimento',  headerBg: 'bg-black', headerText: 'text-brand-gold', border: 'border-brand-gold/20' },
+                        maternas:     { label: 'Maternas',     headerBg: 'bg-black', headerText: 'text-brand-gold', border: 'border-brand-gold/20' },
+                        reprodutivas: { label: 'Reprodutivas', headerBg: 'bg-black', headerText: 'text-brand-gold', border: 'border-brand-gold/20' },
+                        acabamento:   { label: 'Acabamento',   headerBg: 'bg-black', headerText: 'text-brand-gold', border: 'border-brand-gold/20' },
+                        carcaca:      { label: 'Carcaça',      headerBg: 'bg-black', headerText: 'text-brand-gold', border: 'border-brand-gold/20' },
+                        morfologicas: { label: 'Morfológicas', headerBg: 'bg-black', headerText: 'text-brand-gold', border: 'border-brand-gold/20' },
                     };
 
                     // Ordem de exibição dentro de cada bloco
@@ -1016,7 +1016,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                     return (
                         <div className="mt-10 pt-8 border-t border-gray-100">
                             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-6 flex items-center gap-2">
-                                <svg className="w-4 h-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <svg className="w-4 h-4 text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M2 12h4M18 12h4M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                                 </svg>
                                 Avaliação Genética
@@ -1026,30 +1026,30 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             {hasTopMetrics && (
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
                                     {/* iABCZ */}
-                                    <div className="rounded-2xl px-4 py-4 text-center border bg-amber-50 border-brand-gold/40">
-                                        <p className="text-[11px] font-bold text-brand-gold uppercase tracking-widest mb-1">iABCZ</p>
-                                        <p className="text-3xl font-black text-gray-900 leading-none tabular-nums">
+                                    <div className="rounded-2xl px-4 py-4 text-center border bg-white border-brand-gold/30 shadow-sm">
+                                        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">iABCZ</p>
+                                        <p className="text-3xl font-black text-brand-gold leading-none tabular-nums">
                                             {av.iabcz != null ? String(av.iabcz).replace('.', ',') : '—'}
                                         </p>
                                     </div>
                                     {/* DECA */}
-                                    <div className="rounded-2xl px-4 py-4 text-center border bg-emerald-50 border-emerald-200">
-                                        <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest mb-1">DECA</p>
-                                        <p className="text-3xl font-black text-emerald-700 leading-none tabular-nums">
+                                    <div className="rounded-2xl px-4 py-4 text-center border bg-white border-brand-gold/30 shadow-sm">
+                                        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">DECA</p>
+                                        <p className="text-3xl font-black text-brand-gold leading-none tabular-nums">
                                             {av.deca ?? '—'}
                                         </p>
                                     </div>
                                     {/* P% */}
-                                    <div className="rounded-2xl px-4 py-4 text-center border bg-sky-50 border-sky-200">
-                                        <p className="text-[11px] font-bold text-sky-600 uppercase tracking-widest mb-1">P%</p>
-                                        <p className="text-3xl font-black text-sky-700 leading-none tabular-nums">
+                                    <div className="rounded-2xl px-4 py-4 text-center border bg-white border-brand-gold/30 shadow-sm">
+                                        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">P%</p>
+                                        <p className="text-3xl font-black text-brand-gold leading-none tabular-nums">
                                             {av.percentil != null ? String(av.percentil) : '—'}
                                         </p>
                                     </div>
                                     {/* F */}
-                                    <div className="rounded-2xl px-4 py-4 text-center border bg-gray-50 border-gray-300">
+                                    <div className="rounded-2xl px-4 py-4 text-center border bg-white border-brand-gold/30 shadow-sm">
                                         <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1">F</p>
-                                        <p className="text-3xl font-black text-gray-700 leading-none tabular-nums">
+                                        <p className="text-3xl font-black text-brand-gold leading-none tabular-nums">
                                             {av.f != null ? `${String(av.f).replace('.', ',')}%` : '—'}
                                         </p>
                                     </div>
