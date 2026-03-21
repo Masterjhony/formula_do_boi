@@ -22,7 +22,7 @@ import { TaskModal } from './TaskModal';
 import { GanttView } from './GanttView';
 import { TacticalTask, TacticalColumn, updateTask, createTask, moveTask, deleteTask, createColumn, updateColumn, deleteColumn } from '@/app/web-admin/actions/tactical-tasks';
 import { createPortal } from 'react-dom';
-import { Plus, LayoutGrid, Calendar as CalendarIcon, Filter } from 'lucide-react';
+import { Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2 } from 'lucide-react';
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];
@@ -45,6 +45,7 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
     // New Feature States
     const [viewMode, setViewMode] = useState<'kanban' | 'gantt'>('kanban');
     const [filterAssignee, setFilterAssignee] = useState<string>('all');
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -203,7 +204,11 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
     };
 
     return (
-        <div className="h-full flex flex-col pt-4">
+        <div className={
+            isFullscreen 
+                ? "fixed inset-0 z-[100] bg-[#f9fafb] dark:bg-[#0A0A0A] p-6 w-screen h-screen flex flex-col overflow-hidden" 
+                : "h-full flex flex-col pt-4"
+        }>
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row items-center justify-between mb-6 shrink-0 gap-4">
                 <div className="flex gap-2 bg-gray-100 dark:bg-[#1A1A1A] p-1 rounded-lg border border-gray-200 dark:border-[#222222]">
@@ -244,6 +249,14 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
                             ))}
                         </select>
                     </div>
+
+                    <button
+                        onClick={() => setIsFullscreen(!isFullscreen)}
+                        className="flex items-center justify-center p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222]"
+                        title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+                    >
+                        {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                    </button>
 
                     <button
                         onClick={() => {
