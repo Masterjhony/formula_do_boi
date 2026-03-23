@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { CRMLead, updateLead, createLead, moveLead, deleteLead } from '@/app/web-admin/actions/crm-leads';
 import { CRMKanbanBoard } from './CRMKanbanBoard';
 import { CRMModal } from './CRMModal';
-import { BarChart2, LayoutGrid, List, AlertCircle, DollarSign, Plus, Settings2 } from 'lucide-react';
+import { BarChart2, LayoutGrid, List, AlertCircle, DollarSign, Plus, Settings2, Maximize2, Minimize2 } from 'lucide-react';
 import { CRMChart } from './CRMChart';
 import { CRMTable } from './CRMTable';
 
@@ -22,6 +22,7 @@ export function CRMDashboardClient({ initialLeads }: CRMDashboardClientProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLead, setEditingLead] = useState<CRMLead | undefined>(undefined);
     const [defaultStatus, setDefaultStatus] = useState('Lead');
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     const handleOpenNewLead = (status: string = 'Lead') => {
         setEditingLead(undefined);
@@ -81,7 +82,11 @@ export function CRMDashboardClient({ initialLeads }: CRMDashboardClientProps) {
     }
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden">
+        <div className={
+            isFullscreen
+                ? "fixed inset-0 z-[100] bg-white dark:bg-[#111111] w-screen h-screen flex flex-col overflow-hidden"
+                : "flex flex-col h-full bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden"
+        }>
             {/* Header Description similar to Notion */}
             <div className="p-6 pb-2">
                 <p className="text-gray-500 text-sm mb-4">
@@ -114,6 +119,13 @@ export function CRMDashboardClient({ initialLeads }: CRMDashboardClientProps) {
                     </div>
 
                     <div className="flex items-center gap-2 pb-2 pr-2">
+                        <button 
+                            onClick={() => setIsFullscreen(!isFullscreen)}
+                            className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-[#222222] transition-colors"
+                            title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+                        >
+                            {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                        </button>
                         <button className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-[#222222] transition-colors">
                             <Settings2 size={18} />
                         </button>
