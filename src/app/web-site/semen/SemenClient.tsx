@@ -3,214 +3,37 @@
 import { useState, useMemo, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Globe, User } from "lucide-react";
-import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import { useRouter } from "next/navigation";
 import { SettingsService } from "@/services/settingsService";
 
 export default function SemenClient({ products }: { products: any[] }) {
     const router = useRouter();
-    const [pageVisible, setPageVisible] = useState(false); // Start hidden until check passes
+    const [pageVisible, setPageVisible] = useState(false);
 
     useEffect(() => {
         async function checkVisibility() {
             try {
                 const isEnabled = await SettingsService.getSetting('semen_page_enabled');
-                if (isEnabled === false) { // Explicit check for false
+                if (isEnabled === false) {
                     router.push('/');
                     return;
                 }
                 setPageVisible(true);
             } catch (error) {
                 console.error("Failed to load settings", error);
-                setPageVisible(true); // Default show on error to not block users accidentally? Or hide? 
-                // Let's safe default to show if error, or maybe hide. 
-                // Given the requirement is to HIDE, maybe safe default is hide? 
-                // But for now let's stick to simple logic: check false -> redirect.
+                setPageVisible(true);
             }
         }
         checkVisibility();
     }, [router]);
-    // Extract unique breeders for filter options
-    const breederOptions = useMemo(() => {
-        const breeders = new Set<string>();
-        products.forEach(p => {
-            if (p.category !== "Sêmen") return;
-            // Check details.proprietario or details.breeder
-            const breeder = (p.details as any)?.proprietario || (p.details as any)?.breeder;
-            if (breeder) breeders.add(breeder.trim());
-        });
-        return Array.from(breeders).sort().map(b => ({ value: b, label: b }));
-    }, []);
-
-    const semenFilters = [
-        {
-            id: "criador",
-            title: "Criador / Proprietário",
-            icon: <User className="w-4 h-4" />,
-            options: breederOptions,
-        },
-        {
-            id: "procedencia",
-            title: "Procedência",
-            icon: <Globe className="w-4 h-4" />,
-            options: [
-                { value: "nacional", label: "Nacional" },
-                { value: "importado", label: "Importado" },
-                { value: "propria", label: "Própria" },
-                { value: "parceiros", label: "Parceiros" },
-            ],
-        },
-        ...commonFilters,
-    ];
-
-    const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
-        criador: [],
-        procedencia: [],
-        faixa_valor: [],
-        iabcz: [],
-        mgte: [],
-        iqg: [],
-        forma_pagamento: [],
-        logistica: [],
-    });
-
-    const handleFilterChange = (sectionId: string, value: string, checked: boolean) => {
-        setSelectedFilters((prev) => {
-            const current = prev[sectionId] || [];
-            if (checked) {
-                return { ...prev, [sectionId]: [...current, value] };
-            } else {
-                return { ...prev, [sectionId]: current.filter((v) => v !== value) };
-            }
-        });
-    };
-
-    const handleClearFilters = () => {
-        setSelectedFilters({
-            criador: [],
-            procedencia: [],
-            faixa_valor: [],
-            iabcz: [],
-            mgte: [],
-            iqg: [],
-            forma_pagamento: [],
-            logistica: [],
-        });
-    };
-
-    const hasFilters = Object.values(selectedFilters).some((arr) => arr.length > 0);
-
-    const parsePrice = (priceStr: string) => {
-        return parseFloat(priceStr.replace(/\./g, "").replace(",", "."));
-    };
-
-    const cleanNumberString = (str: string) => {
-        // Extract the first number found in the string (e.g. "iABCZ 13.60" -> "13.60")
-        const match = str.match(/[\d\.]+/);
-        return match ? parseFloat(match[0]) : null;
-    };
-
-    const checkRange = (value: number, ranges: string[]) => {
-        if (ranges.length === 0) return true;
-        return ranges.some(range => {
-            if (range === "acima_30") return value > 30;
-            if (range === "25_30") return value >= 25 && value <= 30; // Specific for MGTe
-            if (range === "20_30") return value >= 20 && value <= 30; // For iABCZ / IQG
-            if (range === "20_25") return value >= 20 && value <= 25; // Specific for MGTe
-            if (range === "10_20") return value >= 10 && value <= 20;
-            if (range === "abaixo_20") return value < 20; // Specific for MGTe
-            if (range === "abaixo_10") return value < 10;
-            return false;
-        });
-    };
-
-    const checkPriceRange = (price: number, ranges: string[]) => {
-        if (ranges.length === 0) return true;
-        return ranges.some(range => {
-            if (range === "ate_5k") return price <= 5000;
-            if (range === "5k_10k") return price > 5000 && price <= 10000;
-            if (range === "10k_20k") return price > 10000 && price <= 20000;
-            if (range === "acima_20k") return price > 20000;
-            return false;
-        });
-    };
 
     const filteredProducts = useMemo(() => {
-        // Filter only Sêmen
-        let items = products.filter(item => item.category === "Sêmen");
+        return products.filter(item => item.category === "Sêmen");
+    }, [products]);
 
-        if (!hasFilters) return items;
-
-        return items.filter((product) => {
-            // Check Breeder
-            if (selectedFilters.criador.length > 0) {
-                const breeder = (product.details as any)?.proprietario || (product.details as any)?.breeder;
-                if (!breeder || !selectedFilters.criador.includes(breeder.trim())) {
-                    return false;
-                }
-            }
-
-            // Check Payment
-            if (selectedFilters.forma_pagamento.length > 0 &&
-                !selectedFilters.forma_pagamento.includes(product.forma_pagamento || "")) {
-                return false;
-            }
-
-            // Check Logistics
-            if (selectedFilters.logistica.length > 0 &&
-                !selectedFilters.logistica.includes(product.logistica || "")) {
-                return false;
-            }
-
-            // Check Procedência
-            if (selectedFilters.procedencia.length > 0) {
-                const procedencia = ((product.details as any)?.procedencia || "").toLowerCase();
-                if (!selectedFilters.procedencia.includes(procedencia)) {
-                    return false;
-                }
-            }
-
-            // Check Price
-            if (selectedFilters.faixa_valor.length > 0) {
-                const productPriceStr = product.price || "0";
-                if (productPriceStr === "Consultar" || productPriceStr === "Sob Consulta") return false;
-
-                const price = parsePrice(productPriceStr);
-                if (!checkPriceRange(price, selectedFilters.faixa_valor)) {
-                    return false;
-                }
-            }
-
-            // Check iABCZ
-            if (selectedFilters.iabcz.length > 0) {
-                const valStr = (product as any).iabcz || (product.details as any)?.iabcz || "";
-                const val = cleanNumberString(valStr);
-                if (val === null || !checkRange(val, selectedFilters.iabcz)) return false;
-            }
-
-            // Check MGTe
-            if (selectedFilters.mgte.length > 0) {
-                const valStr = (product as any).mgte || (product.details as any)?.mgte || "";
-                const val = cleanNumberString(valStr);
-                if (val === null || !checkRange(val, selectedFilters.mgte)) return false;
-            }
-
-            // Check IQG
-            if (selectedFilters.iqg.length > 0) {
-                const valStr = (product as any).iqg || (product.details as any)?.iqg || "";
-                const val = cleanNumberString(valStr);
-                if (val === null || !checkRange(val, selectedFilters.iqg)) return false;
-            }
-
-            return true;
-        });
-    }, [selectedFilters, hasFilters]);
-
-    // Prevent flash of content
     if (!pageVisible) {
-        return null; // Or a loader if preferred, but null is fine for 'hidden' page
+        return null;
     }
 
     return (
@@ -230,27 +53,54 @@ export default function SemenClient({ products }: { products: any[] }) {
                 </div>
             </section>
 
+            {/* Marketing Section: Aceleradora de Touros */}
+            <section className="bg-gradient-to-br from-[#0a0a0a] to-[#111111] py-20 border-b border-brand-gold/10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-brand-gold/10 via-transparent to-transparent"></div>
+                
+                {/* Decorative element */}
+                <div className="absolute left-1/2 top-10 -translate-x-1/2 w-[1px] h-12 bg-gradient-to-b from-transparent via-brand-gold/50 to-transparent"></div>
+                
+                <div className="container mx-auto px-4 relative z-10 text-center">
+                    <span className="text-brand-gold text-sm font-bold tracking-[0.2em] uppercase mb-4 block">
+                        Exclusividade Fórmula do Boi
+                    </span>
+                    <h2 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-gold via-yellow-200 to-brand-gold mb-8 uppercase tracking-wider">
+                        Aceleradora de Touros
+                    </h2>
+                    <div className="max-w-4xl mx-auto space-y-6">
+                        <p className="text-gray-300 text-lg md:text-xl leading-relaxed">
+                            A <strong className="text-white font-semibold">Aceleradora de Touros</strong> é o ecossistema de alta performance da Fórmula do Boi. Reuniu-se um plantel ultrarreservado com apenas <strong className="text-brand-gold">11 reprodutores</strong> selecionados a dedo, que representam o absoluto ápice da genética provada nacional.
+                        </p>
+                        <p className="text-gray-400 text-md leading-relaxed">
+                            Nosso objetivo é elevar o teto produtivo do seu rebanho, oferecendo acesso democratizado a linhagens consagradas e proporcionando segurança real no resultado da sua fazenda.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-8 mt-16 cursor-default">
+                        <div className="bg-black/60 p-8 rounded-2xl border border-white/5 max-w-lg w-full backdrop-blur-md hover:border-brand-gold/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(197,160,89,0.1)] group">
+                            <h3 className="text-2xl font-bold text-white mb-3 text-center">Parceria Oficial <span className="text-brand-gold">Central Bela Vista</span></h3>
+                            <p className="text-gray-400 text-base leading-relaxed">
+                                A excelência genética exige um suporte de classe mundial. Nossos reprodutores estão sob coleta contínua na <strong className="text-gray-200">Central Bela Vista</strong>, garantindo armazenamento no mais rigoroso controle de qualidade mundial e uma logística de envio direto para <span className="text-white">todo o território nacional</span>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* Main Content */}
             <section className="py-8">
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Sidebar */}
-                        <FilterSidebar
-                            sections={semenFilters}
-                            selectedFilters={selectedFilters}
-                            onFilterChange={handleFilterChange}
-                            onClearFilters={handleClearFilters}
-                            theme="premium"
-                        />
-
-                        {/* Products Grid */}
-                        <CatalogGrid
-                            products={filteredProducts}
-                            totalCount={filteredProducts.length}
-                            onClearFilters={handleClearFilters}
-                            hasFilters={hasFilters}
-                            theme="premium"
-                        />
+                        {/* Products Grid (No Sidebar) */}
+                        <div className="w-full">
+                            <CatalogGrid
+                                products={filteredProducts}
+                                totalCount={filteredProducts.length}
+                                onClearFilters={() => {}}
+                                hasFilters={false}
+                                theme="premium"
+                            />
+                        </div>
                     </div>
                 </div>
             </section>

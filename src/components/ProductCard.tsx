@@ -54,6 +54,21 @@ export default function ProductCard({ product, featured = false, isAuthenticated
     // Generate an animal code based on ID
     const animalCode = `FB-PO-${product.id.toString().padStart(3, '0')}`;
 
+    const isSemen = product.category === 'Sêmen';
+    const isEmbryo = product.category?.includes('Embrião') || product.details?.tipo === 'embriao';
+    const isSemenOrEmbryo = isSemen || isEmbryo;
+
+    let displayTitle = product.name;
+    if (isSemenOrEmbryo) {
+        displayTitle = displayTitle
+            .replace(/^S[êe]men(\s+de)?\s+/i, '')
+            .replace(/^S[EÊ]MEN\s+-\s+/i, '')
+            .replace(/^Embri[ãa]o(\s+de)?\s+/i, '')
+            .replace(/^Dose(\s+de)?\s+/i, '')
+            .replace(/^Lote(\s+de)?\s+/i, '')
+            .trim();
+    }
+
     // Video optimization refs and state
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -259,8 +274,8 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                 </div>
 
                 <Link href={product.customLink || product.details?.customLink || `/lote/${product.id}`}>
-                    <h3 className={`text-lg font-bold group-hover:text-brand-gold transition-colors line-clamp-1 mb-1 ${theme === 'premium' ? 'text-white' : 'text-gray-900'}`}>
-                        {product.name}
+                    <h3 className={`text-lg font-bold group-hover:text-brand-gold transition-colors line-clamp-1 mb-1 ${theme === 'premium' ? 'text-white' : 'text-gray-900'}`} title={displayTitle}>
+                        {displayTitle}
                     </h3>
                 </Link>
 
@@ -426,27 +441,42 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                         )}
                     </div>
 
-                    <a
-                        href={`https://wa.me/5531984143874?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`block w-full mt-4 py-2.5 text-center text-sm font-bold uppercase tracking-wide rounded-lg transition-all shadow-sm hover:shadow-md
-                        ${featured
-                                ? 'bg-brand-gold text-brand-black hover:bg-brand-black hover:text-brand-gold'
-                                : 'bg-brand-black text-white hover:bg-brand-gold hover:text-brand-black'
-                            }`}
-                    >
-                        Fazer uma proposta
-                    </a>
+                    {isSemenOrEmbryo ? (
+                        <Link
+                            href={product.customLink || product.details?.customLink || `/lote/${product.id}`}
+                            className={`block w-full mt-4 py-2.5 text-center text-sm font-bold uppercase tracking-wide rounded-lg transition-all shadow-sm hover:shadow-md
+                            ${featured
+                                    ? 'bg-brand-gold text-brand-black hover:bg-brand-black hover:text-brand-gold'
+                                    : 'bg-brand-black text-white hover:bg-brand-gold hover:text-brand-black'
+                                }`}
+                        >
+                            {isSemen ? 'Ver detalhes do touro' : 'Ver detalhes do lote'}
+                        </Link>
+                    ) : (
+                        <>
+                            <a
+                                href={`https://wa.me/5531984143874?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`block w-full mt-4 py-2.5 text-center text-sm font-bold uppercase tracking-wide rounded-lg transition-all shadow-sm hover:shadow-md
+                                ${featured
+                                        ? 'bg-brand-gold text-brand-black hover:bg-brand-black hover:text-brand-gold'
+                                        : 'bg-brand-black text-white hover:bg-brand-gold hover:text-brand-black'
+                                    }`}
+                            >
+                                Fazer uma proposta
+                            </a>
 
-                    <a
-                        href={`https://wa.me/5531984143874?text=${encodeURIComponent(`Olá, gostaria de saber o valor à vista do animal ${product.name} (ID: ${product.id}). Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full mt-2 block text-center text-xs font-medium text-gray-500 hover:text-brand-gold transition-colors underline decoration-dotted underline-offset-2"
-                    >
-                        Ver proposta à vista
-                    </a>
+                            <a
+                                href={`https://wa.me/5531984143874?text=${encodeURIComponent(`Olá, gostaria de saber o valor à vista do animal ${product.name} (ID: ${product.id}). Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full mt-2 block text-center text-xs font-medium text-gray-500 hover:text-brand-gold transition-colors underline decoration-dotted underline-offset-2"
+                            >
+                                Ver proposta à vista
+                            </a>
+                        </>
+                    )}
 
                     {/* PDF Button if available */}
                     {product.details?.pdf && (
