@@ -612,6 +612,24 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                             <span className="text-gray-500 font-medium">Mãe</span>
                             <p className="text-brand-gold font-bold text-lg">{product.details?.mae || '-'}</p>
                         </div>
+                        {product.details?.status && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Status</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.status}</p>
+                            </div>
+                        )}
+                        {product.details?.touro_prenhez && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Touro da Prenhez</span>
+                                <p className="text-brand-gold font-bold text-lg">{product.details.touro_prenhez}</p>
+                            </div>
+                        )}
+                        {product.details?.previsao_parto && (
+                            <div className="space-y-1">
+                                <span className="text-gray-500 font-medium">Previsão de Parto</span>
+                                <p className="text-gray-900 font-semibold text-lg">{product.details.previsao_parto}</p>
+                            </div>
+                        )}
                         {product.details?.peso && (
                             <div className="space-y-1">
                                 <span className="text-gray-500 font-medium">Peso</span>

@@ -1,0 +1,392 @@
+[
+  {
+    "id": 347,
+    "name": "BRASILIA FIV DA FAR",
+    "category": "Nelore Pintado PO",
+    "classificacao": "matriz",
+    "modalidade": "venda_direta",
+    "logistica": "retira_fazenda",
+    "forma_pagamento": "parcelado",
+    "location": "Piedade dos Gerais - MG",
+    "image_url": "https://res.cloudinary.com/dkh2nsugb/video/upload/v1773690605/BNSE_4_tivbcp.mp4",
+    "gallery": [
+      "https://res.cloudinary.com/dkh2nsugb/video/upload/v1773690605/BNSE_4_tivbcp.mp4"
+    ],
+    "price": 10000,
+    "installments": "6x",
+    "tag": "Em Estoque",
+    "details": {
+      "iqg": "",
+      "mae": "AMONTADA",
+      "pai": "DIVISOR FIV V3",
+      "pdf": "/BNSE 4.pdf",
+      "top": "",
+      "mgte": "",
+      "raca": "Nelore Pintado",
+      "iabcz": "2,00",
+      "status": "Disponível",
+      "breeder": "Faz Ponte do Cota",
+      "comissao": "4%",
+      "registro": "BNSE 4",
+      "nascimento": "17/09/2024",
+      "proprietario": "Faz Ponte do Cota"
+    },
+    "active": true,
+    "sold": false,
+    "created_at": "2026-03-16T20:11:13.017979+00:00",
+    "owner_id": null,
+    "video_object_position": "center center",
+    "iabcz": null,
+    "mgte": null,
+    "iqg": null,
+    "display_order": 0,
+    "registro": null,
+    "raca": null,
+    "nascimento": null,
+    "pai": null,
+    "mae": null,
+    "peso": null,
+    "top": null,
+    "status": "Disponível",
+    "breeder": null,
+    "proprietario": null,
+    "pdf": null,
+    "comissao": null,
+    "grau_sangue": null,
+    "genealogia_json": {
+      "mae": {
+        "rg": "ZEUS4670\nREM RONDA",
+        "nome": "ODULO ZEUS"
+      },
+      "pai": {
+        "rg": "REMC3462PINTOR FIV L.CANCA",
+        "nome": "GENEALOGIA\nREM TORIXOREU"
+      },
+      "avo_materna": {
+        "rg": "ALCC1838BELICHE V3",
+        "nome": "TRAMA DA L. CANCADO"
+      },
+      "avo_materno": {
+        "rg": "ALCC348236 FIV DA BOM FIM",
+        "nome": "LAJOTA FIV L.CANCADO"
+      },
+      "avo_paterna": {
+        "rg": "FVO3\nGALANTTE L.CANCADO",
+        "nome": "AMONTADA"
+      },
+      "avo_paterno": {
+        "rg": "ZEUS1455\nDIVISOR FIV V3",
+        "nome": "HAFINA ZEUS"
+      }
+    },
+    "avaliacao_genetica_json": {
+      "f": 4.64,
+      "deca": "6",
+      "iabcz": 2,
+      "percentil": null,
+      "composem_iabcz": {
+        "maternas": [
+          {
+            "ac": 22,
+            "dep": -1.92,
+            "deca": "9",
+            "nome": "Peso à fase materna - efeito materno (PM-EM) - kg"
+          }
+        ],
+        "acabamento": [
+          {
+            "ac": 28,
+            "dep": 1.23,
+            "deca": "3",
+            "nome": "Área de olho de lombo (AOL) - cm²"
+          },
+          {
+            "ac": 20,
+            "dep": 1.789,
+            "deca": "1",
+            "nome": "Acabamento de carcaça (ACAB) - mm"
+          }
+        ],
+        "crescimento": [
+          {
+            "ac": 31,
+            "dep": -5.623,
+            "deca": "0",
+            "nome": "Peso à desmama - efeito direto (PD-ED) - kg"
+          },
+          {
+            "ac": 33,
+            "dep": -5.19,
+            "deca": "9",
+            "nome": "Peso ao ano - efeito direto (PA-ED) - kg"
+          },
+          {
+            "ac": 34,
+            "dep": -4.13,
+            "deca": "9",
+            "nome": "Peso ao sobreano - efeito direto (PS-ED) - kg"
+          }
+        ],
+        "reprodutivas": [
+          {
+            "ac": 18,
+            "dep": 7.01,
+            "deca": "9",
+            "nome": "Idade ao primeiro parto (IPP) - dias"
+          },
+          {
+            "ac": 8,
+            "dep": 49.62,
+            "deca": "1",
+            "nome": "Stayability (STAY) - %"
+          },
+          {
+            "ac": 29,
+            "dep": -0.392,
+            "deca": "9",
+            "nome": "Perímetro Escrotal aos 365 dias (PE-365) - cm"
+          }
+        ]
+      },
+      "nao_composem_iabcz": {
+        "carcaca": [
+          {
+            "ac": 19,
+            "dep": -0.36,
+            "deca": "7",
+            "nome": "Marmoreio (MAR) - %"
+          }
+        ],
+        "crescimento": [
+          {
+            "ac": 33,
+            "dep": -0.143,
+            "deca": null,
+            "nome": "Peso ao nascimento - efeito direto (PN-ED) - kg"
+          }
+        ],
+        "morfologicas": [
+          {
+            "ac": 30,
+            "dep": -0.455,
+            "deca": "8",
+            "nome": "Estrutura Corporal (E)"
+          },
+          {
+            "ac": 30,
+            "dep": 2.94,
+            "deca": "2",
+            "nome": "Precocidade (P)"
+          },
+          {
+            "ac": 30,
+            "dep": 0.574,
+            "deca": "5",
+            "nome": "Musculosidade (M)"
+          }
+        ],
+        "reprodutivas": [
+          {
+            "ac": 8,
+            "dep": 35,
+            "deca": "3",
+            "nome": "Precocidade Sexual Natural (PSN) - %"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": 346,
+    "name": "BRAGANCA FIV DA FAR",
+    "category": "Nelore Pintado PO",
+    "classificacao": "matriz",
+    "modalidade": "venda_direta",
+    "logistica": "retira_fazenda",
+    "forma_pagamento": "parcelado",
+    "location": "Piedade dos Gerais - MG",
+    "image_url": "https://res.cloudinary.com/dkh2nsugb/video/upload/v1773690784/BNSE_5_mkod8x.mp4",
+    "gallery": [
+      "https://res.cloudinary.com/dkh2nsugb/video/upload/v1773690784/BNSE_5_mkod8x.mp4"
+    ],
+    "price": 10000,
+    "installments": "6x",
+    "tag": "Em Estoque",
+    "details": {
+      "iqg": "",
+      "mae": "36 FIV DA BOM FIM",
+      "pai": "LICOR GC DA SL *",
+      "pdf": "/BNSE 5.pdf",
+      "top": "",
+      "mgte": "",
+      "raca": "Nelore Pintado",
+      "iabcz": "-4,13",
+      "status": "Disponível",
+      "breeder": "Faz Ponte do Cota",
+      "comissao": "4%",
+      "registro": "BNSE 5",
+      "nascimento": "20/09/2024",
+      "proprietario": "Faz Ponte do Cota"
+    },
+    "active": true,
+    "sold": false,
+    "created_at": "2026-03-16T20:10:53.3551+00:00",
+    "owner_id": null,
+    "video_object_position": "center center",
+    "iabcz": null,
+    "mgte": null,
+    "iqg": null,
+    "display_order": 0,
+    "registro": null,
+    "raca": null,
+    "nascimento": null,
+    "pai": null,
+    "mae": null,
+    "peso": null,
+    "top": null,
+    "status": "Disponível",
+    "breeder": null,
+    "proprietario": null,
+    "pdf": null,
+    "comissao": null,
+    "grau_sangue": null,
+    "genealogia_json": {
+      "mae": {
+        "rg": "ALCC3482\nLICOR GC DA SL",
+        "nome": "LAJOTA FIV L.CANCADO"
+      },
+      "pai": {
+        "rg": "ALCC3378\nVENCIUS RG",
+        "nome": "LACADOR FIV L.CANCADO"
+      },
+      "avo_materno": {
+        "rg": "ALCC3012JANITA L.CANCADO",
+        "nome": "ESTHER L.CANCADO"
+      },
+      "avo_paterna": {
+        "rg": "ALCC1369\nENGUIA GC DA SL",
+        "nome": "PEPPINNO DA CAFE"
+      },
+      "avo_paterno": {
+        "rg": "BFIN36\nHOLTER L.CANCADO",
+        "nome": "FIV DA BOM FIM"
+      }
+    },
+    "avaliacao_genetica_json": {
+      "f": 0,
+      "deca": "8",
+      "iabcz": -4.13,
+      "percentil": null,
+      "composem_iabcz": {
+        "maternas": [
+          {
+            "ac": 21,
+            "dep": -2.702,
+            "deca": "0",
+            "nome": "Peso à fase materna - efeito materno (PM-EM) - kg"
+          }
+        ],
+        "acabamento": [
+          {
+            "ac": 26,
+            "dep": 0.35,
+            "deca": "5",
+            "nome": "Área de olho de lombo (AOL) - cm²"
+          },
+          {
+            "ac": 19,
+            "dep": 0.474,
+            "deca": "4",
+            "nome": "Acabamento de carcaça (ACAB) - mm"
+          }
+        ],
+        "crescimento": [
+          {
+            "ac": 21,
+            "dep": -3.993,
+            "deca": "0",
+            "nome": "Peso à desmama - efeito direto (PD-ED) - kg"
+          },
+          {
+            "ac": 31,
+            "dep": -3.6,
+            "deca": "9",
+            "nome": "Peso ao ano - efeito direto (PA-ED) - kg"
+          },
+          {
+            "ac": 32,
+            "dep": -3.72,
+            "deca": "9",
+            "nome": "Peso ao sobreano - efeito direto (PS-ED) - kg"
+          }
+        ],
+        "reprodutivas": [
+          {
+            "ac": 17,
+            "dep": 1.28,
+            "deca": "7",
+            "nome": "Idade ao primeiro parto (IPP) - dias"
+          },
+          {
+            "ac": 9,
+            "dep": 31.82,
+            "deca": "7",
+            "nome": "Stayability (STAY) - %"
+          },
+          {
+            "ac": 26,
+            "dep": 0.046,
+            "deca": "6",
+            "nome": "Perímetro Escrotal aos 365 dias (PE-365) - cm"
+          }
+        ]
+      },
+      "nao_composem_iabcz": {
+        "carcaca": [
+          {
+            "ac": 81,
+            "dep": -1.231,
+            "deca": "0",
+            "nome": "Marmoreio (MAR) - %"
+          }
+        ],
+        "crescimento": [
+          {
+            "ac": 17,
+            "dep": 0.273,
+            "deca": null,
+            "nome": "Peso ao nascimento - efeito direto (PN-ED) - kg"
+          }
+        ],
+        "morfologicas": [
+          {
+            "ac": 81,
+            "dep": -4.0352,
+            "deca": "0",
+            "nome": "Estrutura Corporal (E)"
+          },
+          {
+            "ac": 28,
+            "dep": -0.781,
+            "deca": "8",
+            "nome": "Precocidade (P)"
+          },
+          {
+            "ac": 28,
+            "dep": -1.536,
+            "deca": "9",
+            "nome": "Musculosidade (M)"
+          }
+        ],
+        "reprodutivas": [
+          {
+            "ac": 9,
+            "dep": 21.29,
+            "deca": "9",
+            "nome": "Precocidade Sexual Natural (PSN) - %"
+          }
+        ]
+      }
+    }
+  }
+]

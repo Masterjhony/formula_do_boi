@@ -146,8 +146,8 @@ export default function MatrizesClient({ products: allProducts, isAuthenticated 
 
                 const matchesTipo = selectedFilters.tipo.some(filter => {
                     if (filter === "parida") return status.includes("parida");
-                    if (filter === "prenha") return status.includes("prenhez") || status.includes("prenha");
-                    if (filter === "parida_prenha") return status.includes("parida") && (status.includes("prenhez") || status.includes("prenha"));
+                    if (filter === "prenha") return status.includes("prenhez") || status.includes("prenha") || status.includes("prenhe");
+                    if (filter === "parida_prenha") return status.includes("parida") && (status.includes("prenhez") || status.includes("prenha") || status.includes("prenhe"));
                     if (filter === "doadora") return tipo.includes("doadora") || category.includes("doadora");
                     return false;
                 });
