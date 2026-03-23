@@ -27,8 +27,8 @@ const videosData = [
     { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281612/Progenie_femea_terra_brava_1_bo8cfu.mp4`, label: "Progênie Fêmea — Vídeo 1", dotColor: "#E91E63" },
     { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281614/Progenie_femea_terra_brava_2_oruwcg.mp4`, label: "Progênie Fêmea — Vídeo 2", dotColor: "#E91E63" },
     { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281616/progenie_femea_terra_brava_3_eziifa.mp4`, label: "Progênie Fêmea — Vídeo 3", dotColor: "#E91E63" },
-    { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281619/Progenie_femea_terra_brava_4_ct83mc.mp4`, label: "Progênie Fêmea — Vídeo 4", dotColor: "#E91E63" },
-    { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281619/Progenie_femea_terra_brava_5_ocquo6.mp4`, label: "Progênie Fêmea — Vídeo 5", dotColor: "#E91E63" },
+    { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281619/Progenie_femea_terra_brava_5_ocquo6.mp4`, label: "Progênie Fêmea — Vídeo 4", dotColor: "#E91E63" },
+    { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281619/Progenie_femea_terra_brava_4_ct83mc.mp4`, label: "Progênie Fêmea — Vídeo 5", dotColor: "#E91E63" },
 ];
 
 export default function SertanejoLanding() {
