@@ -146,14 +146,52 @@ export default function SertanejoFichaTecnica() {
     };
 
     return (
-        <section className="ficha-preview section-padding" id="ficha-tecnica">
-            <div className="container">
-                <div className="section-header">
-                    <div className="badge" style={{ marginBottom: "16px" }}>Dados Completos</div>
-                    <h2>Ficha Técnica <span className="gold">Oficial</span></h2>
+        <>
+            {/* VIDEO DESTAQUE - SEÇÃO INICIAL */}
+            <div className="video-destaque" style={{ paddingTop: "180px", paddingBottom: "80px", borderBottom: "1px solid var(--border-light)" }}>
+                <div className="video-destaque-inner" style={{ maxWidth: "1000px", gap: "64px", margin: "0 auto", alignItems: "center" }}>
+                    <div className="video-destaque-player" style={{ maxWidth: "320px", width: "100%", margin: "0 auto" }} onClick={() => {
+                        const video = document.getElementById("introVideo") as HTMLVideoElement;
+                        const playBtn = document.getElementById("introPlayBtn");
+                        if (video) {
+                            if (video.paused) {
+                                video.play();
+                                if (playBtn) playBtn.classList.add("hidden");
+                                video.controls = true;
+                            } else {
+                                video.pause();
+                                if (playBtn) playBtn.classList.remove("hidden");
+                                video.controls = false;
+                            }
+                        }
+                    }}>
+                        <video id="introVideo" src="https://res.cloudinary.com/dkh2nsugb/video/upload/v1774293296/intro_sertantejo_t6bxhk.mp4" playsInline preload="metadata"></video>
+                        <button id="introPlayBtn" className="video-destaque-play">
+                            <span className="material-icons-outlined">play_arrow</span>
+                        </button>
+                    </div>
+                    <div className="video-destaque-text" style={{ paddingRight: "16px" }}>
+                        <span className="video-destaque-badge" style={{ color: "#141413" }}>Destaque Genético</span>
+                        <h2 style={{ fontSize: "36px", lineHeight: "1.2", marginBottom: "24px" }}>O Fenômeno Está <span className="gold">de Volta</span></h2>
+                        <p style={{ fontSize: "16px", lineHeight: "1.8", color: "rgba(255,255,255,0.85)", marginBottom: "24px" }}>Sertanejo é a personificação da eficiência produtiva e qualidade racial. Com produção amplamente comprovada no campo, o reprodutor retorna à central Semex para atender à alta demanda de criadores que buscam padronização e carcaça moderna.</p>
+                        <ul style={{ marginBottom: "32px" }}>
+                            <li style={{ fontSize: "15px", lineHeight: "1.8", marginBottom: "12px", color: "rgba(255,255,255,0.85)" }}><strong style={{ color: "#fff" }}>Genética de Elite:</strong> Irmão próprio da renomada doadora 2321 — matriz de ícones como Rolex e Qatar Terra Brava.</li>
+                            <li style={{ fontSize: "15px", lineHeight: "1.8", marginBottom: "12px", color: "rgba(255,255,255,0.85)" }}><strong style={{ color: "#fff" }}>Performance Reprodutiva:</strong> Índices de prenhez acima da média, garantindo rentabilidade no manejo.</li>
+                            <li style={{ fontSize: "15px", lineHeight: "1.8", marginBottom: "12px", color: "rgba(255,255,255,0.85)" }}><strong style={{ color: "#fff" }}>Atributos Físicos:</strong> Volume muscular excepcional no posterior, carcaça profunda e padrão racial impecável transmitido com alta fidelidade à progênie.</li>
+                        </ul>
+                        <p style={{ fontStyle: "italic", fontWeight: "bold", color: "var(--gold)", fontSize: "18px" }}>&quot;Sertanejo Terra Brava: aí é máquina!&quot;</p>
+                    </div>
                 </div>
+            </div>
 
-                {/* GENEALOGIA */}
+            <section className="ficha-preview section-padding" id="ficha-tecnica">
+                <div className="container">
+                    <div className="section-header">
+                        <div className="badge" style={{ marginBottom: "16px" }}>Dados Completos</div>
+                        <h2>Ficha Técnica <span className="gold">Oficial</span></h2>
+                    </div>
+
+                    {/* GENEALOGIA */}
                 <div className="card">
                     <h3><span className="material-icons-outlined">account_tree</span> <span className="gold">Genealogia</span></h3>
                     <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "24px" }}>Árvore genealógica em 3 gerações</p>
@@ -549,5 +587,6 @@ export default function SertanejoFichaTecnica() {
                 </div>
             </div>
         </section>
+        </>
     );
 }

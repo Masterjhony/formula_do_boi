@@ -47,7 +47,7 @@ export default function SertanejoFichaTecnicaPage() {
                 </div>
             </header>
 
-            <div style={{ paddingTop: "80px" }}>
+            <div>
                 <SertanejoFichaTecnica />
             </div>
 
