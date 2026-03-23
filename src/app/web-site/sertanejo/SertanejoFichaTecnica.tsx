@@ -52,6 +52,7 @@ export default function SertanejoFichaTecnica() {
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: { padding: { right: 30 } },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -64,7 +65,7 @@ export default function SertanejoFichaTecnica() {
                         }
                     },
                     scales: {
-                        x: { display: false, max: 110 },
+                        x: { display: false, max: 130 },
                         y: {
                             ticks: { font: { family: 'Montserrat', size: 12, weight: '600' }, color: '#141413' },
                             grid: { display: false }
@@ -123,6 +124,8 @@ export default function SertanejoFichaTecnica() {
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: 30 },
                     plugins: {
                         legend: {
                             labels: { font: { family: 'Montserrat', size: 12 }, usePointStyle: true }
@@ -469,23 +472,73 @@ export default function SertanejoFichaTecnica() {
                     </table></div>
                 </div>
 
-                {/* DEPs MORFOLÓGICAS E GRÁFICOS */}
+                {/* AVALIAÇÃO MORFOLÓGICA */}
                 <div className="card">
-                    <h3><span className="material-icons-outlined">straighten</span> Morfologia e <span className="gold">Gráficos</span></h3>
-                    <div className="charts-row">
+                    <h3><span className="material-icons-outlined">straighten</span> Avaliação <span className="gold">Morfológica</span></h3>
+                    <div className="charts-row" style={{ alignItems: 'center' }}>
+                        <div className="table-scroll">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Característica</th>
+                                        <th>DEP</th>
+                                        <th>Acurácia</th>
+                                        <th>DECA</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Estrutura Corporal (Eg)</td>
+                                        <td className="value">+2,145</td>
+                                        <td>51%</td>
+                                        <td><span className="deca-label" style={{ background: '#e8f5e9', color: '#2e7d32', padding: '4px 12px', borderRadius: '50%' }}>1</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Precocidade (Pg)</td>
+                                        <td className="value">+1,705</td>
+                                        <td>51%</td>
+                                        <td><span className="deca-label" style={{ background: '#e8f5e9', color: '#2e7d32', padding: '4px 12px', borderRadius: '50%' }}>3</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Musculosidade (Mg)</td>
+                                        <td className="value">+1,117</td>
+                                        <td>51%</td>
+                                        <td><span className="deca-label" style={{ background: '#e8f5e9', color: '#2e7d32', padding: '4px 12px', borderRadius: '50%' }}>4</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Frame (DFRAMEG) — ANCP</td>
+                                        <td className="value">+0,028</td>
+                                        <td>76%</td>
+                                        <td><span className="top-label">TOP 44%</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mocho (DMOCHOG) — ANCP</td>
+                                        <td className="value">+21,01</td>
+                                        <td>95%</td>
+                                        <td><span className="top-label">TOP 93%</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <div>
-                            <div className="chart-container" style={{ maxWidth: "100%", height: "280px" }}>
+                            <div className="chart-container" style={{ maxWidth: "100%", height: "340px" }}>
                                 <canvas id="radarChart"></canvas>
                             </div>
-                        </div>
-                        <div className="chart-container" style={{ maxWidth: "100%", height: "280px" }}>
-                            <canvas id="depChart"></canvas>
                         </div>
                     </div>
                 </div>
 
+                {/* DEPS GRÁFICAS */}
+                <div className="card">
+                    <h3><span className="material-icons-outlined">bar_chart</span> DEPs <span className="gold">Gráficas</span></h3>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "24px" }}>Barras horizontais — posição relativa na raça Nelore (ANCP TOP %)</p>
+                    <div className="chart-container" style={{ maxWidth: "100%", height: "450px" }}>
+                        <canvas id="depChart"></canvas>
+                    </div>
+                </div>
+
                 <div className="ficha-cta" style={{ display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", marginTop: "32px" }}>
-                    <a href="#reserva" className="btn-checkout">
+                    <a href="/sertanejo/checkout" className="btn-checkout">
                         <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
                         Reservar Doses
                     </a>

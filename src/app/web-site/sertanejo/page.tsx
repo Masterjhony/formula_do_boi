@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { sertanejoCss } from "./sertanejoCss";
-import SertanejoFichaTecnica from "./SertanejoFichaTecnica";
-import SertanejoCheckout from "./SertanejoCheckout";
 
 const URL_PREFIX = 'https://res.cloudinary.com/dkh2nsugb';
 const galleryImages = [
@@ -218,14 +216,14 @@ export default function SertanejoLanding() {
                             Genética comprovada com excelentes avaliações em crescimento e carcaça.
                         </p>
                         <div className="hero-ctas">
-                            <a href="#reserva-doses" className="btn-checkout" aria-label="Reservar doses de sêmen">
+                            <Link href="/sertanejo/checkout" className="btn-checkout" aria-label="Reservar doses de sêmen">
                                 <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
                                 Ver Detalhes e Propor
-                            </a>
-                            <a href="#ficha-tecnica" className="btn-secondary" aria-label="Ver ficha técnica completa">
+                            </Link>
+                            <Link href="/sertanejo/ficha-tecnica" className="btn-secondary" aria-label="Ver ficha técnica completa">
                                 <span className="material-icons-outlined" style={{ fontSize: "18px" }}>description</span>
                                 Ver Ficha Técnica
-                            </a>
+                            </Link>
                         </div>
                     </div>
                     <div className="hero-image">
@@ -302,10 +300,10 @@ export default function SertanejoLanding() {
                     </div>
 
                     <div style={{ textAlign: "center", marginTop: "48px" }}>
-                        <a href="#reserva-doses" className="btn-checkout">
+                        <Link href="/sertanejo/checkout" className="btn-checkout">
                             <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
                             Reservar Doses Agora
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -343,9 +341,6 @@ export default function SertanejoLanding() {
                 </div>
             </section>
 
-            <SertanejoFichaTecnica />
-
-            <SertanejoCheckout />
 
             <footer className="footer">
                 <div className="container footer-inner">
