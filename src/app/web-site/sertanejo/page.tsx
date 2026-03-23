@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { sertanejoCss } from "./sertanejoCss";
+import SertanejoFichaTecnica from "./SertanejoFichaTecnica";
+import SertanejoCheckout from "./SertanejoCheckout";
 
 const URL_PREFIX = 'https://res.cloudinary.com/dkh2nsugb';
 const galleryImages = [
@@ -216,11 +218,11 @@ export default function SertanejoLanding() {
                             Genética comprovada com excelentes avaliações em crescimento e carcaça.
                         </p>
                         <div className="hero-ctas">
-                            <Link href="/lote/103" className="btn-checkout" aria-label="Reservar doses de sêmen">
+                            <a href="#reserva-doses" className="btn-checkout" aria-label="Reservar doses de sêmen">
                                 <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
                                 Ver Detalhes e Propor
-                            </Link>
-                            <a href="/assets/sertanejo/SERTANEJO_PMGZ.pdf" target="_blank" rel="noopener noreferrer" className="btn-secondary" aria-label="Ver ficha técnica completa">
+                            </a>
+                            <a href="#ficha-tecnica" className="btn-secondary" aria-label="Ver ficha técnica completa">
                                 <span className="material-icons-outlined" style={{ fontSize: "18px" }}>description</span>
                                 Ver Ficha Técnica
                             </a>
@@ -300,10 +302,10 @@ export default function SertanejoLanding() {
                     </div>
 
                     <div style={{ textAlign: "center", marginTop: "48px" }}>
-                        <Link href="/lote/103" className="btn-checkout">
+                        <a href="#reserva-doses" className="btn-checkout">
                             <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
                             Reservar Doses Agora
-                        </Link>
+                        </a>
                     </div>
                 </div>
             </section>
@@ -341,42 +343,9 @@ export default function SertanejoLanding() {
                 </div>
             </section>
 
-            {/* FICHA TÉCNICA PREVIEW */}
-            <section className="ficha-preview section-padding" id="ficha">
-                <div className="container">
-                    <div className="section-header">
-                        <div className="badge" style={{ marginBottom: "16px" }}>Dados Genéticos</div>
-                        <h2>Ficha Técnica <span className="gold">Resumida</span></h2>
-                    </div>
-                    <div className="ficha-grid">
-                        <div className="ficha-item">
-                            <div className="ficha-item-label">Registro</div>
-                            <div className="ficha-item-value">EPCF 2315</div>
-                            <div className="ficha-item-sub">Nelore PO</div>
-                        </div>
-                        <div className="ficha-item">
-                            <div className="ficha-item-label">MGTe (ANCP)</div>
-                            <div className="ficha-item-value">20,81 <small style={{ fontSize: "14px", color: "var(--gold)" }}>TOP 16%</small></div>
-                            <div className="ficha-item-sub">Acurácia 84% · Genômica</div>
-                        </div>
-                        <div className="ficha-item">
-                            <div className="ficha-item-label">iABCZ (PMGZ)</div>
-                            <div className="ficha-item-value">11,37 <small style={{ fontSize: "14px", color: "var(--gold)" }}>DECA 2</small></div>
-                            <div className="ficha-item-sub">P%: 16 · F**: 1,56%</div>
-                        </div>
-                    </div>
-                    <div className="ficha-cta" style={{ display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", marginTop: "32px" }}>
-                        <Link href="/lote/103" className="btn-checkout">
-                            <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
-                            Reservar Doses
-                        </Link>
-                        <a href="/assets/sertanejo/SERTANEJO_PMGZ.pdf" target="_blank" rel="noopener noreferrer" className="btn-secondary" aria-label="Acessar ficha técnica oficial PMGZ">
-                            <span className="material-icons-outlined" style={{ fontSize: "18px" }}>open_in_new</span>
-                            Ficha Técnica Completa
-                        </a>
-                    </div>
-                </div>
-            </section>
+            <SertanejoFichaTecnica />
+
+            <SertanejoCheckout />
 
             <footer className="footer">
                 <div className="container footer-inner">

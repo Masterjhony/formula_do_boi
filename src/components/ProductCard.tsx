@@ -39,6 +39,7 @@ interface ProductProps {
         breeder?: string;
         proprietario?: string;
         pdf?: string;
+        customLink?: string;
     };
 }
 
@@ -151,7 +152,7 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                 }`}
         >
             {/* Image Container */}
-            <Link href={product.customLink || `/lote/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
+            <Link href={product.customLink || product.details?.customLink || `/lote/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
                 {/* Animal Code Badge (Top Right - replacing former tag position) */}
                 <div className={`absolute top-3 right-3 z-10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm shadow-md
                     ${featured
@@ -249,7 +250,7 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                     )}
                 </div>
 
-                <Link href={product.customLink || `/lote/${product.id}`}>
+                <Link href={product.customLink || product.details?.customLink || `/lote/${product.id}`}>
                     <h3 className="text-lg font-bold text-gray-900 group-hover:text-brand-gold transition-colors line-clamp-1 mb-1">
                         {product.name}
                     </h3>
