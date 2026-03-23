@@ -702,7 +702,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                     )}
 
                     {/* Genealogy Tree */}
-                    {(() => {
+                    {isAuthenticated && (() => {
                         // Prefer rich genealogia_json; fall back to details.pai / details.mae
                         const g: any = product.genealogia_json ?? null;
                         const tree = {
