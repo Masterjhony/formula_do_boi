@@ -91,12 +91,18 @@ export default function ProductCard({ product, featured = false, isAuthenticated
             product.installments?.toLowerCase() === 'a vista' ||
             product.forma_pagamento === 'a_vista';
 
+        const safePriceStr = String(product.price || '').trim();
+        const displayPrice = (safePriceStr === 'null' || !safePriceStr || safePriceStr === 'Consultar' || safePriceStr === 'Sob Consulta') ? 'Consultar' : `R$ ${safePriceStr}`;
+
+        if (isSemen && product.name.toUpperCase().includes('SERTANEJO')) {
+            return { type: 'sertanejo_tiers', label: '', value: '', multiplier: '' };
+        }
 
         if (isSemen || isAvista) {
             return {
                 type: 'avista',
-                label: isSemen ? '1 dose' : 'À Vista',
-                value: `R$ ${product.price}`
+                label: (displayPrice === 'Consultar') ? '' : (isSemen ? '1 dose' : 'À Vista'),
+                value: displayPrice
             };
         }
 
@@ -350,7 +356,26 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                         </span>
                         <div className="flex flex-col gap-0.5">
                             {/* Casos onde há parcelamento e preço à vista definidos */}
-                            {product.category !== 'Sêmen' && product.special_price && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && product.price && product.price !== 'Consultar' ? (
+                            {paymentInfo.type === 'sertanejo_tiers' ? (
+                                <div className="flex flex-col gap-0 w-full mt-1">
+                                    <div className={`flex justify-between border-b pb-1 ${theme === 'premium' ? 'border-gray-800' : 'border-gray-200'}`}>
+                                        <span className={`text-[11px] ${theme === 'premium' ? 'text-gray-400' : 'text-gray-600'}`}>0-99 doses</span>
+                                        <span className={`text-[13px] font-bold ${theme === 'premium' ? 'text-white' : 'text-gray-900'}`}>R$ 35,00<span className="text-[10px] font-normal ml-1 text-gray-500">/ dose</span></span>
+                                    </div>
+                                    <div className={`flex justify-between border-b py-1 ${theme === 'premium' ? 'border-gray-800' : 'border-gray-200'}`}>
+                                        <span className={`text-[11px] ${theme === 'premium' ? 'text-gray-400' : 'text-gray-600'}`}>100-399 doses</span>
+                                        <span className={`text-[13px] font-bold ${theme === 'premium' ? 'text-white' : 'text-gray-900'}`}>R$ 31,50<span className="text-[10px] font-normal ml-1 text-gray-500">/ dose</span></span>
+                                    </div>
+                                    <div className={`flex justify-between border-b py-1 ${theme === 'premium' ? 'border-gray-800' : 'border-gray-200'}`}>
+                                        <span className={`text-[11px] ${theme === 'premium' ? 'text-gray-400' : 'text-gray-600'}`}>400-999 doses</span>
+                                        <span className={`text-[13px] font-bold ${theme === 'premium' ? 'text-white' : 'text-gray-900'}`}>R$ 28,00<span className="text-[10px] font-normal ml-1 text-gray-500">/ dose</span></span>
+                                    </div>
+                                    <div className="flex justify-between py-1">
+                                        <span className={`text-[11px] ${theme === 'premium' ? 'text-gray-400' : 'text-gray-600'}`}>+1000 doses</span>
+                                        <span className={`text-[13px] font-bold ${theme === 'premium' ? 'text-brand-gold' : 'text-brand-gold'}`}>R$ 24,50<span className="text-[10px] font-normal ml-1 text-gray-500">/ dose</span></span>
+                                    </div>
+                                </div>
+                            ) : product.category !== 'Sêmen' && product.special_price && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && product.price && product.price !== 'Consultar' ? (
                                 <div className="flex flex-col">
                                     <div className="flex items-baseline gap-1">
                                         <span className={`text-xl font-bold ${theme === 'premium' ? 'text-white' : 'text-gray-900'}`}>
