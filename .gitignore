@@ -59,8 +59,3 @@ crm_formula/
 crm_formula_content/
 
 # Dev/test scripts and output files (local use only)
-test_webhook.*
-query_leads.ts
-leads_output.*
-generate_sql.js
-vacaaa.webp

@@ -112,5 +112,31 @@ export const EMBRYOS = [
             proprietario: "LUDEN",
             comentario: "Touro com excelente avaliação de carcaça e desempenho. Ideal para rebanhos comerciais e puros."
         }
+    },
+    {
+        id: 103,
+        name: "Dose de Sêmen - SERTANEJO TERRA BRAVA",
+        category: "Sêmen",
+        location: "Central Semex",
+        image: "https://res.cloudinary.com/dkh2nsugb/image/upload/v1774271580/sertanejo-04_a2avtq.jpg",
+        gallery: [
+            "https://res.cloudinary.com/dkh2nsugb/image/upload/v1774271580/sertanejo-04_a2avtq.jpg",
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1774271587/WhatsApp_Video_2026-03-21_at_12.21.08_zhdbrd.mp4",
+            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1774271582/WhatsApp_Video_2026-03-21_at_12.21.06_tqodqe.mp4"
+        ],
+        price: "Consultar",
+        installments: "Sob Consulta",
+        tag: "DESTAQUE",
+        customLink: "/sertanejo",
+        details: {
+            registro: "EPCF 2315",
+            raca: "Nelore PO",
+            pai: "REMANSO TE DA MUNDIAL",
+            mae: "MARLY FIV DA ER",
+            iabcz: "11.37",
+            mgte: "20.81",
+            proprietario: "Terra Brava",
+            comentario: "Touro Nelore PO com MGTe TOP 16%. Genética comprovada."
+        }
     }
 ];
