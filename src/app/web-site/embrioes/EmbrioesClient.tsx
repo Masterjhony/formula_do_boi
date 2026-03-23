@@ -218,7 +218,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
     }, [selectedFilters, hasFilters, allProducts, neloreFilter]);
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-[#0a0a0a]">
             <Header />
 
             {/* Page Header */}
@@ -244,6 +244,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                             selectedFilters={selectedFilters}
                             onFilterChange={handleFilterChange}
                             onClearFilters={handleClearFilters}
+                            theme="premium"
                         />
 
                         {/* Products Grid */}
@@ -254,6 +255,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                             hasFilters={hasFilters}
                             neloreFilter={neloreFilter}
                             onNeloreFilterChange={setNeloreFilter}
+                            theme="premium"
                         />
                     </div>
                 </div>

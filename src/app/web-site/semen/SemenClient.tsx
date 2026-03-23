@@ -214,7 +214,7 @@ export default function SemenClient({ products }: { products: any[] }) {
     }
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-[#0a0a0a]">
             <Header />
 
             {/* Page Header */}
@@ -240,6 +240,7 @@ export default function SemenClient({ products }: { products: any[] }) {
                             selectedFilters={selectedFilters}
                             onFilterChange={handleFilterChange}
                             onClearFilters={handleClearFilters}
+                            theme="premium"
                         />
 
                         {/* Products Grid */}
@@ -248,6 +249,7 @@ export default function SemenClient({ products }: { products: any[] }) {
                             totalCount={filteredProducts.length}
                             onClearFilters={handleClearFilters}
                             hasFilters={hasFilters}
+                            theme="premium"
                         />
                     </div>
                 </div>

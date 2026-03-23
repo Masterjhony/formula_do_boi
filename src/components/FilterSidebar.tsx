@@ -101,6 +101,7 @@ interface FilterSidebarProps {
     selectedFilters: Record<string, string[]>;
     onFilterChange: (sectionId: string, value: string, checked: boolean) => void;
     onClearFilters: () => void;
+    theme?: 'default' | 'premium';
 }
 
 export default function FilterSidebar({
@@ -108,6 +109,7 @@ export default function FilterSidebar({
     selectedFilters,
     onFilterChange,
     onClearFilters,
+    theme = 'default',
 }: FilterSidebarProps) {
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
         tipo: true,
@@ -133,28 +135,28 @@ export default function FilterSidebar({
 
     return (
         <aside className="w-full lg:w-72 shrink-0">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className={`rounded-xl border shadow-sm overflow-hidden ${theme === 'premium' ? 'bg-[#1a1a1a] border-gray-800' : 'bg-white border-gray-200'}`}>
                 {sections.map((section, index) => {
                     const isExpanded = expandedSections[section.id];
 
                     return (
                         <div
                             key={section.id}
-                            className={index > 0 ? "border-t border-gray-100" : ""}
+                            className={index > 0 ? `border-t ${theme === 'premium' ? 'border-gray-800' : 'border-gray-100'}` : ""}
                         >
                             {/* Section Header */}
                             <button
                                 onClick={() => toggleSection(section.id)}
-                                className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                                className={`w-full flex items-center justify-between p-4 transition-colors ${theme === 'premium' ? 'hover:bg-[#222]' : 'hover:bg-gray-50'}`}
                             >
-                                <div className="flex items-center gap-2 text-gray-700 font-semibold">
+                                <div className={`flex items-center gap-2 font-semibold ${theme === 'premium' ? 'text-gray-300' : 'text-gray-700'}`}>
                                     {section.icon}
                                     <span>{section.title}</span>
                                 </div>
                                 {isExpanded ? (
-                                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                                    <ChevronUp className={`w-4 h-4 ${theme === 'premium' ? 'text-gray-500' : 'text-gray-400'}`} />
                                 ) : (
-                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                    <ChevronDown className={`w-4 h-4 ${theme === 'premium' ? 'text-gray-500' : 'text-gray-400'}`} />
                                 )}
                             </button>
 
@@ -181,7 +183,7 @@ export default function FilterSidebar({
                                                 }
                                                 className="w-4 h-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold cursor-pointer"
                                             />
-                                            <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                            <span className={`text-sm transition-colors ${theme === 'premium' ? 'text-gray-400 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-900'}`}>
                                                 {option.label}
                                             </span>
                                         </label>
@@ -197,7 +199,7 @@ export default function FilterSidebar({
             {hasActiveFilters && (
                 <button
                     onClick={onClearFilters}
-                    className="w-full mt-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    className={`w-full mt-4 py-3 text-sm font-medium rounded-lg transition-colors border ${theme === 'premium' ? 'text-gray-400 hover:text-white bg-[#1a1a1a] border-gray-800 hover:bg-[#222]' : 'text-gray-600 hover:text-gray-900 bg-white border-gray-200 hover:bg-gray-50'}`}
                 >
                     Limpar todos os filtros
                 </button>

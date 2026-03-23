@@ -47,9 +47,10 @@ interface ProductCardProps {
     product: ProductProps;
     featured?: boolean;
     isAuthenticated?: boolean;
+    theme?: 'default' | 'premium';
 }
 
-export default function ProductCard({ product, featured = false, isAuthenticated = true }: ProductCardProps) {
+export default function ProductCard({ product, featured = false, isAuthenticated = true, theme = 'default' }: ProductCardProps) {
     // Generate an animal code based on ID
     const animalCode = `FB-PO-${product.id.toString().padStart(3, '0')}`;
 
@@ -145,14 +146,15 @@ export default function ProductCard({ product, featured = false, isAuthenticated
         <div
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            className={`group bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative
+            className={`group rounded-xl overflow-hidden transition-all duration-300 flex flex-col h-full relative
+            ${theme === 'premium' ? 'bg-[#151515] hover:shadow-[0_0_20px_rgba(197,160,89,0.15)]' : 'bg-white hover:shadow-xl'}
             ${featured
                     ? 'border-2 border-brand-gold shadow-[0_0_15px_rgba(197,160,89,0.2)]'
-                    : 'border border-gray-100 hover:border-brand-gold/30'
+                    : `border ${theme === 'premium' ? 'border-brand-gold/10 hover:border-brand-gold/30' : 'border-gray-100 hover:border-brand-gold/30'}`
                 }`}
         >
             {/* Image Container */}
-            <Link href={product.customLink || product.details?.customLink || `/lote/${product.id}`} className="block relative aspect-[4/3] overflow-hidden bg-gray-100">
+            <Link href={product.customLink || product.details?.customLink || `/lote/${product.id}`} className={`block relative aspect-[4/3] overflow-hidden ${theme === 'premium' ? 'bg-[#0a0a0a]' : 'bg-gray-100'}`}>
                 {/* Animal Code Badge (Top Right - replacing former tag position) */}
                 <div className={`absolute top-3 right-3 z-10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm shadow-md
                     ${featured
@@ -228,7 +230,7 @@ export default function ProductCard({ product, featured = false, isAuthenticated
 
                 {/* Quick action overlay (desktop) */}
                 <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/60 to-transparent flex justify-end pointer-events-none">
-                    <div className="bg-white text-brand-black p-2 rounded-full shadow-lg hover:bg-brand-gold transition-colors pointer-events-auto">
+                    <div className={`${theme === 'premium' ? 'bg-brand-gold text-brand-black' : 'bg-white text-brand-black'} p-2 rounded-full shadow-lg hover:bg-brand-gold transition-colors pointer-events-auto`}>
                         <Info className="w-5 h-5" />
                     </div>
                 </div>
@@ -237,7 +239,7 @@ export default function ProductCard({ product, featured = false, isAuthenticated
             {/* Content */}
             < div className="p-5 flex flex-col flex-1" >
                 <div className="mb-2 flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider border border-gray-200 px-2 py-0.5 rounded-full">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider border px-2 py-0.5 rounded-full ${theme === 'premium' ? 'text-gray-400 border-gray-700' : 'text-gray-400 border-gray-200'}`}>
                         {product.category}
                     </span>
                     {isAuthenticated && (product.details?.breeder || product.details?.proprietario) && (
@@ -251,12 +253,12 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                 </div>
 
                 <Link href={product.customLink || product.details?.customLink || `/lote/${product.id}`}>
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-brand-gold transition-colors line-clamp-1 mb-1">
+                    <h3 className={`text-lg font-bold group-hover:text-brand-gold transition-colors line-clamp-1 mb-1 ${theme === 'premium' ? 'text-white' : 'text-gray-900'}`}>
                         {product.name}
                     </h3>
                 </Link>
 
-                <div className="flex items-center gap-1.5 text-gray-500 text-xs mb-4">
+                <div className={`flex items-center gap-1.5 text-xs mb-4 ${theme === 'premium' ? 'text-gray-400' : 'text-gray-500'}`}>
                     <MapPin className="w-3.5 h-3.5" />
                     {product.location}
                 </div>
@@ -264,31 +266,31 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                 {/* Technical Details Mini-Sheet */}
                 {
                     product.details && (product.details.pai || product.details.mae) && (
-                        <div className="mb-4 bg-gray-50 rounded-lg p-2 text-xs border border-gray-100">
+                        <div className={`mb-4 rounded-lg p-2 text-xs border ${theme === 'premium' ? 'bg-[#1c1c1c] border-gray-800' : 'bg-gray-50 border-gray-100'}`}>
                             <div className="grid grid-cols-2 gap-y-1 gap-x-2">
                                 {product.details.registro && (
-                                    <div className="col-span-2 flex justify-between border-b border-gray-200 pb-1 mb-1">
-                                        <span className="text-gray-400">RGD</span>
-                                        <span className="font-semibold text-gray-700">{product.details.registro}</span>
+                                    <div className={`col-span-2 flex justify-between border-b pb-1 mb-1 ${theme === 'premium' ? 'border-gray-800' : 'border-gray-200'}`}>
+                                        <span className={`${theme === 'premium' ? 'text-gray-500' : 'text-gray-400'}`}>RGD</span>
+                                        <span className={`font-semibold ${theme === 'premium' ? 'text-gray-300' : 'text-gray-700'}`}>{product.details.registro}</span>
                                     </div>
                                 )}
                                 {product.details.pai && (
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] text-gray-400 uppercase">Pai</span>
-                                        <span className="font-semibold text-gray-900 truncate" title={product.details.pai}>{product.details.pai}</span>
+                                        <span className={`text-[10px] uppercase ${theme === 'premium' ? 'text-gray-500' : 'text-gray-400'}`}>Pai</span>
+                                        <span className={`font-semibold truncate ${theme === 'premium' ? 'text-gray-200' : 'text-gray-900'}`} title={product.details.pai}>{product.details.pai}</span>
                                     </div>
                                 )}
                                 {product.details.mae && (
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] text-gray-400 uppercase">Mãe</span>
-                                        <span className="font-semibold text-gray-900 truncate" title={product.details.mae}>{product.details.mae}</span>
+                                        <span className={`text-[10px] uppercase ${theme === 'premium' ? 'text-gray-500' : 'text-gray-400'}`}>Mãe</span>
+                                        <span className={`font-semibold truncate ${theme === 'premium' ? 'text-gray-200' : 'text-gray-900'}`} title={product.details.mae}>{product.details.mae}</span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Extra Details for Matrizes */}
                             {(product.details.mgte || product.details.status || product.iabcz || product.mgte || product.iqg) && (
-                                <div className="mt-2 pt-2 border-t border-gray-200 grid grid-cols-1 gap-1">
+                                <div className={`mt-2 pt-2 border-t grid grid-cols-1 gap-1 ${theme === 'premium' ? 'border-gray-800' : 'border-gray-200'}`}>
                                     {isAuthenticated && (product.mgte || product.details.mgte) && (
                                         <div className="flex justify-between items-center text-[10px]">
                                             <span className="font-bold text-gray-500 uppercase">MGTe</span>
@@ -341,7 +343,7 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                         </Link>
                     </div>
                 ) : (
-                <div className="mt-auto border-t border-gray-50 pt-4">
+                <div className={`mt-auto border-t pt-4 ${theme === 'premium' ? 'border-gray-800' : 'border-gray-50'}`}>
                     <div className="flex flex-col">
                         <span className="text-xs text-brand-gold font-semibold uppercase tracking-wide">
                             Condição Especial
@@ -351,38 +353,38 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                             {product.category !== 'Sêmen' && product.special_price && product.installments?.toLowerCase() !== 'à vista' && product.forma_pagamento !== 'a_vista' && product.price && product.price !== 'Consultar' ? (
                                 <div className="flex flex-col">
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-xl font-bold text-gray-900">
+                                        <span className={`text-xl font-bold ${theme === 'premium' ? 'text-white' : 'text-gray-900'}`}>
                                             R$ {product.price}
                                         </span>
-                                        <span className="text-sm text-gray-500 font-medium">À Vista</span>
+                                        <span className={`text-sm font-medium ${theme === 'premium' ? 'text-gray-400' : 'text-gray-500'}`}>À Vista</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 w-full my-0.5">
-                                        <div className="h-px bg-gray-200 flex-1"></div>
-                                        <span className="text-[10px] text-gray-400 font-medium uppercase">OU</span>
-                                        <div className="h-px bg-gray-200 flex-1"></div>
+                                        <div className={`h-px flex-1 ${theme === 'premium' ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
+                                        <span className={`text-[10px] font-medium uppercase ${theme === 'premium' ? 'text-gray-600' : 'text-gray-400'}`}>OU</span>
+                                        <div className={`h-px flex-1 ${theme === 'premium' ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
                                     </div>
                                     <div className="flex items-center gap-1 text-base text-brand-gold">
                                         <span className="font-bold">
                                             {paymentInfo.type === 'parcelado_calculado' ? paymentInfo.multiplier : paymentInfo.type === 'parcelado_padrao' ? paymentInfo.multiplier : '30x'}
                                         </span>
-                                        <span className="text-xs font-medium text-gray-500">de</span>
+                                        <span className={`text-xs font-medium ${theme === 'premium' ? 'text-gray-400' : 'text-gray-500'}`}>de</span>
                                         <span className="font-bold">{paymentInfo.type === 'parcelado_calculado' ? paymentInfo.value : `R$ ${product.installments}`}</span>
-                                        <span className="text-[10px] font-medium text-gray-400 ml-1">no boleto</span>
+                                        <span className={`text-[10px] font-medium ml-1 ${theme === 'premium' ? 'text-gray-500' : 'text-gray-400'}`}>no boleto</span>
                                     </div>
                                 </div>
                             ) : (
                                 /* Fallback para visualização padrão (Sêmen ou Sem Parcelas) */
                                 <div className="flex items-baseline gap-1">
                                     {paymentInfo.type !== 'avista' && (
-                                        <span className="text-sm text-gray-500 font-medium">
+                                        <span className={`text-sm font-medium ${theme === 'premium' ? 'text-gray-400' : 'text-gray-500'}`}>
                                             {paymentInfo.multiplier}
                                         </span>
                                     )}
-                                    <span className="text-xl font-bold text-gray-900">
+                                    <span className={`text-xl font-bold ${theme === 'premium' ? 'text-white' : 'text-gray-900'}`}>
                                         {paymentInfo.value}
                                     </span>
                                     {paymentInfo.type === 'avista' && (
-                                        <span className="text-sm text-gray-500 font-medium ml-1">
+                                        <span className={`text-sm font-medium ml-1 ${theme === 'premium' ? 'text-gray-400' : 'text-gray-500'}`}>
                                             {paymentInfo.label}
                                         </span>
                                     )}
