@@ -120,19 +120,19 @@ export const sertanejoCss = `
         .gen-tree-mobile { display: none; }
         .gen-tree-mobile .gen-level { margin-bottom: 0; }
         .gen-tree-mobile .gen-level-label {
-            font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-            color: var(--gold); margin-bottom: 8px; padding-left: 4px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--gold); margin-bottom: 12px; text-align: center;
         }
-        .gen-tree-mobile .gen-level-nodes { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .gen-tree-mobile .gen-level-nodes { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
         .gen-tree-mobile .gen-node { min-width: unset; padding: 14px 16px; }
         .gen-tree-mobile .gen-level-line {
-            width: 2px; height: 20px; background: linear-gradient(to bottom, var(--gold), rgba(197,160,89,0.2));
-            margin: 0 auto 0 32px;
+            width: 2px; height: 24px; background: linear-gradient(to bottom, var(--gold), rgba(197,160,89,0.2));
+            margin: 4px auto 12px auto;
         }
         .gen-tree-mobile .gen-pair {
             display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
         }
-        .gen-tree-mobile .gen-pair .gen-node { min-width: unset; }
+        .gen-tree-mobile .gen-pair .gen-node { min-width: unset; padding: 12px 8px; }
 
         /* ========== HERO ========== */
         .hero {
