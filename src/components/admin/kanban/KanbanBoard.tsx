@@ -23,7 +23,16 @@ import { GanttView } from './GanttView';
 import { TacticalTask, TacticalColumn, updateTask, createTask, moveTask, deleteTask, createColumn, updateColumn, deleteColumn } from '@/app/web-admin/actions/tactical-tasks';
 import { createPortal } from 'react-dom';
 import { Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2, Presentation } from 'lucide-react';
-import { WhiteboardView } from './WhiteboardView';
+import dynamic from 'next/dynamic';
+
+const WhiteboardView = dynamic(() => import('./WhiteboardView').then(mod => mod.WhiteboardView), { 
+    ssr: false,
+    loading: () => (
+      <div className="flex-1 w-full h-[calc(100vh-200px)] min-h-[600px] flex items-center justify-center bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222]">
+          <div className="animate-pulse text-gray-500">Carregando Lousa...</div>
+      </div>
+    )
+});
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];

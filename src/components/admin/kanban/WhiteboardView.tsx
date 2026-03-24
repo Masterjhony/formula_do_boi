@@ -26,9 +26,9 @@ export function WhiteboardView() {
   const isDark = currentTheme === 'dark';
 
   return (
-    <div className="flex-1 w-full h-full min-h-[600px] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden relative">
-      <div className="absolute inset-0" style={{ pointerEvents: 'auto' }}>
-        <Tldraw />
+    <div className="flex-1 w-full h-[calc(100vh-200px)] min-h-[600px] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden relative isolate">
+      <div className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'auto' }}>
+        <Tldraw persistenceKey="formula-boi-tactical-plan-v1" />
       </div>
     </div>
   );
