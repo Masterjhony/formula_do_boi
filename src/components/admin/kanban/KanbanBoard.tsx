@@ -24,21 +24,22 @@ import { ExecutiveDashboard } from './ExecutiveDashboard';
 import { OKRView } from './OKRView';
 import { ReviewView } from './ReviewView';
 import { MembersView } from './MembersView';
+import { StrategyView } from './StrategyView';
 import {
     TacticalTask, TacticalColumn,
     updateTask, createTask, moveTask, deleteTask,
     createColumn, updateColumn, deleteColumn,
 } from '@/app/web-admin/actions/tactical-tasks';
 import {
-    TacticalObjective, TacticalRisk, TacticalDecision, TacticalMember,
+    TacticalObjective, TacticalRisk, TacticalDecision, TacticalMember, StrategicFlow,
 } from '@/app/web-admin/actions/tactical-strategic';
 import { createPortal } from 'react-dom';
 import {
     Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2,
-    Presentation, BarChart3, Target, ClipboardList, Zap, Eye, Users,
+    Presentation, BarChart3, Target, ClipboardList, Zap, Eye, Users, Compass,
 } from 'lucide-react';
 
-type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'dashboard' | 'okrs' | 'review' | 'members';
+type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'dashboard' | 'okrs' | 'review' | 'members' | 'strategy';
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];
@@ -47,6 +48,7 @@ interface KanbanBoardProps {
     initialRisks: TacticalRisk[];
     initialDecisions: TacticalDecision[];
     initialMembers: TacticalMember[];
+    initialFlows: StrategicFlow[];
 }
 
 export function KanbanBoard({
@@ -56,6 +58,7 @@ export function KanbanBoard({
     initialRisks,
     initialDecisions,
     initialMembers,
+    initialFlows,
 }: KanbanBoardProps) {
     const [tasks, setTasks] = useState<TacticalTask[]>(initialTasks);
     const [columns, setColumns] = useState<TacticalColumn[]>(initialColumns);
@@ -63,6 +66,7 @@ export function KanbanBoard({
     const [risks, setRisks] = useState<TacticalRisk[]>(initialRisks);
     const [decisions, setDecisions] = useState<TacticalDecision[]>(initialDecisions);
     const [members, setMembers] = useState<TacticalMember[]>(initialMembers);
+    const [flows, setFlows] = useState<StrategicFlow[]>(initialFlows);
 
     const [isCreatingColumn, setIsCreatingColumn] = useState(false);
     const [newColumnTitle, setNewColumnTitle] = useState('');
@@ -224,6 +228,7 @@ export function KanbanBoard({
         { key: 'okrs', label: `OKRs${okrSummary !== null ? ` ${okrSummary}%` : ''}`, icon: <Target size={15} /> },
         { key: 'review', label: `Revisão${activeRisks.length > 0 ? ` ⚠️${activeRisks.length}` : ''}`, icon: <ClipboardList size={15} /> },
         { key: 'members', label: `Equipe${members.length > 0 ? ` (${members.length})` : ''}`, icon: <Users size={15} /> },
+        { key: 'strategy', label: 'Estratégia', icon: <Compass size={15} /> },
     ];
 
     const showKanbanFilters = viewMode === 'kanban' || viewMode === 'gantt';
@@ -464,6 +469,18 @@ export function KanbanBoard({
                         members={members}
                         onMembersChange={setMembers}
                         tasks={tasks}
+                    />
+                )}
+
+                {/* STRATEGY */}
+                {viewMode === 'strategy' && (
+                    <StrategyView
+                        flows={flows}
+                        onFlowsChange={setFlows}
+                        tasks={tasks}
+                        onTasksChange={setTasks}
+                        objectives={objectives}
+                        doneStatus={doneStatus}
                     />
                 )}
             </div>

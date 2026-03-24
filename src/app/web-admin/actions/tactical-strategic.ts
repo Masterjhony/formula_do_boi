@@ -260,6 +260,104 @@ export async function deleteMember(id: string) {
   revalidatePath('/web-admin/tactical-plan');
 }
 
+// ─── Strategic Flows ──────────────────────────────────────────────────────────
+
+export interface StrategicStage {
+  id: string;
+  flow_id: string;
+  name: string;
+  position: number;
+  weight: number;
+  color: string;
+  created_at: string;
+}
+
+export interface StrategicFlow {
+  id: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  created_at: string;
+  stages?: StrategicStage[];
+}
+
+export async function getFlows(): Promise<StrategicFlow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('strategic_flows')
+    .select('*, strategic_stages(*)')
+    .order('created_at', { ascending: true });
+  if (error) { console.error('getFlows:', error); return []; }
+  return (data || []).map((f: any) => ({
+    ...f,
+    stages: [...(f.strategic_stages || [])].sort((a: StrategicStage, b: StrategicStage) => a.position - b.position),
+  }));
+}
+
+export async function createFlow(data: { name: string; description?: string }) {
+  const supabase = await createClient();
+  const { data: result, error } = await supabase
+    .from('strategic_flows')
+    .insert(data)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  revalidatePath('/web-admin/tactical-plan');
+  return result as StrategicFlow;
+}
+
+export async function updateFlow(id: string, updates: Partial<StrategicFlow>) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('strategic_flows')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  revalidatePath('/web-admin/tactical-plan');
+  return data as StrategicFlow;
+}
+
+export async function deleteFlow(id: string) {
+  const supabase = await createClient();
+  await supabase.from('strategic_flows').delete().eq('id', id);
+  revalidatePath('/web-admin/tactical-plan');
+}
+
+export async function createStage(data: {
+  flow_id: string; name: string; position?: number; weight?: number; color?: string;
+}) {
+  const supabase = await createClient();
+  const { data: result, error } = await supabase
+    .from('strategic_stages')
+    .insert(data)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  revalidatePath('/web-admin/tactical-plan');
+  return result as StrategicStage;
+}
+
+export async function updateStage(id: string, updates: Partial<StrategicStage>) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('strategic_stages')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  revalidatePath('/web-admin/tactical-plan');
+  return data as StrategicStage;
+}
+
+export async function deleteStage(id: string) {
+  const supabase = await createClient();
+  await supabase.from('strategic_stages').delete().eq('id', id);
+  revalidatePath('/web-admin/tactical-plan');
+}
+
 // ─── Decisions ────────────────────────────────────────────────────────────────
 
 export async function getDecisions(): Promise<TacticalDecision[]> {
