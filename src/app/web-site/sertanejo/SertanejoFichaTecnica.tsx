@@ -290,6 +290,17 @@ export default function SertanejoFichaTecnica() {
                     </div>
                 </div>
 
+                {/* CTA ENTRE GENEALOGIA E ÍNDICES */}
+                <div style={{ display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", margin: "0 0 32px" }}>
+                    <p style={{ width: "100%", textAlign: "center", fontSize: "14px", color: "var(--text-secondary)", marginBottom: "8px" }}>
+                        Genética de elite comprovada — consulte o valor da dose e reserve agora.
+                    </p>
+                    <a href="/sertanejo/checkout" className="btn-checkout">
+                        <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
+                        Ver Valor da Dose
+                    </a>
+                </div>
+
                 {/* ÍNDICES */}
                 <div className="card">
                     <h3><span className="material-icons-outlined">stars</span> Índices <span className="gold">Genéticos</span></h3>
@@ -578,7 +589,7 @@ export default function SertanejoFichaTecnica() {
                 <div className="ficha-cta" style={{ display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", marginTop: "32px" }}>
                     <a href="/sertanejo/checkout" className="btn-checkout">
                         <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
-                        Reservar Doses
+                        Ver Valor da Dose
                     </a>
                     <a href="/assets/sertanejo/SERTANEJO_PMGZ.pdf" target="_blank" rel="noopener noreferrer" className="btn-secondary" aria-label="Acessar ficha técnica oficial PMGZ">
                         <span className="material-icons-outlined" style={{ fontSize: "18px" }}>open_in_new</span>

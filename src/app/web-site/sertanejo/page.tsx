@@ -14,59 +14,38 @@ const galleryImages = [
     `${URL_PREFIX}/image/upload/v1774271579/sertanejo-06_j9zje5.jpg`
 ];
 
-const videosData = [
-    { cat: "touro", src: `${URL_PREFIX}/video/upload/v1774271582/WhatsApp_Video_2026-03-21_at_12.21.06_tqodqe.mp4`, label: "Touro Sertanejo — Vídeo 1" },
-    { cat: "touro", src: `${URL_PREFIX}/video/upload/v1774271587/WhatsApp_Video_2026-03-21_at_12.21.08_zhdbrd.mp4`, label: "Touro Sertanejo — Vídeo 2" },
-    { cat: "touro", src: `${URL_PREFIX}/video/upload/v1774271582/WhatsApp_Video_2026-03-21_at_12.21.09_guttwd.mp4`, label: "Touro Sertanejo — Vídeo 3" },
-    { cat: "touro", src: `${URL_PREFIX}/video/upload/v1774271581/WhatsApp_Video_2026-03-21_at_12.21.10_yjekne.mp4`, label: "Touro Sertanejo — Vídeo 4" },
-    { cat: "touro", src: `${URL_PREFIX}/video/upload/v1774271583/WhatsApp_Video_2026-03-21_at_12.21.11_g5simf.mp4`, label: "Touro Sertanejo — Vídeo 5" },
-    { cat: "progenie-machos", src: `${URL_PREFIX}/video/upload/v1774271585/WhatsApp_Video_2026-03-21_at_12.21.12_jaugxz.mp4`, label: "Progênie Macho — Vídeo 1", dotColor: "#4CAF50" },
-    { cat: "progenie-machos", src: `${URL_PREFIX}/video/upload/v1774284099/Progenie_Macho_1_gsawbw.mp4`, label: "Progênie Macho — Vídeo 2", dotColor: "#4CAF50" },
-    { cat: "progenie-machos", src: `${URL_PREFIX}/video/upload/v1774284178/Progenie_Macho_2_roevvo.mp4`, label: "Progênie Macho — Vídeo 3", dotColor: "#4CAF50" },
-    { cat: "progenie-machos", src: `${URL_PREFIX}/video/upload/v1774284179/Progenie_Macho_4_oqa6mh.mp4`, label: "Progênie Macho — Vídeo 4", dotColor: "#4CAF50" },
-    { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281612/Progenie_femea_terra_brava_1_bo8cfu.mp4`, label: "Progênie Fêmea — Vídeo 1", dotColor: "#E91E63" },
-    { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281614/Progenie_femea_terra_brava_2_oruwcg.mp4`, label: "Progênie Fêmea — Vídeo 2", dotColor: "#E91E63" },
-    { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281616/progenie_femea_terra_brava_3_eziifa.mp4`, label: "Progênie Fêmea — Vídeo 3", dotColor: "#E91E63" },
-    { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281619/Progenie_femea_terra_brava_4_ct83mc.mp4`, label: "Progênie Fêmea — Vídeo 4", dotColor: "#E91E63" },
-    { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281619/Progenie_femea_terra_brava_5_ocquo6.mp4`, label: "Progênie Fêmea — Vídeo 5", dotColor: "#E91E63" },
+const touroVideos = [
+    { src: `${URL_PREFIX}/video/upload/v1774271582/WhatsApp_Video_2026-03-21_at_12.21.06_tqodqe.mp4`, label: "Touro Sertanejo — Vídeo 1" },
+    { src: `${URL_PREFIX}/video/upload/v1774271587/WhatsApp_Video_2026-03-21_at_12.21.08_zhdbrd.mp4`, label: "Touro Sertanejo — Vídeo 2" },
+    { src: `${URL_PREFIX}/video/upload/v1774271582/WhatsApp_Video_2026-03-21_at_12.21.09_guttwd.mp4`, label: "Touro Sertanejo — Vídeo 3" },
+    { src: `${URL_PREFIX}/video/upload/v1774271581/WhatsApp_Video_2026-03-21_at_12.21.10_yjekne.mp4`, label: "Touro Sertanejo — Vídeo 4" },
+    { src: `${URL_PREFIX}/video/upload/v1774271583/WhatsApp_Video_2026-03-21_at_12.21.11_g5simf.mp4`, label: "Touro Sertanejo — Vídeo 5" },
 ];
 
-const WHATSAPP_URL = "https://wa.me/5531984143874?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20Sertanejo%20da%20Terra%20Brava.%20Vi%20a%20p%C3%A1gina%20do%20F%C3%B3rmula%20do%20Boi%20e%20gostaria%20de%20saber%20mais.";
+const progenieMachosVideos = [
+    { src: `${URL_PREFIX}/video/upload/v1774271585/WhatsApp_Video_2026-03-21_at_12.21.12_jaugxz.mp4`, label: "Progênie Macho — Vídeo 1", dotColor: "#4CAF50" },
+    { src: `${URL_PREFIX}/video/upload/v1774284099/Progenie_Macho_1_gsawbw.mp4`, label: "Progênie Macho — Vídeo 2", dotColor: "#4CAF50" },
+    { src: `${URL_PREFIX}/video/upload/v1774284178/Progenie_Macho_2_roevvo.mp4`, label: "Progênie Macho — Vídeo 3", dotColor: "#4CAF50" },
+    { src: `${URL_PREFIX}/video/upload/v1774284179/Progenie_Macho_4_oqa6mh.mp4`, label: "Progênie Macho — Vídeo 4", dotColor: "#4CAF50" },
+];
 
-const videoCatCounts: Record<string, number> = {
-    todos: videosData.length,
-    touro: videosData.filter(v => v.cat === "touro").length,
-    "progenie-machos": videosData.filter(v => v.cat === "progenie-machos").length,
-    "progenie-femeas": videosData.filter(v => v.cat === "progenie-femeas").length,
-};
+const progenieFemeasVideos = [
+    { src: `${URL_PREFIX}/video/upload/v1774281612/Progenie_femea_terra_brava_1_bo8cfu.mp4`, label: "Progênie Fêmea — Vídeo 1", dotColor: "#E91E63" },
+    { src: `${URL_PREFIX}/video/upload/v1774281614/Progenie_femea_terra_brava_2_oruwcg.mp4`, label: "Progênie Fêmea — Vídeo 2", dotColor: "#E91E63" },
+    { src: `${URL_PREFIX}/video/upload/v1774281616/progenie_femea_terra_brava_3_eziifa.mp4`, label: "Progênie Fêmea — Vídeo 3", dotColor: "#E91E63" },
+    { src: `${URL_PREFIX}/video/upload/v1774281619/Progenie_femea_terra_brava_4_ct83mc.mp4`, label: "Progênie Fêmea — Vídeo 4", dotColor: "#E91E63" },
+    { src: `${URL_PREFIX}/video/upload/v1774281619/Progenie_femea_terra_brava_5_ocquo6.mp4`, label: "Progênie Fêmea — Vídeo 5", dotColor: "#E91E63" },
+];
+
+const CHECKOUT_URL = "/sertanejo/checkout";
 
 export default function SertanejoLanding() {
     const [scrolled, setScrolled] = useState(false);
-
-    // Lightbox State
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
-
-    // Photo Carousel State
     const [photoIndex, setPhotoIndex] = useState(0);
     const photoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-    // Video Carousel State
-    const [activeVideoCat, setActiveVideoCat] = useState("todos");
-    const carouselRef = useRef<HTMLDivElement>(null);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(true);
-
-    // Video Modal State
     const [modalVideoSrc, setModalVideoSrc] = useState<string | null>(null);
-
-    // Drag-to-scroll state
-    const [isDragging, setIsDragging] = useState(false);
-    const [startX, setStartX] = useState(0);
-    const [scrollLeft, setScrollLeft] = useState(0);
-
-    // Filter videos manually here instead of display: none
-    const filteredVideos = videosData.filter(v => activeVideoCat === "todos" || v.cat === activeVideoCat);
 
     const startPhotoAutoPlay = () => {
         if (photoIntervalRef.current) clearInterval(photoIntervalRef.current);
@@ -88,34 +67,14 @@ export default function SertanejoLanding() {
     }, []);
 
     useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 10);
-        };
+        const handleScroll = () => setScrolled(window.scrollY > 10);
         window.addEventListener("scroll", handleScroll);
-
         const link = document.createElement("link");
         link.href = "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined";
         link.rel = "stylesheet";
         document.head.appendChild(link);
-
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-        };
+        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
-
-    const handleCarouselScroll = () => {
-        if (!carouselRef.current) return;
-        setCanScrollLeft(carouselRef.current.scrollLeft > 10);
-        setCanScrollRight(
-            carouselRef.current.scrollLeft < carouselRef.current.scrollWidth - carouselRef.current.clientWidth - 10
-        );
-    };
-
-    const scrollCarousel = (amount: number) => {
-        if (carouselRef.current) {
-            carouselRef.current.scrollBy({ left: amount, behavior: "smooth" });
-        }
-    };
 
     const openLightbox = (index: number) => {
         setLightboxIndex(index);
@@ -154,30 +113,6 @@ export default function SertanejoLanding() {
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [lightboxOpen, modalVideoSrc]);
-
-    // Handle Drag to scroll
-    const handleMouseDown = (e: React.MouseEvent) => {
-        if (!carouselRef.current) return;
-        setIsDragging(true);
-        setStartX(e.pageX - carouselRef.current.offsetLeft);
-        setScrollLeft(carouselRef.current.scrollLeft);
-    };
-
-    const handleMouseLeave = () => {
-        setIsDragging(false);
-    };
-
-    const handleMouseUp = () => {
-        setIsDragging(false);
-    };
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!isDragging || !carouselRef.current) return;
-        e.preventDefault();
-        const x = e.pageX - carouselRef.current.offsetLeft;
-        const walk = (x - startX);
-        carouselRef.current.scrollLeft = scrollLeft - walk;
-    };
 
     const VideoThumb = ({ videoItem }: { videoItem: any }) => {
         const vidRef = useRef<HTMLVideoElement>(null);
@@ -222,6 +157,78 @@ export default function SertanejoLanding() {
         );
     };
 
+    const VideoCarouselSection = ({ title, accentColor, videos }: { title: string, accentColor: string, videos: any[] }) => {
+        const ref = useRef<HTMLDivElement>(null);
+        const [canLeft, setCanLeft] = useState(false);
+        const [canRight, setCanRight] = useState(true);
+        const [dragging, setDragging] = useState(false);
+        const [dragStartX, setDragStartX] = useState(0);
+        const [dragScrollLeft, setDragScrollLeft] = useState(0);
+
+        const handleScroll = () => {
+            if (!ref.current) return;
+            setCanLeft(ref.current.scrollLeft > 10);
+            setCanRight(ref.current.scrollLeft < ref.current.scrollWidth - ref.current.clientWidth - 10);
+        };
+
+        const scroll = (amount: number) => ref.current?.scrollBy({ left: amount, behavior: "smooth" });
+
+        const onMouseDown = (e: React.MouseEvent) => {
+            if (!ref.current) return;
+            setDragging(true);
+            setDragStartX(e.pageX - ref.current.offsetLeft);
+            setDragScrollLeft(ref.current.scrollLeft);
+        };
+
+        const onMouseLeave = () => setDragging(false);
+        const onMouseUp = () => setDragging(false);
+        const onMouseMove = (e: React.MouseEvent) => {
+            if (!dragging || !ref.current) return;
+            e.preventDefault();
+            const x = e.pageX - ref.current.offsetLeft;
+            ref.current.scrollLeft = dragScrollLeft - (x - dragStartX);
+        };
+
+        return (
+            <div className="video-section-block">
+                <h3 className="video-section-title">
+                    <span style={{ display: "inline-block", width: "10px", height: "10px", borderRadius: "50%", background: accentColor, marginRight: "10px", verticalAlign: "middle", flexShrink: 0 }}></span>
+                    {title}
+                </h3>
+                <div className="video-carousel-outer">
+                    <button
+                        className={`carousel-arrow left ${!canLeft ? "disabled" : ""}`}
+                        onClick={() => scroll(-372)}
+                        aria-label="Vídeo anterior"
+                    >
+                        <span className="material-icons-outlined">chevron_left</span>
+                    </button>
+                    <div
+                        className="video-carousel"
+                        ref={ref}
+                        onScroll={handleScroll}
+                        onMouseDown={onMouseDown}
+                        onMouseLeave={onMouseLeave}
+                        onMouseUp={onMouseUp}
+                        onMouseMove={onMouseMove}
+                        style={{ cursor: dragging ? "grabbing" : "auto" }}
+                    >
+                        {videos.map((vid, idx) => (
+                            <VideoThumb key={idx} videoItem={vid} />
+                        ))}
+                    </div>
+                    <button
+                        className={`carousel-arrow right ${!canRight ? "disabled" : ""}`}
+                        onClick={() => scroll(372)}
+                        aria-label="Próximo vídeo"
+                    >
+                        <span className="material-icons-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="sertanejo-wrap">
             <style dangerouslySetInnerHTML={{ __html: sertanejoCss }} />
@@ -257,10 +264,10 @@ export default function SertanejoLanding() {
                             Genética comprovada com excelentes avaliações em crescimento e carcaça.
                         </p>
                         <div className="hero-ctas">
-                            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-checkout" aria-label="Reservar doses de sêmen via WhatsApp">
+                            <Link href={CHECKOUT_URL} className="btn-checkout" aria-label="Ver valor da dose">
                                 <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
-                                Reservar Doses
-                            </a>
+                                Ver Valor da Dose
+                            </Link>
                             <Link href="/sertanejo/ficha-tecnica" className="btn-secondary" aria-label="Ver ficha técnica completa">
                                 <span className="material-icons-outlined" style={{ fontSize: "18px" }}>description</span>
                                 Ver Ficha Técnica
@@ -314,69 +321,33 @@ export default function SertanejoLanding() {
                         </div>
                     </div>
 
-                    {/* VIDEO SECTION */}
-                    <div className="section-header" style={{ marginTop: "64px" }}>
+                    {/* VIDEO SECTIONS */}
+                    <div className="section-header" style={{ marginTop: "64px", marginBottom: "40px" }}>
                         <h2>Vídeos do <span className="gold">Sertanejo</span></h2>
-                        <p>Arraste para o lado para ver mais vídeos</p>
                     </div>
 
-                    <div className="video-categories">
-                        {[
-                            { key: "todos", label: "Todos" },
-                            { key: "touro", label: "Touro" },
-                            { key: "progenie-machos", label: "Progênie Machos" },
-                            { key: "progenie-femeas", label: "Progênie Fêmeas" },
-                        ].map(({ key, label }) => (
-                            <button
-                                key={key}
-                                className={`video-cat-btn ${activeVideoCat === key ? "active" : ""}`}
-                                onClick={() => {
-                                    setActiveVideoCat(key);
-                                    setTimeout(() => handleCarouselScroll(), 100);
-                                }}
-                            >
-                                {label}
-                                <span className="video-cat-count">{videoCatCounts[key]}</span>
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="video-carousel-outer">
-                        <button
-                            className={`carousel-arrow left ${!canScrollLeft ? "disabled" : ""}`}
-                            onClick={() => scrollCarousel(-372)}
-                        >
-                            <span className="material-icons-outlined">chevron_left</span>
-                        </button>
-                        <div
-                            className="video-carousel"
-                            id="videoCarousel"
-                            ref={carouselRef}
-                            onScroll={handleCarouselScroll}
-                            onMouseDown={handleMouseDown}
-                            onMouseLeave={handleMouseLeave}
-                            onMouseUp={handleMouseUp}
-                            onMouseMove={handleMouseMove}
-                            style={{ cursor: isDragging ? 'grabbing' : 'auto' }}
-                        >
-                            {filteredVideos.map((vid, idx) => (
-                                <VideoThumb key={idx} videoItem={vid} />
-                            ))}
-                        </div>
-                        <button
-                            className={`carousel-arrow right ${!canScrollRight ? "disabled" : ""}`}
-                            onClick={() => scrollCarousel(372)}
-                        >
-                            <span className="material-icons-outlined">chevron_right</span>
-                        </button>
-                    </div>
+                    <VideoCarouselSection
+                        title="Vídeos do Touro"
+                        accentColor="var(--gold)"
+                        videos={touroVideos}
+                    />
+                    <VideoCarouselSection
+                        title="Vídeos de Progênie Macho"
+                        accentColor="#4CAF50"
+                        videos={progenieMachosVideos}
+                    />
+                    <VideoCarouselSection
+                        title="Vídeos de Progênie Fêmea"
+                        accentColor="#E91E63"
+                        videos={progenieFemeasVideos}
+                    />
 
                     {/* CTA APÓS VÍDEOS */}
                     <div style={{ textAlign: "center", marginTop: "48px" }}>
-                        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-checkout">
+                        <Link href={CHECKOUT_URL} className="btn-checkout">
                             <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
-                            Reservar Doses Agora
-                        </a>
+                            Ver Valor da Dose
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -414,10 +385,10 @@ export default function SertanejoLanding() {
 
                     {/* CTA APÓS DIFERENCIAIS */}
                     <div className="diferenciais-ctas">
-                        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-checkout">
+                        <Link href={CHECKOUT_URL} className="btn-checkout">
                             <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
-                            Reservar Doses
-                        </a>
+                            Ver Valor da Dose
+                        </Link>
                         <Link href="/sertanejo/ficha-tecnica" className="btn-secondary">
                             <span className="material-icons-outlined" style={{ fontSize: "18px" }}>description</span>
                             Ficha Técnica Oficial

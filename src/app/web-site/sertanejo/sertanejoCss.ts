@@ -599,6 +599,15 @@ export const sertanejoCss = `
             justify-content: center; margin-top: 48px;
         }
 
+        /* ========== VIDEO SECTIONS ========== */
+        .video-section-block { margin-bottom: 48px; }
+        .video-section-block:last-of-type { margin-bottom: 0; }
+        .video-section-title {
+            font-weight: 800; font-size: 18px; text-transform: uppercase;
+            letter-spacing: 0.05em; margin-bottom: 20px;
+            display: flex; align-items: center; color: var(--text-dark);
+        }
+
         /* ========== RESPONSIVE ========== */
         @media (max-width: 1024px) {
             .hero-title-name { font-size: 40px; }
