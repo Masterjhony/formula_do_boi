@@ -15,7 +15,7 @@ export default async function TacticalPlanPage() {
             <div className="mb-6 flex justify-between items-end shrink-0">
                 <div>
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
-                        Plano Tático
+                        Projetos
                     </h1>
                     <p className="text-gray-500 mt-2">
                         Gerencie as tarefas e prioridades da equipe.

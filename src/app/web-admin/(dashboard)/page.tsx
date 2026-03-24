@@ -86,7 +86,7 @@ export default async function AdminDashboard() {
         return d !== null && d >= 0 && d <= 7;
     }).length;
 
-    // ── métricas do Plano Tático ───────────────────────────────────────────
+    // ── métricas de Projetos ───────────────────────────────────────────
     const allTasks = tasks || [];
     const totalTasks = allTasks.length;
     const tasksByStatus: Record<string, number> = {};
@@ -137,7 +137,7 @@ export default async function AdminDashboard() {
                 ))}
             </div>
 
-            {/* ── Módulos: ERP · CRM · Plano Tático ──────────────────────── */}
+            {/* ── Módulos: ERP · CRM · Projetos ──────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* ERP — card compacto */}
@@ -246,14 +246,14 @@ export default async function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Plano Tático */}
+                {/* Projetos */}
                 <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl shadow-xl overflow-hidden flex flex-col">
                     <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-2 bg-sky-500/10 rounded-xl">
                                 <Target className="w-4 h-4 text-sky-500" />
                             </div>
-                            <h3 className="font-bold text-gray-900 dark:text-white">Plano Tático</h3>
+                            <h3 className="font-bold text-gray-900 dark:text-white">Projetos</h3>
                         </div>
                         <Link href="/tactical-plan" className="text-xs text-gray-400 hover:text-sky-500 transition-colors flex items-center gap-1">
                             Ver tudo <ArrowRight size={12} />
@@ -414,7 +414,7 @@ export default async function AdminDashboard() {
                             { href: '/products/new', icon: Package, label: 'Novo Card', color: 'hover:border-[#B8860B] hover:text-[#B8860B]' },
                             { href: '/breeders', icon: UserCheck, label: 'Criadores', color: 'hover:border-blue-500 hover:text-blue-500' },
                             { href: '/crm', icon: PhoneCall, label: 'CRM', color: 'hover:border-violet-500 hover:text-violet-500' },
-                            { href: '/tactical-plan', icon: ListTodo, label: 'Plano Tático', color: 'hover:border-sky-500 hover:text-sky-500' },
+                            { href: '/tactical-plan', icon: ListTodo, label: 'Projetos', color: 'hover:border-sky-500 hover:text-sky-500' },
                             { href: '/animal-availability', icon: Activity, label: 'Disponibilidade', color: 'hover:border-green-500 hover:text-green-500' },
                             { href: '/products', icon: BarChart3, label: 'Produtos', color: 'hover:border-amber-500 hover:text-amber-500' },
                         ].map(({ href, icon: Icon, label, color }) => (

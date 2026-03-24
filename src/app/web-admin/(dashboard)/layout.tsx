@@ -71,7 +71,7 @@ export default function AdminLayout({
         { href: '/users', label: 'Usuários', icon: User },
         { href: '/analytics', label: 'Analytics', icon: Activity },
         { href: '/crm', label: 'CRM de Vendas', icon: User }, // Using User/Target icon; let's use User or maybe an Inbox icon but User is imported
-        { href: '/tactical-plan', label: 'Plano Tático', icon: Calendar },
+        { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
         { href: '/genealogia', label: 'Genealogia', icon: GitBranch },
         { href: '/whatsapp', label: 'WhatsApp', icon: MessageCircle },
         { href: '/settings', label: 'Configurações', icon: Settings },
