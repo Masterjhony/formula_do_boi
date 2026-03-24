@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tldraw/tldraw.css";
 @variant dark (&:where(.dark, .dark *));
 
 :root {
