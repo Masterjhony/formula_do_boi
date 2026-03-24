@@ -15,9 +15,11 @@ interface TaskColumnProps {
     onAddTask: (status: string) => void;
     onUpdateColumn?: (id: string, newTitle: string) => void;
     onDeleteColumn?: (id: string) => void;
+    allTasks?: TacticalTask[];
+    doneStatus?: string;
 }
 
-export function TaskColumn({ id, title, tasks, onTaskClick, onAddTask, onUpdateColumn, onDeleteColumn }: TaskColumnProps) {
+export function TaskColumn({ id, title, tasks, onTaskClick, onAddTask, onUpdateColumn, onDeleteColumn, allTasks = [], doneStatus }: TaskColumnProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(title);
 
@@ -111,6 +113,8 @@ export function TaskColumn({ id, title, tasks, onTaskClick, onAddTask, onUpdateC
                             key={task.id}
                             task={task}
                             onClick={onTaskClick}
+                            allTasks={allTasks}
+                            doneStatus={doneStatus}
                         />
                     ))}
                 </SortableContext>

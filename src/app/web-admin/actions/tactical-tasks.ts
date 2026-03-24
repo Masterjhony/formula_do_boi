@@ -49,6 +49,14 @@ export interface TacticalTask {
     checklists?: { id: string, title: string, completed: boolean }[];
     tactical_task_comments?: { count: number }[];
     tactical_task_attachments?: { count: number }[];
+    // ICE Scoring
+    ice_impact?: number;
+    ice_confidence?: number;
+    ice_ease?: number;
+    // Dependencies & Strategy
+    depends_on?: string[];
+    strategic_stage?: string;
+    status_changed_at?: string;
 }
 
 export async function getTasks() {

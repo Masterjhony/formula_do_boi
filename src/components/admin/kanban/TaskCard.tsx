@@ -2,15 +2,24 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Calendar, CheckSquare, MessageSquare, Paperclip } from 'lucide-react';
+import { Calendar, CheckSquare, MessageSquare, Paperclip, Zap, Link, AlertTriangle, Clock } from 'lucide-react';
 import { TacticalTask } from '@/app/web-admin/actions/tactical-tasks';
 
 interface TaskCardProps {
     task: TacticalTask;
     onClick: (task: TacticalTask) => void;
+    allTasks?: TacticalTask[];
+    doneStatus?: string;
 }
 
-export function TaskCard({ task, onClick }: TaskCardProps) {
+function iceScore(t: TacticalTask) {
+    const i = t.ice_impact ?? 5;
+    const c = t.ice_confidence ?? 5;
+    const e = t.ice_ease ?? 5;
+    return i * c * e;
+}
+
+export function TaskCard({ task, onClick, allTasks = [], doneStatus }: TaskCardProps) {
     const {
         setNodeRef,
         attributes,
@@ -20,10 +29,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         isDragging,
     } = useSortable({
         id: task.id,
-        data: {
-            type: 'Task',
-            task,
-        },
+        data: { type: 'Task', task },
     });
 
     const style = {
@@ -36,6 +42,23 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         'Média': 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20',
         'Baixa': 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20',
     }[task.priority] || 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20';
+
+    // Bottleneck / overdue detection
+    const now = new Date();
+    const isOverdue = task.due_date && task.status !== doneStatus && new Date(task.due_date) < now;
+    const staleDays = 7;
+    const ref = new Date(task.status_changed_at || task.created_at);
+    const daysStale = (now.getTime() - ref.getTime()) / 86400000;
+    const isStale = daysStale > staleDays && task.status !== doneStatus;
+
+    // Dependency check: is blocked by an unfinished task?
+    const isBlocked = (task.depends_on || []).some(depId => {
+        const dep = allTasks.find(t => t.id === depId);
+        return dep && dep.status !== doneStatus;
+    });
+
+    const score = iceScore(task);
+    const scoreUsed = (task.ice_impact ?? 5) !== 5 || (task.ice_confidence ?? 5) !== 5 || (task.ice_ease ?? 5) !== 5;
 
     if (isDragging) {
         return (
@@ -50,10 +73,14 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
     const totalChecklists = task.checklists?.length || 0;
     const completedChecklists = task.checklists?.filter(c => c.completed).length || 0;
     const isChecklistComplete = totalChecklists > 0 && completedChecklists === totalChecklists;
-
-    // Fallback safely if tactical_task_comments is undefined
     const commentCount = task.tactical_task_comments?.[0]?.count || 0;
     const attachmentCount = task.tactical_task_attachments?.[0]?.count || 0;
+
+    // Border color based on state
+    let borderClass = 'border-gray-200/80 dark:border-[#333333]/80 hover:border-[#B8860B]/60';
+    if (isBlocked) borderClass = 'border-red-400/70 dark:border-red-500/50';
+    else if (isOverdue) borderClass = 'border-red-300/70 dark:border-red-500/40';
+    else if (isStale) borderClass = 'border-amber-300/70 dark:border-amber-500/40';
 
     return (
         <div
@@ -62,28 +89,64 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
             {...attributes}
             {...listeners}
             onClick={() => onClick(task)}
-            className="group relative bg-white dark:bg-[#1A1A1A] p-5 rounded-xl border border-gray-200/80 dark:border-[#333333]/80 hover:border-[#B8860B]/60 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 cursor-grab active:cursor-grabbing flex flex-col gap-3"
+            className={`group relative bg-white dark:bg-[#1A1A1A] p-5 rounded-xl border ${borderClass} shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 cursor-grab active:cursor-grabbing flex flex-col gap-3`}
         >
+            {/* Status badges row */}
+            {(isBlocked || isOverdue || isStale) && (
+                <div className="flex gap-1.5 flex-wrap -mb-1">
+                    {isBlocked && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">
+                            <Link size={9} /> Bloqueado
+                        </span>
+                    )}
+                    {isOverdue && !isBlocked && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">
+                            <AlertTriangle size={9} /> Atrasado
+                        </span>
+                    )}
+                    {isStale && !isBlocked && !isOverdue && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">
+                            <Clock size={9} /> Parado {Math.round(daysStale)}d
+                        </span>
+                    )}
+                </div>
+            )}
+
             <div className="flex justify-between items-start gap-2">
                 <span className={`px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold border ${priorityColor}`}>
                     {task.priority === 'Alta' ? 'Alta 🔥' : task.priority}
                 </span>
-                {task.due_date && (
-                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-[#222222] px-2 py-1 rounded-md border border-gray-100 dark:border-[#333333]">
-                        <Calendar size={12} />
-                        <span>{new Date(task.due_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
-                    </div>
-                )}
+                <div className="flex items-center gap-1.5">
+                    {scoreUsed && (
+                        <div className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md bg-[#B8860B]/10 text-[#B8860B] border border-[#B8860B]/20">
+                            <Zap size={9} />
+                            {score}
+                        </div>
+                    )}
+                    {task.due_date && (
+                        <div className={`flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-md border ${isOverdue
+                            ? 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/20'
+                            : 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-[#222222] border-gray-100 dark:border-[#333333]'
+                            }`}>
+                            <Calendar size={12} />
+                            <span>{new Date(task.due_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug line-clamp-2">
                 {task.title}
             </h3>
 
+            {task.strategic_stage && (
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
+                    {task.strategic_stage}
+                </span>
+            )}
+
             {(totalChecklists > 0 || commentCount > 0 || attachmentCount > 0 || (task.assignees && task.assignees.length > 0)) && (
                 <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#222222]">
-
-                    {/* Indicators */}
                     <div className="flex items-center gap-1.5">
                         {totalChecklists > 0 && (
                             <div className={`flex items-center gap-1.5 text-[11px] font-bold px-2 py-1 rounded-md flex-shrink-0 transition-colors
@@ -93,14 +156,12 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                                 {completedChecklists}/{totalChecklists}
                             </div>
                         )}
-
                         {commentCount > 0 && (
                             <div className="flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md flex-shrink-0 bg-gray-50 text-gray-500 ring-1 ring-gray-200/50 dark:bg-[#222222] dark:text-gray-400 dark:ring-[#333333]">
                                 <MessageSquare size={10} />
                                 {commentCount}
                             </div>
                         )}
-
                         {attachmentCount > 0 && (
                             <div className="flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md flex-shrink-0 bg-gray-50 text-gray-500 ring-1 ring-gray-200/50 dark:bg-[#222222] dark:text-gray-400 dark:ring-[#333333]">
                                 <Paperclip size={10} />
@@ -109,7 +170,6 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                         )}
                     </div>
 
-                    {/* Assignees */}
                     {task.assignees && task.assignees.length > 0 && (() => {
                         const uniqueAssignees = Array.from(new Set(task.assignees));
                         return (
@@ -136,4 +196,3 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         </div>
     );
 }
-

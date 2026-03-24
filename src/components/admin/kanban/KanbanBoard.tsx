@@ -18,51 +18,89 @@ import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { TaskColumn } from './TaskColumn';
 import { TaskCard } from './TaskCard';
 import { TaskModal } from './TaskModal';
-
 import { GanttView } from './GanttView';
-import { TacticalTask, TacticalColumn, updateTask, createTask, moveTask, deleteTask, createColumn, updateColumn, deleteColumn } from '@/app/web-admin/actions/tactical-tasks';
-import { createPortal } from 'react-dom';
-import { Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2, Presentation } from 'lucide-react';
 import { WhiteboardView } from './WhiteboardView';
+import { ExecutiveDashboard } from './ExecutiveDashboard';
+import { OKRView } from './OKRView';
+import { ReviewView } from './ReviewView';
+import { MembersView } from './MembersView';
+import {
+    TacticalTask, TacticalColumn,
+    updateTask, createTask, moveTask, deleteTask,
+    createColumn, updateColumn, deleteColumn,
+} from '@/app/web-admin/actions/tactical-tasks';
+import {
+    TacticalObjective, TacticalRisk, TacticalDecision, TacticalMember,
+} from '@/app/web-admin/actions/tactical-strategic';
+import { createPortal } from 'react-dom';
+import {
+    Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2,
+    Presentation, BarChart3, Target, ClipboardList, Zap, Eye, Users,
+} from 'lucide-react';
+
+type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'dashboard' | 'okrs' | 'review' | 'members';
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];
-    profiles: any[];
     initialColumns: TacticalColumn[];
+    initialObjectives: TacticalObjective[];
+    initialRisks: TacticalRisk[];
+    initialDecisions: TacticalDecision[];
+    initialMembers: TacticalMember[];
 }
 
-export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBoardProps) {
+export function KanbanBoard({
+    initialTasks,
+    initialColumns,
+    initialObjectives,
+    initialRisks,
+    initialDecisions,
+    initialMembers,
+}: KanbanBoardProps) {
     const [tasks, setTasks] = useState<TacticalTask[]>(initialTasks);
     const [columns, setColumns] = useState<TacticalColumn[]>(initialColumns);
+    const [objectives, setObjectives] = useState<TacticalObjective[]>(initialObjectives);
+    const [risks, setRisks] = useState<TacticalRisk[]>(initialRisks);
+    const [decisions, setDecisions] = useState<TacticalDecision[]>(initialDecisions);
+    const [members, setMembers] = useState<TacticalMember[]>(initialMembers);
+
     const [isCreatingColumn, setIsCreatingColumn] = useState(false);
     const [newColumnTitle, setNewColumnTitle] = useState('');
-    // Assuming initialTasks are sorted by position from server
-
     const [activeTask, setActiveTask] = useState<TacticalTask | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<TacticalTask | undefined>(undefined);
     const [defaultStatus, setDefaultStatus] = useState('A fazer');
 
-    // New Feature States
-    const [viewMode, setViewMode] = useState<'kanban' | 'gantt' | 'whiteboard'>('kanban');
+    const [viewMode, setViewMode] = useState<ViewMode>('kanban');
     const [filterAssignee, setFilterAssignee] = useState<string>('all');
+    const [filterPriority, setFilterPriority] = useState<string>('all');
+    const [focusMode, setFocusMode] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
 
+    const doneStatus = useMemo(() =>
+        columns.find(c =>
+            c.title.toLowerCase().includes('complet') || c.title.toLowerCase().includes('conclu')
+        )?.title,
+        [columns]
+    );
+
     const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 5, // Avoid accidental drags on clicks
-            },
-        }),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
     const filteredTasks = useMemo(() => {
-        if (filterAssignee === 'all') return tasks;
-        return tasks.filter(t => t.assignees?.includes(filterAssignee));
-    }, [tasks, filterAssignee]);
+        let result = tasks;
+        if (filterAssignee !== 'all') result = result.filter(t => t.assignees?.includes(filterAssignee));
+        if (filterPriority !== 'all') result = result.filter(t => t.priority === filterPriority);
+        if (focusMode) result = result.filter(t => t.priority === 'Alta' || t.status !== doneStatus);
+        return result;
+    }, [tasks, filterAssignee, filterPriority, focusMode, doneStatus]);
+
+    const assigneeOptions = useMemo(() => {
+        const fromTasks = tasks.flatMap(t => t.assignees || []);
+        return Array.from(new Set(fromTasks)).filter(Boolean);
+    }, [tasks]);
 
     const handleTaskClick = (task: TacticalTask) => {
         setEditingTask(task);
@@ -76,13 +114,10 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
     };
 
     const handleSaveTask = async (taskData: any) => {
-        // Optimistic update could be done here, but for simplicity we await server
         if (editingTask) {
-            // Update
             const updated = await updateTask(editingTask.id, taskData);
             setTasks(tasks.map(t => t.id === updated.id ? updated : t));
         } else {
-            // Create
             const newTask = await createTask(taskData);
             setTasks([...tasks, newTask]);
         }
@@ -92,62 +127,48 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
         try {
             await deleteTask(taskId);
             setTasks(tasks.filter(t => t.id !== taskId));
-        } catch (error) {
-            console.error('Failed to delete task', error);
-        }
+        } catch (e) { console.error('Failed to delete task', e); }
     };
 
     // Drag Handlers
     const onDragStart = (event: DragStartEvent) => {
-        const { active } = event;
-        const task = tasks.find(t => t.id === active.id);
+        const task = tasks.find(t => t.id === event.active.id);
         if (task) setActiveTask(task);
     };
 
     const onDragOver = (event: DragOverEvent) => {
         const { active, over } = event;
         if (!over) return;
-
         const activeId = active.id;
         const overId = over.id;
-
         if (activeId === overId) return;
 
         const isActiveTask = active.data.current?.type === 'Task';
         const isOverTask = over.data.current?.type === 'Task';
-
         if (!isActiveTask) return;
 
-        // Dropping over a Task
         if (isActiveTask && isOverTask) {
-            setTasks((tasks) => {
-                const activeIndex = tasks.findIndex((t) => t.id === activeId);
-                const overIndex = tasks.findIndex((t) => t.id === overId);
-
+            setTasks(tasks => {
+                const activeIndex = tasks.findIndex(t => t.id === activeId);
+                const overIndex = tasks.findIndex(t => t.id === overId);
                 if (tasks[activeIndex].status !== tasks[overIndex].status) {
-                    // Moving to different column
-                    const updatedTasks = [...tasks];
-                    updatedTasks[activeIndex].status = tasks[overIndex].status;
-                    return arrayMove(updatedTasks, activeIndex, overIndex);
+                    const updated = [...tasks];
+                    updated[activeIndex].status = tasks[overIndex].status;
+                    return arrayMove(updated, activeIndex, overIndex);
                 }
-
-                // Sorting in same column
                 return arrayMove(tasks, activeIndex, overIndex);
             });
         }
 
         const isOverColumn = over.data.current?.type === 'Column';
-
-        // Dropping over a Column (empty area)
         if (isActiveTask && isOverColumn) {
-            setTasks((tasks) => {
-                const activeIndex = tasks.findIndex((t) => t.id === activeId);
+            setTasks(tasks => {
+                const activeIndex = tasks.findIndex(t => t.id === activeId);
                 const newStatus = overId as string;
-
                 if (tasks[activeIndex].status !== newStatus) {
-                    const updatedTasks = [...tasks];
-                    updatedTasks[activeIndex].status = newStatus;
-                    return arrayMove(updatedTasks, activeIndex, activeIndex); // No reorder needed just status update
+                    const updated = [...tasks];
+                    updated[activeIndex].status = newStatus;
+                    return arrayMove(updated, activeIndex, activeIndex);
                 }
                 return tasks;
             });
@@ -156,204 +177,232 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
 
     const onDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event;
-
-        // Only trigger server update if changed
         if (over) {
             const activeId = active.id as string;
-            // overId might be a column ID or a task ID, we already set the status locally in DragOver.
-            // So we find its newly assigned status from local state.
             const changedTask = tasks.find(t => t.id === activeId);
-
             if (changedTask) {
-                // Determine new positioning relative to others in the column
                 const columnTasks = tasks.filter(t => t.status === changedTask.status);
                 const indexInColumn = columnTasks.findIndex(t => t.id === changedTask.id);
                 const prevTask = columnTasks[indexInColumn - 1];
                 const nextTask = columnTasks[indexInColumn + 1];
 
-                let newPosition = changedTask.position; // Default to existing if no change
-
-                if (!prevTask && !nextTask) {
-                    newPosition = 1000;
-                } else if (!prevTask) {
-                    newPosition = (nextTask?.position || 2000) / 2;
-                } else if (!nextTask) {
-                    newPosition = (prevTask?.position || 0) + 1000;
-                } else {
-                    newPosition = (prevTask.position + nextTask.position) / 2;
-                }
+                let newPosition = changedTask.position;
+                if (!prevTask && !nextTask) newPosition = 1000;
+                else if (!prevTask) newPosition = (nextTask?.position || 2000) / 2;
+                else if (!nextTask) newPosition = (prevTask?.position || 0) + 1000;
+                else newPosition = (prevTask.position + nextTask.position) / 2;
 
                 try {
                     await moveTask(changedTask.id, changedTask.status, newPosition);
                 } catch {
-                    setTasks(initialTasks); // fallback
+                    setTasks(initialTasks);
                 }
             }
         }
-
         setActiveTask(null);
     };
 
     const dropAnimation = {
-        sideEffects: defaultDropAnimationSideEffects({
-            styles: {
-                active: {
-                    opacity: '0.5',
-                },
-            },
-        }),
+        sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }),
     };
+
+    // OKR quick summary bar
+    const okrSummary = useMemo(() => {
+        const all = objectives.flatMap(o => o.key_results || []);
+        if (!all.length) return null;
+        const avg = Math.round(all.reduce((a, kr) => a + (kr.progress ?? 0), 0) / all.length);
+        return avg;
+    }, [objectives]);
+
+    const activeRisks = risks.filter(r => r.status === 'active');
+
+    const viewTabs: { key: ViewMode; label: string; icon: React.ReactNode }[] = [
+        { key: 'kanban', label: 'Kanban', icon: <LayoutGrid size={15} /> },
+        { key: 'gantt', label: 'Gantt', icon: <CalendarIcon size={15} /> },
+        { key: 'whiteboard', label: 'Lousa', icon: <Presentation size={15} /> },
+        { key: 'dashboard', label: 'Dashboard', icon: <BarChart3 size={15} /> },
+        { key: 'okrs', label: `OKRs${okrSummary !== null ? ` ${okrSummary}%` : ''}`, icon: <Target size={15} /> },
+        { key: 'review', label: `Revisão${activeRisks.length > 0 ? ` ⚠️${activeRisks.length}` : ''}`, icon: <ClipboardList size={15} /> },
+        { key: 'members', label: `Equipe${members.length > 0 ? ` (${members.length})` : ''}`, icon: <Users size={15} /> },
+    ];
+
+    const showKanbanFilters = viewMode === 'kanban' || viewMode === 'gantt';
 
     return (
         <div className={
-            isFullscreen 
-                ? "fixed inset-0 z-[100] bg-[#f9fafb] dark:bg-[#0A0A0A] p-6 w-screen h-screen flex flex-col overflow-hidden" 
+            isFullscreen
+                ? "fixed inset-0 z-[100] bg-[#f9fafb] dark:bg-[#0A0A0A] p-6 w-screen h-screen flex flex-col overflow-hidden"
                 : "h-full flex flex-col pt-4"
         }>
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between mb-6 shrink-0 gap-4">
-                <div className="flex gap-2 bg-gray-100 dark:bg-[#1A1A1A] p-1 rounded-lg border border-gray-200 dark:border-[#222222]">
-                    <button
-                        onClick={() => setViewMode('kanban')}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'kanban'
-                            ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                            }`}
-                    >
-                        <LayoutGrid size={16} /> Kanban
-                    </button>
-                    <button
-                        onClick={() => setViewMode('gantt')}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'gantt'
-                            ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                            }`}
-                    >
-                        <CalendarIcon size={16} /> Gantt
-                    </button>
-                    <button
-                        onClick={() => setViewMode('whiteboard')}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'whiteboard'
-                            ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                            }`}
-                    >
-                        <Presentation size={16} /> Lousa
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    {/* Assignee Filter */}
-                    <div className="flex items-center gap-2">
-                        <Filter size={16} className="text-gray-400" />
-                        <select
-                            value={filterAssignee}
-                            onChange={(e) => setFilterAssignee(e.target.value)}
-                            className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#B8860B]"
-                        >
-                            <option value="all">Todos os Responsáveis</option>
-                            {['Marcelo', 'João Eduardo', 'Matheus', 'Joao Gabriel', 'Hugo (saiu)', 'Fabrício'].map(name => (
-                                <option key={name} value={name}>
-                                    {name}
-                                </option>
-                            ))}
-                        </select>
+            <div className="flex flex-col gap-3 mb-4 shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    {/* View Tabs */}
+                    <div className="flex gap-1 bg-gray-100 dark:bg-[#1A1A1A] p-1 rounded-xl border border-gray-200 dark:border-[#222222] overflow-x-auto">
+                        {viewTabs.map(tab => (
+                            <button
+                                key={tab.key}
+                                onClick={() => setViewMode(tab.key)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${viewMode === tab.key
+                                    ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                    }`}
+                            >
+                                {tab.icon} {tab.label}
+                            </button>
+                        ))}
                     </div>
 
-                    <button
-                        onClick={() => setIsFullscreen(!isFullscreen)}
-                        className="flex items-center justify-center p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222]"
-                        title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
-                    >
-                        {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {/* Filters — shown for kanban/gantt */}
+                        {showKanbanFilters && (
+                            <>
+                                <div className="flex items-center gap-1.5">
+                                    <Filter size={14} className="text-gray-400" />
+                                    <select
+                                        value={filterAssignee}
+                                        onChange={e => setFilterAssignee(e.target.value)}
+                                        className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#B8860B]"
+                                    >
+                                        <option value="all">Todos</option>
+                                        {assigneeOptions.map(name => (
+                                            <option key={name} value={name}>{name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <select
+                                    value={filterPriority}
+                                    onChange={e => setFilterPriority(e.target.value)}
+                                    className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#B8860B]"
+                                >
+                                    <option value="all">Todas prioridades</option>
+                                    <option value="Alta">Alta 🔥</option>
+                                    <option value="Média">Média</option>
+                                    <option value="Baixa">Baixa</option>
+                                </select>
+                                <button
+                                    onClick={() => setFocusMode(!focusMode)}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${focusMode
+                                        ? 'bg-[#B8860B]/10 border-[#B8860B]/30 text-[#B8860B]'
+                                        : 'bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#222222] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                        }`}
+                                    title="Modo Foco — apenas tarefas críticas"
+                                >
+                                    <Eye size={14} /> Foco
+                                </button>
+                            </>
+                        )}
 
-                    <button
-                        onClick={() => {
-                            setEditingTask(undefined);
-                            setDefaultStatus('A fazer');
-                            setIsModalOpen(true);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-lg font-bold hover:shadow-lg hover:shadow-[#B8860B]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap"
-                    >
-                        <Plus size={20} />
-                        Nova Tarefa
-                    </button>
+                        <button
+                            onClick={() => setIsFullscreen(!isFullscreen)}
+                            className="flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222]"
+                            title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+                        >
+                            {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                        </button>
+
+                        {(viewMode === 'kanban' || viewMode === 'gantt') && (
+                            <button
+                                onClick={() => { setEditingTask(undefined); setDefaultStatus('A fazer'); setIsModalOpen(true); }}
+                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-lg font-bold hover:shadow-lg hover:shadow-[#B8860B]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap text-sm"
+                            >
+                                <Plus size={16} /> Nova Tarefa
+                            </button>
+                        )}
+                    </div>
                 </div>
+
+                {/* OKR quick bar */}
+                {okrSummary !== null && viewMode !== 'okrs' && (
+                    <div
+                        className="flex items-center gap-3 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-xl px-4 py-2 cursor-pointer hover:border-[#B8860B]/40 transition-colors"
+                        onClick={() => setViewMode('okrs')}
+                    >
+                        <Target size={14} className="text-[#B8860B] shrink-0" />
+                        <div className="flex-1 flex items-center gap-3 overflow-x-auto">
+                            {objectives.slice(0, 4).map(obj => {
+                                const krs = obj.key_results || [];
+                                const pct = krs.length > 0
+                                    ? Math.round(krs.reduce((a, kr) => a + (kr.progress ?? 0), 0) / krs.length)
+                                    : 0;
+                                return (
+                                    <div key={obj.id} className="flex items-center gap-2 shrink-0">
+                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: obj.color }} />
+                                        <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[120px]">{obj.title}</span>
+                                        <div className="w-16 bg-gray-100 dark:bg-[#111111] rounded-full h-1.5">
+                                            <div
+                                                className={`h-1.5 rounded-full ${pct >= 70 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{pct}%</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <span className="text-[10px] text-gray-400 shrink-0">Geral: <b className="text-gray-600 dark:text-gray-300">{okrSummary}%</b></span>
+                        <Zap size={12} className="text-gray-300 dark:text-gray-600 shrink-0" />
+                    </div>
+                )}
             </div>
 
+            {/* ── Views ── */}
             <div className="flex-1 min-h-[0px] overflow-hidden flex flex-col pb-2">
+
+                {/* KANBAN */}
                 {viewMode === 'kanban' && (
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCorners}
-                        onDragStart={onDragStart}
-                        onDragOver={onDragOver}
-                        onDragEnd={onDragEnd}
-                    >
+                    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd}>
                         <div className="flex-1 flex gap-6 overflow-x-auto overflow-y-hidden custom-scrollbar pb-4 h-full snap-x pr-4">
-                            {columns.map((col) => (
+                            {columns.map(col => (
                                 <TaskColumn
                                     key={col.id}
                                     id={col.title}
                                     title={col.title}
-                                    tasks={filteredTasks.filter((t) => t.status === col.title)}
+                                    tasks={filteredTasks.filter(t => t.status === col.title)}
                                     onTaskClick={handleTaskClick}
                                     onAddTask={handleAddTask}
+                                    allTasks={tasks}
+                                    doneStatus={doneStatus}
                                     onUpdateColumn={async (id, newTitle) => {
                                         try {
-                                            const colId = col.id;
-                                            await updateColumn(colId, newTitle);
-                                            setColumns(columns.map(c => c.id === colId ? { ...c, title: newTitle } : c));
-                                            // Optional: if task status is the title, update tasks locally
+                                            await updateColumn(col.id, newTitle);
+                                            setColumns(columns.map(c => c.id === col.id ? { ...c, title: newTitle } : c));
                                             setTasks(tasks.map(t => t.status === id ? { ...t, status: newTitle } : t));
-                                        } catch (err) {
-                                            console.error(err);
-                                        }
+                                        } catch (e) { console.error(e); }
                                     }}
-                                    onDeleteColumn={async (id) => {
+                                    onDeleteColumn={async () => {
                                         try {
-                                            const colId = col.id;
-                                            await deleteColumn(colId);
-                                            setColumns(columns.filter(c => c.id !== colId));
-                                        } catch (err) {
-                                            console.error(err);
-                                        }
+                                            await deleteColumn(col.id);
+                                            setColumns(columns.filter(c => c.id !== col.id));
+                                        } catch (e) { console.error(e); }
                                     }}
                                 />
                             ))}
-                            {/* New Column Button/Input */}
-                            <div className="shrink-0 w-[320px] bg-gray-50 dark:bg-[#1A1A1A] rounded-2xl p-4 border border-gray-200 dark:border-[#222222] h-fit flex flex-col items-start justify-center">
+                            {/* New Column */}
+                            <div className="shrink-0 w-[320px] bg-gray-50 dark:bg-[#1A1A1A] rounded-2xl p-4 border border-gray-200 dark:border-[#222222] h-fit">
                                 {isCreatingColumn ? (
-                                    <div className="w-full flex items-center gap-2">
-                                        <input
-                                            autoFocus
-                                            type="text"
-                                            value={newColumnTitle}
-                                            onChange={(e) => setNewColumnTitle(e.target.value)}
-                                            onKeyDown={async (e) => {
-                                                if (e.key === 'Enter' && newColumnTitle.trim()) {
-                                                    try {
-                                                        const newCol = await createColumn(newColumnTitle.trim());
-                                                        setColumns([...columns, newCol]);
-                                                        setNewColumnTitle('');
-                                                        setIsCreatingColumn(false);
-                                                    } catch (err) {
-                                                        console.error(err);
-                                                    }
-                                                } else if (e.key === 'Escape') {
-                                                    setIsCreatingColumn(false);
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={newColumnTitle}
+                                        onChange={e => setNewColumnTitle(e.target.value)}
+                                        onKeyDown={async e => {
+                                            if (e.key === 'Enter' && newColumnTitle.trim()) {
+                                                try {
+                                                    const newCol = await createColumn(newColumnTitle.trim());
+                                                    setColumns([...columns, newCol]);
                                                     setNewColumnTitle('');
-                                                }
-                                            }}
-                                            onBlur={() => {
+                                                    setIsCreatingColumn(false);
+                                                } catch (err) { console.error(err); }
+                                            } else if (e.key === 'Escape') {
                                                 setIsCreatingColumn(false);
                                                 setNewColumnTitle('');
-                                            }}
-                                            className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#B8860B] rounded-lg focus:outline-none text-sm text-gray-900 dark:text-white"
-                                            placeholder="Nome da coluna..."
-                                        />
-                                    </div>
+                                            }
+                                        }}
+                                        onBlur={() => { setIsCreatingColumn(false); setNewColumnTitle(''); }}
+                                        className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#B8860B] rounded-lg focus:outline-none text-sm text-gray-900 dark:text-white"
+                                        placeholder="Nome da coluna..."
+                                    />
                                 ) : (
                                     <button
                                         onClick={() => setIsCreatingColumn(true)}
@@ -368,29 +417,55 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
 
                         {createPortal(
                             <DragOverlay dropAnimation={dropAnimation}>
-                                {activeTask && (
-                                    <TaskCard
-                                        task={activeTask}
-                                        onClick={() => { }}
-                                    />
-                                )}
+                                {activeTask && <TaskCard task={activeTask} onClick={() => {}} allTasks={tasks} doneStatus={doneStatus} />}
                             </DragOverlay>,
                             document.body
                         )}
                     </DndContext>
                 )}
+
+                {/* GANTT */}
                 {viewMode === 'gantt' && (
                     <div className="flex-1 min-h-[0px] pb-2 pr-2">
-                        <GanttView
-                            tasks={filteredTasks}
-                            onTaskClick={handleTaskClick}
-                        />
+                        <GanttView tasks={filteredTasks} onTaskClick={handleTaskClick} />
                     </div>
                 )}
-                {/* Whiteboard is ALWAYS mounted but hidden via CSS to prevent tldraw from being destroyed/recreated */}
+
+                {/* WHITEBOARD — always mounted to avoid state loss */}
                 <div className="flex-1 min-h-[0px] pb-2 pr-2 h-full flex-col" style={{ display: viewMode === 'whiteboard' ? 'flex' : 'none' }}>
                     <WhiteboardView />
                 </div>
+
+                {/* DASHBOARD */}
+                {viewMode === 'dashboard' && (
+                    <ExecutiveDashboard tasks={tasks} columns={columns} objectives={objectives} />
+                )}
+
+                {/* OKRs */}
+                {viewMode === 'okrs' && (
+                    <OKRView objectives={objectives} onObjectivesChange={setObjectives} />
+                )}
+
+                {/* REVIEW */}
+                {viewMode === 'review' && (
+                    <ReviewView
+                        tasks={tasks}
+                        columns={columns}
+                        risks={risks}
+                        decisions={decisions}
+                        onRisksChange={setRisks}
+                        onDecisionsChange={setDecisions}
+                    />
+                )}
+
+                {/* MEMBERS */}
+                {viewMode === 'members' && (
+                    <MembersView
+                        members={members}
+                        onMembersChange={setMembers}
+                        tasks={tasks}
+                    />
+                )}
             </div>
 
             <TaskModal
@@ -400,8 +475,9 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
                 defaultStatus={defaultStatus}
                 onSave={handleSaveTask}
                 onDelete={handleDeleteTask}
-                profiles={profiles}
                 columns={columns}
+                allTasks={tasks}
+                members={members}
             />
         </div>
     );

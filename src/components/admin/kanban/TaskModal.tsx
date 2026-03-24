@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Calendar, Save, Plus, Trash2, CheckCircle2, MessageSquare, Send, Paperclip, Download, FileText, FileImage, FileVideo, File } from 'lucide-react';
+import { X, Calendar, Save, Plus, Trash2, CheckCircle2, MessageSquare, Send, Paperclip, Download, FileText, FileImage, FileVideo, File, Zap, Link, Map } from 'lucide-react';
 import { TacticalTask, TacticalComment, TacticalAttachment, getComments, addComment, getAttachments, saveAttachmentRecord, deleteAttachment } from '@/app/web-admin/actions/tactical-tasks';
+import { TacticalMember } from '@/app/web-admin/actions/tactical-strategic';
 import { createClient } from '@/utils/supabase/client';
+
+const STRATEGIC_STAGES = ['', 'Aquisição', 'Conversão', 'Retenção', 'Receita'];
 
 interface TaskModalProps {
     isOpen: boolean;
@@ -12,11 +15,12 @@ interface TaskModalProps {
     defaultStatus?: string;
     onSave: (taskData: any) => Promise<void>;
     onDelete?: (taskId: string) => Promise<void>;
-    profiles: any[];
     columns: { title: string }[];
+    allTasks?: TacticalTask[];
+    members?: TacticalMember[];
 }
 
-export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDelete, profiles, columns }: TaskModalProps) {
+export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDelete, columns, allTasks = [], members = [] }: TaskModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [status, setStatus] = useState('A fazer');
@@ -26,6 +30,15 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
     const [checklists, setChecklists] = useState<{ id: string, title: string, completed: boolean }[]>([]);
     const [newChecklistTitle, setNewChecklistTitle] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+
+    // ICE Scoring
+    const [iceImpact, setIceImpact] = useState(5);
+    const [iceConfidence, setIceConfidence] = useState(5);
+    const [iceEase, setIceEase] = useState(5);
+
+    // Dependencies & Strategy
+    const [dependsOn, setDependsOn] = useState<string[]>([]);
+    const [strategicStage, setStrategicStage] = useState('');
 
     // Comments State
     const [comments, setComments] = useState<TacticalComment[]>([]);
@@ -39,6 +52,9 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Active section tab
+    const [activeSection, setActiveSection] = useState<'main' | 'scoring' | 'comments' | 'attachments'>('main');
+
     useEffect(() => {
         if (task) {
             setTitle(task.title);
@@ -48,32 +64,25 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
             setDueDate(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
             setAssignees(task.assignees ? Array.from(new Set(task.assignees)) : []);
             setChecklists(task.checklists || []);
+            setIceImpact(task.ice_impact ?? 5);
+            setIceConfidence(task.ice_confidence ?? 5);
+            setIceEase(task.ice_ease ?? 5);
+            setDependsOn(task.depends_on || []);
+            setStrategicStage(task.strategic_stage || '');
 
-            // Load Comments
             const loadComments = async () => {
                 setIsLoadingComments(true);
-                try {
-                    const data = await getComments(task.id);
-                    setComments(data);
-                } catch (error) {
-                    console.error('Failed to load comments:', error);
-                } finally {
-                    setIsLoadingComments(false);
-                }
+                try { setComments(await getComments(task.id)); }
+                catch (e) { console.error(e); }
+                finally { setIsLoadingComments(false); }
             };
             loadComments();
 
-            // Load Attachments
             const loadAttachments = async () => {
                 setIsLoadingAttachments(true);
-                try {
-                    const data = await getAttachments(task.id);
-                    setAttachments(data);
-                } catch (error) {
-                    console.error('Failed to load attachments:', error);
-                } finally {
-                    setIsLoadingAttachments(false);
-                }
+                try { setAttachments(await getAttachments(task.id)); }
+                catch (e) { console.error(e); }
+                finally { setIsLoadingAttachments(false); }
             };
             loadAttachments();
         } else {
@@ -84,15 +93,23 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
             setDueDate('');
             setAssignees([]);
             setChecklists([]);
+            setIceImpact(5);
+            setIceConfidence(5);
+            setIceEase(5);
+            setDependsOn([]);
+            setStrategicStage('');
             setComments([]);
             setNewComment('');
             setAttachments([]);
         }
+        setActiveSection('main');
     }, [task, defaultStatus, isOpen]);
 
     if (!isOpen) return null;
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const iceScore = iceImpact * iceConfidence * iceEase;
+
+    const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         setIsSaving(true);
         try {
@@ -104,6 +121,12 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                 due_date: dueDate ? new Date(dueDate).toISOString() : null,
                 assignees: Array.from(new Set(assignees)),
                 checklists,
+                ice_impact: iceImpact,
+                ice_confidence: iceConfidence,
+                ice_ease: iceEase,
+                depends_on: dependsOn,
+                strategic_stage: strategicStage || null,
+                status_changed_at: task?.status !== status ? new Date().toISOString() : undefined,
             });
             onClose();
         } catch (error) {
@@ -114,26 +137,22 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
     };
 
     const toggleAssignee = (name: string) => {
-        if (assignees.includes(name)) {
-            setAssignees(assignees.filter(a => a !== name));
-        } else {
-            setAssignees([...assignees, name]);
-        }
+        setAssignees(a => a.includes(name) ? a.filter(x => x !== name) : [...a, name]);
+    };
+
+    const toggleDependency = (taskId: string) => {
+        setDependsOn(d => d.includes(taskId) ? d.filter(x => x !== taskId) : [...d, taskId]);
     };
 
     const handleSendComment = async () => {
         if (!newComment.trim() || !task) return;
-
         setIsSendingComment(true);
         try {
             const added = await addComment(task.id, newComment.trim());
             setComments([...comments, added]);
             setNewComment('');
-        } catch (error) {
-            console.error('Failed to add comment:', error);
-        } finally {
-            setIsSendingComment(false);
-        }
+        } catch (e) { console.error(e); }
+        finally { setIsSendingComment(false); }
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,71 +162,39 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
         const supabase = createClient();
         let uploadedFilePath: string | null = null;
         try {
-            // Sanitiza o nome: remove acentos, espaços e chars especiais
             const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
             const baseName = file.name
                 .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '') // remove diacríticos
-                .replace(/[^a-zA-Z0-9._-]/g, '_'); // substitui especiais por _
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z0-9._-]/g, '_');
             const safeName = ext ? baseName : `${baseName}`;
             const filePath = `${task.id}/${Date.now()}_${safeName}`;
 
-            console.log('[Attachment] Iniciando upload:', { filePath, fileType: file.type, fileSize: file.size });
-
-            const { data: uploadData, error: uploadError } = await supabase.storage
+            const { error: uploadError } = await supabase.storage
                 .from('tactical-attachments')
                 .upload(filePath, file, { contentType: file.type || 'application/octet-stream' });
 
-            if (uploadError) {
-                console.error('[Attachment] Erro do Supabase Storage:', {
-                    message: uploadError.message,
-                    name: uploadError.name,
-                    cause: (uploadError as any).cause,
-                    statusCode: (uploadError as any).statusCode,
-                    error: uploadError,
-                });
-                throw new Error(uploadError.message);
-            }
+            if (uploadError) throw new Error(uploadError.message);
+            uploadedFilePath = filePath;
 
-            console.log('[Attachment] Upload OK:', uploadData);
-            uploadedFilePath = filePath; // marca que arquivo existe no storage
-
-            const { data: urlData } = supabase.storage
-                .from('tactical-attachments')
-                .getPublicUrl(filePath);
-
-            const saved = await saveAttachmentRecord(
-                task.id,
-                file.name,        // nome original legível no banco
-                urlData.publicUrl,
-                filePath,
-                file.type || 'application/octet-stream',
-                file.size
-            );
+            const { data: urlData } = supabase.storage.from('tactical-attachments').getPublicUrl(filePath);
+            const saved = await saveAttachmentRecord(task.id, file.name, urlData.publicUrl, filePath, file.type || 'application/octet-stream', file.size);
             setAttachments(prev => [...prev, saved]);
         } catch (error: any) {
-            const msg = error?.message || String(error);
-            console.error('[Attachment] Falha no upload:', msg, error);
-            // Cleanup: remove arquivo órfão do storage se o record falhou
-            if (uploadedFilePath) {
-                supabase.storage.from('tactical-attachments').remove([uploadedFilePath])
-                    .catch(() => { /* silencioso */ });
-            }
-            alert(`Erro ao fazer upload: ${msg}`);
+            if (uploadedFilePath) supabase.storage.from('tactical-attachments').remove([uploadedFilePath]).catch(() => {});
+            alert(`Erro ao fazer upload: ${error?.message || String(error)}`);
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
-    const handleDeleteAttachment = async (attachment: TacticalAttachment) => {
-        if (!window.confirm(`Excluir o anexo "${attachment.file_name}"?`)) return;
+    const handleDeleteAttachment = async (att: TacticalAttachment) => {
+        if (!window.confirm(`Excluir o anexo "${att.file_name}"?`)) return;
         try {
-            await deleteAttachment(attachment.id, attachment.file_path);
-            setAttachments(prev => prev.filter(a => a.id !== attachment.id));
-        } catch (error) {
-            console.error('Failed to delete attachment:', error);
-        }
+            await deleteAttachment(att.id, att.file_path);
+            setAttachments(prev => prev.filter(a => a.id !== att.id));
+        } catch (e) { console.error(e); }
     };
 
     const getFileIcon = (fileType?: string) => {
@@ -227,25 +214,43 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
 
     const addChecklistItem = () => {
         if (!newChecklistTitle.trim()) return;
-        setChecklists([
-            ...checklists,
-            { id: Date.now().toString(), title: newChecklistTitle, completed: false }
-        ]);
+        setChecklists([...checklists, { id: Date.now().toString(), title: newChecklistTitle, completed: false }]);
         setNewChecklistTitle('');
     };
 
-    const removeChecklistItem = (id: string) => {
-        setChecklists(checklists.filter(c => c.id !== id));
-    };
+    const ScoreSlider = ({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) => (
+        <div>
+            <div className="flex justify-between items-center mb-1">
+                <label className="text-xs text-gray-500 dark:text-gray-400">{label}</label>
+                <span className="text-xs font-bold text-[#B8860B]">{value}/10</span>
+            </div>
+            <input
+                type="range"
+                min={1}
+                max={10}
+                value={value}
+                onChange={e => onChange(parseInt(e.target.value))}
+                className="w-full h-1.5 rounded-full appearance-none bg-gray-200 dark:bg-[#222222] accent-[#B8860B]"
+            />
+        </div>
+    );
 
-    const toggleChecklistItem = (id: string) => {
-        setChecklists(checklists.map(c => c.id === id ? { ...c, completed: !c.completed } : c));
-    };
+    const sections = [
+        { key: 'main' as const, label: 'Detalhes' },
+        { key: 'scoring' as const, label: `ICE (${iceScore})` },
+        ...(task ? [
+            { key: 'comments' as const, label: `Comentários${comments.length > 0 ? ` (${comments.length})` : ''}` },
+            { key: 'attachments' as const, label: `Anexos${attachments.length > 0 ? ` (${attachments.length})` : ''}` },
+        ] : []),
+    ];
+
+    const otherTasks = allTasks.filter(t => t.id !== task?.id);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 dark:border-[#222222] flex flex-col max-h-[90vh]">
-                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-[#222222]">
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-[#222222] shrink-0">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                         {task ? 'Editar Tarefa' : 'Nova Tarefa'}
                     </h2>
@@ -254,211 +259,288 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                     </button>
                 </div>
 
-                <form id="task-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 custom-scrollbar">
-                    {/* Title */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Título
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-400"
-                            placeholder="Ex: Atualizar contrato..."
-                        />
-                    </div>
+                {/* Section Tabs */}
+                <div className="flex gap-0 border-b border-gray-100 dark:border-[#222222] shrink-0 px-6 overflow-x-auto">
+                    {sections.map(s => (
+                        <button
+                            key={s.key}
+                            type="button"
+                            onClick={() => setActiveSection(s.key)}
+                            className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === s.key
+                                ? 'border-[#B8860B] text-[#B8860B]'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                }`}
+                        >
+                            {s.label}
+                        </button>
+                    ))}
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Description */}
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Descrição
-                            </label>
-                            <textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                rows={3}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-400 resize-none"
-                                placeholder="Detalhes da tarefa..."
-                            />
-                        </div>
+                <form id="task-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 custom-scrollbar flex-1">
 
-                        {/* Status & Priority */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Status
-                            </label>
-                            <select
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white"
-                            >
-                                {columns.map((col) => (
-                                    <option key={col.title} value={col.title}>{col.title}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Prioridade
-                            </label>
-                            <select
-                                value={priority}
-                                onChange={(e) => setPriority(e.target.value)}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white"
-                            >
-                                <option value="Baixa">Baixa</option>
-                                <option value="Média">Média</option>
-                                <option value="Alta">Alta 🔥</option>
-                            </select>
-                        </div>
-
-                        {/* Due Date */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Prazo
-                            </label>
-                            <div className="relative">
-                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    {/* ── MAIN TAB ─────────────────────────────────────────── */}
+                    {activeSection === 'main' && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Título</label>
                                 <input
-                                    type="date"
-                                    value={dueDate}
-                                    onChange={(e) => setDueDate(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white"
+                                    type="text"
+                                    required
+                                    value={title}
+                                    onChange={e => setTitle(e.target.value)}
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                                    placeholder="Ex: Atualizar contrato..."
                                 />
                             </div>
-                        </div>
 
-                        {/* Assignees */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Responsáveis
-                            </label>
-                            <div className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-3 max-h-32 overflow-y-auto space-y-2 custom-scrollbar">
-                                {['Marcelo', 'João Eduardo', 'Matheus', 'Joao Gabriel', 'Hugo (saiu)', 'Fabrício'].map((name) => (
-                                    <label key={name} className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-lg cursor-pointer transition-colors">
-                                        <input
-                                            type="checkbox"
-                                            checked={assignees.includes(name)}
-                                            onChange={() => toggleAssignee(name)}
-                                            className="w-4 h-4 text-[#B8860B] border-gray-300 rounded focus:ring-[#B8860B]"
-                                        />
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-[10px] font-bold text-black border border-[#1A1A1A]">
-                                                {name.charAt(0).toUpperCase()}
-                                            </div>
-                                            <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                                                {name}
-                                            </span>
-                                        </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Descrição</label>
+                                    <textarea
+                                        value={description}
+                                        onChange={e => setDescription(e.target.value)}
+                                        rows={3}
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-400 resize-none"
+                                        placeholder="Detalhes da tarefa..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                                    <select value={status} onChange={e => setStatus(e.target.value)}
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white">
+                                        {columns.map(col => <option key={col.title} value={col.title}>{col.title}</option>)}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prioridade</label>
+                                    <select value={priority} onChange={e => setPriority(e.target.value)}
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white">
+                                        <option value="Baixa">Baixa</option>
+                                        <option value="Média">Média</option>
+                                        <option value="Alta">Alta 🔥</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prazo</label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+                                        <Map size={14} className="text-[#B8860B]" /> Etapa Estratégica
                                     </label>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                                    <select value={strategicStage} onChange={e => setStrategicStage(e.target.value)}
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white">
+                                        {STRATEGIC_STAGES.map(s => <option key={s} value={s}>{s || '— Nenhuma —'}</option>)}
+                                    </select>
+                                </div>
 
-                    {/* Checklists */}
-                    <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
-                        <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-4">
-                            <CheckCircle2 size={18} className="text-[#B8860B]" />
-                            Checklist
-                        </label>
-
-                        {/* Add Item */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <input
-                                type="text"
-                                value={newChecklistTitle}
-                                onChange={(e) => setNewChecklistTitle(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        addChecklistItem();
-                                    }
-                                }}
-                                className="flex-1 px-4 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-lg focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-500 text-sm"
-                                placeholder="Adicionar item..."
-                            />
-                            <button
-                                type="button"
-                                onClick={addChecklistItem}
-                                disabled={!newChecklistTitle.trim()}
-                                className="p-2.5 bg-gray-100 dark:bg-[#222222] text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors disabled:opacity-50"
-                            >
-                                <Plus size={18} />
-                            </button>
-                        </div>
-
-                        {/* Checklist Items */}
-                        <div className="space-y-2">
-                            {checklists.map((check) => (
-                                <div key={check.id} className="flex items-start gap-3 group">
-                                    <button
-                                        type="button"
-                                        className="mt-1 flex-shrink-0"
-                                        onClick={() => toggleChecklistItem(check.id)}
-                                    >
-                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${check.completed
-                                            ? 'bg-[#B8860B] border-[#B8860B] text-black'
-                                            : 'border-gray-300 dark:border-gray-600'
-                                            }`}>
-                                            {check.completed && <CheckCircle2 size={14} />}
+                                {/* Assignees */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Responsáveis</label>
+                                    {members.length > 0 ? (
+                                        <div className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-3 max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
+                                            {members.map(m => (
+                                                <label key={m.id} className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-lg cursor-pointer transition-colors">
+                                                    <input type="checkbox" checked={assignees.includes(m.name)} onChange={() => toggleAssignee(m.name)}
+                                                        className="w-4 h-4 text-[#B8860B] border-gray-300 rounded focus:ring-[#B8860B]" />
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-black shrink-0"
+                                                            style={{ backgroundColor: m.avatar_color }}>
+                                                            {m.name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-sm text-gray-700 dark:text-gray-300">{m.name}</span>
+                                                            {m.role && <span className="ml-2 text-[10px] text-gray-400">{m.role}</span>}
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            ))}
                                         </div>
-                                    </button>
-                                    <span className={`flex-1 text-sm pt-1 transition-all ${check.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'
-                                        }`}>
-                                        {check.title}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeChecklistItem(check.id)}
-                                        className="p-1 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all mt-0.5"
-                                    >
-                                        <Trash2 size={16} />
+                                    ) : (
+                                        <p className="text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-3">
+                                            Nenhum membro cadastrado. Adicione membros na aba <strong>Equipe</strong>.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Dependencies */}
+                            {otherTasks.length > 0 && (
+                                <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
+                                    <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-3">
+                                        <Link size={16} className="text-[#B8860B]" /> Depende de
+                                        {dependsOn.length > 0 && <span className="text-xs text-gray-400">({dependsOn.length} selecionada{dependsOn.length > 1 ? 's' : ''})</span>}
+                                    </label>
+                                    <div className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-3 max-h-40 overflow-y-auto space-y-1.5 custom-scrollbar">
+                                        {otherTasks.map(t => (
+                                            <label key={t.id} className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-lg cursor-pointer transition-colors">
+                                                <input type="checkbox" checked={dependsOn.includes(t.id)} onChange={() => toggleDependency(t.id)}
+                                                    className="w-4 h-4 text-[#B8860B] border-gray-300 rounded focus:ring-[#B8860B]" />
+                                                <div className="flex-1 min-w-0">
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate block">{t.title}</span>
+                                                    <span className="text-[10px] text-gray-400">{t.status} · {t.priority}</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Checklists */}
+                            <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
+                                <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-4">
+                                    <CheckCircle2 size={18} className="text-[#B8860B]" /> Checklist
+                                </label>
+                                <div className="flex items-center gap-2 mb-4">
+                                    <input
+                                        type="text"
+                                        value={newChecklistTitle}
+                                        onChange={e => setNewChecklistTitle(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addChecklistItem(); } }}
+                                        className="flex-1 px-4 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-lg focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-500 text-sm"
+                                        placeholder="Adicionar item..."
+                                    />
+                                    <button type="button" onClick={addChecklistItem} disabled={!newChecklistTitle.trim()}
+                                        className="p-2.5 bg-gray-100 dark:bg-[#222222] text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors disabled:opacity-50">
+                                        <Plus size={18} />
                                     </button>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                                <div className="space-y-2">
+                                    {checklists.map(check => (
+                                        <div key={check.id} className="flex items-start gap-3 group">
+                                            <button type="button" className="mt-1 flex-shrink-0" onClick={() => setChecklists(c => c.map(ci => ci.id === check.id ? { ...ci, completed: !ci.completed } : ci))}>
+                                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${check.completed ? 'bg-[#B8860B] border-[#B8860B] text-black' : 'border-gray-300 dark:border-gray-600'}`}>
+                                                    {check.completed && <CheckCircle2 size={14} />}
+                                                </div>
+                                            </button>
+                                            <span className={`flex-1 text-sm pt-1 transition-all ${check.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>{check.title}</span>
+                                            <button type="button" onClick={() => setChecklists(c => c.filter(ci => ci.id !== check.id))}
+                                                className="p-1 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all mt-0.5">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
 
-                    {/* Attachments */}
-                    {task && (
-                        <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
-                            <div className="flex items-center justify-between mb-4">
-                                <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
-                                    <Paperclip size={18} className="text-[#B8860B]" />
-                                    Anexos
-                                    {attachments.length > 0 && (
-                                        <span className="text-xs text-gray-500 dark:text-gray-400">({attachments.length})</span>
-                                    )}
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={isUploading}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-[#222222] hover:bg-gray-200 dark:hover:bg-[#333333] rounded-lg transition-colors disabled:opacity-50 border border-gray-200 dark:border-[#333333]"
-                                >
-                                    {isUploading ? (
-                                        <div className="w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin" />
-                                    ) : (
-                                        <Plus size={14} />
-                                    )}
+                    {/* ── ICE SCORING TAB ───────────────────────────────────── */}
+                    {activeSection === 'scoring' && (
+                        <div className="space-y-6">
+                            <div className="bg-gradient-to-r from-[#B8860B]/10 to-[#D4AF37]/5 border border-[#B8860B]/20 rounded-2xl p-5 text-center">
+                                <p className="text-sm text-gray-500 mb-1">ICE Score</p>
+                                <p className="text-4xl font-bold text-[#B8860B]">{iceScore}</p>
+                                <p className="text-xs text-gray-400 mt-1">Impacto × Confiança × Facilidade</p>
+                                <div className="flex justify-center gap-2 mt-3 flex-wrap">
+                                    {iceScore >= 500 && <span className="px-2 py-1 text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 rounded-md">Alta Prioridade</span>}
+                                    {iceScore >= 200 && iceScore < 500 && <span className="px-2 py-1 text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 rounded-md">Média Prioridade</span>}
+                                    {iceScore < 200 && <span className="px-2 py-1 text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20 rounded-md">Baixa Prioridade</span>}
+                                </div>
+                            </div>
+
+                            <div className="bg-white dark:bg-[#111111] rounded-2xl p-5 border border-gray-200 dark:border-[#222222] space-y-5">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Zap size={16} className="text-[#B8860B]" />
+                                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Metodologia ICE</h3>
+                                    </div>
+                                    <p className="text-xs text-gray-500 leading-relaxed">
+                                        ICE = Impacto × Confiança × Facilidade. Cada dimensão de 1 a 10.<br />
+                                        Score máximo: 1.000. Foque nas tarefas com maior score.
+                                    </p>
+                                </div>
+
+                                <ScoreSlider
+                                    label="Impacto — qual o potencial de resultado desta tarefa? (1=mínimo, 10=transformador)"
+                                    value={iceImpact}
+                                    onChange={setIceImpact}
+                                />
+                                <ScoreSlider
+                                    label="Confiança — quão certo você está que terá esse impacto? (1=incerto, 10=garantido)"
+                                    value={iceConfidence}
+                                    onChange={setIceConfidence}
+                                />
+                                <ScoreSlider
+                                    label="Facilidade — quão fácil é executar? (1=muito difícil, 10=trivial)"
+                                    value={iceEase}
+                                    onChange={setIceEase}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── COMMENTS TAB ──────────────────────────────────────── */}
+                    {activeSection === 'comments' && task && (
+                        <div className="space-y-4">
+                            {isLoadingComments ? (
+                                <p className="text-sm text-gray-500">Carregando...</p>
+                            ) : comments.length === 0 ? (
+                                <div className="text-center py-8 text-gray-400">
+                                    <MessageSquare size={32} className="mx-auto mb-2 opacity-30" />
+                                    <p className="text-sm">Nenhum comentário ainda.</p>
+                                </div>
+                            ) : (
+                                comments.map(comment => (
+                                    <div key={comment.id} className="bg-gray-50 dark:bg-[#111111] p-3 rounded-lg border border-gray-100 dark:border-[#222222]">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-[9px] font-bold text-black min-w-[20px]">
+                                                {(comment.profiles?.full_name || comment.profiles?.email || '?').charAt(0).toUpperCase()}
+                                            </div>
+                                            <span className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                                                {comment.profiles?.full_name || comment.profiles?.email || 'Usuário'}
+                                            </span>
+                                            <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                                                {new Date(comment.created_at).toLocaleString('pt-BR')}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap pl-7">{comment.content}</p>
+                                    </div>
+                                ))
+                            )}
+                            <div className="flex items-end gap-2">
+                                <textarea
+                                    value={newComment}
+                                    onChange={e => setNewComment(e.target.value)}
+                                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-lg focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-500 text-sm resize-none custom-scrollbar"
+                                    placeholder="Escreva um comentário..."
+                                    rows={2}
+                                />
+                                <button type="button" onClick={handleSendComment} disabled={!newComment.trim() || isSendingComment}
+                                    className="p-2.5 bg-[#B8860B] text-black rounded-lg hover:bg-[#D4AF37] transition-colors disabled:opacity-50 flex items-center justify-center shrink-0 mb-0.5">
+                                    {isSendingComment ? <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Send size={16} />}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── ATTACHMENTS TAB ───────────────────────────────────── */}
+                    {activeSection === 'attachments' && task && (
+                        <div className="space-y-4">
+                            <div className="flex justify-end">
+                                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-[#222222] hover:bg-gray-200 dark:hover:bg-[#333333] rounded-lg transition-colors disabled:opacity-50 border border-gray-200 dark:border-[#333333]">
+                                    {isUploading ? <div className="w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin" /> : <Plus size={14} />}
                                     {isUploading ? 'Enviando...' : 'Adicionar arquivo'}
                                 </button>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    className="hidden"
-                                    onChange={handleFileUpload}
-                                />
+                                <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} />
                             </div>
 
                             {isLoadingAttachments ? (
-                                <div className="text-sm text-gray-500">Carregando...</div>
+                                <p className="text-sm text-gray-500">Carregando...</p>
                             ) : attachments.length === 0 ? (
-                                <div className="text-sm text-gray-500">Nenhum anexo ainda.</div>
+                                <div className="text-center py-8 text-gray-400">
+                                    <Paperclip size={32} className="mx-auto mb-2 opacity-30" />
+                                    <p className="text-sm">Nenhum anexo ainda.</p>
+                                </div>
                             ) : (
                                 <div className="space-y-2">
                                     {attachments.map(att => (
@@ -466,27 +548,15 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                             <span className="text-[#B8860B] shrink-0">{getFileIcon(att.file_type)}</span>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{att.file_name}</p>
-                                                {att.file_size && (
-                                                    <p className="text-[11px] text-gray-400">{formatFileSize(att.file_size)}</p>
-                                                )}
+                                                {att.file_size && <p className="text-[11px] text-gray-400">{formatFileSize(att.file_size)}</p>}
                                             </div>
                                             <div className="flex items-center gap-1 shrink-0">
-                                                <a
-                                                    href={att.file_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    download={att.file_name}
-                                                    className="p-1.5 text-gray-400 hover:text-[#B8860B] rounded-md transition-colors"
-                                                    title="Baixar"
-                                                >
+                                                <a href={att.file_url} target="_blank" rel="noopener noreferrer" download={att.file_name}
+                                                    className="p-1.5 text-gray-400 hover:text-[#B8860B] rounded-md transition-colors" title="Baixar">
                                                     <Download size={15} />
                                                 </a>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDeleteAttachment(att)}
-                                                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-md transition-colors opacity-0 group-hover:opacity-100"
-                                                    title="Excluir"
-                                                >
+                                                <button type="button" onClick={() => handleDeleteAttachment(att)}
+                                                    className="p-1.5 text-gray-400 hover:text-red-500 rounded-md transition-colors opacity-0 group-hover:opacity-100" title="Excluir">
                                                     <Trash2 size={15} />
                                                 </button>
                                             </div>
@@ -496,113 +566,30 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                             )}
                         </div>
                     )}
-
-                    {/* Comments */}
-                    {task && (
-                        <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
-                            <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-4">
-                                <MessageSquare size={18} className="text-[#B8860B]" />
-                                Comentários
-                            </label>
-
-                            <div className="space-y-4 mb-4">
-                                {isLoadingComments ? (
-                                    <div className="text-sm text-gray-500">Carregando...</div>
-                                ) : comments.length === 0 ? (
-                                    <div className="text-sm text-gray-500">Nenhum comentário ainda.</div>
-                                ) : (
-                                    comments.map(comment => (
-                                        <div key={comment.id} className="bg-gray-50 dark:bg-[#111111] p-3 rounded-lg border border-gray-100 dark:border-[#222222]">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-[9px] font-bold text-black min-w-[20px]">
-                                                    {(comment.profiles?.full_name || comment.profiles?.email || '?').charAt(0).toUpperCase()}
-                                                </div>
-                                                <span className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
-                                                    {comment.profiles?.full_name || comment.profiles?.email || 'Usuário'}
-                                                </span>
-                                                <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                                                    {new Date(comment.created_at).toLocaleString('pt-BR')}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap pl-7">
-                                                {comment.content}
-                                            </p>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-
-                            <div className="flex items-end gap-2">
-                                <textarea
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-lg focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-500 text-sm resize-none custom-scrollbar"
-                                    placeholder="Escreva um comentário..."
-                                    rows={2}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleSendComment}
-                                    disabled={!newComment.trim() || isSendingComment}
-                                    className="p-2.5 bg-[#B8860B] text-black rounded-lg hover:bg-[#D4AF37] transition-colors disabled:opacity-50 flex items-center justify-center shrink-0 mb-0.5"
-                                >
-                                    {isSendingComment ? (
-                                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                    ) : (
-                                        <Send size={16} />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
                 </form>
 
                 <div className="p-6 flex justify-between gap-3 shrink-0 bg-gray-50 dark:bg-[#1A1A1A] rounded-b-2xl border-t border-gray-200 dark:border-[#222222]">
                     <div className="flex gap-3">
                         {task && onDelete && (
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    if (window.confirm("Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.")) {
-                                        setIsSaving(true);
-                                        try {
-                                            await onDelete(task.id);
-                                            onClose();
-                                        } finally {
-                                            setIsSaving(false);
-                                        }
-                                    }
-                                }}
-                                disabled={isSaving}
-                                className="px-5 py-2.5 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-all flex items-center gap-2"
-                            >
-                                <Trash2 size={18} />
-                                Excluir
+                            <button type="button" onClick={async () => {
+                                if (window.confirm("Tem certeza que deseja excluir esta tarefa?")) {
+                                    setIsSaving(true);
+                                    try { await onDelete(task.id); onClose(); }
+                                    finally { setIsSaving(false); }
+                                }
+                            }} disabled={isSaving}
+                                className="px-5 py-2.5 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-all flex items-center gap-2">
+                                <Trash2 size={18} /> Excluir
                             </button>
                         )}
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-5 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-200 dark:hover:bg-[#222222] transition-colors"
-                        >
+                        <button type="button" onClick={onClose}
+                            className="px-5 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-200 dark:hover:bg-[#222222] transition-colors">
                             Cancelar
                         </button>
                     </div>
-                    <button
-                        type="submit"
-                        form="task-form"
-                        disabled={isSaving}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-bold shadow-lg shadow-[#B8860B]/20 hover:shadow-[#B8860B]/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        {isSaving ? (
-                            <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                        ) : (
-                            <>
-                                <Save size={18} />
-                                Salvar
-                            </>
-                        )}
+                    <button type="submit" form="task-form" disabled={isSaving}
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-bold shadow-lg shadow-[#B8860B]/20 hover:shadow-[#B8860B]/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                        {isSaving ? <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <><Save size={18} /> Salvar</>}
                     </button>
                 </div>
             </div>
