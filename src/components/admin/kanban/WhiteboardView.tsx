@@ -1,12 +1,9 @@
 'use client';
 
-import { useTheme } from 'next-themes';
 import dynamic from 'next/dynamic';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import 'tldraw/tldraw.css';
 
-// Remove CSS from globals if you imported it there, but having it here guarantees loading.
-// Official pattern for Next.js App Router:
 const TldrawDynamic = dynamic(async () => (await import('tldraw')).Tldraw, {
   ssr: false,
   loading: () => (
@@ -19,9 +16,7 @@ const TldrawDynamic = dynamic(async () => (await import('tldraw')).Tldraw, {
 
 const TLDRAW_OPTIONS = { maxPages: 1 };
 
-export function WhiteboardView() {
-  const { theme, systemTheme } = useTheme();
-
+export const WhiteboardView = React.memo(function WhiteboardView() {
   return (
     <div className="flex-1 w-full h-[calc(100vh-200px)] min-h-[600px] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden relative isolate">
       <div className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'auto' }}>
@@ -29,4 +24,4 @@ export function WhiteboardView() {
       </div>
     </div>
   );
-}
+});

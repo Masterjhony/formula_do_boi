@@ -283,7 +283,7 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
             </div>
 
             <div className="flex-1 min-h-[0px] overflow-hidden flex flex-col pb-2">
-                {viewMode === 'kanban' ? (
+                {viewMode === 'kanban' && (
                     <DndContext
                         sensors={sensors}
                         collisionDetection={closestCorners}
@@ -378,18 +378,19 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
                             document.body
                         )}
                     </DndContext>
-                ) : viewMode === 'gantt' ? (
+                )}
+                {viewMode === 'gantt' && (
                     <div className="flex-1 min-h-[0px] pb-2 pr-2">
                         <GanttView
                             tasks={filteredTasks}
                             onTaskClick={handleTaskClick}
                         />
                     </div>
-                ) : (
-                    <div className="flex-1 min-h-[0px] pb-2 pr-2 h-full flex flex-col">
-                        <WhiteboardView />
-                    </div>
                 )}
+                {/* Whiteboard is ALWAYS mounted but hidden via CSS to prevent tldraw from being destroyed/recreated */}
+                <div className="flex-1 min-h-[0px] pb-2 pr-2 h-full flex-col" style={{ display: viewMode === 'whiteboard' ? 'flex' : 'none' }}>
+                    <WhiteboardView />
+                </div>
             </div>
 
             <TaskModal
