@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import '@excalidraw/excalidraw/index.css';
 
 const STORAGE_KEY = 'formula-boi-whiteboard-v1';
 
