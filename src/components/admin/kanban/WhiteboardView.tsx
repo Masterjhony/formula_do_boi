@@ -27,11 +27,8 @@ export function WhiteboardView() {
 
   return (
     <div className="flex-1 w-full h-full min-h-[600px] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden relative">
-      <div className="absolute inset-0">
-        <Tldraw 
-            darkMode={isDark} 
-            inferDarkMode={false}
-        />
+      <div className="absolute inset-0" style={{ pointerEvents: 'auto' }}>
+        <Tldraw />
       </div>
     </div>
   );
