@@ -188,7 +188,7 @@ export default function SertanejoLanding() {
             hoverTimeout = setTimeout(() => {
                 if (vidRef.current) {
                     vidRef.current.currentTime = 0;
-                    vidRef.current.play().catch(() => {});
+                    vidRef.current.play().catch(() => { });
                     setIsPlayingPreview(true);
                 }
             }, 300);
@@ -420,7 +420,7 @@ export default function SertanejoLanding() {
                         </a>
                         <Link href="/sertanejo/ficha-tecnica" className="btn-secondary">
                             <span className="material-icons-outlined" style={{ fontSize: "18px" }}>description</span>
-                            Ficha Técnica Oficial em PDF
+                            Ficha Técnica Oficial
                         </Link>
                     </div>
                 </div>
