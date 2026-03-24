@@ -3,7 +3,6 @@
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Tldraw } from 'tldraw';
-import 'tldraw/tldraw.css';
 
 export function WhiteboardView() {
   const { theme, systemTheme } = useTheme();
