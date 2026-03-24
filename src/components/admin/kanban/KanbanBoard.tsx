@@ -22,7 +22,8 @@ import { TaskModal } from './TaskModal';
 import { GanttView } from './GanttView';
 import { TacticalTask, TacticalColumn, updateTask, createTask, moveTask, deleteTask, createColumn, updateColumn, deleteColumn } from '@/app/web-admin/actions/tactical-tasks';
 import { createPortal } from 'react-dom';
-import { Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2 } from 'lucide-react';
+import { Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2, Presentation } from 'lucide-react';
+import { WhiteboardView } from './WhiteboardView';
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];
@@ -43,7 +44,7 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
     const [defaultStatus, setDefaultStatus] = useState('A fazer');
 
     // New Feature States
-    const [viewMode, setViewMode] = useState<'kanban' | 'gantt'>('kanban');
+    const [viewMode, setViewMode] = useState<'kanban' | 'gantt' | 'whiteboard'>('kanban');
     const [filterAssignee, setFilterAssignee] = useState<string>('all');
     const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -230,6 +231,15 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
                     >
                         <CalendarIcon size={16} /> Gantt
                     </button>
+                    <button
+                        onClick={() => setViewMode('whiteboard')}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'whiteboard'
+                            ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                            }`}
+                    >
+                        <Presentation size={16} /> Lousa
+                    </button>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -368,12 +378,16 @@ export function KanbanBoard({ initialTasks, profiles, initialColumns }: KanbanBo
                             document.body
                         )}
                     </DndContext>
-                ) : (
+                ) : viewMode === 'gantt' ? (
                     <div className="flex-1 min-h-[0px] pb-2 pr-2">
                         <GanttView
                             tasks={filteredTasks}
                             onTaskClick={handleTaskClick}
                         />
+                    </div>
+                ) : (
+                    <div className="flex-1 min-h-[0px] pb-2 pr-2 h-full flex flex-col">
+                        <WhiteboardView />
                     </div>
                 )}
             </div>
