@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-const OG_IMAGE = 'https://res.cloudinary.com/dkh2nsugb/image/upload/w_1200,h_630,c_pad,b_rgb:f5f0e8/v1774381493/terra_brava_tiueqd.png';
+const OG_IMAGE = 'https://res.cloudinary.com/dkh2nsugb/image/upload/v1774381493/terra_brava_tiueqd.png';
 
 export const metadata: Metadata = {
   title: 'Sertanejo Terra Brava | Fórmula do Boi',
