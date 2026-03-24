@@ -142,13 +142,16 @@ export const sertanejoCss = `
         .hero-inner {
             display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
         }
+        .hero-centered {
+            display: flex; flex-direction: column; align-items: center; text-align: center; gap: 24px; max-width: 720px; margin: 0 auto;
+        }
         .hero-content { display: flex; flex-direction: column; gap: 24px; }
         .hero h1 {
             font-weight: 900; font-size: 48px; line-height: 1.1;
             text-transform: uppercase; letter-spacing: -0.01em;
         }
         .hero-subtitle {
-            font-size: 18px; color: var(--text-secondary); line-height: 1.6; max-width: 480px;
+            font-size: 18px; color: var(--text-secondary); line-height: 1.6; max-width: 560px;
         }
         .hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; }
         .hero-image {

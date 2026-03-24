@@ -256,28 +256,23 @@ export default function SertanejoLanding() {
 
             {/* HERO */}
             <section className="hero" id="hero">
-                <div className="container hero-inner">
-                    <div className="hero-content">
-                        <div className="badge">Aceleradora de Touros Fórmula do Boi</div>
-                        <h1 className="hero-title-name">Sertanejo <span className="gold">da Terra Brava</span></h1>
-                        <p className="hero-tagline">O touro que está <strong>transformando</strong> o rebanho brasileiro</p>
-                        <p className="hero-subtitle">
-                            Nelore PO, MGTe TOP 16%, iABCZ 11,37 (DECA 2).
-                            Genética comprovada com excelentes avaliações em crescimento e carcaça.
-                        </p>
-                        <div className="hero-ctas">
-                            <Link href={CHECKOUT_URL} className="btn-checkout" aria-label="Ver valor da dose">
-                                <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
-                                Ver Valor da Dose
-                            </Link>
-                            <Link href="/sertanejo/ficha-tecnica" className="btn-secondary" aria-label="Ver ficha técnica completa">
-                                <span className="material-icons-outlined" style={{ fontSize: "18px" }}>description</span>
-                                Ver Ficha Técnica
-                            </Link>
-                        </div>
-                    </div>
-                    <div className="hero-image">
-                        <img src={galleryImages[3]} alt="Touro Sertanejo Terra Brava" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "16px" }} />
+                <div className="container hero-centered">
+                    <div className="badge">Aceleradora de Touros Fórmula do Boi</div>
+                    <h1 className="hero-title-name">Sertanejo <span className="gold">da Terra Brava</span></h1>
+                    <p className="hero-tagline">O touro que está <strong>transformando</strong> o rebanho brasileiro</p>
+                    <p className="hero-subtitle">
+                        Nelore PO, MGTe TOP 16%, iABCZ 11,37 (DECA 2).
+                        Genética comprovada com excelentes avaliações em crescimento e carcaça.
+                    </p>
+                    <div className="hero-ctas" style={{ justifyContent: "center" }}>
+                        <Link href={CHECKOUT_URL} className="btn-checkout" aria-label="Ver valor da dose">
+                            <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
+                            Ver Valor da Dose
+                        </Link>
+                        <Link href="/sertanejo/ficha-tecnica" className="btn-secondary" aria-label="Ver ficha técnica completa">
+                            <span className="material-icons-outlined" style={{ fontSize: "18px" }}>description</span>
+                            Ver Ficha Técnica
+                        </Link>
                     </div>
                 </div>
             </section>
