@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
-const OG_IMAGE = 'https://app.formuladoboi.com/assets/sertanejo/terra_brava.png';
+// Cloudinary Fetch: transforma a imagem local em 1200x630 com padding (sem corte do touro)
+const OG_IMAGE = 'https://res.cloudinary.com/dkh2nsugb/image/fetch/w_1200,h_630,c_pad,b_rgb:f5f0e8/https://app.formuladoboi.com/assets/sertanejo/terra_brava.png';
 
 export const metadata: Metadata = {
   title: 'Sertanejo Terra Brava | Fórmula do Boi',
