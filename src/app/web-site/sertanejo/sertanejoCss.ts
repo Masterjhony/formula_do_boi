@@ -532,16 +532,84 @@ export const sertanejoCss = `
         .form-note { text-align: center; margin-top: 20px; font-size: 13px; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; gap: 6px; }
         .form-note .material-icons-outlined { font-size: 16px; color: var(--gold); }
 
+        /* ========== HERO TITLE ========== */
+        .hero-title-name {
+            font-weight: 900; font-size: 52px; line-height: 1.1;
+            text-transform: uppercase; letter-spacing: -0.01em;
+        }
+        .hero-tagline {
+            font-size: 20px; font-weight: 600; color: var(--text-dark);
+            text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.3;
+        }
+
+        /* ========== PHOTO CAROUSEL ========== */
+        .photo-carousel-outer {
+            position: relative; margin-bottom: 16px;
+        }
+        .photo-carousel-viewport {
+            overflow: hidden; border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card); border: 1px solid var(--border-light);
+            aspect-ratio: 16/10;
+        }
+        .photo-carousel-track {
+            display: flex; transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+            height: 100%;
+        }
+        .photo-carousel-slide {
+            flex: 0 0 100%; height: 100%; cursor: zoom-in;
+            position: relative; overflow: hidden;
+        }
+        .photo-carousel-slide img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        .photo-carousel-dots {
+            display: flex; justify-content: center; gap: 8px;
+            margin-top: 16px;
+        }
+        .photo-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(197,160,89,0.25); border: none; cursor: pointer;
+            padding: 0; transition: background 0.3s, transform 0.3s;
+        }
+        .photo-dot.active {
+            background: var(--gold); transform: scale(1.4);
+        }
+        .photo-dot:hover { background: var(--gold-dark); }
+        .photo-carousel-outer .carousel-arrow {
+            top: 45%; transform: translateY(-50%);
+        }
+
+        /* ========== VIDEO FILTER COUNT BADGE ========== */
+        .video-cat-count {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: rgba(197,160,89,0.18); color: var(--gold);
+            font-size: 11px; font-weight: 700;
+            min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+            margin-left: 6px; line-height: 1;
+            transition: background 0.25s, color 0.25s;
+        }
+        .video-cat-btn.active .video-cat-count,
+        .video-cat-btn:hover .video-cat-count {
+            background: rgba(255,255,255,0.25); color: #fff;
+        }
+
+        /* ========== DIFERENCIAIS CTAs ========== */
+        .diferenciais-ctas {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            justify-content: center; margin-top: 48px;
+        }
+
         /* ========== RESPONSIVE ========== */
         @media (max-width: 1024px) {
-            .hero h1 { font-size: 36px; }
+            .hero-title-name { font-size: 40px; }
             .diff-grid { grid-template-columns: repeat(2, 1fr); }
             .pricing-grid { grid-template-columns: repeat(2, 1fr); }
             .ficha-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 768px) {
             .hero-inner { grid-template-columns: 1fr; gap: 40px; }
-            .hero h1 { font-size: 30px; }
+            .hero-title-name { font-size: 32px; }
+            .hero-tagline { font-size: 16px; }
             .hero { padding-top: 140px; padding-bottom: 60px; }
             .section-padding { padding: 60px 0; }
             .section-header h2 { font-size: 28px; }
@@ -550,14 +618,16 @@ export const sertanejoCss = `
             .pricing-grid { grid-template-columns: 1fr; }
             .ficha-grid { grid-template-columns: 1fr; }
             .video-card { flex: 0 0 280px; }
-            .carousel-arrow { display: none; }
+            .video-carousel-outer .carousel-arrow { display: none; }
             .hero-ctas { flex-direction: column; }
+            .diferenciais-ctas { flex-direction: column; align-items: center; }
             .btn-primary, .btn-secondary, .btn-checkout { width: 100%; text-align: center; }
             .header-inner { height: 60px; }
             .header-logo img { height: 34px; }
             .top-bar-inner span:last-child { display: none; }
             .genealogy-landing { display: none; }
             .gen-tree-mobile { display: block; }
+            .photo-carousel-viewport { aspect-ratio: 4/3; }
 
             .ficha-hero-inner { grid-template-columns: 1fr; }
             .ficha-hero-photo { max-width: 280px; margin: 0 auto; }
@@ -579,6 +649,7 @@ export const sertanejoCss = `
         }
         @media (max-width: 480px) {
             .gallery-grid { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 26px; }
+            .hero-title-name { font-size: 26px; }
+            .photo-carousel-viewport { aspect-ratio: 1/1; }
         }
     `;

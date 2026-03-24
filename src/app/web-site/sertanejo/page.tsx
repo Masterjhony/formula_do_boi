@@ -31,12 +31,25 @@ const videosData = [
     { cat: "progenie-femeas", src: `${URL_PREFIX}/video/upload/v1774281619/Progenie_femea_terra_brava_5_ocquo6.mp4`, label: "Progênie Fêmea — Vídeo 5", dotColor: "#E91E63" },
 ];
 
+const WHATSAPP_URL = "https://wa.me/5531984143874?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20Sertanejo%20da%20Terra%20Brava.%20Vi%20a%20p%C3%A1gina%20do%20F%C3%B3rmula%20do%20Boi%20e%20gostaria%20de%20saber%20mais.";
+
+const videoCatCounts: Record<string, number> = {
+    todos: videosData.length,
+    touro: videosData.filter(v => v.cat === "touro").length,
+    "progenie-machos": videosData.filter(v => v.cat === "progenie-machos").length,
+    "progenie-femeas": videosData.filter(v => v.cat === "progenie-femeas").length,
+};
+
 export default function SertanejoLanding() {
     const [scrolled, setScrolled] = useState(false);
-    
+
     // Lightbox State
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
+
+    // Photo Carousel State
+    const [photoIndex, setPhotoIndex] = useState(0);
+    const photoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Video Carousel State
     const [activeVideoCat, setActiveVideoCat] = useState("todos");
@@ -54,6 +67,25 @@ export default function SertanejoLanding() {
 
     // Filter videos manually here instead of display: none
     const filteredVideos = videosData.filter(v => activeVideoCat === "todos" || v.cat === activeVideoCat);
+
+    const startPhotoAutoPlay = () => {
+        if (photoIntervalRef.current) clearInterval(photoIntervalRef.current);
+        photoIntervalRef.current = setInterval(() => {
+            setPhotoIndex(prev => (prev + 1) % galleryImages.length);
+        }, 3500);
+    };
+
+    const navigatePhoto = (dir: number) => {
+        setPhotoIndex(prev => (prev + dir + galleryImages.length) % galleryImages.length);
+        startPhotoAutoPlay();
+    };
+
+    useEffect(() => {
+        startPhotoAutoPlay();
+        return () => {
+            if (photoIntervalRef.current) clearInterval(photoIntervalRef.current);
+        };
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -143,7 +175,7 @@ export default function SertanejoLanding() {
         if (!isDragging || !carouselRef.current) return;
         e.preventDefault();
         const x = e.pageX - carouselRef.current.offsetLeft;
-        const walk = (x - startX); 
+        const walk = (x - startX);
         carouselRef.current.scrollLeft = scrollLeft - walk;
     };
 
@@ -173,8 +205,8 @@ export default function SertanejoLanding() {
 
         return (
             <div className="video-card">
-                <div 
-                    className="video-thumb" 
+                <div
+                    className="video-thumb"
                     onClick={() => handleVideoModal(videoItem.src)}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
@@ -183,7 +215,7 @@ export default function SertanejoLanding() {
                     <div className={`play-btn ${isPlayingPreview ? 'hidden' : ''}`}><span className="material-icons-outlined">play_arrow</span></div>
                 </div>
                 <div className="video-card-label">
-                    <span className="cat-dot" style={{ background: videoItem.dotColor || 'var(--gold)' }}></span> 
+                    <span className="cat-dot" style={{ background: videoItem.dotColor || 'var(--gold)' }}></span>
                     {videoItem.label}
                 </div>
             </div>
@@ -206,7 +238,7 @@ export default function SertanejoLanding() {
                     <Link href="/" className="header-logo" aria-label="Fórmula do Boi — Página inicial">
                         <img src="/assets/sertanejo/logo_header.svg" alt="Fórmula do Boi" />
                     </Link>
-                    <Link href="/semen" className="header-back" aria-label="Voltar para Sêmen">
+                    <Link href="/" className="header-back" aria-label="Voltar para o site">
                         <span className="material-icons-outlined" style={{ fontSize: "18px" }}>arrow_back</span>
                         Voltar ao site
                     </Link>
@@ -218,16 +250,17 @@ export default function SertanejoLanding() {
                 <div className="container hero-inner">
                     <div className="hero-content">
                         <div className="badge">Aceleradora de Touros Fórmula do Boi</div>
-                        <h1>O touro que está <span className="gold">transformando</span> o rebanho brasileiro</h1>
+                        <h1 className="hero-title-name">Sertanejo <span className="gold">da Terra Brava</span></h1>
+                        <p className="hero-tagline">O touro que está <strong>transformando</strong> o rebanho brasileiro</p>
                         <p className="hero-subtitle">
-                            Sertanejo Terra Brava — Nelore PO, MGTe TOP 16%, iABCZ 11,37 (DECA 2).
+                            Nelore PO, MGTe TOP 16%, iABCZ 11,37 (DECA 2).
                             Genética comprovada com excelentes avaliações em crescimento e carcaça.
                         </p>
                         <div className="hero-ctas">
-                            <Link href="/sertanejo/checkout" className="btn-checkout" aria-label="Reservar doses de sêmen">
+                            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-checkout" aria-label="Reservar doses de sêmen via WhatsApp">
                                 <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
-                                Ver Detalhes e Propor
-                            </Link>
+                                Reservar Doses
+                            </a>
                             <Link href="/sertanejo/ficha-tecnica" className="btn-secondary" aria-label="Ver ficha técnica completa">
                                 <span className="material-icons-outlined" style={{ fontSize: "18px" }}>description</span>
                                 Ver Ficha Técnica
@@ -249,45 +282,76 @@ export default function SertanejoLanding() {
                         <p>Fotos e vídeos do Sertanejo Terra Brava — Nelore PO, registro EPCF 2315</p>
                     </div>
 
-                    <div className="gallery-grid">
-                        {galleryImages.map((src, i) => (
-                            <div key={i} className="gallery-item" onClick={() => openLightbox(i)} role="button">
-                                <img src={src} alt="Touro Sertanejo" loading="lazy" />
+                    {/* PHOTO CAROUSEL */}
+                    <div className="photo-carousel-outer">
+                        <button className="carousel-arrow left" onClick={() => navigatePhoto(-1)} aria-label="Foto anterior">
+                            <span className="material-icons-outlined">chevron_left</span>
+                        </button>
+                        <div className="photo-carousel-viewport">
+                            <div
+                                className="photo-carousel-track"
+                                style={{ transform: `translateX(-${photoIndex * 100}%)` }}
+                            >
+                                {galleryImages.map((src, i) => (
+                                    <div key={i} className="photo-carousel-slide" onClick={() => openLightbox(i)} role="button">
+                                        <img src={src} alt={`Touro Sertanejo — Foto ${i + 1}`} loading="lazy" />
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        </div>
+                        <button className="carousel-arrow right" onClick={() => navigatePhoto(1)} aria-label="Próxima foto">
+                            <span className="material-icons-outlined">chevron_right</span>
+                        </button>
+                        <div className="photo-carousel-dots">
+                            {galleryImages.map((_, i) => (
+                                <button
+                                    key={i}
+                                    className={`photo-dot ${i === photoIndex ? 'active' : ''}`}
+                                    onClick={() => { setPhotoIndex(i); startPhotoAutoPlay(); }}
+                                    aria-label={`Ir para foto ${i + 1}`}
+                                />
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="section-header" style={{ marginTop: "48px" }}>
+                    {/* VIDEO SECTION */}
+                    <div className="section-header" style={{ marginTop: "64px" }}>
                         <h2>Vídeos do <span className="gold">Sertanejo</span></h2>
                         <p>Arraste para o lado para ver mais vídeos</p>
                     </div>
 
                     <div className="video-categories">
-                        {["todos", "touro", "progenie-machos", "progenie-femeas"].map(cat => (
+                        {[
+                            { key: "todos", label: "Todos" },
+                            { key: "touro", label: "Touro" },
+                            { key: "progenie-machos", label: "Progênie Machos" },
+                            { key: "progenie-femeas", label: "Progênie Fêmeas" },
+                        ].map(({ key, label }) => (
                             <button
-                                key={cat}
-                                className={`video-cat-btn ${activeVideoCat === cat ? "active" : ""}`}
+                                key={key}
+                                className={`video-cat-btn ${activeVideoCat === key ? "active" : ""}`}
                                 onClick={() => {
-                                    setActiveVideoCat(cat);
+                                    setActiveVideoCat(key);
                                     setTimeout(() => handleCarouselScroll(), 100);
                                 }}
                             >
-                                {cat === "progenie-machos" ? "Progênie Machos" : cat === "progenie-femeas" ? "Progênie Fêmeas" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                {label}
+                                <span className="video-cat-count">{videoCatCounts[key]}</span>
                             </button>
                         ))}
                     </div>
 
                     <div className="video-carousel-outer">
-                        <button 
-                            className={`carousel-arrow left ${!canScrollLeft ? "disabled" : ""}`} 
+                        <button
+                            className={`carousel-arrow left ${!canScrollLeft ? "disabled" : ""}`}
                             onClick={() => scrollCarousel(-372)}
                         >
                             <span className="material-icons-outlined">chevron_left</span>
                         </button>
-                        <div 
-                            className="video-carousel" 
-                            id="videoCarousel" 
-                            ref={carouselRef} 
+                        <div
+                            className="video-carousel"
+                            id="videoCarousel"
+                            ref={carouselRef}
                             onScroll={handleCarouselScroll}
                             onMouseDown={handleMouseDown}
                             onMouseLeave={handleMouseLeave}
@@ -299,19 +363,20 @@ export default function SertanejoLanding() {
                                 <VideoThumb key={idx} videoItem={vid} />
                             ))}
                         </div>
-                        <button 
-                            className={`carousel-arrow right ${!canScrollRight ? "disabled" : ""}`} 
+                        <button
+                            className={`carousel-arrow right ${!canScrollRight ? "disabled" : ""}`}
                             onClick={() => scrollCarousel(372)}
                         >
                             <span className="material-icons-outlined">chevron_right</span>
                         </button>
                     </div>
 
+                    {/* CTA APÓS VÍDEOS */}
                     <div style={{ textAlign: "center", marginTop: "48px" }}>
-                        <Link href="/sertanejo/checkout" className="btn-checkout">
+                        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-checkout">
                             <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
                             Reservar Doses Agora
-                        </Link>
+                        </a>
                     </div>
                 </div>
             </section>
@@ -346,9 +411,20 @@ export default function SertanejoLanding() {
                             <p>Coletado na Central Semex com aprovação MAPA. Genotipado e com avaliação genômica completa.</p>
                         </div>
                     </div>
+
+                    {/* CTA APÓS DIFERENCIAIS */}
+                    <div className="diferenciais-ctas">
+                        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-checkout">
+                            <span className="material-icons-outlined" style={{ fontSize: "18px" }}>shopping_cart</span>
+                            Reservar Doses
+                        </a>
+                        <Link href="/sertanejo/ficha-tecnica" className="btn-secondary">
+                            <span className="material-icons-outlined" style={{ fontSize: "18px" }}>description</span>
+                            Ficha Técnica Oficial em PDF
+                        </Link>
+                    </div>
                 </div>
             </section>
-
 
             <footer className="footer">
                 <div className="container footer-inner">
