@@ -31,7 +31,7 @@ export function CRMChart({ leads }: CRMChartProps) {
     return (
         <div className="w-full h-full p-4 flex flex-col pt-10">
             {/* Y Axis Limits Mock */}
-            <div className="relative flex-1 flex justify-around items-end ml-10 border-b border-gray-200 dark:border-[#333]">
+            <div className="relative flex-1 flex justify-around items-stretch ml-10 border-b border-gray-200 dark:border-[#333]">
                 {/* Horizontal Grid lines */}
                 <div className="absolute top-0 left-0 w-full border-t border-dashed border-gray-200 dark:border-[#333] z-0" />
                 <div className="absolute top-[25%] left-0 w-full border-t border-dashed border-gray-200 dark:border-[#333] z-0" />
@@ -51,8 +51,11 @@ export function CRMChart({ leads }: CRMChartProps) {
                     const color = columnColors[status] || columnColors['default'];
 
                     return (
-                        <div key={status} className="flex flex-col items-center gap-2 z-10 -mb-[1px]">
-                            <div className="text-xs text-gray-500 font-medium">
+                        <div key={status} className="relative flex flex-col justify-end items-center z-10 -mb-[1px]">
+                            <div
+                                className="absolute text-xs text-gray-500 font-medium"
+                                style={{ bottom: `calc(${heightPercent}% + 4px)` }}
+                            >
                                 {count}
                             </div>
                             <div
