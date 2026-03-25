@@ -66,7 +66,7 @@ export default function AdminLayout({
     const navItems = [
         { href: '/', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/products', label: 'Cards (Animais)', icon: Package },
-        { href: '/animal-availability', label: 'Disponibilidade de Animais', icon: MapPin },
+        { href: '/animal-availability', label: 'Disponibilidade', icon: MapPin },
         { href: '/breeders', label: 'Criadores', icon: User },
         { href: '/users', label: 'Usuários', icon: User },
         { href: '/analytics', label: 'Analytics', icon: Activity },
