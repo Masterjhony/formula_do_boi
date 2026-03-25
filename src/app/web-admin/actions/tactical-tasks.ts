@@ -42,6 +42,7 @@ export interface TacticalTask {
     description?: string;
     status: string;
     priority: string;
+    start_date?: string;
     due_date?: string;
     assignees?: string[];
     position: number;

@@ -25,6 +25,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
     const [description, setDescription] = useState('');
     const [status, setStatus] = useState('A fazer');
     const [priority, setPriority] = useState('Média');
+    const [startDate, setStartDate] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [assignees, setAssignees] = useState<string[]>([]);
     const [checklists, setChecklists] = useState<{ id: string, title: string, completed: boolean }[]>([]);
@@ -61,6 +62,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
             setDescription(task.description || '');
             setStatus(task.status);
             setPriority(task.priority);
+            setStartDate(task.start_date ? new Date(task.start_date).toISOString().split('T')[0] : '');
             setDueDate(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
             setAssignees(task.assignees ? Array.from(new Set(task.assignees)) : []);
             setChecklists(task.checklists || []);
@@ -90,6 +92,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
             setDescription('');
             setStatus(defaultStatus || 'A fazer');
             setPriority('Média');
+            setStartDate('');
             setDueDate('');
             setAssignees([]);
             setChecklists([]);
@@ -118,6 +121,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                 description,
                 status,
                 priority,
+                start_date: startDate ? new Date(startDate).toISOString() : null,
                 due_date: dueDate ? new Date(dueDate).toISOString() : null,
                 assignees: Array.from(new Set(assignees)),
                 checklists,
@@ -321,6 +325,15 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                         <option value="Média">Média</option>
                                         <option value="Alta">Alta 🔥</option>
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Início</label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white" />
+                                    </div>
                                 </div>
 
                                 <div>

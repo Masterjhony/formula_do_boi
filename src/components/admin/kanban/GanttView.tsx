@@ -17,7 +17,7 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
     const ganttTasks = useMemo(() => {
         return tasks
             .filter(t => t.due_date)
-            .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+            .sort((a, b) => new Date(a.start_date || a.created_at).getTime() - new Date(b.start_date || b.created_at).getTime());
     }, [tasks]);
 
     // Determine the date range based on the SELECTED month, not just tasks
@@ -210,7 +210,7 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                         })()}
 
                         {ganttTasks.map((task) => {
-                            const tStart = new Date(task.created_at);
+                            const tStart = new Date(task.start_date || task.created_at);
                             const tEnd = new Date(task.due_date!);
 
                             const startOffsetDays = Math.max(0, Math.floor((tStart.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
