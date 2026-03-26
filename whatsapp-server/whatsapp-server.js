@@ -6,9 +6,11 @@
  * Docker volume em /data/auth — zero latência, zero corrupção.
  *
  * Expõe:
- *   GET  /status  → retorna {status, qr}
- *   POST /send    → recebe {phone, name} e adiciona à fila de envio
- *   GET  /queue   → retorna tamanho da fila
+ *   GET  /status         → retorna {status, qr}
+ *   POST /send           → recebe {phone, name} e adiciona à fila de envio
+ *   GET  /queue          → retorna tamanho da fila
+ *   GET  /config         → retorna a configuração de fluxo atual
+ *   POST /reload-config  → força recarga da config do Supabase
  */
 
 const http = require('http');
@@ -22,11 +24,73 @@ let cachedWAVersion = null;
 
 const PORT = process.env.WHATSAPP_SERVER_PORT || 3001;
 const AUTH_DIR = process.env.AUTH_DIR || '/data/auth';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // Garante que o diretório de auth existe
 if (!fs.existsSync(AUTH_DIR)) {
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 }
+
+// =============================================================================
+// Flow config — carregada do Supabase, com fallback para padrão
+// =============================================================================
+let flowConfig = {
+  welcome_message: `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://app.formuladoboi.com`,
+  options: [],
+  flow_timeout_minutes: 60,
+};
+
+async function loadFlowConfig() {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.warn('[Config] Supabase URL/KEY não configurados. Usando config padrão.');
+    return;
+  }
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/site_settings?key=eq.whatsapp_flow&select=value`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+      }
+    );
+    const data = await res.json();
+    if (data?.[0]?.value) {
+      flowConfig = data[0].value;
+      console.log('[Config] Fluxo carregado do Supabase.');
+    }
+  } catch (e) {
+    console.error('[Config] Erro ao carregar fluxo:', e.message);
+  }
+}
+
+// Recarrega a cada 5 minutos como fallback
+setInterval(loadFlowConfig, 5 * 60 * 1000);
+
+// =============================================================================
+// Estado de conversa — aguardando resposta do lead
+// Map<phone_number_only, { expires_at: Date }>
+// =============================================================================
+const pendingReplies = new Map();
+
+function trackPendingReply(phone) {
+  const timeoutMins = Number(flowConfig.flow_timeout_minutes) || 60;
+  if (!Array.isArray(flowConfig.options) || flowConfig.options.length === 0) return;
+  if (timeoutMins <= 0) return;
+  pendingReplies.set(phone, {
+    expires_at: new Date(Date.now() + timeoutMins * 60 * 1000),
+  });
+}
+
+// Limpa entradas expiradas a cada 10 minutos
+setInterval(() => {
+  const now = new Date();
+  for (const [phone, state] of pendingReplies) {
+    if (state.expires_at < now) pendingReplies.delete(phone);
+  }
+}, 10 * 60 * 1000);
 
 // =============================================================================
 // Estado global — UM único socket, gerenciado de forma estrita
@@ -186,7 +250,6 @@ async function startSocket() {
           currentStatus = 'disconnected';
           reconnectAttempts = 0;
           console.log('[WA] Logout. Limpando auth para novo QR...');
-          // Apaga todos os arquivos de auth para forçar novo QR
           try {
             const files = fs.readdirSync(AUTH_DIR);
             for (const f of files) {
@@ -210,6 +273,63 @@ async function startSocket() {
         console.log(`[WA] Conectado (gen=${myGen})`);
       }
     });
+
+    // -----------------------------------------------------------------
+    // Ouvir mensagens recebidas — responder conforme fluxo configurado
+    // -----------------------------------------------------------------
+    sock.ev.on('messages.upsert', async ({ messages: msgs, type }) => {
+      if (myGen !== socketGeneration) return;
+      if (type !== 'notify') return;
+
+      for (const msg of msgs) {
+        // Ignorar mensagens próprias
+        if (msg.key.fromMe) continue;
+
+        const remoteJid = msg.key.remoteJid;
+        // Ignorar grupos e status broadcast
+        if (!remoteJid) continue;
+        if (remoteJid === 'status@broadcast') continue;
+        if (remoteJid.endsWith('@g.us')) continue;
+
+        // Extrair texto da mensagem
+        const text = (
+          msg.message?.conversation ||
+          msg.message?.extendedTextMessage?.text ||
+          ''
+        ).trim();
+
+        if (!text) continue;
+
+        // Número limpo (sem @s.whatsapp.net)
+        const phone = remoteJid.replace('@s.whatsapp.net', '');
+
+        // Verificar se este contato está aguardando resposta
+        const pending = pendingReplies.get(phone);
+        if (!pending) continue;
+        if (pending.expires_at < new Date()) {
+          pendingReplies.delete(phone);
+          continue;
+        }
+
+        // Encontrar opção correspondente
+        const options = Array.isArray(flowConfig.options) ? flowConfig.options : [];
+        const option = options.find(o => String(o.key).trim() === text);
+
+        if (option?.response) {
+          try {
+            if (currentStatus === 'connected' && sock) {
+              await sock.sendMessage(remoteJid, { text: option.response });
+              console.log(`[Fluxo] Resposta enviada para ${phone} (opção ${option.key})`);
+            }
+          } catch (e) {
+            console.error(`[Fluxo] Erro ao enviar resposta para ${phone}:`, e.message);
+          }
+          // Remover do estado pendente após responder
+          pendingReplies.delete(phone);
+        }
+      }
+    });
+
   } catch (error) {
     console.error('[WA] Erro ao iniciar:', error.message);
     if (sock) { destroySocket(sock); sock = null; }
@@ -241,7 +361,13 @@ async function _executeSend(phone, name) {
   const formattedPhone = formatBRNumber(phone);
   if (!formattedPhone) throw new Error(`Numero invalido: ${phone}`);
 
-  const messageText = `Olá ${name}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas clicando no link abaixo:\n👉 https://app.formuladoboi.com`;
+  // Monta a mensagem a partir da config, substituindo {nome} e {name}
+  const template = flowConfig.welcome_message ||
+    `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://app.formuladoboi.com`;
+
+  const messageText = template
+    .replace(/\{nome\}/g, name)
+    .replace(/\{name\}/g, name);
 
   const result = await sock.onWhatsApp(formattedPhone);
   if (!result || result.length === 0 || !result[0].exists) {
@@ -252,6 +378,11 @@ async function _executeSend(phone, name) {
   const jid = result[0].jid || formattedPhone;
   const msgResult = await sock.sendMessage(jid, { text: messageText });
   console.log(`[Queue] Enviado para ${jid} (${name}) — id: ${msgResult?.key?.id}`);
+
+  // Marcar como aguardando resposta se houver opções configuradas
+  const cleanPhone = phone.toString().replace(/\D/g, '');
+  trackPendingReply(cleanPhone.startsWith('55') ? cleanPhone.substring(2) : cleanPhone);
+
   return { sent: true };
 }
 
@@ -307,6 +438,28 @@ async function handleRequest(req, res) {
     return;
   }
 
+  if (req.method === 'GET' && url.pathname === '/config') {
+    res.writeHead(200);
+    res.end(JSON.stringify({
+      ...flowConfig,
+      pending_replies: pendingReplies.size,
+    }));
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/reload-config') {
+    loadFlowConfig()
+      .then(() => {
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true }));
+      })
+      .catch(e => {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: e.message }));
+      });
+    return;
+  }
+
   res.writeHead(404);
   res.end(JSON.stringify({ error: 'Not found' }));
 }
@@ -324,6 +477,9 @@ async function main() {
   DisconnectReason = baileys.DisconnectReason;
   useMultiFileAuthState = baileys.useMultiFileAuthState;
   fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
+
+  // Carrega config do Supabase antes de iniciar o socket
+  await loadFlowConfig();
 
   await startSocket();
 

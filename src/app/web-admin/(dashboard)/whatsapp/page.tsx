@@ -11,6 +11,12 @@ import {
   Send,
   Phone,
   Clock,
+  Settings,
+  Plus,
+  Trash2,
+  Save,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react"
 
 // ---------------------------------------------------------------------------
@@ -35,6 +41,18 @@ interface MessagesData {
   last_lead: { id: string; nome: string; created_at: string } | null
   messages: WaMessage[]
   conversations: WaMessage[]
+}
+
+interface FlowOption {
+  key: string
+  label: string
+  response: string
+}
+
+interface FlowConfig {
+  welcome_message: string
+  options: FlowOption[]
+  flow_timeout_minutes: number
 }
 
 // ---------------------------------------------------------------------------
@@ -78,6 +96,235 @@ const STATUS_CONFIG: Record<MsgStatus, { label: string; cls: string }> = {
     label: "Sem telefone",
     cls: "bg-gray-500/10 text-gray-500 dark:text-gray-400",
   },
+}
+
+const DEFAULT_FLOW: FlowConfig = {
+  welcome_message: "",
+  options: [],
+  flow_timeout_minutes: 60,
+}
+
+// ---------------------------------------------------------------------------
+// Flow Editor Component
+// ---------------------------------------------------------------------------
+
+function FlowEditor() {
+  const [config, setConfig] = useState<FlowConfig>(DEFAULT_FLOW)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/whatsapp/flow")
+      .then(r => r.json())
+      .then(data => setConfig(data))
+      .catch(() => setError("Erro ao carregar configuração."))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function handleSave() {
+    setSaving(true)
+    setError(null)
+    setSaved(false)
+    try {
+      const res = await fetch("/api/whatsapp/flow", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      })
+      if (!res.ok) {
+        const body = await res.json()
+        throw new Error(body.error || "Erro ao salvar")
+      }
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Erro ao salvar configuração.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function addOption() {
+    const nextKey = String(config.options.length + 1)
+    setConfig(c => ({
+      ...c,
+      options: [...c.options, { key: nextKey, label: "", response: "" }],
+    }))
+  }
+
+  function removeOption(index: number) {
+    setConfig(c => ({
+      ...c,
+      options: c.options.filter((_, i) => i !== index),
+    }))
+  }
+
+  function moveOption(index: number, direction: -1 | 1) {
+    const next = index + direction
+    if (next < 0 || next >= config.options.length) return
+    setConfig(c => {
+      const opts = [...c.options]
+      ;[opts[index], opts[next]] = [opts[next], opts[index]]
+      // Renumerar keys automaticamente
+      return { ...c, options: opts.map((o, i) => ({ ...o, key: String(i + 1) })) }
+    })
+  }
+
+  function updateOption(index: number, field: keyof FlowOption, value: string) {
+    setConfig(c => ({
+      ...c,
+      options: c.options.map((o, i) => (i === index ? { ...o, [field]: value } : o)),
+    }))
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center p-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Welcome Message */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Mensagem de Boas-vindas</label>
+        <p className="text-xs text-muted-foreground">
+          Use <code className="bg-muted px-1 py-0.5 rounded text-xs">{"{nome}"}</code> para inserir o nome do lead automaticamente.
+        </p>
+        <textarea
+          value={config.welcome_message}
+          onChange={e => setConfig(c => ({ ...c, welcome_message: e.target.value }))}
+          rows={8}
+          className="w-full rounded-lg border bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/50 font-mono"
+          placeholder="Olá {nome}! Seja bem vindo(a)!..."
+        />
+      </div>
+
+      {/* Options */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="text-sm font-medium">Opções do Menu</label>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Quando o lead responder com o número da opção, receberá a resposta configurada.
+              {config.options.length === 0 && " Nenhuma opção = apenas a mensagem de boas-vindas é enviada."}
+            </p>
+          </div>
+          <button
+            onClick={addOption}
+            className="flex items-center gap-1.5 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Adicionar opção
+          </button>
+        </div>
+
+        {config.options.length === 0 ? (
+          <div className="border border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground">
+            Nenhuma opção configurada. Clique em &quot;Adicionar opção&quot; para criar um menu interativo.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {config.options.map((option, index) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3 bg-muted/20">
+                <div className="flex items-center gap-3">
+                  <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center flex-shrink-0">
+                    {option.key}
+                  </span>
+                  <input
+                    value={option.label}
+                    onChange={e => updateOption(index, "label", e.target.value)}
+                    placeholder="Nome da opção (ex: Ver catálogo)"
+                    className="flex-1 rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => moveOption(index, -1)}
+                      disabled={index === 0}
+                      className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Mover para cima"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => moveOption(index, 1)}
+                      disabled={index === config.options.length - 1}
+                      className="p-1 rounded hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Mover para baixo"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => removeOption(index)}
+                      className="p-1 rounded hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 transition-colors"
+                      title="Remover opção"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  value={option.response}
+                  onChange={e => updateOption(index, "response", e.target.value)}
+                  placeholder="Mensagem enviada quando o lead escolher esta opção..."
+                  rows={3}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Timeout */}
+      {config.options.length > 0 && (
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium whitespace-nowrap">Aguardar resposta por</label>
+          <input
+            type="number"
+            min={1}
+            max={1440}
+            value={config.flow_timeout_minutes}
+            onChange={e => setConfig(c => ({ ...c, flow_timeout_minutes: Number(e.target.value) }))}
+            className="w-20 rounded-md border bg-background px-3 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+          <span className="text-sm text-muted-foreground">minutos após enviar a boas-vindas</span>
+        </div>
+      )}
+
+      {/* Feedback */}
+      {error && (
+        <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1.5">
+          <AlertCircle className="h-4 w-4" /> {error}
+        </p>
+      )}
+      {saved && (
+        <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
+          <CheckCircle2 className="h-4 w-4" /> Configuração salva e aplicada ao servidor!
+        </p>
+      )}
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity font-medium"
+        >
+          {saving ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+          {saving ? "Salvando..." : "Salvar configuração"}
+        </button>
+      </div>
+    </div>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -256,6 +503,24 @@ export default function WhatsAppAdminPage() {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Flow Editor                                                         */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="bg-card text-card-foreground rounded-xl border shadow-sm overflow-hidden">
+        <div className="px-6 py-5 border-b">
+          <h3 className="text-xl font-semibold flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Configurar Fluxo de Mensagens
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Edite a mensagem enviada ao novo lead e defina opções de menu interativo.
+          </p>
+        </div>
+        <div className="p-6">
+          <FlowEditor />
         </div>
       </div>
 
