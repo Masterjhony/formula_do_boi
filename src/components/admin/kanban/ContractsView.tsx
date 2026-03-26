@@ -6,8 +6,7 @@ import {
     Calendar, DollarSign, User, AlertTriangle, CheckCircle,
     Clock, XCircle, Upload, ExternalLink, StickyNote, Filter,
 } from 'lucide-react';
-import { Contract, ContractInput, createContract, updateContract, deleteContract, ensureContractsBucket } from '@/app/web-admin/actions/contracts';
-import { createClient } from '@/utils/supabase/client';
+import { Contract, ContractInput, createContract, updateContract, deleteContract, uploadContractFile, deleteContractFile } from '@/app/web-admin/actions/contracts';
 
 const STATUS_CONFIG = {
     Ativo:      { label: 'Ativo',      color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', dot: 'bg-emerald-500', icon: CheckCircle },
@@ -93,18 +92,12 @@ export function ContractsView({ initialContracts }: Props) {
         const file = e.target.files?.[0];
         if (!file) return;
         setIsUploading(true);
-        const supabase = createClient();
         try {
-            await ensureContractsBucket();
-            const safeName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
-            const filePath = `contracts/${Date.now()}_${safeName}`;
-            const { error } = await supabase.storage.from('contracts').upload(filePath, file, {
-                contentType: file.type || 'application/pdf',
-            });
-            if (error) throw new Error(error.message);
-            const { data: urlData } = supabase.storage.from('contracts').getPublicUrl(filePath);
-            setUploadedFile({ url: urlData.publicUrl, path: filePath, name: file.name });
-            setForm(f => ({ ...f, file_url: urlData.publicUrl, file_path: filePath, file_name: file.name }));
+            const fd = new FormData();
+            fd.append('file', file);
+            const result = await uploadContractFile(fd);
+            setUploadedFile(result);
+            setForm(f => ({ ...f, file_url: result.url, file_path: result.path, file_name: result.name }));
         } catch (err: any) {
             alert(`Erro no upload: ${err.message}`);
         } finally {
@@ -115,8 +108,7 @@ export function ContractsView({ initialContracts }: Props) {
 
     const handleRemoveFile = async () => {
         if (!uploadedFile) return;
-        const supabase = createClient();
-        await supabase.storage.from('contracts').remove([uploadedFile.path]).catch(() => {});
+        await deleteContractFile(uploadedFile.path).catch(() => {});
         setUploadedFile(null);
         setForm(f => ({ ...f, file_url: null, file_path: null, file_name: null }));
     };

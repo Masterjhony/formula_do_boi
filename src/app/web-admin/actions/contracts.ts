@@ -22,19 +22,38 @@ export interface Contract {
 
 export type ContractInput = Omit<Contract, 'id' | 'created_at' | 'updated_at'>;
 
-export async function ensureContractsBucket(): Promise<void> {
-    const admin = createAdminClient(
+function getAdminClient() {
+    return createAdminClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-    const { error } = await admin.storage.createBucket('contracts', {
-        public: false,
-        allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+}
+
+async function ensureBucket(admin: ReturnType<typeof getAdminClient>) {
+    const { error } = await admin.storage.createBucket('contracts', { public: true });
+    if (error && !error.message.includes('already exists')) throw new Error(error.message);
+}
+
+export async function uploadContractFile(formData: FormData): Promise<{ url: string; path: string; name: string }> {
+    const file = formData.get('file') as File;
+    if (!file) throw new Error('Nenhum arquivo enviado');
+    const admin = getAdminClient();
+    await ensureBucket(admin);
+    const safeName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `${Date.now()}_${safeName}`;
+    const bytes = await file.arrayBuffer();
+    const { error } = await admin.storage.from('contracts').upload(filePath, bytes, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: false,
     });
-    // Ignore "already exists" error
-    if (error && !error.message.includes('already exists')) {
-        throw new Error(error.message);
-    }
+    if (error) throw new Error(error.message);
+    const { data } = admin.storage.from('contracts').getPublicUrl(filePath);
+    return { url: data.publicUrl, path: filePath, name: file.name };
+}
+
+export async function deleteContractFile(filePath: string): Promise<void> {
+    const admin = getAdminClient();
+    await admin.storage.from('contracts').remove([filePath]);
 }
 
 export async function getContracts(): Promise<Contract[]> {
