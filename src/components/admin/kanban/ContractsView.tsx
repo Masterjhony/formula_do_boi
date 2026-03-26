@@ -6,7 +6,7 @@ import {
     Calendar, DollarSign, User, AlertTriangle, CheckCircle,
     Clock, XCircle, Upload, ExternalLink, StickyNote, Filter,
 } from 'lucide-react';
-import { Contract, ContractInput, createContract, updateContract, deleteContract } from '@/app/web-admin/actions/contracts';
+import { Contract, ContractInput, createContract, updateContract, deleteContract, ensureContractsBucket } from '@/app/web-admin/actions/contracts';
 import { createClient } from '@/utils/supabase/client';
 
 const STATUS_CONFIG = {
@@ -95,6 +95,7 @@ export function ContractsView({ initialContracts }: Props) {
         setIsUploading(true);
         const supabase = createClient();
         try {
+            await ensureContractsBucket();
             const safeName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
             const filePath = `contracts/${Date.now()}_${safeName}`;
             const { error } = await supabase.storage.from('contracts').upload(filePath, file, {
