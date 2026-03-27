@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
-
 export async function POST(req: NextRequest) {
   // Valida segredo compartilhado com o VPS
+  const SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
   const authHeader = req.headers.get('x-webhook-secret')
   if (!SECRET || authHeader !== SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
