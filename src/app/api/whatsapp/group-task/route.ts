@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Endpoint temporário de diagnóstico — remover após resolver
+export async function GET() {
+  const secret = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
+  return NextResponse.json({
+    secret_set: !!secret,
+    secret_length: secret.length,
+    secret_prefix: secret.slice(0, 4) || '(empty)',
+  })
+}
+
 export async function POST(req: NextRequest) {
   // Valida segredo compartilhado com o VPS
   const SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
