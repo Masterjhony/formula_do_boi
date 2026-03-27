@@ -50,7 +50,17 @@ O webhook:
 3. Retorna no response o status de cada lead com o resultado do WhatsApp (`{ sent, reason?, error? }`)
 
 ### ERP (`/web-erp`)
-Módulo interno de gestão operacional.
+Módulo interno de gestão operacional com Kanban tático (`tactical_tasks`).
+
+### Automação WhatsApp → Kanban Tático
+
+Membros dos grupos da comunidade WhatsApp podem criar cards no Kanban do ERP digitando:
+
+```
+/tarefa <descrição da tarefa>
+```
+
+O bot responde no próprio grupo confirmando a criação. O card aparece no Kanban com um badge verde **WhatsApp** e registra o grupo e o remetente de origem. Implementado em `whatsapp-server.js` (listener de grupos) + `POST /api/whatsapp/group-task` (cria o card no Supabase).
 
 ---
 
@@ -224,6 +234,7 @@ vercel ls
 | `SUPABASE_SERVICE_ROLE_KEY` | — | Chave admin (bypassa RLS) |
 | `SHEETS_WEBHOOK_SECRET` | — | Segredo compartilhado com o Apps Script |
 | `WHATSAPP_SERVER_URL` | `http://165.232.142.37:3001` | URL do servidor WhatsApp no VPS |
+| `WHATSAPP_GROUP_TASK_SECRET` | — | Segredo compartilhado com o VPS para `/api/whatsapp/group-task` (Production only) |
 | `GOOGLE_GA4_PROPERTY_ID` | `483341191` | ID da propriedade GA4 |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | — | JSON da service account GA4 |
 

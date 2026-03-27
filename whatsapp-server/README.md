@@ -32,11 +32,13 @@ Servidor dedicado para automacao de mensagens WhatsApp via [Baileys](https://git
 
 ## Endpoints
 
-| Metodo | Path     | Descricao                                      |
-|--------|----------|-------------------------------------------------|
-| GET    | /status  | Retorna `{status, qr}` — status da conexao     |
-| POST   | /send    | Enfileira mensagem. Body: `{phone, name}`       |
-| GET    | /queue   | Retorna tamanho da fila e status de processamento |
+| Metodo | Path           | Descricao                                                  |
+|--------|----------------|------------------------------------------------------------|
+| GET    | /status        | Retorna `{status, qr}` — status da conexao                |
+| POST   | /send          | Enfileira mensagem. Body: `{phone, name}`                  |
+| GET    | /queue         | Retorna tamanho da fila e status de processamento          |
+| GET    | /config        | Retorna config do fluxo em memória + contagem de pendentes |
+| POST   | /reload-config | Força recarga da config do Supabase                        |
 
 ### Status possiveis
 
@@ -77,7 +79,7 @@ docker run -d \
   --restart unless-stopped \
   -p 3001:3001 \
   -v /opt/whatsapp-auth:/data/auth \
-  -e WHATSAPP_SERVER_PORT=3001 \
+  --env-file /opt/whatsapp-server/.env \
   formula_boi_whatsapp_img
 
 # Escanear QR em admin.formuladoboi.com/whatsapp
@@ -98,7 +100,7 @@ docker run -d \
   --restart unless-stopped \
   -p 3001:3001 \
   -v /opt/whatsapp-auth:/data/auth \
-  -e WHATSAPP_SERVER_PORT=3001 \
+  --env-file /opt/whatsapp-server/.env \
   formula_boi_whatsapp_img
 ```
 
@@ -131,12 +133,26 @@ O servidor implementa reconexao automatica com as seguintes garantias:
 - **Backoff exponencial** — Delays de 5s, 10s, 20s, 40s, ate 60s entre tentativas de reconexao.
 - **`--restart unless-stopped`** — Docker reinicia o container automaticamente em caso de crash.
 
+## Comando de grupo: /tarefa
+
+Membros de grupos WhatsApp conectados ao bot podem criar cards no Kanban tático digitando:
+
+```
+/tarefa <descrição da tarefa>
+```
+
+O servidor detecta o prefixo em mensagens de grupo (`@g.us`), chama `POST $NEXT_JS_URL/api/whatsapp/group-task` com o header `x-webhook-secret`, e responde no grupo confirmando a criação (ou reportando erro). Mensagens do próprio número do bot (`fromMe = true`) são ignoradas.
+
 ## Variaveis de ambiente
 
-| Variavel               | Default       | Descricao                          |
-|------------------------|---------------|------------------------------------|
-| WHATSAPP_SERVER_PORT   | 3001          | Porta HTTP do servidor             |
-| AUTH_DIR               | /data/auth    | Diretorio dos arquivos de sessao   |
+| Variavel                    | Default    | Descricao                                              |
+|-----------------------------|------------|--------------------------------------------------------|
+| WHATSAPP_SERVER_PORT        | 3001       | Porta HTTP do servidor                                 |
+| AUTH_DIR                    | /data/auth | Diretorio dos arquivos de sessao                       |
+| NEXT_PUBLIC_SUPABASE_URL    | —          | URL do Supabase (para carregar flow config)            |
+| SUPABASE_SERVICE_ROLE_KEY   | —          | Chave service role do Supabase                         |
+| NEXT_JS_URL                 | —          | URL base do Next.js (ex: https://admin.formuladoboi.com) |
+| WHATSAPP_GROUP_TASK_SECRET  | —          | Segredo compartilhado com `/api/whatsapp/group-task`   |
 
 ## Vercel (Next.js)
 
@@ -154,3 +170,6 @@ O Next.js **nao** roda Baileys — apenas faz proxy HTTP para a VPS:
 | Deploy Vercel falhando | Baileys no package.json do Next.js | Manter Baileys apenas no whatsapp-server |
 | Sockets fantasma | `sock = null` sem fechar WebSocket | Sempre usar `destroySocket()` |
 | QR nao aparece | Sessao antiga corrompida | Limpar `/opt/whatsapp-auth/*` e reiniciar |
+| /tarefa retorna 401 | `WHATSAPP_GROUP_TASK_SECRET` não carregado | Garantir `--env-file` no `docker run`; verificar comprimento (deve ser 64 chars — CLI do Vercel pode adicionar `\n`) |
+| Bot nao responde a /tarefa | Mensagem enviada pelo proprio numero do bot | `fromMe = true` é ignorado por design |
+| Bot nao responde a /tarefa | Container sem `NEXT_JS_URL` ou `WHATSAPP_GROUP_TASK_SECRET` | Checar `/opt/whatsapp-server/.env` e recriar container com `--env-file` |

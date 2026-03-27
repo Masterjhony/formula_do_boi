@@ -44,7 +44,7 @@ Migrations are in `/database/` (100+ files, one per change). Key tables:
 | `products` | Livestock catalog (touros, matrizes, embriões, sêmen); `details` JSONB, `genealogia_json` JSONB, `avaliacao_genetica_json` JSONB |
 | `crm_leads` | Sales pipeline; `position` field drives Kanban ordering |
 | `profiles` | User roles (`admin` / `user`, references `auth.users`) |
-| `tactical_tasks` | ERP Kanban with `checklists` JSONB and `attachments` JSONB |
+| `tactical_tasks` | ERP Kanban with `checklists` JSONB and `attachments` JSONB; columns `whatsapp_group_id`, `whatsapp_group_name`, `whatsapp_sender`, `whatsapp_sender_name` track cards created via WhatsApp groups |
 | `tactical_contracts` | Contract management |
 | `whatsapp_messages` | WhatsApp message send log (status, phone, lead_id FK) |
 | `site_settings` | Feature flags and configuration (key/JSONB value). Key `whatsapp_flow` stores the automation flow config. |
@@ -53,6 +53,7 @@ Migrations are in `/database/` (100+ files, one per change). Key tables:
 ### Notable Implementation Details
 
 - **WhatsApp flow builder**: Admin can edit the welcome message (supports `{nome}` variable), define numbered menu options, and configure reply timeout — stored in `site_settings.whatsapp_flow`, applied to the VPS server live via `POST /reload-config`.
+- **WhatsApp group task creation**: Members of a WhatsApp community group can type `/tarefa <description>` to create a Kanban card in `tactical_tasks`. The Baileys server detects the prefix, calls `POST /api/whatsapp/group-task` (authenticated via `WHATSAPP_GROUP_TASK_SECRET`), and replies in the group confirming creation. The card appears in the ERP Kanban with a green "WhatsApp" badge. Messages from the bot's own number are ignored (`fromMe = true`).
 - **Genealogy/Genetic Evaluation parsing**: `src/lib/genealogy-parser.ts` and `src/lib/avaliacao-genetica-parser.ts` parse PDFs via `pdf-parse` and expose batch endpoints under `/api/parse-*`.
 - **CRM Kanban**: built with `@dnd-kit` — drag updates `position` field in Supabase in real time.
 - **Analytics**: GA4 data pulled via `@google-analytics/data` using a service account; configured with `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_GA4_PROPERTY_ID`.
@@ -67,6 +68,7 @@ Migrations are in `/database/` (100+ files, one per change). Key tables:
 | `/api/whatsapp/status` | GET | Proxies to VPS `/status` — returns `{status, qr}` |
 | `/api/whatsapp/messages` | GET | Fetches last 50 messages + today's count + conversations from `whatsapp_messages` |
 | `/api/whatsapp/flow` | GET, PUT | Reads/saves WhatsApp flow config in `site_settings`; PUT also calls `/reload-config` on VPS |
+| `/api/whatsapp/group-task` | POST | Called by VPS when `/tarefa` is detected in a group; validates `x-webhook-secret`, creates card in `tactical_tasks` with WhatsApp origin fields |
 | `/api/parse-genealogy` | POST | Parses genealogy from product PDF, saves to `products.genealogia_json` |
 | `/api/parse-genealogy/batch` | GET, POST | Batch genealogy extraction (supports `dryRun`, `onlyMissing`) |
 | `/api/parse-avaliacao-genetica` | POST | Parses genetic evaluation from PDF, saves to `products.avaliacao_genetica_json` |
@@ -80,6 +82,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY     # Supabase public anon key
 SUPABASE_SERVICE_ROLE_KEY         # Supabase service role key (bypasses RLS)
 SHEETS_WEBHOOK_SECRET             # Validates Google Sheets webhook requests
 WHATSAPP_SERVER_URL               # default: http://localhost:3001
+WHATSAPP_GROUP_TASK_SECRET        # Shared secret between VPS and /api/whatsapp/group-task (Production only in Vercel)
 GOOGLE_GA4_PROPERTY_ID            # GA4 property (fallback: 483341191)
 GOOGLE_SERVICE_ACCOUNT_JSON       # GA4 service account credentials (stringified JSON)
 ```
@@ -113,6 +116,18 @@ Session state is persisted in the Docker volume `/opt/whatsapp-auth/`. If the QR
 | `/queue` | GET | Queue size and processing status |
 | `/config` | GET | Current in-memory flow config + pending reply count |
 | `/reload-config` | POST | Force reload flow config from Supabase |
+
+### WhatsApp Group Task Command
+
+When a member of a connected group types `/tarefa <description>`, the VPS:
+1. Detects the prefix in `messages.upsert` (only for `@g.us` JIDs, ignores `fromMe`)
+2. POSTs to `NEXT_JS_URL/api/whatsapp/group-task` with `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
+3. On success: replies `✅ Tarefa criada por *Name*: "description"` in the group
+4. On failure: replies `❌ Não foi possível criar a tarefa.`
+
+VPS env vars required: `NEXT_JS_URL=https://admin.formuladoboi.com`, `WHATSAPP_GROUP_TASK_SECRET=<secret>` (same value as Vercel Production).
+
+> **Pitfall**: when adding `WHATSAPP_GROUP_TASK_SECRET` via `vercel env add`, paste the value carefully — the CLI may append a trailing newline making the length 65 instead of 64, causing all requests to fail with 401.
 
 ### WhatsApp Flow Config (site_settings key: `whatsapp_flow`)
 

@@ -42,6 +42,10 @@ graph TD
             WhatsAppAdmin[Painel WhatsApp]
         end
 
+        subgraph ERP2 ["erp.formuladoboi.com — /web-erp (Kanban Tático)"]
+            TacticalKanban[Kanban Tático]
+        end
+
         subgraph ERP ["erp.formuladoboi.com — /web-erp"]
             ERPModule[Módulo ERP Interno]
         end
@@ -49,6 +53,7 @@ graph TD
         subgraph API ["API Routes"]
             WebhookSheets[POST /api/webhooks/google-sheets]
             WhatsAppStatus[GET /api/whatsapp/status]
+            GroupTask[POST /api/whatsapp/group-task]
         end
 
         Middleware[middleware.ts\nroteamento por subdomínio]
@@ -68,6 +73,7 @@ graph TD
             DB_Leads[(crm_leads)]
             DB_Products[(products)]
             DB_WAAuth[(whatsapp_auth)]
+            DB_Tasks[(tactical_tasks)]
         end
         Storage[Storage — Mídias]
     end
@@ -97,6 +103,11 @@ graph TD
     GoogleSheets -->|"POST (x-webhook-secret)"| WebhookSheets
     WebhookSheets -->|Insere lead| DB_Leads
     WebhookSheets -->|"POST /send (await + resultado no response)"| WAServer
+
+    %% Fluxo: Grupos WhatsApp → Kanban Tático
+    Baileys -->|"/tarefa detectado no grupo"| GroupTask
+    GroupTask -->|"Cria card com origem WA"| DB_Tasks
+    TacticalKanban <-->|CRUD tasks| DB_Tasks
 
     %% WhatsApp Server
     WhatsAppStatus -->|"GET /status"| WAServer
