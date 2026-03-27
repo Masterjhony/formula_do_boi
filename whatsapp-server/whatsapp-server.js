@@ -29,6 +29,10 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_P
 const NEXT_JS_URL = process.env.NEXT_JS_URL || '';
 const GROUP_TASK_SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || '';
 const GROUP_TASK_PREFIX = '/tarefa';
+const GROUP_DECISION_PREFIX = '/decisao';
+const GROUP_RISK_PREFIX = '/risco';
+const PROB_MAP = { '1': 'baixa', '2': 'media', '3': 'alta' };
+const IMPACT_MAP = { '1': 'baixo', '2': 'medio', '3': 'alto' };
 
 // Garante que o diretório de auth existe
 if (!fs.existsSync(AUTH_DIR)) {
@@ -181,6 +185,89 @@ async function createGroupTask(groupJid, state, dueDate) {
   } catch (e) {
     console.error('[Grupo] Falha ao chamar API:', e.message);
     await sendGroupMsg(groupJid, `❌ Não foi possível criar a tarefa. Tente novamente.`);
+  }
+}
+
+async function createGroupDecision(groupJid, state) {
+  const { decision, reason, sender_name } = state;
+
+  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+    console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados.');
+    return;
+  }
+
+  console.log(`[Grupo] Criando decisão "${decision}" por ${sender_name}`);
+
+  try {
+    const body = { decision };
+    if (reason) body.reason = reason;
+
+    const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/group-decision`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': GROUP_TASK_SECRET,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (res.ok) {
+      const reasonText = reason ? `\n📝 Motivo: *${reason}*` : '';
+      await sendGroupMsg(groupJid,
+        `📒 Decisão registrada por *${sender_name}*:\n"${decision}"${reasonText}`
+      );
+    } else {
+      const err = await res.text();
+      console.error(`[Grupo] Erro ao criar decisão (${res.status}): ${err}`);
+      await sendGroupMsg(groupJid, `❌ Não foi possível registrar a decisão. Tente novamente.`);
+    }
+  } catch (e) {
+    console.error('[Grupo] Falha ao chamar API decision:', e.message);
+    await sendGroupMsg(groupJid, `❌ Não foi possível registrar a decisão. Tente novamente.`);
+  }
+}
+
+async function createGroupRisk(groupJid, state) {
+  const { title, probability, impact, mitigation, sender_name } = state;
+
+  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+    console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados.');
+    return;
+  }
+
+  console.log(`[Grupo] Criando risco "${title}" por ${sender_name}`);
+
+  const probLabels = { 'baixa': 'Baixa', 'media': 'Média', 'alta': 'Alta' };
+  const impactLabels = { 'baixo': 'Baixo', 'medio': 'Médio', 'alto': 'Alto' };
+
+  try {
+    const body = { title, probability, impact };
+    if (mitigation) body.mitigation = mitigation;
+
+    const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/group-risk`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': GROUP_TASK_SECRET,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (res.ok) {
+      const mitigationText = mitigation ? `\n🛡️ Mitigação: *${mitigation}*` : '';
+      await sendGroupMsg(groupJid,
+        `⚠️ Risco registrado por *${sender_name}*:\n"${title}"\n🎲 Probabilidade: *${probLabels[probability] || probability}*\n💥 Impacto: *${impactLabels[impact] || impact}*${mitigationText}`
+      );
+    } else {
+      const err = await res.text();
+      console.error(`[Grupo] Erro ao criar risco (${res.status}): ${err}`);
+      await sendGroupMsg(groupJid, `❌ Não foi possível registrar o risco. Tente novamente.`);
+    }
+  } catch (e) {
+    console.error('[Grupo] Falha ao chamar API risk:', e.message);
+    await sendGroupMsg(groupJid, `❌ Não foi possível registrar o risco. Tente novamente.`);
   }
 }
 
@@ -400,6 +487,8 @@ async function startSocket() {
           const senderName = msg.pushName || sender;
           const taskKey = `${senderJid}::${remoteJid}`;
 
+          const skipWords = ['pular', 'nao', 'não', 'nenhum', '-', 'sem'];
+
           // /tarefa sempre inicia novo fluxo (cancela pendente anterior se houver)
           if (lower.startsWith(GROUP_TASK_PREFIX)) {
             const title = text.slice(GROUP_TASK_PREFIX.length).trim();
@@ -408,14 +497,13 @@ async function startSocket() {
               continue;
             }
 
-            console.log(`[Grupo] /tarefa de ${senderName} (${sender}) no grupo ${remoteJid}: "${title}"`);
-
             if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
               console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — tarefa ignorada.');
               continue;
             }
 
             pendingGroupTasks.set(taskKey, {
+              flow_type: 'task',
               step: 'etapa',
               title,
               group_id: remoteJid,
@@ -426,6 +514,62 @@ async function startSocket() {
 
             await sendGroupMsg(remoteJid,
               `📋 *Tarefa:* "${title}"\n\nEm qual etapa ficará?\n1️⃣ Idéias\n2️⃣ A fazer\n3️⃣ Em andamento`
+            );
+            continue;
+          }
+
+          // /decisao inicia fluxo de registro de decisão
+          if (lower.startsWith(GROUP_DECISION_PREFIX)) {
+            const decision = text.slice(GROUP_DECISION_PREFIX.length).trim();
+            if (!decision) {
+              await sendGroupMsg(remoteJid, '⚠️ Use: /decisao <texto da decisão>');
+              continue;
+            }
+
+            if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+              console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — decisão ignorada.');
+              continue;
+            }
+
+            pendingGroupTasks.set(taskKey, {
+              flow_type: 'decision',
+              step: 'motivo',
+              decision,
+              sender,
+              sender_name: senderName,
+              expires_at: Date.now() + GROUP_TASK_TIMEOUT_MS,
+            });
+
+            await sendGroupMsg(remoteJid,
+              `📒 *Decisão:* "${decision}"\n\nQual o motivo?\n(Digite o motivo ou responda *pular*)`
+            );
+            continue;
+          }
+
+          // /risco inicia fluxo de registro de risco
+          if (lower.startsWith(GROUP_RISK_PREFIX)) {
+            const title = text.slice(GROUP_RISK_PREFIX.length).trim();
+            if (!title) {
+              await sendGroupMsg(remoteJid, '⚠️ Use: /risco <título do risco>');
+              continue;
+            }
+
+            if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+              console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — risco ignorado.');
+              continue;
+            }
+
+            pendingGroupTasks.set(taskKey, {
+              flow_type: 'risk',
+              step: 'probabilidade',
+              title,
+              sender,
+              sender_name: senderName,
+              expires_at: Date.now() + GROUP_TASK_TIMEOUT_MS,
+            });
+
+            await sendGroupMsg(remoteJid,
+              `⚠️ *Risco:* "${title}"\n\nQual a probabilidade?\n1️⃣ Baixa\n2️⃣ Média\n3️⃣ Alta`
             );
             continue;
           }
@@ -442,41 +586,91 @@ async function startSocket() {
           // Renovar timeout a cada interação
           pending.expires_at = Date.now() + GROUP_TASK_TIMEOUT_MS;
 
-          if (pending.step === 'etapa') {
-            const etapa = ETAPA_MAP[text.trim()];
-            if (!etapa) {
-              await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.');
-              continue;
-            }
-            pending.step = 'responsavel';
-            pending.status = etapa;
-            await sendGroupMsg(remoteJid,
-              `👤 Quem é o responsável?\n(Digite o nome ou responda *pular*)`
-            );
-            continue;
-          }
-
-          if (pending.step === 'responsavel') {
-            const skipWords = ['pular', 'nao', 'não', 'nenhum', '-', 'sem'];
-            pending.assignee = skipWords.includes(lower.trim()) ? null : text.trim();
-            pending.step = 'prazo';
-            await sendGroupMsg(remoteJid,
-              `📅 Qual o prazo?\n(Ex: *25/04* ou *sem prazo*)`
-            );
-            continue;
-          }
-
-          if (pending.step === 'prazo') {
-            const dueDate = parseDueDate(text);
-            if (text.trim() && !['sem prazo', 'nao', 'não', 'nenhum', 'pular', 'n', '-', 'sem'].includes(lower.trim()) && !dueDate) {
+          // ── Fluxo: tarefa ──
+          if (pending.flow_type === 'task') {
+            if (pending.step === 'etapa') {
+              const etapa = ETAPA_MAP[text.trim()];
+              if (!etapa) {
+                await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.');
+                continue;
+              }
+              pending.step = 'responsavel';
+              pending.status = etapa;
               await sendGroupMsg(remoteJid,
-                '⚠️ Formato inválido. Use *dd/mm* (ex: 25/04) ou *sem prazo*.'
+                `👤 Quem é o responsável?\n(Digite o nome ou responda *pular*)`
               );
               continue;
             }
-            pendingGroupTasks.delete(taskKey);
-            await createGroupTask(remoteJid, pending, dueDate);
-            continue;
+
+            if (pending.step === 'responsavel') {
+              pending.assignee = skipWords.includes(lower.trim()) ? null : text.trim();
+              pending.step = 'prazo';
+              await sendGroupMsg(remoteJid,
+                `📅 Qual o prazo?\n(Ex: *25/04* ou *sem prazo*)`
+              );
+              continue;
+            }
+
+            if (pending.step === 'prazo') {
+              const dueDate = parseDueDate(text);
+              if (text.trim() && !skipWords.includes(lower.trim()) && lower !== 'sem prazo' && !dueDate) {
+                await sendGroupMsg(remoteJid,
+                  '⚠️ Formato inválido. Use *dd/mm* (ex: 25/04) ou *sem prazo*.'
+                );
+                continue;
+              }
+              pendingGroupTasks.delete(taskKey);
+              await createGroupTask(remoteJid, pending, dueDate);
+              continue;
+            }
+          }
+
+          // ── Fluxo: decisão ──
+          if (pending.flow_type === 'decision') {
+            if (pending.step === 'motivo') {
+              pending.reason = skipWords.includes(lower.trim()) ? null : text.trim();
+              pendingGroupTasks.delete(taskKey);
+              await createGroupDecision(remoteJid, pending);
+              continue;
+            }
+          }
+
+          // ── Fluxo: risco ──
+          if (pending.flow_type === 'risk') {
+            if (pending.step === 'probabilidade') {
+              const prob = PROB_MAP[text.trim()];
+              if (!prob) {
+                await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.');
+                continue;
+              }
+              pending.probability = prob;
+              pending.step = 'impacto';
+              await sendGroupMsg(remoteJid,
+                `💥 Qual o impacto?\n1️⃣ Baixo\n2️⃣ Médio\n3️⃣ Alto`
+              );
+              continue;
+            }
+
+            if (pending.step === 'impacto') {
+              const imp = IMPACT_MAP[text.trim()];
+              if (!imp) {
+                await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.');
+                continue;
+              }
+              pending.impact = imp;
+              pending.step = 'mitigacao';
+              await sendGroupMsg(remoteJid,
+                `🛡️ Qual a mitigação?\n(Digite a ação ou responda *pular*)`
+              );
+              continue;
+            }
+
+            if (pending.step === 'mitigacao') {
+              pending.mitigation = skipWords.includes(lower.trim()) ? null : text.trim();
+              pendingGroupTasks.delete(taskKey);
+              await createGroupRisk(remoteJid, pending);
+              continue;
+            }
           }
 
           continue;
