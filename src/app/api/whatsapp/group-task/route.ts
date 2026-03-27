@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-
-// Endpoint temporário de diagnóstico — remover após resolver
-export async function GET() {
-  const secret = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
-  return NextResponse.json({
-    secret_set: !!secret,
-    secret_length: secret.length,
-    secret_prefix: secret.slice(0, 4) || '(empty)',
-  })
-}
+import { revalidatePath } from 'next/cache'
 
 export async function POST(req: NextRequest) {
   // Valida segredo compartilhado com o VPS
@@ -25,6 +16,9 @@ export async function POST(req: NextRequest) {
     sender: string
     sender_name?: string
     title: string
+    status?: string
+    assignee_name?: string
+    due_date?: string
   }
 
   try {
@@ -33,7 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { group_id, group_name, sender, sender_name, title } = body
+  const { group_id, group_name, sender, sender_name, title, status, assignee_name, due_date } = body
 
   if (!group_id || !sender || !title?.trim()) {
     return NextResponse.json(
@@ -42,16 +36,19 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const VALID_STATUSES = ['Idéias', 'A fazer', 'Em andamento', 'Completa']
+  const taskStatus = status && VALID_STATUSES.includes(status) ? status : 'A fazer'
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Descobre a posição máxima na coluna "A fazer"
+  // Descobre a posição máxima na coluna de destino
   const { data: maxPosData } = await supabase
     .from('tactical_tasks')
     .select('position')
-    .eq('status', 'A fazer')
+    .eq('status', taskStatus)
     .order('position', { ascending: false })
     .limit(1)
     .single()
@@ -62,9 +59,11 @@ export async function POST(req: NextRequest) {
     .from('tactical_tasks')
     .insert({
       title: title.trim(),
-      status: 'A fazer',
+      status: taskStatus,
       priority: 'Média',
       position: newPosition,
+      assignees: assignee_name ? [assignee_name] : null,
+      due_date: due_date ?? null,
       whatsapp_group_id: group_id,
       whatsapp_group_name: group_name ?? null,
       whatsapp_sender: sender,
@@ -78,5 +77,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  revalidatePath('/web-admin/tactical-plan')
   return NextResponse.json({ success: true, task_id: data.id, title: data.title })
 }

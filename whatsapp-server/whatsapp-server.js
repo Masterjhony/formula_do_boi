@@ -96,6 +96,95 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 
 // =============================================================================
+// Estado de criação de tarefas via grupo — fluxo multi-step
+// Map<`${senderJid}::${groupJid}`, PendingTaskState>
+// =============================================================================
+const pendingGroupTasks = new Map();
+const GROUP_TASK_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutos
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, state] of pendingGroupTasks) {
+    if (state.expires_at < now) pendingGroupTasks.delete(key);
+  }
+}, 5 * 60 * 1000);
+
+const ETAPA_MAP = { '1': 'Idéias', '2': 'A fazer', '3': 'Em andamento' };
+
+function parseDueDate(text) {
+  const lower = text.toLowerCase().trim();
+  if (['sem prazo', 'nao', 'não', 'nenhum', 'pular', 'n', '-', 'sem'].includes(lower)) return null;
+  const match = text.trim().match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+  if (!match) return null;
+  const day = parseInt(match[1]);
+  const month = parseInt(match[2]) - 1;
+  const yearRaw = match[3] ? parseInt(match[3]) : new Date().getFullYear();
+  const year = yearRaw < 100 ? 2000 + yearRaw : yearRaw;
+  const date = new Date(year, month, day, 12, 0, 0);
+  if (isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
+function formatDateBR(isoDate) {
+  const d = new Date(isoDate);
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+}
+
+async function sendGroupMsg(jid, text) {
+  try {
+    if (currentStatus === 'connected' && sock) {
+      await sock.sendMessage(jid, { text });
+    }
+  } catch (e) {
+    console.error('[Grupo] Erro ao enviar mensagem:', e.message);
+  }
+}
+
+async function createGroupTask(groupJid, state, dueDate) {
+  const { title, group_id, sender, sender_name, status, assignee } = state;
+
+  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+    console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados.');
+    return;
+  }
+
+  console.log(`[Grupo] Criando tarefa "${title}" (${status}) por ${sender_name}`);
+
+  try {
+    const body = { group_id, sender, sender_name, title, status };
+    if (assignee) body.assignee_name = assignee;
+    if (dueDate) body.due_date = dueDate;
+
+    const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/group-task`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': GROUP_TASK_SECRET,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      console.log(`[Grupo] Tarefa criada: ${json.task_id}`);
+      const assigneeText = assignee ? `\n👤 Responsável: *${assignee}*` : '';
+      const dueDateText = dueDate ? `\n📅 Prazo: *${formatDateBR(dueDate)}*` : '';
+      await sendGroupMsg(groupJid,
+        `✅ Tarefa criada por *${sender_name}*:\n"${title}"\n📌 Etapa: *${status}*${assigneeText}${dueDateText}`
+      );
+    } else {
+      const err = await res.text();
+      console.error(`[Grupo] Erro ao criar tarefa (${res.status}): ${err}`);
+      await sendGroupMsg(groupJid, `❌ Não foi possível criar a tarefa. Tente novamente.`);
+    }
+  } catch (e) {
+    console.error('[Grupo] Falha ao chamar API:', e.message);
+    await sendGroupMsg(groupJid, `❌ Não foi possível criar a tarefa. Tente novamente.`);
+  }
+}
+
+// =============================================================================
 // Estado global — UM único socket, gerenciado de forma estrita
 // =============================================================================
 let sock = null;
@@ -302,73 +391,94 @@ async function startSocket() {
         if (!text) continue;
 
         // -----------------------------------------------------------------
-        // Mensagens de GRUPO — detectar /tarefa
+        // Mensagens de GRUPO — fluxo multi-step de criação de tarefas
         // -----------------------------------------------------------------
         if (remoteJid.endsWith('@g.us')) {
           const lower = text.toLowerCase();
-          if (!lower.startsWith(GROUP_TASK_PREFIX)) continue;
-
-          const title = text.slice(GROUP_TASK_PREFIX.length).trim();
-          if (!title) {
-            // Usuário digitou /tarefa sem conteúdo — dar dica
-            try {
-              if (currentStatus === 'connected' && sock) {
-                await sock.sendMessage(remoteJid, {
-                  text: '⚠️ Use: /tarefa <descrição da tarefa>',
-                });
-              }
-            } catch (_) {}
-            continue;
-          }
-
-          // Remetente: em grupos a chave participant traz o JID individual
           const senderJid = msg.key.participant || '';
           const sender = senderJid.replace('@s.whatsapp.net', '');
           const senderName = msg.pushName || sender;
+          const taskKey = `${senderJid}::${remoteJid}`;
 
-          console.log(`[Grupo] /tarefa de ${senderName} (${sender}) no grupo ${remoteJid}: "${title}"`);
+          // /tarefa sempre inicia novo fluxo (cancela pendente anterior se houver)
+          if (lower.startsWith(GROUP_TASK_PREFIX)) {
+            const title = text.slice(GROUP_TASK_PREFIX.length).trim();
+            if (!title) {
+              await sendGroupMsg(remoteJid, '⚠️ Use: /tarefa <descrição da tarefa>');
+              continue;
+            }
 
-          if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
-            console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — tarefa ignorada.');
+            console.log(`[Grupo] /tarefa de ${senderName} (${sender}) no grupo ${remoteJid}: "${title}"`);
+
+            if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+              console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — tarefa ignorada.');
+              continue;
+            }
+
+            pendingGroupTasks.set(taskKey, {
+              step: 'etapa',
+              title,
+              group_id: remoteJid,
+              sender,
+              sender_name: senderName,
+              expires_at: Date.now() + GROUP_TASK_TIMEOUT_MS,
+            });
+
+            await sendGroupMsg(remoteJid,
+              `📋 *Tarefa:* "${title}"\n\nEm qual etapa ficará?\n1️⃣ Idéias\n2️⃣ A fazer\n3️⃣ Em andamento`
+            );
             continue;
           }
 
-          try {
-            const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/group-task`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-webhook-secret': GROUP_TASK_SECRET,
-              },
-              body: JSON.stringify({
-                group_id: remoteJid,
-                sender,
-                sender_name: senderName,
-                title,
-              }),
-              signal: AbortSignal.timeout(10000),
-            });
+          // Continuar fluxo pendente para este remetente neste grupo
+          const pending = pendingGroupTasks.get(taskKey);
+          if (!pending) continue;
 
-            if (res.ok) {
-              const json = await res.json();
-              console.log(`[Grupo] Tarefa criada: ${json.task_id}`);
-              if (currentStatus === 'connected' && sock) {
-                await sock.sendMessage(remoteJid, {
-                  text: `✅ Tarefa criada por *${senderName}*:\n"${title}"`,
-                });
-              }
-            } else {
-              const err = await res.text();
-              console.error(`[Grupo] Erro ao criar tarefa (${res.status}): ${err}`);
-              if (currentStatus === 'connected' && sock) {
-                await sock.sendMessage(remoteJid, {
-                  text: `❌ Não foi possível criar a tarefa. Tente novamente.`,
-                });
-              }
-            }
-          } catch (e) {
-            console.error('[Grupo] Falha ao chamar API:', e.message);
+          if (pending.expires_at < Date.now()) {
+            pendingGroupTasks.delete(taskKey);
+            continue;
           }
+
+          // Renovar timeout a cada interação
+          pending.expires_at = Date.now() + GROUP_TASK_TIMEOUT_MS;
+
+          if (pending.step === 'etapa') {
+            const etapa = ETAPA_MAP[text.trim()];
+            if (!etapa) {
+              await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.');
+              continue;
+            }
+            pending.step = 'responsavel';
+            pending.status = etapa;
+            await sendGroupMsg(remoteJid,
+              `👤 Quem é o responsável?\n(Digite o nome ou responda *pular*)`
+            );
+            continue;
+          }
+
+          if (pending.step === 'responsavel') {
+            const skipWords = ['pular', 'nao', 'não', 'nenhum', '-', 'sem'];
+            pending.assignee = skipWords.includes(lower.trim()) ? null : text.trim();
+            pending.step = 'prazo';
+            await sendGroupMsg(remoteJid,
+              `📅 Qual o prazo?\n(Ex: *25/04* ou *sem prazo*)`
+            );
+            continue;
+          }
+
+          if (pending.step === 'prazo') {
+            const dueDate = parseDueDate(text);
+            if (text.trim() && !['sem prazo', 'nao', 'não', 'nenhum', 'pular', 'n', '-', 'sem'].includes(lower.trim()) && !dueDate) {
+              await sendGroupMsg(remoteJid,
+                '⚠️ Formato inválido. Use *dd/mm* (ex: 25/04) ou *sem prazo*.'
+              );
+              continue;
+            }
+            pendingGroupTasks.delete(taskKey);
+            await createGroupTask(remoteJid, pending, dueDate);
+            continue;
+          }
+
           continue;
         }
 
