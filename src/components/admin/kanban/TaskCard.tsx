@@ -2,7 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Calendar, CheckSquare, MessageSquare, Paperclip, Zap, Link, AlertTriangle, Clock } from 'lucide-react';
+import { Calendar, CheckSquare, MessageSquare, Paperclip, Zap, Link, AlertTriangle, Clock, Smartphone } from 'lucide-react';
 import { TacticalTask } from '@/app/web-admin/actions/tactical-tasks';
 
 interface TaskCardProps {
@@ -92,8 +92,16 @@ export function TaskCard({ task, onClick, allTasks = [], doneStatus }: TaskCardP
             className={`group relative bg-white dark:bg-[#1A1A1A] p-5 rounded-xl border ${borderClass} shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 cursor-grab active:cursor-grabbing flex flex-col gap-3`}
         >
             {/* Status badges row */}
-            {(isBlocked || isOverdue || isStale) && (
+            {(isBlocked || isOverdue || isStale || task.whatsapp_group_id) && (
                 <div className="flex gap-1.5 flex-wrap -mb-1">
+                    {task.whatsapp_group_id && (
+                        <span
+                            className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-green-50 text-green-700 border border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20"
+                            title={task.whatsapp_sender_name ? `Criado por ${task.whatsapp_sender_name} via WhatsApp` : 'Criado via WhatsApp'}
+                        >
+                            <Smartphone size={9} /> WhatsApp
+                        </span>
+                    )}
                     {isBlocked && (
                         <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">
                             <Link size={9} /> Bloqueado

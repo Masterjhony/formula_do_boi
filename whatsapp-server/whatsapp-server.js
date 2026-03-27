@@ -26,6 +26,9 @@ const PORT = process.env.WHATSAPP_SERVER_PORT || 3001;
 const AUTH_DIR = process.env.AUTH_DIR || '/data/auth';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const NEXT_JS_URL = process.env.NEXT_JS_URL || '';
+const GROUP_TASK_SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || '';
+const GROUP_TASK_PREFIX = '/tarefa';
 
 // Garante que o diretório de auth existe
 if (!fs.existsSync(AUTH_DIR)) {
@@ -275,7 +278,7 @@ async function startSocket() {
     });
 
     // -----------------------------------------------------------------
-    // Ouvir mensagens recebidas — responder conforme fluxo configurado
+    // Ouvir mensagens recebidas — fluxo individual + comando de grupos
     // -----------------------------------------------------------------
     sock.ev.on('messages.upsert', async ({ messages: msgs, type }) => {
       if (myGen !== socketGeneration) return;
@@ -286,10 +289,8 @@ async function startSocket() {
         if (msg.key.fromMe) continue;
 
         const remoteJid = msg.key.remoteJid;
-        // Ignorar grupos e status broadcast
         if (!remoteJid) continue;
         if (remoteJid === 'status@broadcast') continue;
-        if (remoteJid.endsWith('@g.us')) continue;
 
         // Extrair texto da mensagem
         const text = (
@@ -300,7 +301,80 @@ async function startSocket() {
 
         if (!text) continue;
 
-        // Número limpo (sem @s.whatsapp.net)
+        // -----------------------------------------------------------------
+        // Mensagens de GRUPO — detectar /tarefa
+        // -----------------------------------------------------------------
+        if (remoteJid.endsWith('@g.us')) {
+          const lower = text.toLowerCase();
+          if (!lower.startsWith(GROUP_TASK_PREFIX)) continue;
+
+          const title = text.slice(GROUP_TASK_PREFIX.length).trim();
+          if (!title) {
+            // Usuário digitou /tarefa sem conteúdo — dar dica
+            try {
+              if (currentStatus === 'connected' && sock) {
+                await sock.sendMessage(remoteJid, {
+                  text: '⚠️ Use: /tarefa <descrição da tarefa>',
+                });
+              }
+            } catch (_) {}
+            continue;
+          }
+
+          // Remetente: em grupos a chave participant traz o JID individual
+          const senderJid = msg.key.participant || '';
+          const sender = senderJid.replace('@s.whatsapp.net', '');
+          const senderName = msg.pushName || sender;
+
+          console.log(`[Grupo] /tarefa de ${senderName} (${sender}) no grupo ${remoteJid}: "${title}"`);
+
+          if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+            console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — tarefa ignorada.');
+            continue;
+          }
+
+          try {
+            const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/group-task`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-webhook-secret': GROUP_TASK_SECRET,
+              },
+              body: JSON.stringify({
+                group_id: remoteJid,
+                sender,
+                sender_name: senderName,
+                title,
+              }),
+              signal: AbortSignal.timeout(10000),
+            });
+
+            if (res.ok) {
+              const json = await res.json();
+              console.log(`[Grupo] Tarefa criada: ${json.task_id}`);
+              if (currentStatus === 'connected' && sock) {
+                await sock.sendMessage(remoteJid, {
+                  text: `✅ Tarefa criada por *${senderName}*:\n"${title}"`,
+                });
+              }
+            } else {
+              const err = await res.text();
+              console.error(`[Grupo] Erro ao criar tarefa (${res.status}): ${err}`);
+              if (currentStatus === 'connected' && sock) {
+                await sock.sendMessage(remoteJid, {
+                  text: `❌ Não foi possível criar a tarefa. Tente novamente.`,
+                });
+              }
+            }
+          } catch (e) {
+            console.error('[Grupo] Falha ao chamar API:', e.message);
+          }
+          continue;
+        }
+
+        // -----------------------------------------------------------------
+        // Mensagens INDIVIDUAIS — fluxo de resposta de leads
+        // -----------------------------------------------------------------
         const phone = remoteJid.replace('@s.whatsapp.net', '');
 
         // Verificar se este contato está aguardando resposta

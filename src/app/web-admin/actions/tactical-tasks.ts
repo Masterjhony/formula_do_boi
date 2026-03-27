@@ -58,6 +58,11 @@ export interface TacticalTask {
     depends_on?: string[];
     strategic_stage?: string;
     status_changed_at?: string;
+    // Origem WhatsApp
+    whatsapp_group_id?: string;
+    whatsapp_group_name?: string;
+    whatsapp_sender?: string;
+    whatsapp_sender_name?: string;
 }
 
 export async function getTasks() {
