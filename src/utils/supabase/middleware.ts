@@ -82,6 +82,21 @@ export async function updateSession(request: NextRequest, rewrittenPath?: string
         }
     }
 
+    // 1.3 Bula Protection
+    const isBulaRoute = rewrittenPath?.startsWith('/web-bula')
+    if (isBulaRoute) {
+        const isPublicBulaPath =
+            rewrittenPath === '/web-bula' ||
+            rewrittenPath?.startsWith('/web-bula/cadastro')
+        if (!isPublicBulaPath) {
+            if (!user) {
+                const url = request.nextUrl.clone()
+                url.pathname = '/'
+                return NextResponse.redirect(url)
+            }
+        }
+    }
+
     // 1.5 ERP Protection
     const isErpRoute = rewrittenPath?.startsWith('/web-erp')
     if (isErpRoute) {

@@ -771,6 +771,15 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 </head>
 <body>
 
+<!-- LOADING OVERLAY -->
+<div id="app-loading" style="display:none;position:fixed;inset:0;z-index:9999;background:#0D0D0D;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <img src="/bula/assets/img/logo-bula.png" alt="Bula" style="height:60px;filter:invert(1);opacity:0.8">
+  <div style="display:flex;align-items:center;gap:10px;color:#C8A96E;font-family:Inter,sans-serif;font-size:13px">
+    <div style="width:18px;height:18px;border:2px solid #C8A96E;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite"></div>
+    Carregando sistema...
+  </div>
+</div>
+
 <!-- TOPBAR -->
 <div class="topbar">
   <img src="/bula/assets/img/logo-bula.png" alt="Bula" class="topbar-logo">
@@ -1195,52 +1204,132 @@ function showPage(id) {
   if (id === 'marketing') renderMarketing();
 }
 
-// ═════════════════════════════════════════════════
-// DATA
-// ═════════════════════════════════════════════════
+// ==========================================================
+// DATA — carregado da API no init
+// ==========================================================
+let LEILOES = [];
+let TASKS = {};
+let CARDS = [];
+let ALL_PEOPLE = [];
+let CRM_FUNNELS = [];
+let MKT_INVEST = 0;
+let LEADS = [];
 
-const LEILOES = [
-  { id:1, data:'2026-06-03', nome:'Nelore Cachoeirão', tipo:'Touros P.O.', local:'Campo Grande, MS', animais:45, expectativa:225000, metaBula:90000, realizadoBula:0, assessores:[{n:'Bulinha',i:'B'},{n:'Peralta',i:'P'}], img:'' },
-  { id:2, data:'2026-06-11', nome:'Nelore Tresmar', tipo:'Femeas P.O.', local:'Uberaba, MG', animais:35, expectativa:175000, metaBula:70000, realizadoBula:0, assessores:[{n:'Leo',i:'L'},{n:'Bulinha',i:'B'}], img:'' },
-  { id:3, data:'2026-06-21', nome:'Rancho da Matinha', tipo:'Touros P.O.', local:'Campo Grande, MS', animais:220, expectativa:1100000, metaBula:440000, realizadoBula:0, assessores:[{n:'Bulinha',i:'B'},{n:'Peralta',i:'P'},{n:'Leo',i:'L'}], img:'' },
-  { id:4, data:'2026-07-05', nome:'Agropecuaria Bela Vista', tipo:'Touros e Femeas', local:'Goiania, GO', animais:80, expectativa:400000, metaBula:160000, realizadoBula:0, assessores:[{n:'Peralta',i:'P'}], img:'' },
-  { id:5, data:'2026-05-10', nome:'Fazenda Santa Clara', tipo:'Touros P.O.', local:'Ribeirao Preto, SP', animais:60, expectativa:300000, metaBula:120000, realizadoBula:105000, assessores:[{n:'Bulinha',i:'B'},{n:'Leo',i:'L'}], img:'', concluido:true },
-  { id:6, data:'2026-05-18', nome:'Nelore Elite -- Femeas', tipo:'Femeas P.O.', local:'Uberaba, MG', animais:40, expectativa:200000, metaBula:80000, realizadoBula:92000, assessores:[{n:'Peralta',i:'P'},{n:'Bulinha',i:'B'}], img:'', concluido:true },
-];
+// Adapters: converte formato da API para o formato esperado pelo HTML
 
-const TASKS = {};
-LEILOES.forEach(l => {
-  const done = !!l.concluido;
-  TASKS[l.id] = [
-    { nome:'Pre-Leilao', cor:'#6B8F5C', tasks:[
-      { id:'t1', nome:'Visita a fazenda e selecao de animais', ini:'2026-04-15', fim:'2026-04-20', resp:{nome:'Bulinha',ini:'B'}, subs:[
-        {lbl:'Agendar visita com proprietario',done:true},{lbl:'Avaliar lote disponivel',done:true},{lbl:'Definir animais para catalogo',done:done},{lbl:'Registrar genealogia dos selecionados',done:done}
-      ]},
-      { id:'t2', nome:'Producao do catalogo', ini:'2026-04-21', fim:'2026-05-05', resp:{nome:'Leo',ini:'L'}, subs:[
-        {lbl:'Sessao de fotos dos animais',done:done},{lbl:'Coleta de dados genealogicos',done:done},{lbl:'Diagramacao e revisao',done:done||!done},{lbl:'Aprovacao do cliente',done:done}
-      ]},
-      { id:'t3', nome:'Divulgacao e marketing', ini:'2026-05-01', fim:'2026-05-28', resp:{nome:'Peralta',ini:'P'}, subs:[
-        {lbl:'Criar artes para redes sociais',done:true},{lbl:'Enviar catalogo para mailing',done:done},{lbl:'Confirmar transmissao ao vivo',done:done},{lbl:'Publicar anuncios patrocinados',done:true},{lbl:'Contatar compradores potenciais',done:done}
-      ]},
-    ]},
-    { nome:'Leilao', cor:'#C8A96E', tasks:[
-      { id:'t4', nome:'Montagem do evento', ini:l.data, fim:l.data, resp:{nome:'Bulinha',ini:'B'}, subs:[
-        {lbl:'Conferir estrutura do local',done:done},{lbl:'Testar equipamentos de audio/video',done:done},{lbl:'Organizar lotes por ordem de entrada',done:done}
-      ]},
-      { id:'t5', nome:'Assessoria em pista', ini:l.data, fim:l.data, resp:{nome:'Peralta',ini:'P'}, subs:[
-        {lbl:'Acompanhar apresentacao dos lotes',done:done},{lbl:'Orientar lances e negociacoes',done:done},{lbl:'Registrar arrematantes',done:done}
-      ]},
-    ]},
-    { nome:'Pos-Leilao', cor:'#4A8FBF', tasks:[
-      { id:'t6', nome:'Prestacao de contas', ini:l.data, fim:addDays(l.data,7), resp:{nome:'Leo',ini:'L'}, subs:[
-        {lbl:'Consolidar valores arrematados',done:done},{lbl:'Emitir notas fiscais',done:false},{lbl:'Calcular e recolher comissoes',done:false},{lbl:'Enviar relatorio ao cliente',done:false}
-      ]},
-      { id:'t7', nome:'Logistica de entrega', ini:l.data, fim:addDays(l.data,14), resp:{nome:'Bulinha',ini:'B'}, subs:[
-        {lbl:'Coordenar transporte dos animais',done:false},{lbl:'Emitir GTA (Guia de Transito Animal)',done:false},{lbl:'Confirmar recebimento pelo comprador',done:false}
-      ]},
-    ]},
-  ];
-});
+function adaptLeiloes(apiLeiloes) {
+  LEILOES = apiLeiloes.map(l => ({
+    id: l.id,
+    data: l.data,
+    nome: l.nome,
+    tipo: l.tipo,
+    local: l.local,
+    animais: l.animais,
+    expectativa: l.expectativa,
+    metaBula: l.meta_bula,
+    realizadoBula: l.realizado_bula,
+    status: l.status,
+    img: l.img || '',
+    concluido: l.status === 'concluido',
+    assessores: (l.assessores || []).map(a => ({n: a.nome, i: a.iniciais})),
+  }));
+  TASKS = {};
+  apiLeiloes.forEach(l => {
+    TASKS[l.id] = Array.isArray(l.tasks) ? l.tasks : [];
+  });
+}
+
+function adaptCards(apiCards) {
+  CARDS = apiCards.map(c => ({
+    id: c.id,
+    col: c.coluna,
+    title: c.titulo,
+    desc: c.descricao || '',
+    prio: c.prioridade,
+    venc: c.vencimento || '',
+    checks: Array.isArray(c.checks) ? c.checks : [],
+    comments: Array.isArray(c.comentarios) ? c.comentarios : [],
+    resp: (c.responsaveis || []).map(r => ({n: r.nome, i: r.iniciais})),
+  }));
+}
+
+function adaptFunis(apiFunis) {
+  CRM_FUNNELS = apiFunis.map(f => ({
+    id: f.slug,
+    _uuid: f.id,
+    name: f.nome,
+    icon: f.icone,
+    stages: (f.etapas || []).map(e => ({id: e.id, cor: e.cor, name: e.nome})),
+    deals: (f.deals || []).map(d => ({
+      id: d.id,
+      stage: d.etapa_id,
+      name: d.nome,
+      loc: d.localizacao || '',
+      valor: d.valor || 0,
+      tel: d.telefone || '',
+      email: d.email || '',
+      temp: d.temperatura || 'frio',
+      resp: d.assessor ? {n: d.assessor.nome, i: d.assessor.iniciais} : {n: '--', i: '?'},
+      dias: d.dias_no_estagio || 0,
+      lastInteract: d.created_at ? new Date(d.created_at).toLocaleDateString('pt-BR') : '--',
+      notes: d.notas || '',
+      timeline: Array.isArray(d.timeline) ? d.timeline : [],
+      _funil_uuid: f.id,
+    })),
+  }));
+}
+
+function adaptLeads(apiLeads) {
+  LEADS = apiLeads.map(l => ({
+    id: l.id,
+    name: l.nome,
+    tel: l.telefone || '',
+    regiao: l.regiao || '',
+    rebanho: l.rebanho || 0,
+    origem: l.origem || 'Site',
+    status: l.status || 'novo',
+    interesse: l.interesse || '',
+    orcamento: l.orcamento || 0,
+  }));
+}
+
+function adaptMembros(apiMembros) {
+  ALL_PEOPLE = apiMembros.map(m => ({n: m.nome, i: m.iniciais}));
+}
+
+// Loading overlay
+function showLoading() {
+  document.getElementById('app-loading').style.display = 'flex';
+}
+function hideLoading() {
+  document.getElementById('app-loading').style.display = 'none';
+}
+
+async function loadAllData() {
+  showLoading();
+  try {
+    const [membros, leiloes, cards, funis, leads, mktConfig] = await Promise.all([
+      fetch('/api/bula/membros').then(r => r.json()),
+      fetch('/api/bula/leiloes').then(r => r.json()),
+      fetch('/api/bula/projetos/cards').then(r => r.json()),
+      fetch('/api/bula/crm/funis').then(r => r.json()),
+      fetch('/api/bula/leads').then(r => r.json()),
+      fetch('/api/bula/marketing/config').then(r => r.json()),
+    ]);
+    adaptMembros(Array.isArray(membros) ? membros : []);
+    adaptLeiloes(Array.isArray(leiloes) ? leiloes : []);
+    adaptCards(Array.isArray(cards) ? cards : []);
+    adaptFunis(Array.isArray(funis) ? funis : []);
+    adaptLeads(Array.isArray(leads) ? leads : []);
+    MKT_INVEST = mktConfig?.investimento || 0;
+  } catch(e) {
+    console.error('Erro ao carregar dados:', e);
+  }
+  hideLoading();
+  showPage('dashboard');
+}
+
+document.addEventListener('DOMContentLoaded', loadAllData);
 
 function addDays(dateStr, days) {
   const d = new Date(dateStr);
@@ -1248,8 +1337,7 @@ function addDays(dateStr, days) {
   return d.toISOString().split('T')[0];
 }
 
-// ═════════════════════════════════════════════════
-// RENDER LEILOES TABLE
+
 // ═════════════════════════════════════════════════
 
 function fmtDate(s) {
@@ -1505,6 +1593,10 @@ function toggleCheck(gi, ti, si, cb) {
     headerKpis[4].textContent = overallProg + '%';
     headerKpis[4].style.color = progColor(overallProg);
   }
+  fetch(`/api/bula/leiloes/${currentLeilao}`, {
+    method: 'PUT', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({tasks: TASKS[currentLeilao]})
+  });
 }
 
 // ═════════════════════════════════════════════════
@@ -1799,172 +1891,6 @@ const COLUMNS = [
   { id:'concluido', name:'Concluido', color:'#6B8F5C', dot:'#6B8F5C' },
 ];
 
-const CARDS = [
-  { id:1, col:'backlog', title:'Criar site institucional Bula', desc:'Desenvolver site com portfolio de leiloes, equipe e contato.', prio:'media', resp:[{n:'Peralta',i:'P'}], venc:'2026-08-15', checks:[{l:'Definir layout',d:false},{l:'Criar conteudo',d:false},{l:'Contratar dev',d:false}] },
-  { id:2, col:'backlog', title:'Automatizar relatorios mensais', desc:'Dashboard automatico com dados de vendas e comissoes.', prio:'baixa', resp:[{n:'Leo',i:'L'}], venc:'2026-09-01', checks:[{l:'Mapear metricas',d:false},{l:'Escolher ferramenta',d:false}] },
-  { id:3, col:'backlog', title:'Programa de fidelidade criadores', desc:'Criar programa de beneficios para criadores recorrentes.', prio:'baixa', resp:[{n:'Bulinha',i:'B'}], venc:'2026-10-01', checks:[{l:'Pesquisar modelos',d:false},{l:'Definir regras',d:false},{l:'Apresentar proposta',d:false}] },
-  { id:4, col:'afazer', title:'Producao catalogo Tresmar', desc:'Fotografia, genealogia e diagramacao do catalogo completo.', prio:'alta', resp:[{n:'Leo',i:'L'},{n:'Peralta',i:'P'}], venc:'2026-06-20', checks:[{l:'Sessao de fotos',d:true},{l:'Coleta genealogia',d:true},{l:'Diagramacao',d:false},{l:'Revisao cliente',d:false}] },
-  { id:5, col:'afazer', title:'Campanha redes sociais Jun/Jul', desc:'Planejamento de conteudo para Instagram e WhatsApp.', prio:'alta', resp:[{n:'Peralta',i:'P'}], venc:'2026-06-25', checks:[{l:'Calendario editorial',d:true},{l:'Criar artes',d:false},{l:'Agendar posts',d:false},{l:'Monitorar metricas',d:false}] },
-  { id:6, col:'afazer', title:'Contrato assessoria Bela Vista', desc:'Elaborar e negociar contrato com Agropecuaria Bela Vista.', prio:'media', resp:[{n:'Bulinha',i:'B'}], venc:'2026-07-01', checks:[{l:'Reuniao inicial',d:true},{l:'Elaborar proposta',d:true},{l:'Negociar termos',d:false},{l:'Assinatura',d:false}] },
-  { id:7, col:'andamento', title:'Fechar parceria Fazenda Aurora', desc:'Negociacao avancada para incluir no calendario 2026.', prio:'alta', resp:[{n:'Bulinha',i:'B'},{n:'Peralta',i:'P'}], venc:'2026-06-28', checks:[{l:'Visita tecnica',d:true},{l:'Avaliacao plantel',d:true},{l:'Proposta comercial',d:true},{l:'Contrato',d:false}] },
-  { id:8, col:'andamento', title:'Organizar logistica leilao Matinha', desc:'Transporte, estrutura e equipe para o evento.', prio:'alta', resp:[{n:'Leo',i:'L'}], venc:'2026-06-18', checks:[{l:'Reservar transporte',d:true},{l:'Confirmar equipe audio',d:true},{l:'Montar estrutura local',d:false},{l:'Teste equipamentos',d:false},{l:'Briefing equipe',d:false}] },
-  { id:9, col:'andamento', title:'Atualizacao CRM de clientes', desc:'Migrar dados e atualizar cadastros no novo sistema.', prio:'media', resp:[{n:'Leo',i:'L'}], venc:'2026-07-05', checks:[{l:'Exportar dados antigos',d:true},{l:'Limpar duplicados',d:true},{l:'Importar no novo CRM',d:false}] },
-  { id:10, col:'concluido', title:'Contrato Cachoeirão assinado', desc:'Contrato de assessoria para leilao de junho fechado.', prio:'alta', resp:[{n:'Bulinha',i:'B'}], venc:'2026-05-15', checks:[{l:'Reuniao',d:true},{l:'Proposta',d:true},{l:'Negociacao',d:true},{l:'Assinatura',d:true}] },
-  { id:11, col:'concluido', title:'Catalogo Santa Clara finalizado', desc:'Catalogo impresso e digital entregue ao cliente.', prio:'media', resp:[{n:'Leo',i:'L'},{n:'Peralta',i:'P'}], venc:'2026-05-01', checks:[{l:'Fotos',d:true},{l:'Genealogia',d:true},{l:'Design',d:true},{l:'Impressao',d:true}] },
-  { id:12, col:'concluido', title:'Treinamento equipe vendas', desc:'Workshop sobre tecnicas de venda em leilao.', prio:'media', resp:[{n:'Bulinha',i:'B'}], venc:'2026-04-20', checks:[{l:'Preparar material',d:true},{l:'Agendar data',d:true},{l:'Realizar workshop',d:true}] },
-];
-
-let projViewMode = 'kanban';
-let projFilterPerson = 'todos';
-let draggedCardId = null;
-
-function getFilteredCards() {
-  if (projFilterPerson === 'todos') return CARDS;
-  return CARDS.filter(c => c.resp.some(r => r.n === projFilterPerson));
-}
-
-function renderProjFilters() {
-  const people = ['todos','Bulinha','Peralta','Leo'];
-  let html = '';
-  people.forEach(p => {
-    const active = projFilterPerson === p ? ' active' : '';
-    if (p === 'todos') {
-      html += '<button class="pf-btn'+active+'" onclick="filterProjects(\'todos\')">Todos</button>';
-    } else {
-      html += '<button class="pf-btn'+active+'" onclick="filterProjects(\''+p+'\')"><span class="person-av" style="width:18px;height:18px;font-size:8px">'+p[0]+'</span>'+p+'</button>';
-    }
-  });
-  document.getElementById('proj-filters').innerHTML = html;
-}
-
-function cardCheckProgress(card) {
-  if (!card.checks.length) return 0;
-  return Math.round(card.checks.filter(c=>c.d).length / card.checks.length * 100);
-}
-
-function renderKanban() {
-  const cards = getFilteredCards();
-  let html = '<div class="kb-board">';
-
-  COLUMNS.forEach(col => {
-    const colCards = cards.filter(c => c.col === col.id);
-    html += '<div class="kb-col" data-col="'+col.id+'" ondragover="onKbDragOver(event,this)" ondragleave="onKbDragLeave(this)" ondrop="onKbDrop(event,this)">';
-    html += '<div class="kb-col-hd"><div class="kb-col-dot" style="background:'+col.dot+'"></div><span class="kb-col-name">'+col.name+'</span><span class="kb-col-cnt">'+colCards.length+'</span></div>';
-    html += '<div class="kb-cards">';
-
-    colCards.forEach(card => {
-      const pct = cardCheckProgress(card);
-      const chkDone = card.checks.filter(c=>c.d).length;
-      const chkTotal = card.checks.length;
-      const isOverdue = new Date(card.venc) < new Date() && col.id !== 'concluido';
-      const vencFmt = card.venc.split('-').reverse().join('/').substring(0,5);
-
-      html += '<div class="kb-card" draggable="true" ondragstart="onKbDragStart(event,'+card.id+')" ondragend="onKbDragEnd(event)" onclick="openCardModal('+card.id+')">';
-      html += '<span class="kb-tag tag-'+card.prio+'">'+(card.prio==='alta'?'Alta':card.prio==='media'?'Media':'Baixa')+'</span>';
-      html += '<div class="kb-card-title">'+card.title+'</div>';
-      if (card.desc) html += '<div class="kb-card-desc">'+card.desc+'</div>';
-      html += '<div class="kb-card-footer">';
-      html += '<span class="kb-card-date'+(isOverdue?' overdue':'')+'"><span class="material-symbols-outlined">schedule</span>'+vencFmt+'</span>';
-      if (chkTotal) html += '<span class="kb-card-checks'+(chkDone===chkTotal?' done':'')+'"><span class="material-symbols-outlined">checklist</span>'+chkDone+'/'+chkTotal+'</span>';
-      html += '<div class="kb-card-avs">';
-      card.resp.forEach(r => { html += '<span class="kb-card-av">'+r.i+'</span>'; });
-      html += '</div></div></div>';
-    });
-
-    html += '</div>';
-    html += '<div class="kb-add"><button class="kb-add-btn" onclick="event.stopPropagation();addNewCard(\''+col.id+'\')"><span class="material-symbols-outlined">add</span> Adicionar</button></div>';
-    html += '</div>';
-  });
-
-  html += '</div>';
-  document.getElementById('proj-content').innerHTML = html;
-}
-
-function renderProjectList() {
-  const cards = getFilteredCards();
-  let html = '<div class="proj-list-table"><div class="pl-head"><div>Titulo</div><div>Status</div><div>Prioridade</div><div>Responsavel</div><div>Vencimento</div><div>Progresso</div></div>';
-
-  COLUMNS.forEach(col => {
-    const colCards = cards.filter(c => c.col === col.id);
-    if (!colCards.length) return;
-
-    html += '<div style="padding:8px 18px;background:'+col.color+';font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)"><div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.4)"></div>'+col.name+'<span style="font-size:10px;font-weight:500;opacity:0.7;margin-left:4px">'+colCards.length+'</span></div>';
-
-    colCards.forEach(card => {
-      const pct = cardCheckProgress(card);
-      const vencFmt = card.venc.split('-').reverse().join('/').substring(0,5);
-      const pc = progColor(pct);
-      html += '<div class="pl-row" onclick="openCardModal('+card.id+')">';
-      html += '<div class="pl-title">'+card.title+'</div>';
-      html += '<div class="pl-status"><span class="status-pill" style="background:'+col.color+'22;color:'+col.color+';min-width:auto;padding:3px 10px;font-size:9px">'+col.name+'</span></div>';
-      html += '<div><span class="kb-tag tag-'+card.prio+'" style="font-size:8px">'+(card.prio==='alta'?'Alta':card.prio==='media'?'Media':'Baixa')+'</span></div>';
-      html += '<div class="person-col">';
-      card.resp.forEach(r => { html += '<span class="person-av" style="width:22px;height:22px;font-size:9px">'+r.i+'</span>'; });
-      html += '</div>';
-      html += '<div style="font-size:11px;color:var(--text2)">'+vencFmt+'</div>';
-      html += '<div class="prog-wrap"><div class="prog-bar" style="height:5px"><div class="prog-fill" style="width:'+pct+'%;background:'+pc+'"></div></div><span class="prog-pct" style="font-size:9px;color:'+pc+'">'+pct+'%</span></div>';
-      html += '</div>';
-    });
-  });
-
-  html += '</div>';
-  document.getElementById('proj-content').innerHTML = html;
-}
-
-function renderProjects() {
-  renderProjFilters();
-  if (projViewMode === 'kanban') renderKanban();
-  else renderProjectList();
-}
-
-function toggleProjectView(mode, btn) {
-  projViewMode = mode;
-  document.querySelectorAll('#page-projetos .vt-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderProjects();
-}
-
-function filterProjects(person) {
-  projFilterPerson = person;
-  renderProjects();
-}
-
-// Drag & Drop
-function onKbDragStart(e, cardId) {
-  draggedCardId = cardId;
-  e.dataTransfer.effectAllowed = 'move';
-  setTimeout(() => { e.target.classList.add('dragging'); }, 0);
-}
-
-function onKbDragEnd(e) {
-  e.target.classList.remove('dragging');
-  document.querySelectorAll('.kb-col').forEach(c => c.classList.remove('drag-over'));
-  draggedCardId = null;
-}
-
-function onKbDragOver(e, col) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  col.classList.add('drag-over');
-}
-
-function onKbDragLeave(col) {
-  col.classList.remove('drag-over');
-}
-
-function onKbDrop(e, col) {
-  e.preventDefault();
-  col.classList.remove('drag-over');
-  if (draggedCardId === null) return;
-  const card = CARDS.find(c => c.id === draggedCardId);
-  if (card) {
-    card.col = col.dataset.col;
-    renderKanban();
-  }
-}
-
-// Card Modal
-const ALL_PEOPLE = [{n:'Bulinha',i:'B'},{n:'Peralta',i:'P'},{n:'Leo',i:'L'}];
 
 function openCardModal(id) {
   const card = CARDS.find(c => c.id === id);
@@ -2061,7 +1987,13 @@ function openCardModal(id) {
 
 function updateCardField(id, field, value) {
   const card = CARDS.find(c => c.id === id);
-  if (card) card[field] = value;
+  if (!card) return;
+  card[field] = value;
+  const fm = {title:'titulo', desc:'descricao', prio:'prioridade', venc:'vencimento'};
+  fetch(`/api/bula/projetos/cards/${id}`, {
+    method: 'PUT', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({[fm[field] || field]: value})
+  });
 }
 
 function updateCardPeople(id) {
@@ -2079,6 +2011,10 @@ function addCheckItem(id) {
   if (!card) return;
   card.checks.push({l:input.value.trim(), d:false});
   input.value = '';
+  fetch(`/api/bula/projetos/cards/${id}`, {
+    method: 'PUT', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({checks: card.checks})
+  });
   openCardModal(id);
 }
 
@@ -2091,10 +2027,15 @@ function addComment(id) {
   const now = new Date();
   card.comments.push({av:'A', name:'Admin', date:now.toLocaleDateString('pt-BR')+', '+now.toLocaleTimeString('pt-BR'), text:input.value.trim()});
   input.value = '';
+  fetch(`/api/bula/projetos/cards/${id}`, {
+    method: 'PUT', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({comentarios: card.comments})
+  });
   openCardModal(id);
 }
 
 function deleteCard(id) {
+  fetch(`/api/bula/projetos/cards/${id}`, { method: 'DELETE' });
   const idx = CARDS.findIndex(c => c.id === id);
   if (idx > -1) { CARDS.splice(idx, 1); closeCardModal(); }
 }
@@ -2118,55 +2059,26 @@ function toggleCardCheck(cardId, checkIdx, cb) {
   const pctLabel = document.querySelector('.cm-prog-pct');
   if (fill) { fill.style.width = pct+'%'; fill.style.background = pc; }
   if (pctLabel) { pctLabel.textContent = pct+'%'; pctLabel.style.color = pc; }
+  fetch(`/api/bula/projetos/cards/${cardId}`, {
+    method: 'PUT', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({checks: card.checks})
+  });
 }
 
-function addNewCard(colId) {
+async function addNewCard(colId) {
   const col = colId || 'afazer';
-  const newId = Math.max(...CARDS.map(c=>c.id)) + 1;
-  CARDS.push({ id:newId, col:col, title:'Novo card', desc:'', prio:'media', resp:[{n:'Bulinha',i:'B'}], venc:'2026-07-30', checks:[] });
+  const res = await fetch('/api/bula/projetos/cards', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({coluna:col, titulo:'Novo card', descricao:'', prioridade:'media', vencimento:'', checks:[], comentarios:[], posicao:CARDS.filter(c=>c.col===col).length})
+  });
+  const nc = await res.json();
+  CARDS.push({id:nc.id, col:nc.coluna, title:nc.titulo, desc:nc.descricao||'', prio:nc.prioridade, venc:nc.vencimento||'', checks:[], comments:[], resp:[]});
   renderProjects();
 }
 
 // ═════════════════════════════════════════════════
 // CRM DE VENDAS
 // ═════════════════════════════════════════════════
-
-const CRM_FUNNELS = [
-  { id:'captacao', name:'Captacao de Leiloes', icon:'event_note',
-    stages:[
-      {id:'lead',cor:'#555',name:'Lead'},
-      {id:'contato',cor:'#4A8FBF',name:'Contato'},
-      {id:'visita',cor:'#D4A843',name:'Visita'},
-      {id:'proposta',cor:'#C8A96E',name:'Proposta'},
-      {id:'fechado',cor:'#6B8F5C',name:'Fechado'},
-      {id:'perdido',cor:'#C0504D',name:'Perdido'},
-    ],
-    deals:[
-      {id:1,stage:'lead',name:'Fazenda Aurora',loc:'Goiania, GO',valor:350000,tel:'(62) 99812-3456',email:'aurora@email.com',temp:'quente',resp:{n:'Bulinha',i:'B'},dias:3,lastInteract:'20/03/2026',notes:'Proprietario demonstrou interesse em leilao de touros PO.',timeline:[{type:'Ligacao',date:'20/03/2026',text:'Primeiro contato por telefone. Proprietario tem 40 touros disponiveis.'},{type:'Nota',date:'18/03/2026',text:'Lead identificado via indicacao do Nelore Tresmar.'}]},
-      {id:2,stage:'lead',name:'Agropec Silva',loc:'Cuiaba, MT',valor:200000,tel:'(65) 99734-5678',email:'silva@agropec.com',temp:'frio',resp:{n:'Peralta',i:'P'},dias:12,lastInteract:'10/03/2026',notes:'',timeline:[{type:'Email',date:'10/03/2026',text:'Enviado apresentacao da Bula Assessoria.'}]},
-      {id:3,stage:'lead',name:'Rancho Primavera',loc:'Rondonopolis, MT',valor:180000,tel:'(66) 99623-1234',email:'',temp:'morno',resp:{n:'Leo',i:'L'},dias:5,lastInteract:'17/03/2026',notes:'',timeline:[{type:'Nota',date:'17/03/2026',text:'Prospect encontrado na Expozebu 2026.'}]},
-      {id:4,stage:'contato',name:'Nelore Gold',loc:'Ribeirao Preto, SP',valor:500000,tel:'(16) 99456-7890',email:'contato@neloregold.com.br',temp:'quente',resp:{n:'Bulinha',i:'B'},dias:8,lastInteract:'14/03/2026',notes:'Fazenda com plantel de 80 matrizes elite.',timeline:[{type:'Reuniao',date:'14/03/2026',text:'Reuniao presencial. Proprietario quer leilao em setembro.'},{type:'Ligacao',date:'08/03/2026',text:'Contato inicial. Interesse em leilao de femeas PO.'}]},
-      {id:5,stage:'contato',name:'Fazenda Esperanca',loc:'Uberaba, MG',valor:280000,tel:'(34) 99867-4321',email:'esperanca@fazenda.com',temp:'morno',resp:{n:'Peralta',i:'P'},dias:15,lastInteract:'07/03/2026',notes:'',timeline:[{type:'Ligacao',date:'07/03/2026',text:'Segundo contato. Pediu proposta por email.'},{type:'Email',date:'01/03/2026',text:'Primeiro contato via email.'}]},
-      {id:6,stage:'visita',name:'Haras Santa Fe',loc:'Campo Grande, MS',valor:420000,tel:'(67) 99912-8765',email:'santafe@haras.com',temp:'quente',resp:{n:'Bulinha',i:'B'},dias:4,lastInteract:'18/03/2026',notes:'Visita agendada para 25/03. Plantel excelente.',timeline:[{type:'Visita',date:'18/03/2026',text:'Visita tecnica realizada. 55 touros selecionados. Qualidade acima da media.'},{type:'Reuniao',date:'10/03/2026',text:'Reuniao para definir escopo do leilao.'}]},
-      {id:7,stage:'visita',name:'Estancia Boa Sorte',loc:'Londrina, PR',valor:300000,tel:'(43) 99845-6789',email:'boasorte@estancia.com',temp:'morno',resp:{n:'Leo',i:'L'},dias:10,lastInteract:'12/03/2026',notes:'',timeline:[{type:'Visita',date:'12/03/2026',text:'Visita a propriedade. Bom plantel de Nelore PO.'},{type:'Ligacao',date:'05/03/2026',text:'Agendamento da visita tecnica.'}]},
-      {id:8,stage:'proposta',name:'Fazenda Tres Irmaos',loc:'Jatai, GO',valor:600000,tel:'(64) 99978-2345',email:'tresirmaos@fazenda.com',temp:'quente',resp:{n:'Bulinha',i:'B'},dias:6,lastInteract:'16/03/2026',notes:'Proposta enviada dia 16/03. Aguardando retorno.',timeline:[{type:'Proposta',date:'16/03/2026',text:'Proposta comercial enviada. Leilao de 70 touros PO previsto para agosto.'},{type:'Visita',date:'10/03/2026',text:'Visita tecnica. Plantel excepcional.'},{type:'Reuniao',date:'01/03/2026',text:'Primeira reuniao com os socios.'}]},
-      {id:9,stage:'fechado',name:'Fazenda Cachoeirão',loc:'Campo Grande, MS',valor:225000,tel:'(67) 99834-1234',email:'cachoeirão@faz.com',temp:'quente',resp:{n:'Bulinha',i:'B'},dias:0,lastInteract:'15/05/2026',notes:'Contrato assinado. Leilao agendado para 03/06.',timeline:[{type:'Contrato',date:'15/05/2026',text:'Contrato de assessoria assinado.'},{type:'Proposta',date:'01/05/2026',text:'Proposta aceita.'},{type:'Visita',date:'15/04/2026',text:'Visita tecnica e selecao dos animais.'}]},
-      {id:10,stage:'fechado',name:'Nelore Tresmar',loc:'Uberaba, MG',valor:175000,tel:'(34) 99823-5678',email:'tresmar@nelore.com',temp:'quente',resp:{n:'Peralta',i:'P'},dias:0,lastInteract:'20/04/2026',notes:'Leilao confirmado para 11/06.',timeline:[{type:'Contrato',date:'20/04/2026',text:'Contrato assinado.'},{type:'Proposta',date:'10/04/2026',text:'Proposta aceita com ajustes.'}]},
-      {id:11,stage:'perdido',name:'Rancho Velho',loc:'Aracatuba, SP',valor:150000,tel:'(18) 99712-3456',email:'',temp:'frio',resp:{n:'Leo',i:'L'},dias:30,lastInteract:'20/02/2026',notes:'Fechou com concorrente.',timeline:[{type:'Nota',date:'20/02/2026',text:'Proprietario optou pela Agro Partners. Preco menor.'},{type:'Proposta',date:'10/02/2026',text:'Proposta enviada.'},{type:'Visita',date:'01/02/2026',text:'Visita tecnica realizada.'}]},
-    ]
-  },
-  { id:'clientes', name:'Clientes', icon:'people',
-    stages:[
-      {id:'lead',cor:'#555',name:'Lead'},
-      {id:'qualificado',cor:'#4A8FBF',name:'Qualificado'},
-      {id:'proposta',cor:'#D4A843',name:'Proposta'},
-      {id:'negociacao',cor:'#C8A96E',name:'Negociacao'},
-      {id:'fechado',cor:'#6B8F5C',name:'Fechado'},
-      {id:'perdido',cor:'#C0504D',name:'Perdido'},
-    ],
-    deals:[]
-  },
-];
 
 let activeFunnel = 'captacao';
 let crmViewMode = 'kanban';
@@ -2311,7 +2223,14 @@ function onCrmDrop(e, col) {
   if (!draggedDealId) return;
   const f = getActiveFunnel();
   const deal = f.deals.find(d=>d.id===draggedDealId);
-  if (deal) { deal.stage = col.dataset.col; deal.dias = 0; renderCRM(); }
+  if (deal) {
+    deal.stage = col.dataset.col; deal.dias = 0;
+    fetch(`/api/bula/crm/deals/${deal.id}`, {
+      method: 'PUT', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({etapa_id: deal.stage, dias_no_estagio: 0})
+    });
+    renderCRM();
+  }
 }
 
 // Deal Modal
@@ -2394,7 +2313,13 @@ function closeDealModal() {
 function updateDealField(id, field, val) {
   const f = getActiveFunnel();
   const deal = f.deals.find(d=>d.id===id);
-  if (deal) deal[field] = val;
+  if (!deal) return;
+  deal[field] = val;
+  const fm = {name:'nome', loc:'localizacao', tel:'telefone', temp:'temperatura', stage:'etapa_id', notes:'notas', valor:'valor', email:'email'};
+  fetch(`/api/bula/crm/deals/${id}`, {
+    method: 'PUT', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({[fm[field] || field]: val})
+  });
 }
 
 function updateDealResp(id, name, ini) {
@@ -2414,47 +2339,36 @@ function addDealActivity(id) {
   const now = new Date();
   deal.timeline.unshift({type:typeEl.value, date:now.toLocaleDateString('pt-BR'), text:textEl.value.trim()});
   deal.lastInteract = now.toLocaleDateString('pt-BR');
+  fetch(`/api/bula/crm/deals/${id}`, {
+    method: 'PUT', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({timeline: deal.timeline})
+  });
   openDealModal(id);
 }
 
 function deleteDeal(id) {
+  fetch(`/api/bula/crm/deals/${id}`, { method: 'DELETE' });
   const f = getActiveFunnel();
   const idx = f.deals.findIndex(d=>d.id===id);
   if (idx > -1) { f.deals.splice(idx, 1); closeDealModal(); }
 }
 
-function addNewDeal(stageId) {
+async function addNewDeal(stageId) {
   const f = getActiveFunnel();
-  const newId = Math.max(0,...f.deals.map(d=>d.id)) + 1;
-  f.deals.push({id:newId,stage:stageId||'lead',name:'Novo negocio',loc:'',valor:0,tel:'',email:'',temp:'morno',resp:{n:'Bulinha',i:'B'},dias:0,lastInteract:new Date().toLocaleDateString('pt-BR'),notes:'',timeline:[]});
+  const res = await fetch('/api/bula/crm/deals', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({funil_id:f._uuid, etapa_id:stageId||'lead', nome:'Novo negocio', localizacao:'', valor:0, telefone:'', email:'', temperatura:'morno', assessor_id:null, notas:'', timeline:[], dias_no_estagio:0})
+  });
+  const nd = await res.json();
+  f.deals.push({id:nd.id, stage:nd.etapa_id, name:nd.nome, loc:nd.localizacao||'', valor:nd.valor||0, tel:nd.telefone||'', email:nd.email||'', temp:nd.temperatura||'morno', resp:{n:'--',i:'?'}, dias:0, lastInteract:new Date().toLocaleDateString('pt-BR'), notes:'', timeline:[], _funil_uuid:f._uuid});
   renderCRM();
 }
 
 // ═════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════
 // MARKETING
 // ═════════════════════════════════════════════════
-
-const MKT_INVEST = 18600;
-const LEADS = [
-  {id:1,name:'Carlos Mendes',tel:'(67) 99812-4567',regiao:'MS',rebanho:450,origem:'Instagram',status:'novo',interesse:'',orcamento:0},
-  {id:2,name:'Roberto Almeida',tel:'(62) 99734-2345',regiao:'GO',rebanho:800,origem:'Google Ads',status:'novo',interesse:'',orcamento:0},
-  {id:3,name:'Marcos Ferreira',tel:'(34) 99856-7890',regiao:'MG',rebanho:200,origem:'Instagram',status:'atendimento',interesse:'',orcamento:0},
-  {id:4,name:'Joao Batista',tel:'(16) 99423-1234',regiao:'SP',rebanho:320,origem:'Facebook',status:'novo',interesse:'',orcamento:0},
-  {id:5,name:'Renato Silva',tel:'(65) 99678-5678',regiao:'MT',rebanho:1200,origem:'Google Ads',status:'qualificado',interesse:'Touros PO',orcamento:400000},
-  {id:6,name:'Pedro Nogueira',tel:'(43) 99345-9876',regiao:'PR',rebanho:150,origem:'WhatsApp',status:'novo',interesse:'',orcamento:0},
-  {id:7,name:'Antonio Reis',tel:'(67) 99912-3456',regiao:'MS',rebanho:600,origem:'Instagram',status:'atendimento',interesse:'',orcamento:0},
-  {id:8,name:'Fernando Costa',tel:'(62) 99567-8901',regiao:'GO',rebanho:350,origem:'Site',status:'novo',interesse:'',orcamento:0},
-  {id:9,name:'Luiz Henrique',tel:'(34) 99234-5678',regiao:'MG',rebanho:90,origem:'Facebook',status:'novo',interesse:'',orcamento:0},
-  {id:10,name:'Gustavo Pereira',tel:'(77) 99123-4567',regiao:'BA',rebanho:500,origem:'Instagram',status:'novo',interesse:'',orcamento:0},
-  {id:11,name:'Ricardo Santos',tel:'(16) 99876-5432',regiao:'SP',rebanho:700,origem:'Google Ads',status:'atendimento',interesse:'',orcamento:0},
-  {id:12,name:'Daniel Oliveira',tel:'(67) 99456-7890',regiao:'MS',rebanho:250,origem:'Instagram',status:'novo',interesse:'',orcamento:0},
-  {id:13,name:'Eduardo Lima',tel:'(65) 99789-0123',regiao:'MT',rebanho:180,origem:'WhatsApp',status:'novo',interesse:'',orcamento:0},
-  {id:14,name:'Marcelo Rocha',tel:'(62) 99345-6789',regiao:'GO',rebanho:1500,origem:'Site',status:'qualificado',interesse:'Femeas PO',orcamento:600000},
-  {id:15,name:'Paulo Ribeiro',tel:'(43) 99678-9012',regiao:'PR',rebanho:45,origem:'Facebook',status:'descartado',interesse:'',orcamento:0},
-  {id:16,name:'Bruno Carvalho',tel:'(34) 99012-3456',regiao:'MG',rebanho:380,origem:'Instagram',status:'novo',interesse:'',orcamento:0},
-  {id:17,name:'Thiago Nascimento',tel:'(67) 99234-5678',regiao:'MS',rebanho:900,origem:'WhatsApp',status:'novo',interesse:'',orcamento:0},
-  {id:18,name:'Andre Moura',tel:'(16) 99567-8901',regiao:'SP',rebanho:60,origem:'Instagram',status:'novo',interesse:'',orcamento:0},
-];
 
 let mktFilterStatus = 'todos';
 
@@ -2610,11 +2524,10 @@ function closeQualModal() {
   document.getElementById('qual-modal').classList.remove('open');
 }
 
-function qualifyLead(id) {
+async function qualifyLead(id) {
   const lead = LEADS.find(l=>l.id===id);
   if (!lead) return;
 
-  // Update lead
   lead.name = document.getElementById('q-name').value;
   lead.tel = document.getElementById('q-tel').value;
   lead.regiao = document.getElementById('q-regiao').value;
@@ -2623,30 +2536,20 @@ function qualifyLead(id) {
   lead.orcamento = parseInt(document.getElementById('q-orcamento').value) || 0;
   lead.status = 'qualificado';
 
-  // Create deal in CRM - Clientes funnel
-  const clientesFunnel = CRM_FUNNELS.find(f => f.id === 'clientes');
-  if (clientesFunnel) {
-    const newId = Math.max(0, ...clientesFunnel.deals.map(d=>d.id), ...CRM_FUNNELS[0].deals.map(d=>d.id)) + 100;
-    clientesFunnel.deals.push({
-      id: newId,
-      stage: 'lead',
-      name: lead.name,
-      loc: lead.regiao,
-      valor: lead.orcamento || 0,
-      tel: lead.tel,
-      email: '',
-      temp: calcLeadScore(lead) >= 70 ? 'quente' : calcLeadScore(lead) >= 40 ? 'morno' : 'frio',
-      resp: {n:'Bulinha', i:'B'},
-      dias: 0,
-      lastInteract: new Date().toLocaleDateString('pt-BR'),
-      notes: 'Lead qualificado via Marketing. Interesse: '+(lead.interesse||'N/A')+'. Rebanho: '+lead.rebanho+' cab.',
-      timeline: [{type:'Qualificacao', date:new Date().toLocaleDateString('pt-BR'), text:'Lead qualificado pelo SDR. Interesse: '+(lead.interesse||'N/A')+'. Orcamento: R$ '+(lead.orcamento||0).toLocaleString('pt-BR')+'.'}]
-    });
-  }
+  const score = calcLeadScore(lead);
+  const res = await fetch(`/api/bula/leads/${id}`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({nome:lead.name, telefone:lead.tel, regiao:lead.regiao, rebanho:lead.rebanho, interesse:lead.interesse, orcamento:lead.orcamento, score})
+  });
 
   closeQualModal();
   renderMarketing();
-  showToast('Lead qualificado! Negocio criado no CRM (Clientes).');
+  if (res.ok) {
+    showToast('Lead qualificado! Negocio criado no CRM (Clientes).');
+    fetch('/api/bula/crm/funis').then(r=>r.json()).then(d => adaptFunis(Array.isArray(d) ? d : []));
+  } else {
+    showToast('Erro ao qualificar lead.');
+  }
 }
 
 function showToast(msg) {
