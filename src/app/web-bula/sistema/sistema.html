@@ -2152,7 +2152,7 @@ function renderCRMKanban() {
     stDeals.forEach(deal => {
       const tempCls = 'temp-'+deal.temp;
       const tempLbl = deal.temp==='quente'?'Quente':deal.temp==='morno'?'Morno':'Frio';
-      html += '<div class="crm-card" draggable="true" ondragstart="onCrmDragStart(event,'+deal.id+')" ondragend="onCrmDragEnd(event)" onclick="openDealModal('+deal.id+')">';
+      html += '<div class="crm-card" draggable="true" ondragstart="onCrmDragStart(event,\''+deal.id+'\')" ondragend="onCrmDragEnd(event)" onclick="openDealModal(\''+deal.id+'\')">';
       html += '<div class="crm-card-top"><div><div class="crm-card-name">'+deal.name+'</div><div class="crm-card-loc"><span class="material-symbols-outlined">location_on</span>'+deal.loc+'</div></div><div class="crm-card-value">'+fmtValor(deal.valor)+'</div></div>';
       html += '<div class="crm-card-mid"><span class="crm-card-phone"><span class="material-symbols-outlined">phone</span>'+deal.tel+'</span><span class="crm-temp '+tempCls+'">'+tempLbl+'</span></div>';
       html += '<div class="crm-card-footer"><span class="crm-card-days"><span class="material-symbols-outlined">schedule</span>'+deal.dias+' dias</span><span class="kb-card-av">'+deal.resp.i+'</span></div>';
@@ -2181,7 +2181,7 @@ function renderCRMList() {
     stDeals.forEach(deal => {
       const tempCls = 'temp-'+deal.temp;
       const tempLbl = deal.temp==='quente'?'Quente':deal.temp==='morno'?'Morno':'Frio';
-      html += '<div class="cl-row" onclick="openDealModal('+deal.id+')">';
+      html += '<div class="cl-row" onclick="openDealModal(\''+deal.id+'\')">';
       html += '<div class="cl-name">'+deal.name+'<span style="font-size:10px;color:var(--text3);margin-left:6px">'+deal.loc+'</span></div>';
       html += '<div class="cl-val">'+fmtValor(deal.valor)+'</div>';
       html += '<div><span class="status-pill" style="background:'+stage.cor+'22;color:'+stage.cor+';min-width:auto;padding:3px 10px;font-size:9px">'+stage.name+'</span></div>';
@@ -2250,7 +2250,7 @@ function openDealModal(id) {
   let peopleHtml = '';
   ALL_PEOPLE.forEach(p => {
     const checked = deal.resp.n === p.n;
-    peopleHtml += '<div class="cm-person"><input type="radio" name="deal-resp" class="cm-person-check" data-name="'+p.n+'" data-ini="'+p.i+'" '+(checked?'checked':'')+' onchange="updateDealResp('+id+',\''+p.n+'\',\''+p.i+'\')">';
+    peopleHtml += '<div class="cm-person"><input type="radio" name="deal-resp" class="cm-person-check" data-name="'+p.n+'" data-ini="'+p.i+'" '+(checked?'checked':'')+' onchange="updateDealResp(\''+id+'\',\''+p.n+'\',\''+p.i+'\')">';
     peopleHtml += '<span class="person-av" style="width:26px;height:26px;font-size:10px">'+p.i+'</span><span style="font-size:12px;color:var(--text)">'+p.n+'</span></div>';
   });
 
@@ -2260,24 +2260,24 @@ function openDealModal(id) {
 
   // Name + Location
   html += '<div class="cm-section"><div class="cm-label"><span class="material-symbols-outlined">business</span> Contato / Fazenda</div>';
-  html += '<input class="cm-input" value="'+deal.name+'" onchange="updateDealField('+id+',\'name\',this.value)"></div>';
+  html += '<input class="cm-input" value="'+deal.name+'" onchange="updateDealField(\''+id+'\',\'name\',this.value)"></div>';
 
   // Phone + Email
   html += '<div class="cm-section"><div class="cm-row2">';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">phone</span> Telefone</div><input class="cm-input" value="'+deal.tel+'" onchange="updateDealField('+id+',\'tel\',this.value)"></div>';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">mail</span> Email</div><input class="cm-input" value="'+(deal.email||'')+'" onchange="updateDealField('+id+',\'email\',this.value)"></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">phone</span> Telefone</div><input class="cm-input" value="'+deal.tel+'" onchange="updateDealField(\''+id+'\',\'tel\',this.value)"></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">mail</span> Email</div><input class="cm-input" value="'+(deal.email||'')+'" onchange="updateDealField(\''+id+'\',\'email\',this.value)"></div>';
   html += '</div></div>';
 
   // Value + Location
   html += '<div class="cm-section"><div class="cm-row2">';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">payments</span> Valor Estimado (R$)</div><input class="cm-input" type="number" value="'+deal.valor+'" onchange="updateDealField('+id+',\'valor\',parseInt(this.value))"></div>';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">location_on</span> Cidade / UF</div><input class="cm-input" value="'+deal.loc+'" onchange="updateDealField('+id+',\'loc\',this.value)"></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">payments</span> Valor Estimado (R$)</div><input class="cm-input" type="number" value="'+deal.valor+'" onchange="updateDealField(\''+id+'\',\'valor\',parseInt(this.value))"></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">location_on</span> Cidade / UF</div><input class="cm-input" value="'+deal.loc+'" onchange="updateDealField(\''+id+'\',\'loc\',this.value)"></div>';
   html += '</div></div>';
 
   // Stage + Temperature
   html += '<div class="cm-section"><div class="cm-row2">';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">flag</span> Estagio</div><select class="cm-select" onchange="updateDealField('+id+',\'stage\',this.value)">'+stageOpts+'</select></div>';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">thermostat</span> Temperatura</div><select class="cm-select" onchange="updateDealField('+id+',\'temp\',this.value)"><option value="quente"'+(deal.temp==='quente'?' selected':'')+'>Quente</option><option value="morno"'+(deal.temp==='morno'?' selected':'')+'>Morno</option><option value="frio"'+(deal.temp==='frio'?' selected':'')+'>Frio</option></select></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">flag</span> Estagio</div><select class="cm-select" onchange="updateDealField(\''+id+'\',\'stage\',this.value)">'+stageOpts+'</select></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">thermostat</span> Temperatura</div><select class="cm-select" onchange="updateDealField(\''+id+'\',\'temp\',this.value)"><option value="quente"'+(deal.temp==='quente'?' selected':'')+'>Quente</option><option value="morno"'+(deal.temp==='morno'?' selected':'')+'>Morno</option><option value="frio"'+(deal.temp==='frio'?' selected':'')+'>Frio</option></select></div>';
   html += '</div></div>';
 
   // Responsible
@@ -2285,19 +2285,19 @@ function openDealModal(id) {
 
   // Notes
   html += '<div class="cm-section"><div class="cm-label"><span class="material-symbols-outlined">notes</span> Anotacoes</div>';
-  html += '<textarea class="cm-input cm-textarea" placeholder="Observacoes sobre o negocio..." onchange="updateDealField('+id+',\'notes\',this.value)">'+(deal.notes||'')+'</textarea></div>';
+  html += '<textarea class="cm-input cm-textarea" placeholder="Observacoes sobre o negocio..." onchange="updateDealField(\''+id+'\',\'notes\',this.value)">'+(deal.notes||'')+'</textarea></div>';
 
   html += '<div class="cm-divider"></div>';
 
   // Timeline
   html += '<div class="cm-section"><div class="cm-label"><span class="material-symbols-outlined">timeline</span> Timeline de Atividades</div>';
-  html += '<div class="cm-comment-input" style="margin-bottom:14px"><select class="cm-select" id="deal-act-type" style="width:110px;flex-shrink:0"><option>Ligacao</option><option>Email</option><option>Reuniao</option><option>Visita</option><option>Proposta</option><option>Nota</option></select><input class="cm-input" id="deal-act-text" placeholder="Descreva a atividade..." onkeydown="if(event.key===\'Enter\')addDealActivity('+id+')"><button class="cm-comment-send" onclick="addDealActivity('+id+')"><span class="material-symbols-outlined">add</span></button></div>';
+  html += '<div class="cm-comment-input" style="margin-bottom:14px"><select class="cm-select" id="deal-act-type" style="width:110px;flex-shrink:0"><option>Ligacao</option><option>Email</option><option>Reuniao</option><option>Visita</option><option>Proposta</option><option>Nota</option></select><input class="cm-input" id="deal-act-text" placeholder="Descreva a atividade..." onkeydown="if(event.key===\'Enter\')addDealActivity(\''+id+'\')"><button class="cm-comment-send" onclick="addDealActivity(\''+id+'\')"><span class="material-symbols-outlined">add</span></button></div>';
   html += '<div class="crm-timeline" id="deal-timeline">'+timelineHtml+'</div></div>';
 
   html += '</div>';
 
   // Footer
-  html += '<div class="cm-footer"><button class="cm-btn-delete" onclick="deleteDeal('+id+')"><span class="material-symbols-outlined">delete</span> Excluir</button><button class="cm-btn-cancel" onclick="closeDealModal()">Cancelar</button><button class="cm-btn-save" onclick="closeDealModal()"><span class="material-symbols-outlined">save</span> Salvar</button></div>';
+  html += '<div class="cm-footer"><button class="cm-btn-delete" onclick="deleteDeal(\''+id+'\')"><span class="material-symbols-outlined">delete</span> Excluir</button><button class="cm-btn-cancel" onclick="closeDealModal()">Cancelar</button><button class="cm-btn-save" onclick="closeDealModal()"><span class="material-symbols-outlined">save</span> Salvar</button></div>';
 
   document.getElementById('deal-body').innerHTML = html;
   document.getElementById('deal-overlay').classList.add('open');
