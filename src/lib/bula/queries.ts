@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import type {
-    BulaMembro, BulaLeilao, BulaCard, BulaFunil, BulaLead, BulaMarketingConfig,
+    BulaMembro, BulaLeilao, BulaCard, BulaFunil, BulaDeal, BulaLead, BulaMarketingConfig,
 } from './types'
 
 // ── Membros ──────────────────────────────────────────────
