@@ -14,9 +14,12 @@ export async function middleware(request: NextRequest) {
     // Allowed values: "admin.formuladoboi.com", "admin.localhost:3000"
     const isAdminSubdomain = hostname.startsWith('admin.')
     const isErpSubdomain = hostname.startsWith('erp.')
+    const isBulaSubdomain = hostname.startsWith('adminbula.')
 
     // Rewrite path based on subdomain
-    if (isAdminSubdomain) {
+    if (isBulaSubdomain) {
+        url.pathname = `/web-bula${url.pathname}`
+    } else if (isAdminSubdomain) {
         url.pathname = `/web-admin${url.pathname}`
     } else if (isErpSubdomain) {
         url.pathname = `/web-erp${url.pathname}`
