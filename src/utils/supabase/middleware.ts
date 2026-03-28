@@ -87,6 +87,7 @@ export async function updateSession(request: NextRequest, rewrittenPath?: string
     if (isBulaRoute) {
         const isPublicBulaPath =
             rewrittenPath === '/web-bula' ||
+            rewrittenPath === '/web-bula/' ||
             rewrittenPath?.startsWith('/web-bula/cadastro')
         if (!isPublicBulaPath) {
             if (!user) {
