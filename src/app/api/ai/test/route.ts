@@ -2,14 +2,16 @@ import { NextResponse } from 'next/server';
 
 const GLM_API_KEY = process.env.GLM_API_KEY ?? 'cc315be9de774348a411618c653faad0.ITLRcDX7Memszozq';
 const CANDIDATE_MODELS = [
+    'glm-4-flash-250414',
+    'glm-4.7-flash',
+    'glm-4.7-flashx',
+    'glm-4.7',
+    'glm-4.6',
+    'glm-4.5-air',
+    'glm-4-long',
+    // nomes antigos (deprecated)
     'glm-4-flash',
     'glm-4',
-    'glm-4-plus',
-    'glm-4-air',
-    'glm-4-airx',
-    'glm-4-long',
-    'chatglm_turbo',
-    'glm-3-turbo',
 ];
 
 export async function GET() {
