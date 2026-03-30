@@ -13,10 +13,14 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient()
+    const origin = request.headers.get('origin') ?? 'https://adminbula.formuladoboi.com'
     const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: name } },
+        options: {
+            data: { full_name: name },
+            emailRedirectTo: `${origin}/sistema`,
+        },
     })
 
     if (error) {
