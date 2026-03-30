@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     const supabase = await createClient()
     const origin = request.headers.get('origin') ?? 'https://adminbula.formuladoboi.com'
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -23,11 +23,19 @@ export async function POST(request: Request) {
         },
     })
 
+    console.log('[signup] data:', JSON.stringify(data))
+    console.log('[signup] error:', JSON.stringify(error))
+
     if (error) {
         if (error.message.includes('already registered')) {
             return NextResponse.json({ error: 'Este email já está cadastrado.' }, { status: 409 })
         }
-        return NextResponse.json({ error: 'Erro ao criar conta. Tente novamente.' }, { status: 400 })
+        return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    // If user already exists, Supabase returns success but with identities = []
+    if (data.user && data.user.identities?.length === 0) {
+        return NextResponse.json({ error: 'Este email já está cadastrado.' }, { status: 409 })
     }
 
     return NextResponse.json({ ok: true })
