@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 const GLM_API_KEY = process.env.GLM_API_KEY ?? 'cc315be9de774348a411618c653faad0.ITLRcDX7Memszozq';
-const GLM_MODEL = process.env.GLM_MODEL ?? 'glm-4-flash-250414';
+const GLM_MODEL = process.env.GLM_MODEL ?? 'glm-4-air';
 
 const ALLOWED_TABLES = [
     'products', 'crm_leads', 'profiles', 'tactical_tasks',
