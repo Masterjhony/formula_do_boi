@@ -287,7 +287,7 @@ export default function IAPage() {
                     </button>
                 </div>
                 <p className="text-[10px] text-gray-400 dark:text-gray-700 text-center mt-2">
-                    Modelo GLM-4-Flash · Consultas read-only ao Supabase
+                    Modelo GLM-4.7 · Consultas read-only ao Supabase
                 </p>
             </div>
         </div>
