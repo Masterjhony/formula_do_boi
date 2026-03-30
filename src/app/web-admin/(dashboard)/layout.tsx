@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, LogOut, Menu, X, User, Settings, Activity, Calendar, ChevronLeft, ChevronRight, MessageCircle, MapPin, GitBranch, FileText } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, Menu, X, User, Settings, Activity, Calendar, ChevronLeft, ChevronRight, MessageCircle, MapPin, GitBranch, FileText, Sparkles } from 'lucide-react';
 
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -75,6 +75,7 @@ export default function AdminLayout({
         { href: '/contratos', label: 'Contratos', icon: FileText },
         { href: '/genealogia', label: 'Genealogia', icon: GitBranch },
         { href: '/whatsapp', label: 'WhatsApp', icon: MessageCircle },
+        { href: '/ia', label: 'IA', icon: Sparkles },
         { href: '/settings', label: 'Configurações', icon: Settings },
     ];
 
