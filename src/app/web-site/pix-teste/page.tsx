@@ -39,8 +39,11 @@ export default function PixTestePage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Erro desconhecido");
+            const text = await res.text();
+            let data: PixResult & { error?: string };
+            try { data = JSON.parse(text); }
+            catch { throw new Error(`Servidor retornou [${res.status}]: ${text.slice(0, 300)}`); }
+            if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
             setResult(data);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Erro desconhecido");
