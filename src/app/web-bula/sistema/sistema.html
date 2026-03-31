@@ -33,7 +33,7 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 
 /* ── TOPBAR ── */
 .topbar { height:56px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; gap:14px; position:sticky; top:0; z-index:100; transition:background 0.3s; }
-.topbar-logo { height:32px; filter:invert(1); transition:filter 0.3s; }
+.topbar-logo { height:44px; filter:invert(1); transition:filter 0.3s; }
 [data-theme="light"] .topbar-logo { filter:none; }
 .topbar-nav { display:flex; height:100%; align-items:stretch; gap:2px; margin-left:8px; }
 .nav-tab { background:none; border:none; border-bottom:2px solid transparent; padding:0 16px; font-family:inherit; font-size:12px; font-weight:500; color:var(--text3); cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.15s; white-space:nowrap; }
@@ -2122,14 +2122,14 @@ function openCardModal(id) {
   let peopleHtml = '';
   ALL_PEOPLE.forEach(p => {
     const checked = card.resp.some(r => r.n === p.n);
-    peopleHtml += '<div class="cm-person"><input type="checkbox" class="cm-person-check" data-name="'+p.n+'" data-ini="'+p.i+'" '+(checked?'checked':'')+' onchange="updateCardPeople('''+id+'')">';
+    peopleHtml += '<div class="cm-person"><input type="checkbox" class="cm-person-check" data-name="'+p.n+'" data-ini="'+p.i+'" '+(checked?'checked':'')+' onchange="updateCardPeople(\''+id+'\')">  ';
     peopleHtml += '<span class="person-av" style="width:26px;height:26px;font-size:10px">'+p.i+'</span><span style="font-size:12px;color:var(--text)">'+p.n+'</span></div>';
   });
 
   // Checklist items
   let checksHtml = '';
   card.checks.forEach((ch, ci) => {
-    checksHtml += '<div class="cm-check-item"><input type="checkbox" class="st-check" '+(ch.d?'checked':'')+' onclick="toggleCardCheck('''+id+'','+ci+',this)"><span class="st-label'+(ch.d?' done':'')+'">'+ch.l+'</span></div>';
+    checksHtml += '<div class="cm-check-item"><input type="checkbox" class="st-check" '+(ch.d?'checked':'')+' onclick="toggleCardCheck(\''+id+'\','+ci+',this)"><span class="st-label'+(ch.d?' done':'')+'">'+ch.l+'</span></div>';
   });
 
   // Comments
@@ -2147,21 +2147,21 @@ function openCardModal(id) {
 
   // Title
   html += '<div class="cm-section"><div class="cm-label"><span class="material-symbols-outlined">title</span> Titulo</div>';
-  html += '<input class="cm-input" value="'+card.title+'" onchange="updateCardField(''+id+'',\'title\',this.value)"></div>';
+  html += '<input class="cm-input" value="'+card.title+'" onchange="updateCardField(\''+id+'\',\'title\',this.value)"></div>';
 
   // Description
   html += '<div class="cm-section"><div class="cm-label"><span class="material-symbols-outlined">notes</span> Descricao</div>';
-  html += '<textarea class="cm-input cm-textarea" placeholder="Detalhes da tarefa..." onchange="updateCardField(''+id+'',\'desc\',this.value)">'+card.desc+'</textarea></div>';
+  html += '<textarea class="cm-input cm-textarea" placeholder="Detalhes da tarefa..." onchange="updateCardField(\''+id+'\',\'desc\',this.value)">'+card.desc+'</textarea></div>';
 
   // Status + Priority row
   html += '<div class="cm-section"><div class="cm-row2">';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">flag</span> Status</div><select class="cm-select" onchange="updateCardField(''+id+'',\'col\',this.value)">'+statusOpts+'</select></div>';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">priority_high</span> Prioridade</div><select class="cm-select" onchange="updateCardField(''+id+'',\'prio\',this.value)">'+prioOpts+'</select></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">flag</span> Status</div><select class="cm-select" onchange="updateCardField(\''+id+'\',\'col\',this.value)">'+statusOpts+'</select></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">priority_high</span> Prioridade</div><select class="cm-select" onchange="updateCardField(\''+id+'\',\'prio\',this.value)">'+prioOpts+'</select></div>';
   html += '</div></div>';
 
   // Date + Responsible row
   html += '<div class="cm-section"><div class="cm-row2">';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">event</span> Prazo</div><div class="cm-date-wrap"><span class="material-symbols-outlined">calendar_today</span><input type="date" class="cm-date" value="'+card.venc+'" onchange="updateCardField(''+id+'',\'venc\',this.value)"></div></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">event</span> Prazo</div><div class="cm-date-wrap"><span class="material-symbols-outlined">calendar_today</span><input type="date" class="cm-date" value="'+card.venc+'" onchange="updateCardField(\''+id+'\',\'venc\',this.value)"></div></div>';
   html += '<div><div class="cm-label"><span class="material-symbols-outlined">group</span> Responsaveis</div><div class="cm-people">'+peopleHtml+'</div></div>';
   html += '</div></div>';
 
@@ -2169,7 +2169,7 @@ function openCardModal(id) {
 
   // Checklist
   html += '<div class="cm-section"><div class="cm-check-header"><div class="cm-label"><span class="material-symbols-outlined">checklist</span> Checklist</div></div>';
-  html += '<div class="cm-check-add"><input class="cm-input" id="cm-new-check" placeholder="Adicionar item..." onkeydown="if(event.key===\'Enter\')addCheckItem(''+id+'')"><button class="cm-check-add-btn" onclick="addCheckItem('''+id+'')"><span class="material-symbols-outlined">add</span></button></div>';
+  html += '<div class="cm-check-add"><input class="cm-input" id="cm-new-check" placeholder="Adicionar item..." onkeydown="if(event.key===\'Enter\')addCheckItem(\''+id+'\')"><button class="cm-check-add-btn" onclick="addCheckItem(\''+id+'\')"><span class="material-symbols-outlined">add</span></button></div>';
   if (card.checks.length) {
     html += '<div class="cm-prog-wrap"><div class="cm-prog-bar"><div class="cm-prog-fill" style="width:'+pct+'%;background:'+pc+'"></div></div><span class="cm-prog-pct" style="color:'+pc+'">'+pct+'%</span></div>';
   }
@@ -2186,18 +2186,17 @@ function openCardModal(id) {
   // Comments
   html += '<div class="cm-section"><div class="cm-label"><span class="material-symbols-outlined">chat_bubble</span> Comentarios</div>';
   html += '<div class="cm-comments">'+commentsHtml+'</div>';
-  html += '<div class="cm-comment-input"><input class="cm-input" id="cm-new-comment" placeholder="Escreva um comentario..." onkeydown="if(event.key===\'Enter\')addComment(''+id+'')"><button class="cm-comment-send" onclick="addComment('''+id+'')"><span class="material-symbols-outlined">send</span></button></div></div>';
+  html += '<div class="cm-comment-input"><input class="cm-input" id="cm-new-comment" placeholder="Escreva um comentario..." onkeydown="if(event.key===\'Enter\')addComment(\''+id+'\')"><button class="cm-comment-send" onclick="addComment(\''+id+'\')"><span class="material-symbols-outlined">send</span></button></div></div>';
 
   html += '</div>';
 
   // Footer
-  html += '<div class="cm-footer"><button class="cm-btn-delete" onclick="deleteCard('''+id+'')"><span class="material-symbols-outlined">delete</span> Excluir</button><button class="cm-btn-cancel" onclick="closeCardModal()">Cancelar</button><button class="cm-btn-save" onclick="closeCardModal()"><span class="material-symbols-outlined">save</span> Salvar</button></div>';
+  html += '<div class="cm-footer"><button class="cm-btn-delete" onclick="deleteCard(\''+id+'\')"><span class="material-symbols-outlined">delete</span> Excluir</button><button class="cm-btn-cancel" onclick="closeCardModal()">Cancelar</button><button class="cm-btn-save" onclick="closeCardModal()"><span class="material-symbols-outlined">save</span> Salvar</button></div>';
 
   document.getElementById('cm-body').innerHTML = html;
   document.getElementById('cm-overlay').classList.add('open');
   document.getElementById('card-modal').classList.add('open');
 }
-
 function updateCardField(id, field, value) {
   const card = CARDS.find(c => c.id === id);
   if (!card) return;
