@@ -3,22 +3,51 @@
 import React from "react";
 
 export default function SertanejoCheckout() {
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
         const btn = form.querySelector('.btn-checkout') as HTMLButtonElement;
-        
+
+        const data = Object.fromEntries(new FormData(form).entries());
+
         if (btn) {
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<span class="material-icons-outlined" style="font-size:18px">check_circle</span> RESERVA ENVIADA!';
-            btn.style.background = '#1B5E20';
             btn.disabled = true;
+            btn.innerHTML = '<span class="material-icons-outlined" style="font-size:18px">hourglass_top</span> ENVIANDO...';
+        }
+
+        try {
+            const res = await fetch('/api/checkout-semen', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            if (!res.ok) throw new Error('Erro no servidor');
+
+            if (btn) {
+                btn.innerHTML = '<span class="material-icons-outlined" style="font-size:18px">check_circle</span> RESERVA ENVIADA!';
+                btn.style.background = '#1B5E20';
+            }
+            form.reset();
 
             setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                btn.style.background = '';
+                if (btn) {
+                    btn.innerHTML = '<span class="material-icons-outlined" style="font-size:18px">send</span> ENVIAR RESERVA';
+                    btn.style.background = '';
+                    btn.disabled = false;
+                }
+            }, 5000);
+        } catch {
+            if (btn) {
+                btn.innerHTML = '<span class="material-icons-outlined" style="font-size:18px">error</span> ERRO — TENTE NOVAMENTE';
+                btn.style.background = '#B71C1C';
                 btn.disabled = false;
-                form.reset();
+            }
+            setTimeout(() => {
+                if (btn) {
+                    btn.innerHTML = '<span class="material-icons-outlined" style="font-size:18px">send</span> ENVIAR RESERVA';
+                    btn.style.background = '';
+                }
             }, 4000);
         }
     };
