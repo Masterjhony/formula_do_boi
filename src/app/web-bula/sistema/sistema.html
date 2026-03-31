@@ -6,6 +6,7 @@
 <title>Bula Assessoria</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<link rel="icon" href="/logo-bula-remates-preto-_1_.svg" type="image/svg+xml">
 <style>
 :root {
   --bg: #0D0D0D; --surface: #141414; --s2: #1A1A1A; --s3: #222; --s4: #2A2A2A; --s5: #333;
@@ -645,6 +646,30 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
   .pl-row div:nth-child(4), .pl-row div:nth-child(5), .pl-row div:nth-child(6) { display:none; }
 }
 
+
+/* Gantt view */
+.gantt-wrap { overflow-x:auto; padding-bottom:16px; }
+.gantt-table { min-width:700px; position:relative; border-radius:var(--r-lg); overflow:hidden; border:1px solid var(--border); }
+.gantt-hd-row { display:flex; background:var(--s2); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:2; }
+.gantt-th { font-size:9px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:0.6px; padding:10px 16px; display:flex; align-items:center; }
+.gantt-task-col { width:280px; min-width:280px; flex-shrink:0; border-right:1px solid var(--border); }
+.gantt-timeline-col { flex:1; min-width:0; position:relative; }
+.gantt-months { display:flex; height:100%; }
+.gantt-month { font-size:10px; font-weight:600; color:var(--text3); text-transform:capitalize; display:flex; align-items:center; justify-content:center; border-right:1px solid var(--border); padding:6px 4px; white-space:nowrap; overflow:hidden; min-height:34px; }
+.gantt-month:last-child { border-right:none; }
+.gantt-group-hd { display:flex; align-items:center; gap:8px; padding:7px 16px; background:var(--s2); border-bottom:1px solid var(--border); font-size:10px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; }
+.gantt-group-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.gantt-row { display:flex; align-items:center; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.1s; min-height:38px; }
+.gantt-row:last-child { border-bottom:none; }
+.gantt-row:hover { background:var(--gold-dim); }
+.gantt-task-col-data { display:flex; align-items:center; gap:4px; padding:6px 16px; overflow:hidden; width:280px; min-width:280px; flex-shrink:0; border-right:1px solid var(--border); }
+.gantt-task-name { font-size:12px; color:var(--text); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
+.gantt-task-date { font-size:10px; color:var(--text3); margin-left:6px; white-space:nowrap; flex-shrink:0; }
+.gantt-bar { position:absolute; top:50%; transform:translateY(-50%); height:16px; border-radius:3px; min-width:8px; cursor:pointer; opacity:0.85; transition:opacity 0.12s; z-index:1; }
+.gantt-bar:hover { opacity:1; }
+.gantt-today-line { position:absolute; top:0; bottom:0; width:1px; background:var(--gold); opacity:0.6; pointer-events:none; z-index:2; }
+@media(max-width:768px) { .gantt-task-col,.gantt-task-col-data { width:160px; min-width:160px; } }
+
 /* ══════════════════════════════════════════════════════════
    CRM DE VENDAS
    ══════════════════════════════════════════════════════════ */
@@ -773,7 +798,7 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 
 <!-- LOADING OVERLAY -->
 <div id="app-loading" style="display:none;position:fixed;inset:0;z-index:9999;background:#0D0D0D;align-items:center;justify-content:center;flex-direction:column;gap:16px">
-  <img src="/bula/assets/img/logo-bula.png" alt="Bula" style="height:60px;filter:invert(1);opacity:0.8">
+  <img src="/logo-bula-remates-branco-_1_.svg" alt="Bula" style="height:60px;opacity:0.9">
   <div style="display:flex;align-items:center;gap:10px;color:#C8A96E;font-family:Inter,sans-serif;font-size:13px">
     <div style="width:18px;height:18px;border:2px solid #C8A96E;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite"></div>
     Carregando sistema...
@@ -782,7 +807,7 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <img src="/bula/assets/img/logo-bula.png" alt="Bula" class="topbar-logo">
+  <img src="/logo-bula-remates-preto-_1_.svg" alt="Bula" class="topbar-logo">
   <nav class="topbar-nav">
     <button class="nav-tab active" data-page="dashboard" onclick="showPage('dashboard')">
       <span class="material-symbols-outlined">dashboard</span> Dashboard
@@ -1091,7 +1116,7 @@ body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-syste
     <div class="proj-filters" id="proj-filters"></div>
     <div class="view-toggle">
       <button class="vt-btn active" onclick="toggleProjectView('kanban',this)" title="Kanban"><span class="material-symbols-outlined">view_kanban</span></button>
-      <button class="vt-btn" onclick="toggleProjectView('list',this)" title="Lista"><span class="material-symbols-outlined">view_list</span></button>
+      <button class="vt-btn" onclick="toggleProjectView('gantt',this)" title="Gantt"><span class="material-symbols-outlined">view_timeline</span></button>
     </div>
     <button class="btn-new" onclick="addNewCard()"><span class="material-symbols-outlined">add</span> Novo Card</button>
   </div>
@@ -1905,6 +1930,181 @@ const COLUMNS = [
 ];
 
 
+let projectViewMode = 'kanban';
+let projFilterPerson = 'todos';
+let draggedCardId = null;
+
+function cardCheckProgress(card) {
+  if (!card.checks || !card.checks.length) return 0;
+  return Math.round(card.checks.filter(function(c){return c.d;}).length / card.checks.length * 100);
+}
+
+function toggleProjectView(mode, btn) {
+  projectViewMode = mode;
+  document.querySelectorAll('#page-projetos .vt-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderProjects();
+}
+
+function renderProjFilters() {
+  var all = [{n:'Todos',i:'T'}].concat(ALL_PEOPLE);
+  var html = '';
+  all.forEach(function(p) {
+    var active = (p.n === 'Todos' && projFilterPerson === 'todos') || projFilterPerson === p.n;
+    html += '<button class="pf-btn' + (active?' active':'') + '" onclick="setProjFilter(\'' + p.n + '\')">';
+    if (p.n !== 'Todos') html += '<span class="person-av" style="width:18px;height:18px;font-size:8px;background:var(--s3)">' + p.i + '</span>';
+    html += p.n + '</button>';
+  });
+  document.getElementById('proj-filters').innerHTML = html;
+}
+
+function setProjFilter(name) {
+  projFilterPerson = (name === 'Todos') ? 'todos' : name;
+  renderProjects();
+}
+
+function getFilteredCards() {
+  if (projFilterPerson === 'todos') return CARDS;
+  return CARDS.filter(function(c){return c.resp.some(function(r){return r.n === projFilterPerson;});});
+}
+
+function renderProjects() {
+  renderProjFilters();
+  if (projectViewMode === 'gantt') renderProjectsGantt();
+  else renderProjectsKanban();
+}
+
+function renderProjectsKanban() {
+  var cards = getFilteredCards();
+  var html = '<div class="kb-board">';
+  COLUMNS.forEach(function(col) {
+    var colCards = cards.filter(function(c){return c.col === col.id;});
+    html += '<div class="kb-col" id="kbcol-' + col.id + '" ondragover="kbDragOver(event,\'' + col.id + '\')" ondrop="kbDrop(event,\'' + col.id + '\')" ondragleave="kbDragLeave(event)">';
+    html += '<div class="kb-col-hd"><span class="kb-col-dot" style="background:' + col.dot + '"></span><span class="kb-col-name">' + col.name + '</span><span class="kb-col-cnt">' + colCards.length + '</span></div>';
+    html += '<div class="kb-cards">';
+    colCards.forEach(function(card) {
+      var pct = cardCheckProgress(card);
+      var pc = progColor(pct);
+      var overdue = card.venc && new Date(card.venc) < new Date() && card.col !== 'concluido';
+      html += '<div class="kb-card" draggable="true" id="kbc-' + card.id + '" ondragstart="kbDragStart(event,\'' + card.id + '\')" onclick="openCardModal(\'' + card.id + '\')">';
+      html += '<span class="kb-tag tag-' + card.prio + '">' + card.prio.toUpperCase() + '</span>';
+      html += '<div class="kb-card-title">' + card.title + '</div>';
+      if (card.desc) html += '<div class="kb-card-desc">' + card.desc + '</div>';
+      if (pct > 0) html += '<div style="height:3px;background:var(--border);border-radius:2px;margin-bottom:8px"><div style="height:100%;width:' + pct + '%;background:' + pc + ';border-radius:2px"></div></div>';
+      html += '<div class="kb-card-footer">';
+      if (card.venc) html += '<span class="kb-card-date' + (overdue?' overdue':'') + '"><span class="material-symbols-outlined">event</span>' + fmtDate(card.venc) + '</span>';
+      if (card.checks.length) html += '<span class="kb-card-checks' + (pct===100?' done':'') + '"><span class="material-symbols-outlined">checklist</span>' + card.checks.filter(function(c){return c.d;}).length + '/' + card.checks.length + '</span>';
+      if (card.resp.length) {
+        html += '<span class="kb-card-avs">';
+        card.resp.slice(0,3).forEach(function(r){html += '<span class="kb-card-av">' + r.i + '</span>';});
+        html += '</span>';
+      }
+      html += '</div></div>';
+    });
+    html += '</div>';
+    html += '<div class="kb-add"><button class="kb-add-btn" onclick="addNewCard(\'' + col.id + '\')"><span class="material-symbols-outlined">add</span> Adicionar card</button></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('proj-content').innerHTML = html;
+}
+
+function kbDragStart(e, id) {
+  draggedCardId = id;
+  setTimeout(function() { var el = document.getElementById('kbc-'+id); if(el) el.classList.add('dragging'); }, 0);
+}
+function kbDragOver(e, colId) {
+  e.preventDefault();
+  document.querySelectorAll('.kb-col').forEach(function(c){c.classList.remove('drag-over');});
+  var col = document.getElementById('kbcol-'+colId);
+  if (col) col.classList.add('drag-over');
+}
+function kbDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drag-over');
+}
+function kbDrop(e, colId) {
+  e.preventDefault();
+  document.querySelectorAll('.kb-col').forEach(function(c){c.classList.remove('drag-over');});
+  if (!draggedCardId) return;
+  var card = CARDS.find(function(c){return c.id === draggedCardId;});
+  if (!card || card.col === colId) { draggedCardId = null; return; }
+  card.col = colId;
+  fetch('/api/bula/projetos/cards/' + draggedCardId, {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({coluna: colId})
+  });
+  draggedCardId = null;
+  renderProjects();
+}
+
+function renderProjectsGantt() {
+  var allCards = getFilteredCards();
+  var cards = allCards.filter(function(c){return c.venc;});
+  var noDate = allCards.filter(function(c){return !c.venc;});
+  if (!allCards.length) {
+    document.getElementById('proj-content').innerHTML = '<div style="text-align:center;padding:60px;color:var(--text3)">Nenhum card encontrado.</div>';
+    return;
+  }
+  var now = new Date(); now.setHours(0,0,0,0);
+  var minDate = new Date(now); minDate.setMonth(minDate.getMonth()-1); minDate.setDate(1);
+  var maxDate = new Date(now); maxDate.setMonth(maxDate.getMonth()+2); maxDate.setDate(0);
+  if (cards.length) {
+    var datesMs = cards.map(function(c){return new Date(c.venc+'T12:00:00').getTime();});
+    var dMin = new Date(Math.min.apply(null,datesMs)); dMin.setDate(1);
+    var dMax = new Date(Math.max.apply(null,datesMs)); dMax.setMonth(dMax.getMonth()+1); dMax.setDate(0);
+    if (dMin < minDate) minDate = new Date(dMin);
+    if (dMax > maxDate) maxDate = new Date(dMax);
+  }
+  var totalDays = Math.ceil((maxDate - minDate) / 86400000) + 1;
+  var todayPct = Math.max(0, Math.min(100, Math.ceil((now - minDate) / 86400000) / totalDays * 100)).toFixed(2);
+
+  var months = [];
+  var cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+  while (cur <= maxDate) {
+    var mEnd = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+    var s = new Date(Math.max(minDate.getTime(), cur.getTime()));
+    var en = new Date(Math.min(maxDate.getTime(), mEnd.getTime()));
+    var days = Math.ceil((en - s) / 86400000) + 1;
+    months.push({ label: cur.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}), days: days });
+    cur.setMonth(cur.getMonth()+1);
+  }
+
+  var PRIO_COLOR = {alta:'var(--red)', media:'var(--amber)', baixa:'var(--olive)'};
+  var todayLine = '<div class="gantt-today-line" style="left:' + todayPct + '%"></div>';
+
+  var html = '<div class="gantt-wrap"><div class="gantt-table">';
+  html += '<div class="gantt-hd-row">';
+  html += '<div class="gantt-task-col gantt-th">Tarefa</div>';
+  html += '<div class="gantt-timeline-col" style="position:relative">' + todayLine + '<div class="gantt-months">';
+  months.forEach(function(m){ html += '<div class="gantt-month" style="flex:' + m.days + ' ' + m.days + ' 0">' + m.label + '</div>'; });
+  html += '</div></div></div>';
+
+  COLUMNS.forEach(function(col) {
+    var cc = cards.filter(function(c){return c.col === col.id;});
+    var nc = noDate.filter(function(c){return c.col === col.id;});
+    if (!cc.length && !nc.length) return;
+    html += '<div class="gantt-group-hd"><span class="gantt-group-dot" style="background:' + col.dot + '"></span>' + col.name + ' <span style="color:var(--text4);font-size:9px;margin-left:4px">(' + (cc.length+nc.length) + ')</span></div>';
+    cc.concat(nc).forEach(function(card) {
+      var barHtml = todayLine;
+      if (card.venc) {
+        var cd = new Date(card.venc+'T12:00:00');
+        var offsetDays = Math.ceil((cd - minDate) / 86400000);
+        var leftPct = (offsetDays / totalDays * 100).toFixed(2);
+        var widthPct = Math.max(1.5, 5 / totalDays * 100).toFixed(2);
+        var isOverdue = cd < now && col.id !== 'concluido';
+        barHtml += '<div class="gantt-bar" style="left:' + leftPct + '%;width:' + widthPct + '%;background:' + (isOverdue?'var(--red)':PRIO_COLOR[card.prio]) + '" title="' + card.title + ' - ' + fmtDate(card.venc) + '" onclick="event.stopPropagation();openCardModal(\'' + card.id + '\')"></div>';
+      }
+      html += '<div class="gantt-row" onclick="openCardModal(\'' + card.id + '\')">';
+      html += '<div class="gantt-task-col-data"><span class="kb-tag tag-' + card.prio + '" style="font-size:8px;padding:1px 5px">' + card.prio.charAt(0).toUpperCase() + '</span><span class="gantt-task-name">' + card.title + '</span>' + (card.venc ? '<span class="gantt-task-date">' + fmtDate(card.venc) + '</span>' : '<span class="gantt-task-date" style="color:var(--text4)">-</span>') + '</div>';
+      html += '<div class="gantt-timeline-col" style="position:relative">' + barHtml + '</div>';
+      html += '</div>';
+    });
+  });
+  html += '</div></div>';
+  document.getElementById('proj-content').innerHTML = html;
+}
+
+
 function openCardModal(id) {
   const card = CARDS.find(c => c.id === id);
   if (!card) return;
@@ -1922,14 +2122,14 @@ function openCardModal(id) {
   let peopleHtml = '';
   ALL_PEOPLE.forEach(p => {
     const checked = card.resp.some(r => r.n === p.n);
-    peopleHtml += '<div class="cm-person"><input type="checkbox" class="cm-person-check" data-name="'+p.n+'" data-ini="'+p.i+'" '+(checked?'checked':'')+' onchange="updateCardPeople('+id+')">';
+    peopleHtml += '<div class="cm-person"><input type="checkbox" class="cm-person-check" data-name="'+p.n+'" data-ini="'+p.i+'" '+(checked?'checked':'')+' onchange="updateCardPeople('''+id+'')">';
     peopleHtml += '<span class="person-av" style="width:26px;height:26px;font-size:10px">'+p.i+'</span><span style="font-size:12px;color:var(--text)">'+p.n+'</span></div>';
   });
 
   // Checklist items
   let checksHtml = '';
   card.checks.forEach((ch, ci) => {
-    checksHtml += '<div class="cm-check-item"><input type="checkbox" class="st-check" '+(ch.d?'checked':'')+' onclick="toggleCardCheck('+id+','+ci+',this)"><span class="st-label'+(ch.d?' done':'')+'">'+ch.l+'</span></div>';
+    checksHtml += '<div class="cm-check-item"><input type="checkbox" class="st-check" '+(ch.d?'checked':'')+' onclick="toggleCardCheck('''+id+'','+ci+',this)"><span class="st-label'+(ch.d?' done':'')+'">'+ch.l+'</span></div>';
   });
 
   // Comments
@@ -1947,21 +2147,21 @@ function openCardModal(id) {
 
   // Title
   html += '<div class="cm-section"><div class="cm-label"><span class="material-symbols-outlined">title</span> Titulo</div>';
-  html += '<input class="cm-input" value="'+card.title+'" onchange="updateCardField('+id+',\'title\',this.value)"></div>';
+  html += '<input class="cm-input" value="'+card.title+'" onchange="updateCardField(''+id+'',\'title\',this.value)"></div>';
 
   // Description
   html += '<div class="cm-section"><div class="cm-label"><span class="material-symbols-outlined">notes</span> Descricao</div>';
-  html += '<textarea class="cm-input cm-textarea" placeholder="Detalhes da tarefa..." onchange="updateCardField('+id+',\'desc\',this.value)">'+card.desc+'</textarea></div>';
+  html += '<textarea class="cm-input cm-textarea" placeholder="Detalhes da tarefa..." onchange="updateCardField(''+id+'',\'desc\',this.value)">'+card.desc+'</textarea></div>';
 
   // Status + Priority row
   html += '<div class="cm-section"><div class="cm-row2">';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">flag</span> Status</div><select class="cm-select" onchange="updateCardField('+id+',\'col\',this.value)">'+statusOpts+'</select></div>';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">priority_high</span> Prioridade</div><select class="cm-select" onchange="updateCardField('+id+',\'prio\',this.value)">'+prioOpts+'</select></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">flag</span> Status</div><select class="cm-select" onchange="updateCardField(''+id+'',\'col\',this.value)">'+statusOpts+'</select></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">priority_high</span> Prioridade</div><select class="cm-select" onchange="updateCardField(''+id+'',\'prio\',this.value)">'+prioOpts+'</select></div>';
   html += '</div></div>';
 
   // Date + Responsible row
   html += '<div class="cm-section"><div class="cm-row2">';
-  html += '<div><div class="cm-label"><span class="material-symbols-outlined">event</span> Prazo</div><div class="cm-date-wrap"><span class="material-symbols-outlined">calendar_today</span><input type="date" class="cm-date" value="'+card.venc+'" onchange="updateCardField('+id+',\'venc\',this.value)"></div></div>';
+  html += '<div><div class="cm-label"><span class="material-symbols-outlined">event</span> Prazo</div><div class="cm-date-wrap"><span class="material-symbols-outlined">calendar_today</span><input type="date" class="cm-date" value="'+card.venc+'" onchange="updateCardField(''+id+'',\'venc\',this.value)"></div></div>';
   html += '<div><div class="cm-label"><span class="material-symbols-outlined">group</span> Responsaveis</div><div class="cm-people">'+peopleHtml+'</div></div>';
   html += '</div></div>';
 
@@ -1969,7 +2169,7 @@ function openCardModal(id) {
 
   // Checklist
   html += '<div class="cm-section"><div class="cm-check-header"><div class="cm-label"><span class="material-symbols-outlined">checklist</span> Checklist</div></div>';
-  html += '<div class="cm-check-add"><input class="cm-input" id="cm-new-check" placeholder="Adicionar item..." onkeydown="if(event.key===\'Enter\')addCheckItem('+id+')"><button class="cm-check-add-btn" onclick="addCheckItem('+id+')"><span class="material-symbols-outlined">add</span></button></div>';
+  html += '<div class="cm-check-add"><input class="cm-input" id="cm-new-check" placeholder="Adicionar item..." onkeydown="if(event.key===\'Enter\')addCheckItem(''+id+'')"><button class="cm-check-add-btn" onclick="addCheckItem('''+id+'')"><span class="material-symbols-outlined">add</span></button></div>';
   if (card.checks.length) {
     html += '<div class="cm-prog-wrap"><div class="cm-prog-bar"><div class="cm-prog-fill" style="width:'+pct+'%;background:'+pc+'"></div></div><span class="cm-prog-pct" style="color:'+pc+'">'+pct+'%</span></div>';
   }
@@ -1986,12 +2186,12 @@ function openCardModal(id) {
   // Comments
   html += '<div class="cm-section"><div class="cm-label"><span class="material-symbols-outlined">chat_bubble</span> Comentarios</div>';
   html += '<div class="cm-comments">'+commentsHtml+'</div>';
-  html += '<div class="cm-comment-input"><input class="cm-input" id="cm-new-comment" placeholder="Escreva um comentario..." onkeydown="if(event.key===\'Enter\')addComment('+id+')"><button class="cm-comment-send" onclick="addComment('+id+')"><span class="material-symbols-outlined">send</span></button></div></div>';
+  html += '<div class="cm-comment-input"><input class="cm-input" id="cm-new-comment" placeholder="Escreva um comentario..." onkeydown="if(event.key===\'Enter\')addComment(''+id+'')"><button class="cm-comment-send" onclick="addComment('''+id+'')"><span class="material-symbols-outlined">send</span></button></div></div>';
 
   html += '</div>';
 
   // Footer
-  html += '<div class="cm-footer"><button class="cm-btn-delete" onclick="deleteCard('+id+')"><span class="material-symbols-outlined">delete</span> Excluir</button><button class="cm-btn-cancel" onclick="closeCardModal()">Cancelar</button><button class="cm-btn-save" onclick="closeCardModal()"><span class="material-symbols-outlined">save</span> Salvar</button></div>';
+  html += '<div class="cm-footer"><button class="cm-btn-delete" onclick="deleteCard('''+id+'')"><span class="material-symbols-outlined">delete</span> Excluir</button><button class="cm-btn-cancel" onclick="closeCardModal()">Cancelar</button><button class="cm-btn-save" onclick="closeCardModal()"><span class="material-symbols-outlined">save</span> Salvar</button></div>';
 
   document.getElementById('cm-body').innerHTML = html;
   document.getElementById('cm-overlay').classList.add('open');
@@ -2002,7 +2202,7 @@ function updateCardField(id, field, value) {
   const card = CARDS.find(c => c.id === id);
   if (!card) return;
   card[field] = value;
-  const fm = {title:'titulo', desc:'descricao', prio:'prioridade', venc:'vencimento'};
+  const fm = {title:'titulo', desc:'descricao', prio:'prioridade', venc:'vencimento', col:'coluna'};
   fetch(`/api/bula/projetos/cards/${id}`, {
     method: 'PUT', headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({[fm[field] || field]: value})
