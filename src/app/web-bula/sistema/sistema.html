@@ -1232,6 +1232,13 @@ function adaptLeiloes(apiLeiloes) {
     img: l.img || '',
     concluido: l.status === 'concluido',
     assessores: (l.assessores || []).map(a => ({n: a.nome, i: a.iniciais})),
+    horario: l.horario || '',
+    transmissao: l.transmissao || '',
+    modelo: l.modelo || '',
+    leiloeira: l.leiloeira || '',
+    condicao: l.condicao || '',
+    freteGratis: l.frete_gratis || '',
+    acordoComissao: l.acordo_comissao || '',
   }));
   TASKS = {};
   apiLeiloes.forEach(l => {
@@ -1371,13 +1378,14 @@ function renderLeiloes() {
     const prog = totalSubs ? Math.round(doneSubs/totalSubs*100) : 0;
     const pc = progColor(prog);
 
-    html += `<div class="leilao-card" onclick="openLeilao(${l.id})">
+    html += `<div class="leilao-card" onclick="openLeilao('${l.id}')">
       ${l.img ? `<img class="lc-img" src="${l.img}" alt="${l.nome}">` :
         `<div class="lc-img-placeholder"><span class="material-symbols-outlined">photo_camera</span><span>Foto do leilao</span></div>`}
       <div class="lc-body">
-        <div class="lc-date">${fmtDateLong(l.data)}</div>
+        <div class="lc-date">${fmtDateLong(l.data)}${l.horario ? ' &nbsp;·&nbsp; ' + l.horario : ''}</div>
         <div class="lc-name">${l.nome}</div>
-        <div class="lc-local"><span class="material-symbols-outlined">location_on</span> ${l.local} -- ${l.tipo}</div>
+        <div class="lc-local"><span class="material-symbols-outlined">category</span> ${l.tipo}${l.local ? ' — ' + l.local : ''}</div>
+        ${(l.transmissao || l.modelo) ? `<div class="lc-local" style="margin-top:2px"><span class="material-symbols-outlined">live_tv</span> ${[l.transmissao, l.modelo].filter(Boolean).join(' · ')}</div>` : ''}
         <div class="lc-stats">
           <div class="lc-stat"><div class="lc-stat-v">${l.animais}</div><div class="lc-stat-l">Animais</div></div>
           <div class="lc-stat"><div class="lc-stat-v"><span class="cur">R$</span>${l.expectativa >= 1000000 ? (l.expectativa/1000000).toFixed(1)+'M' : (l.expectativa/1000).toFixed(0)+'K'}</div><div class="lc-stat-l">Expectativa</div></div>
@@ -1448,9 +1456,14 @@ function openLeilao(id) {
     <div class="detail-info">
       <div class="detail-name">${l.nome}</div>
       <div class="detail-meta">
-        <span><span class="material-symbols-outlined">event</span> ${fmtDate(l.data)}</span>
-        <span><span class="material-symbols-outlined">location_on</span> ${l.local}</span>
+        <span><span class="material-symbols-outlined">event</span> ${fmtDate(l.data)}${l.horario ? ' ' + l.horario : ''}</span>
+        ${l.local ? `<span><span class="material-symbols-outlined">location_on</span> ${l.local}</span>` : ''}
         <span><span class="material-symbols-outlined">category</span> ${l.tipo}</span>
+        ${l.transmissao ? `<span><span class="material-symbols-outlined">live_tv</span> ${l.transmissao}</span>` : ''}
+        ${l.modelo ? `<span><span class="material-symbols-outlined">${l.modelo === 'VIRTUAL' ? 'wifi' : 'location_city'}</span> ${l.modelo}</span>` : ''}
+        ${l.leiloeira ? `<span><span class="material-symbols-outlined">gavel</span> ${l.leiloeira}</span>` : ''}
+        ${l.freteGratis ? `<span><span class="material-symbols-outlined">local_shipping</span> ${l.freteGratis}</span>` : ''}
+        ${l.acordoComissao ? `<span><span class="material-symbols-outlined">percent</span> ${l.acordoComissao}</span>` : ''}
       </div>
     </div>
     <div class="detail-kpis">

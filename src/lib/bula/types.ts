@@ -43,6 +43,13 @@ export interface BulaLeilao {
     img: string
     tasks: LeilaoGrupo[]
     assessores: BulaMembro[]
+    horario?: string
+    transmissao?: string
+    modelo?: string
+    leiloeira?: string
+    condicao?: string
+    frete_gratis?: string
+    acordo_comissao?: string
 }
 
 // ── Projeto / Kanban ─────────────────────────────────────
