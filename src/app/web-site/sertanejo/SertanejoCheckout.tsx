@@ -2,13 +2,27 @@
 
 import React from "react";
 
+function getUtmParams() {
+    if (typeof window === 'undefined') return {};
+    const params = new URLSearchParams(window.location.search);
+    return {
+        utm_source: params.get('utm_source') || 'site',
+        utm_medium: params.get('utm_medium') || 'organic',
+        utm_campaign: params.get('utm_campaign') || 'sertanejo/checkout',
+        utm_content: params.get('utm_content') || 'formulario_principal',
+    };
+}
+
 export default function SertanejoCheckout() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
         const btn = form.querySelector('.btn-checkout') as HTMLButtonElement;
 
-        const data = Object.fromEntries(new FormData(form).entries());
+        const data = {
+            ...Object.fromEntries(new FormData(form).entries()),
+            ...getUtmParams(),
+        };
 
         if (btn) {
             btn.disabled = true;

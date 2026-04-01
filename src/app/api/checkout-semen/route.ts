@@ -7,7 +7,7 @@ const SHEET_NAME = 'Checkout-Semen';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { nome, fazenda, cpf, animais, cidade, doses, parcelamento } = body;
+        const { nome, fazenda, cpf, animais, cidade, doses, parcelamento, utm_source, utm_medium, utm_campaign, utm_content } = body;
 
         if (!nome || !fazenda || !cpf || !animais || !cidade || !doses || !parcelamento) {
             return NextResponse.json({ error: 'Campos obrigatórios faltando' }, { status: 400 });
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A:H`,
+            range: `${SHEET_NAME}!A:L`,
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [[
@@ -48,6 +48,10 @@ export async function POST(request: Request) {
                     doses,
                     parcelamentoLabel[parcelamento] ?? parcelamento,
                     dataHora,
+                    utm_source || 'site',
+                    utm_medium || 'organic',
+                    utm_campaign || 'sertanejo/checkout',
+                    utm_content || 'formulario_principal',
                 ]],
             },
         });
