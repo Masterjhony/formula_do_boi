@@ -4,26 +4,31 @@ import FinanceiroClient from './FinanceiroClient';
 export default async function FinanceiroPage() {
     const supabase = await createClient();
 
-    // Fetch accounts
     const { data: accounts } = await supabase
         .from('erp_finance_accounts')
         .select('*')
         .order('name');
 
-    // Fetch transactions
     const { data: transactions } = await supabase
         .from('erp_finance_transactions')
         .select(`
-            id,
-            amount,
-            type,
-            description,
-            transaction_date,
-            status,
-            account:erp_finance_accounts(name)
+            id, amount, type, description, transaction_date, status, account_id, category_id,
+            account:erp_finance_accounts(id, name, type),
+            category:erp_finance_categories(id, name, type)
         `)
         .order('transaction_date', { ascending: false })
-        .limit(100);
+        .limit(200);
 
-    return <FinanceiroClient initialAccounts={accounts} initialTransactions={transactions} />;
+    const { data: categories } = await supabase
+        .from('erp_finance_categories')
+        .select('*')
+        .order('name');
+
+    return (
+        <FinanceiroClient
+            initialAccounts={accounts || []}
+            initialTransactions={(transactions as any[]) || []}
+            initialCategories={categories || []}
+        />
+    );
 }
