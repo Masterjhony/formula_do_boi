@@ -289,7 +289,7 @@ async function askGroupAI(groupJid, question, senderName) {
         'x-webhook-secret': GROUP_TASK_SECRET,
       },
       body: JSON.stringify({ question, sender_name: senderName }),
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(55000),
     });
 
     if (res.ok) {
