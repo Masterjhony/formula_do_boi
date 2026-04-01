@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 function getUtmParams() {
@@ -16,14 +16,48 @@ function getUtmParams() {
 
 export default function SertanejoCheckout() {
     const router = useRouter();
+    const [estados, setEstados] = useState<{ sigla: string; nome: string }[]>([]);
+    const [cidades, setCidades] = useState<{ id: number; nome: string }[]>([]);
+    const [selectedUf, setSelectedUf] = useState("");
+    const [selectedCidade, setSelectedCidade] = useState("");
+
+    useEffect(() => {
+        fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome")
+            .then(res => res.json())
+            .then(data => setEstados(data))
+            .catch(() => {});
+    }, []);
+
+    const handleUfChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const uf = e.target.value;
+        setSelectedUf(uf);
+        setSelectedCidade("");
+        setCidades([]);
+        if (uf) {
+            fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?orderBy=nome`)
+                .then(res => res.json())
+                .then(data => setCidades(data))
+                .catch(() => {});
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
         const btn = form.querySelector('.btn-checkout') as HTMLButtonElement;
 
+        const baseData = Object.fromEntries(new FormData(form).entries());
+        
+        let rawCpf = String(baseData.cpf || '').replace(/\D/g, '');
+        let cpfFormatado = baseData.cpf;
+        if (rawCpf.length === 11) {
+            cpfFormatado = rawCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        }
+
         const data = {
-            ...Object.fromEntries(new FormData(form).entries()),
+            ...baseData,
+            cpf: cpfFormatado,
+            cidade: `${selectedCidade}/${selectedUf}`,
             ...getUtmParams(),
         };
 
@@ -200,9 +234,25 @@ export default function SertanejoCheckout() {
                                     <label htmlFor="animais">Número de Animais</label>
                                     <input type="number" id="animais" name="animais" placeholder="Ex: 500" min="1" required />
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="cidade">Cidade / UF</label>
-                                    <input type="text" id="cidade" name="cidade" placeholder="Ex: Uberaba/MG" required />
+                                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '8px' }}>
+                                    <div className="form-group">
+                                        <label htmlFor="uf">UF</label>
+                                        <select id="uf" name="uf" value={selectedUf} onChange={handleUfChange} required>
+                                            <option value="" disabled>UF</option>
+                                            {estados.map(est => (
+                                                <option key={est.sigla} value={est.sigla}>{est.sigla}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="cidade_nome">Cidade</label>
+                                        <select id="cidade_nome" name="cidade_nome" value={selectedCidade} onChange={(e) => setSelectedCidade(e.target.value)} required disabled={!selectedUf}>
+                                            <option value="" disabled>Selecione</option>
+                                            {cidades.map(cid => (
+                                                <option key={cid.id} value={cid.nome}>{cid.nome}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="doses">Número de Doses para Reserva</label>
