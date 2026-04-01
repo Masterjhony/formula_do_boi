@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 
 function getUtmParams() {
     if (typeof window === 'undefined') return {};
@@ -14,6 +15,8 @@ function getUtmParams() {
 }
 
 export default function SertanejoCheckout() {
+    const router = useRouter();
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -45,12 +48,8 @@ export default function SertanejoCheckout() {
             form.reset();
 
             setTimeout(() => {
-                if (btn) {
-                    btn.innerHTML = '<span class="material-icons-outlined" style="font-size:18px">send</span> ENVIAR RESERVA';
-                    btn.style.background = '';
-                    btn.disabled = false;
-                }
-            }, 5000);
+                router.push('/sertanejo/obrigado');
+            }, 800);
         } catch {
             if (btn) {
                 btn.innerHTML = '<span class="material-icons-outlined" style="font-size:18px">error</span> ERRO — TENTE NOVAMENTE';

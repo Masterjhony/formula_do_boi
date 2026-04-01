@@ -397,9 +397,9 @@ export const sertanejoCss = `
             font-size: 13px;
         }
         .footer-inner {
-            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center;
         }
-        .footer-logo { display: flex; align-items: center; gap: 10px; }
+        .footer-logo { display: flex; flex-direction: column; align-items: center; gap: 12px; }
         .footer-logo img { height: 28px; filter: brightness(0) invert(1); opacity: 0.5; }
         .footer-links { display: flex; gap: 24px; }
         .footer-links a { color: rgba(255,255,255,0.5); transition: color 0.2s; }
