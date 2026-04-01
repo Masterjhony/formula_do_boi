@@ -93,13 +93,13 @@ export async function getCards(): Promise<BulaCard[]> {
     })) as BulaCard[]
 }
 
-export async function createCard(payload: Omit<BulaCard, 'id' | 'responsaveis'> & { responsavel_ids: string[] }) {
+export async function createCard(payload: Omit<BulaCard, 'id' | 'responsaveis'> & { responsavel_ids?: string[] }) {
     const supabase = await createClient()
     const { responsavel_ids, ...rest } = payload
     const { data, error } = await supabase.from('bula_projeto_cards').insert(rest).select().single()
     if (error || !data) throw error
 
-    if (responsavel_ids.length > 0) {
+    if (responsavel_ids && responsavel_ids.length > 0) {
         await supabase.from('bula_card_responsaveis').insert(
             responsavel_ids.map((membro_id) => ({ card_id: data.id, membro_id }))
         )
