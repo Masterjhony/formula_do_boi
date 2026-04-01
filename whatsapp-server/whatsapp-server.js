@@ -31,6 +31,7 @@ const GROUP_TASK_SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || '';
 const GROUP_TASK_PREFIX = '/tarefa';
 const GROUP_DECISION_PREFIX = '/decisao';
 const GROUP_RISK_PREFIX = '/risco';
+const GROUP_AI_PREFIX = '/ia';
 const PROB_MAP = { '1': 'baixa', '2': 'media', '3': 'alta' };
 const IMPACT_MAP = { '1': 'baixo', '2': 'medio', '3': 'alto' };
 
@@ -271,6 +272,41 @@ async function createGroupRisk(groupJid, state) {
   }
 }
 
+async function askGroupAI(groupJid, question, senderName) {
+  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+    console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — IA ignorada.');
+    return;
+  }
+
+  console.log(`[Grupo IA] Pergunta de ${senderName}: "${question}"`);
+  await sendGroupMsg(groupJid, `🤖 Processando pergunta de *${senderName}*...`);
+
+  try {
+    const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/group-ai`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': GROUP_TASK_SECRET,
+      },
+      body: JSON.stringify({ question, sender_name: senderName }),
+      signal: AbortSignal.timeout(30000),
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      const answer = json.answer || 'Não consegui processar a pergunta.';
+      await sendGroupMsg(groupJid, `🤖 *IA Fórmula do Boi*\n\n${answer}`);
+    } else {
+      const err = await res.text();
+      console.error(`[Grupo IA] Erro (${res.status}): ${err}`);
+      await sendGroupMsg(groupJid, `❌ Não foi possível processar a pergunta. Tente novamente.`);
+    }
+  } catch (e) {
+    console.error('[Grupo IA] Falha ao chamar API:', e.message);
+    await sendGroupMsg(groupJid, `❌ Não foi possível processar a pergunta. Tente novamente.`);
+  }
+}
+
 // =============================================================================
 // Estado global — UM único socket, gerenciado de forma estrita
 // =============================================================================
@@ -488,6 +524,18 @@ async function startSocket() {
           const taskKey = `${senderJid}::${remoteJid}`;
 
           const skipWords = ['pular', 'nao', 'não', 'nenhum', '-', 'sem'];
+
+          // /ia — pergunta à IA (não bloqueia fluxos pendentes)
+          if (lower.startsWith(GROUP_AI_PREFIX)) {
+            const question = text.slice(GROUP_AI_PREFIX.length).trim();
+            if (!question) {
+              await sendGroupMsg(remoteJid, '⚠️ Use: /ia <sua pergunta>\nEx: /ia quantos leads novos temos essa semana?');
+              continue;
+            }
+            // Não bloqueia — roda em paralelo sem await no loop
+            askGroupAI(remoteJid, question, senderName);
+            continue;
+          }
 
           // /tarefa sempre inicia novo fluxo (cancela pendente anterior se houver)
           if (lower.startsWith(GROUP_TASK_PREFIX)) {

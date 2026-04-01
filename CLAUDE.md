@@ -54,6 +54,7 @@ Migrations are in `/database/` (100+ files, one per change). Key tables:
 
 - **WhatsApp flow builder**: Admin can edit the welcome message (supports `{nome}` variable), define numbered menu options, and configure reply timeout — stored in `site_settings.whatsapp_flow`, applied to the VPS server live via `POST /reload-config`.
 - **WhatsApp group task creation**: Members of a WhatsApp community group can type `/tarefa <description>` to create a Kanban card in `tactical_tasks`. The Baileys server detects the prefix, calls `POST /api/whatsapp/group-task` (authenticated via `WHATSAPP_GROUP_TASK_SECRET`), and replies in the group confirming creation. The card appears in the ERP Kanban with a green "WhatsApp" badge. Messages from the bot's own number are ignored (`fromMe = true`).
+- **WhatsApp group AI assistant**: Members can type `/ia <pergunta>` in the group to query the system via GLM-4.7. The VPS detects the prefix, calls `POST /api/whatsapp/group-ai` (authenticated via `WHATSAPP_GROUP_TASK_SECRET`), which uses tool-calling to query Supabase tables and returns a concise answer in the group. Supports questions about CRM leads, products, tasks, contracts, and system settings.
 - **Genealogy/Genetic Evaluation parsing**: `src/lib/genealogy-parser.ts` and `src/lib/avaliacao-genetica-parser.ts` parse PDFs via `pdf-parse` and expose batch endpoints under `/api/parse-*`.
 - **CRM Kanban**: built with `@dnd-kit` — drag updates `position` field in Supabase in real time.
 - **Analytics**: GA4 data pulled via `@google-analytics/data` using a service account; configured with `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_GA4_PROPERTY_ID`.
@@ -69,6 +70,7 @@ Migrations are in `/database/` (100+ files, one per change). Key tables:
 | `/api/whatsapp/messages` | GET | Fetches last 50 messages + today's count + conversations from `whatsapp_messages` |
 | `/api/whatsapp/flow` | GET, PUT | Reads/saves WhatsApp flow config in `site_settings`; PUT also calls `/reload-config` on VPS |
 | `/api/whatsapp/group-task` | POST | Called by VPS when `/tarefa` is detected in a group; validates `x-webhook-secret`, creates card in `tactical_tasks` with WhatsApp origin fields |
+| `/api/whatsapp/group-ai` | POST | Called by VPS when `/ia` is detected in a group; validates `x-webhook-secret`, queries GLM-4.7 with tool-calling to answer questions about the system |
 | `/api/parse-genealogy` | POST | Parses genealogy from product PDF, saves to `products.genealogia_json` |
 | `/api/parse-genealogy/batch` | GET, POST | Batch genealogy extraction (supports `dryRun`, `onlyMissing`) |
 | `/api/parse-avaliacao-genetica` | POST | Parses genetic evaluation from PDF, saves to `products.avaliacao_genetica_json` |
@@ -128,6 +130,18 @@ When a member of a connected group types `/tarefa <description>`, the VPS:
 VPS env vars required: `NEXT_JS_URL=https://admin.formuladoboi.com`, `WHATSAPP_GROUP_TASK_SECRET=<secret>` (same value as Vercel Production).
 
 > **Pitfall**: when adding `WHATSAPP_GROUP_TASK_SECRET` via `vercel env add`, paste the value carefully — the CLI may append a trailing newline making the length 65 instead of 64, causing all requests to fail with 401.
+
+### WhatsApp Group AI Command
+
+When a member types `/ia <question>` in a connected group, the VPS:
+1. Detects the `/ia` prefix in `messages.upsert` (only for `@g.us` JIDs, ignores `fromMe`)
+2. Sends a "processing" message in the group
+3. POSTs to `NEXT_JS_URL/api/whatsapp/group-ai` with `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
+4. The API route calls GLM-4.7 with tool-calling (can query all 8 allowed Supabase tables)
+5. On success: replies with the AI answer in the group (max ~1000 chars, WhatsApp formatting)
+6. On failure: replies `❌ Não foi possível processar a pergunta.`
+
+The call runs fire-and-forget (no `await` in the message loop) so it doesn't block other group commands. Timeout: 30 seconds.
 
 ### WhatsApp Flow Config (site_settings key: `whatsapp_flow`)
 
