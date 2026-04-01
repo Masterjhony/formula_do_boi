@@ -6077,13 +6077,19 @@
 
     async function addNewCard(colId) {
       const col = colId || 'afazer';
-      const res = await fetch('/api/bula/projetos/cards', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coluna: col, titulo: 'Novo card', descricao: '', prioridade: 'media', vencimento: '', checks: [], comentarios: [], posicao: CARDS.filter(c => c.col === col).length })
-      });
-      const nc = await res.json();
-      CARDS.push({ id: nc.id, col: nc.coluna, title: nc.titulo, desc: nc.descricao || '', prio: nc.prioridade, venc: nc.vencimento || '', checks: [], comments: [], resp: [] });
-      renderProjects();
+      try {
+        const res = await fetch('/api/bula/projetos/cards', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coluna: col, titulo: 'Novo card', descricao: '', prioridade: 'media', vencimento: null, checks: [], comentarios: [], posicao: CARDS.filter(c => c.col === col).length })
+        });
+        if (!res.ok) throw new Error('Erro ao criar card');
+        const nc = await res.json();
+        CARDS.push({ id: nc.id, col: nc.coluna, title: nc.titulo, desc: nc.descricao || '', prio: nc.prioridade, venc: nc.vencimento || '', checks: [], comments: [], resp: [] });
+        renderProjects();
+      } catch (e) {
+        console.error('addNewCard error:', e);
+        alert('Não foi possível criar o card. Tente novamente.');
+      }
     }
 
     // ═════════════════════════════════════════════════
