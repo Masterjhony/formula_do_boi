@@ -15,9 +15,13 @@ export async function middleware(request: NextRequest) {
     const isAdminSubdomain = hostname.startsWith('admin.')
     const isErpSubdomain = hostname.startsWith('erp.')
     const isBulaSubdomain = hostname.startsWith('adminbula.')
+    const isLpSubdomain = hostname.startsWith('lp.')
+    const isRootDomain = hostname === 'formuladoboi.com' || hostname === 'www.formuladoboi.com'
 
     // Rewrite path based on subdomain
-    if (isBulaSubdomain) {
+    if (isLpSubdomain || isRootDomain) {
+        url.pathname = `/web-lp${url.pathname}`
+    } else if (isBulaSubdomain) {
         url.pathname = `/web-bula${url.pathname}`
     } else if (isAdminSubdomain) {
         url.pathname = `/web-admin${url.pathname}`

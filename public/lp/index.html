@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fórmula do Boi — Nelore PO de Alta Performance</title>
+    <meta name="description" content="Entre no grupo exclusivo da Fórmula do Boi e descubra como os maiores criadores de Nelore PO do Brasil estão multiplicando resultados com genética de elite.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --black: #0A0A0A;
+            --gold: #C9A227;
+            --gold-dark: #A88620;
+            --white: #FFFFFF;
+            --gray-dark: #1A1A1A;
+            --gray-mid: #2A2A2A;
+            --gray-text: #B0B0B0;
+            --green: #27AE60;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--black);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        img { max-width: 100%; display: block; }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ===== CTA BUTTON ===== */
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--black);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.05rem;
+            padding: 18px 40px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 25px rgba(201, 162, 39, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .cta-btn:hover::before { left: 100%; }
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 35px rgba(201, 162, 39, 0.5);
+        }
+
+        /* ===== HEADER ===== */
+        .site-header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            background: #000;
+            border-bottom: 1px solid rgba(201,162,39,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 24px;
+            height: 80px;
+        }
+        .site-header img {
+            height: 52px;
+            width: auto;
+            display: block;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 120px 0 80px;
+            overflow: hidden;
+        }
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+        .hero-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 20%;
+            filter: brightness(0.28) contrast(1.1);
+        }
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(10,10,10,0.5) 0%, rgba(10,10,10,0.3) 40%, rgba(10,10,10,0.9) 100%);
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        .logo-img { width: 260px; height: auto; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(201, 162, 39, 0.15);
+            border: 1px solid rgba(201, 162, 39, 0.4);
+            color: var(--gold);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 8px 20px;
+            border-radius: 50px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+        .badge .dot {
+            width: 8px; height: 8px;
+            background: var(--gold);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        .hero h1 {
+            font-size: 2.6rem;
+            color: var(--white);
+            margin-bottom: 20px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+        }
+        .hero h1 span { color: var(--gold); }
+
+        .hero-sub {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.82);
+            max-width: 660px;
+            margin: 0 auto 36px;
+            line-height: 1.8;
+        }
+
+        .social-proof {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.65);
+            font-size: 0.88rem;
+            margin-top: 20px;
+        }
+        .social-proof svg { width: 15px; height: 15px; fill: var(--gold); }
+
+        /* ===== O QUE VOCÊ ENCONTRA ===== */
+        .group-offer {
+            padding: 80px 0;
+            background: var(--gray-dark);
+            border-top: 1px solid var(--gray-mid);
+            border-bottom: 1px solid var(--gray-mid);
+        }
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.72rem;
+            color: var(--gold);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+        .section-label::before {
+            content: '';
+            width: 28px; height: 2px;
+            background: var(--gold);
+        }
+        .group-offer .section-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+        .group-offer .section-header h2 {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        .group-offer .section-header h2 span { color: var(--gold); }
+        .group-offer .section-header p {
+            color: var(--gray-text);
+            font-size: 1rem;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+        .offer-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        .offer-card {
+            background: var(--black);
+            border: 1px solid var(--gray-mid);
+            border-radius: 14px;
+            padding: 32px 28px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .offer-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .offer-card:hover { border-color: rgba(201,162,39,0.3); transform: translateY(-3px); }
+        .offer-card:hover::before { opacity: 1; }
+        .offer-icon {
+            width: 52px; height: 52px;
+            background: rgba(201,162,39,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .offer-icon svg { width: 26px; height: 26px; fill: var(--gold); }
+        .offer-card h4 {
+            font-size: 1.05rem;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+        .offer-card p {
+            font-size: 0.88rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+        }
+
+        /* ===== BENEFITS STRIP ===== */
+        .benefits {
+            padding: 72px 0;
+            background: var(--black);
+        }
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+        .benefit-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 14px;
+        }
+        .benefit-icon {
+            width: 52px; height: 52px;
+            background: rgba(201, 162, 39, 0.12);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .benefit-icon svg { width: 26px; height: 26px; fill: var(--gold); }
+        .benefit-item h4 {
+            font-size: 1rem;
+            color: var(--white);
+            margin-bottom: 4px;
+        }
+        .benefit-item p {
+            font-size: 0.88rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+        }
+
+        /* ===== TESTIMONIAL ===== */
+        .testimonial-card {
+            max-width: 700px;
+            margin: 0 auto;
+            background: var(--black);
+            border: 1px solid var(--gray-mid);
+            border-left: 4px solid var(--gold);
+            border-radius: 12px;
+            padding: 36px 40px;
+            position: relative;
+        }
+        .testimonial-card::before {
+            content: '\201C';
+            position: absolute;
+            top: 16px; left: 28px;
+            font-size: 3.5rem;
+            color: var(--gold);
+            opacity: 0.25;
+            font-family: Georgia, serif;
+            line-height: 1;
+        }
+        .testimonial-text {
+            font-size: 1.05rem;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.75;
+            margin-bottom: 24px;
+            padding-top: 12px;
+            font-style: italic;
+        }
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .testimonial-avatar {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: var(--black);
+            flex-shrink: 0;
+        }
+        .testimonial-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .testimonial-role { font-size: 0.8rem; color: var(--gray-text); }
+
+        /* ===== STATS ROW ===== */
+        .stats-row {
+            padding: 48px 0;
+            background: var(--black);
+        }
+        .stats-row .container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+        .stat-item { text-align: center; }
+        .stat-item h3 {
+            font-size: 2.4rem;
+            color: var(--gold);
+            margin-bottom: 4px;
+        }
+        .stat-item .stat-text {
+            font-size: 2rem;
+            color: var(--gold);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .stat-item p {
+            font-size: 0.82rem;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== QUIZ / FORMULÁRIO ===== */
+        .quiz-section {
+            padding: 80px 0 100px;
+            background: var(--gray-dark);
+            border-top: 1px solid var(--gray-mid);
+            position: relative;
+        }
+        .quiz-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 60px; height: 3px;
+            background: var(--gold);
+            border-radius: 2px;
+        }
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .quiz-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .quiz-header h2 span { color: var(--gold); }
+        .quiz-header p {
+            color: var(--gray-text);
+            font-size: 1rem;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .quiz-wrapper {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .quiz-form {
+            background: var(--black);
+            border: 1px solid var(--gray-mid);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .quiz-progress {
+            height: 4px;
+            background: var(--gray-mid);
+        }
+        .quiz-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+            width: 33%;
+            transition: width 0.5s ease;
+        }
+        .quiz-body { padding: 40px 48px; }
+        .quiz-step { display: none; }
+        .quiz-step.active { display: block; }
+        .quiz-step-label {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+        .quiz-step h3 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+        }
+        .quiz-step h3 span { color: var(--gold); }
+        .quiz-step-sub {
+            font-size: 0.9rem;
+            color: var(--gray-text);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        /* Profile cards */
+        .quiz-profiles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .quiz-profile-card {
+            border: 2px solid var(--gray-mid);
+            border-radius: 12px;
+            padding: 24px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .quiz-profile-card:hover { border-color: rgba(201,162,39,0.5); }
+        .quiz-profile-card.selected { border-color: var(--gold); background: rgba(201,162,39,0.06); }
+        .quiz-profile-card .qp-check {
+            width: 20px; height: 20px;
+            border: 2px solid var(--gray-mid);
+            border-radius: 50%;
+            position: absolute;
+            top: 16px; right: 16px;
+            transition: all 0.3s;
+        }
+        .quiz-profile-card.selected .qp-check { border-color: var(--gold); background: var(--gold); }
+        .quiz-profile-card.selected .qp-check::after {
+            content: '';
+            display: block;
+            width: 6px; height: 6px;
+            background: var(--black);
+            border-radius: 50%;
+            margin: 5px auto;
+        }
+        .quiz-profile-card .qp-icon {
+            width: 44px; height: 44px;
+            background: rgba(201,162,39,0.1);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 14px;
+        }
+        .quiz-profile-card .qp-icon svg { width: 22px; height: 22px; fill: var(--gold); }
+        .quiz-profile-card h4 { font-size: 0.95rem; margin-bottom: 6px; color: var(--white); padding-right: 24px; }
+        .quiz-profile-card p { font-size: 0.82rem; color: var(--gray-text); line-height: 1.5; }
+
+        /* Fields */
+        .quiz-field { margin-bottom: 20px; }
+        .quiz-field label {
+            display: block;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+        .quiz-field select,
+        .quiz-field input {
+            width: 100%;
+            background: var(--gray-dark);
+            border: 1px solid var(--gray-mid);
+            border-radius: 8px;
+            color: var(--white);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.95rem;
+            padding: 13px 16px;
+            outline: none;
+            transition: border-color 0.3s;
+            appearance: none;
+        }
+        .quiz-field select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A227' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+            background-color: var(--gray-dark);
+        }
+        .quiz-field select:focus,
+        .quiz-field input:focus { border-color: var(--gold); }
+        .quiz-field input::placeholder { color: #555; }
+        .quiz-field select option { background: var(--gray-dark); }
+        .quiz-field .field-hint { font-size: 0.78rem; color: var(--gray-text); margin-top: 6px; }
+        .quiz-field .field-error { font-size: 0.78rem; color: #e74c3c; margin-top: 6px; display: none; }
+        .quiz-field.error .field-error { display: block; }
+        .quiz-field.error input,
+        .quiz-field.error select { border-color: #e74c3c; }
+
+        /* Navigation */
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 28px;
+            gap: 12px;
+        }
+        .quiz-btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            border: 1px solid var(--gray-mid);
+            color: var(--gray-text);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .quiz-btn-back:hover { border-color: var(--gold); color: var(--gold); }
+        .quiz-btn-back svg { width: 14px; height: 14px; }
+        .quiz-btn-next {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--black);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 0.9rem;
+            padding: 14px 28px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex: 1;
+        }
+        .quiz-btn-next:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(201,162,39,0.4); }
+        .quiz-btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .quiz-btn-next svg { width: 15px; height: 15px; }
+
+        /* Success */
+        .quiz-success { text-align: center; padding: 16px 0; }
+        .quiz-success-icon {
+            width: 72px; height: 72px;
+            background: rgba(39,174,96,0.15);
+            border: 3px solid var(--green);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease;
+        }
+        @keyframes scaleIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .quiz-success-icon svg { width: 32px; height: 32px; fill: var(--green); }
+        .quiz-success h3 { font-size: 1.4rem; margin-bottom: 10px; }
+        .quiz-success h3 span { color: var(--gold); }
+        .quiz-success p { color: var(--gray-text); font-size: 0.92rem; margin-bottom: 28px; line-height: 1.7; }
+        .quiz-success .cta-btn { font-size: 1rem; width: 100%; justify-content: center; }
+
+        /* ===== FOOTER ===== */
+        footer {
+            padding: 36px 0;
+            background: var(--black);
+            border-top: 1px solid var(--gray-mid);
+            text-align: center;
+        }
+        footer img { margin: 0 auto 12px; }
+        footer p { font-size: 0.78rem; color: var(--gray-text); }
+        footer .footer-loc { margin-top: 6px; }
+
+        /* ===== FLOATING CTA ===== */
+        .floating-cta {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+        .floating-cta.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
+        .floating-cta a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--black);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 0.88rem;
+            padding: 14px 22px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(201,162,39,0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .floating-cta svg { width: 18px; height: 18px; fill: var(--black); }
+
+        /* ===== FOTO DIVISÓRIA ===== */
+        .photo-divider {
+            position: relative;
+            height: 420px;
+            overflow: hidden;
+        }
+        .photo-divider img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 40%;
+        }
+        .photo-divider::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, var(--gray-dark) 0%, transparent 15%, transparent 85%, var(--black) 100%);
+            pointer-events: none;
+        }
+
+        /* ===== TESTIMONIAL COM FOTO ===== */
+        .testimonial-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 400px;
+            overflow: hidden;
+        }
+        .testimonial-photo {
+            position: relative;
+            overflow: hidden;
+        }
+        .testimonial-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 20%;
+        }
+        .testimonial-photo::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 60%, var(--gray-dark) 100%);
+            pointer-events: none;
+        }
+        .testimonial-content {
+            background: var(--gray-dark);
+            display: flex;
+            align-items: center;
+            padding: 56px 56px 56px 48px;
+        }
+
+        /* ===== DIFERENCIAIS ===== */
+        .diferenciais {
+            padding: 80px 0;
+            background: var(--black);
+        }
+        .diferenciais-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 48px;
+        }
+        .diferencial-card {
+            background: var(--gray-dark);
+            border: 1px solid var(--gray-mid);
+            border-radius: 14px;
+            padding: 32px 28px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .diferencial-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+        }
+        .diferencial-card:hover { transform: translateY(-4px); border-color: rgba(201,162,39,0.3); }
+        .diferencial-icon {
+            width: 52px; height: 52px;
+            background: rgba(201,162,39,0.1);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px;
+        }
+        .diferencial-icon svg { width: 26px; height: 26px; fill: var(--gold); }
+        .diferencial-card h4 { font-size: 1.05rem; color: var(--white); margin-bottom: 10px; }
+        .diferencial-card p { font-size: 0.88rem; color: var(--gray-text); line-height: 1.65; }
+
+        /* ===== NETWORKING BANNER ===== */
+        .networking-banner {
+            padding: 72px 0;
+            background: var(--gray-dark);
+            border-top: 1px solid var(--gray-mid);
+            border-bottom: 1px solid var(--gray-mid);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .networking-banner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(201,162,39,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .networking-banner .nb-label {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.72rem;
+            color: var(--gold);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .networking-banner h2 {
+            font-size: 2.1rem;
+            max-width: 780px;
+            margin: 0 auto 20px;
+            line-height: 1.3;
+        }
+        .networking-banner h2 span { color: var(--gold); }
+        .networking-banner p {
+            color: var(--gray-text);
+            font-size: 1rem;
+            max-width: 560px;
+            margin: 0 auto 36px;
+            line-height: 1.7;
+        }
+        .networking-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+        .networking-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(201,162,39,0.1);
+            border: 1px solid rgba(201,162,39,0.35);
+            color: var(--gold);
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 10px 20px;
+            border-radius: 50px;
+            letter-spacing: 0.5px;
+        }
+        .networking-tag svg { width: 14px; height: 14px; fill: var(--gold); }
+
+        /* ===== 3 PILARES ===== */
+        .pilares {
+            padding: 80px 0;
+            background: var(--black);
+        }
+        .pilares-inner {
+            background: var(--gray-dark);
+            border: 1px solid var(--gray-mid);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .pilares-header {
+            text-align: center;
+            padding: 48px 48px 40px;
+            border-bottom: 1px solid var(--gray-mid);
+        }
+        .pilares-header h2 { font-size: 1.8rem; margin-bottom: 8px; }
+        .pilares-header h2 span { color: var(--gold); }
+        .pilares-header p { color: var(--gray-text); font-size: 0.95rem; }
+        .pilares-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .pilar {
+            padding: 48px 40px;
+            text-align: center;
+            position: relative;
+        }
+        .pilar:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20%; right: 0;
+            height: 60%;
+            width: 1px;
+            background: var(--gray-mid);
+        }
+        .pilar-number {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 3.5rem;
+            color: rgba(201,162,39,0.15);
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+        .pilar-icon {
+            width: 64px; height: 64px;
+            background: rgba(201,162,39,0.1);
+            border: 2px solid rgba(201,162,39,0.25);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .pilar-icon svg { width: 30px; height: 30px; fill: var(--gold); }
+        .pilar h3 {
+            font-size: 1.3rem;
+            color: var(--white);
+            margin-bottom: 12px;
+        }
+        .pilar h3 span { color: var(--gold); }
+        .pilar p { font-size: 0.88rem; color: var(--gray-text); line-height: 1.65; }
+
+        /* ===== REVEAL ===== */
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.9rem; }
+            .hero-sub { font-size: 1rem; }
+            .cta-btn { font-size: 0.95rem; padding: 16px 28px; }
+            .offer-grid { grid-template-columns: 1fr; }
+            .diferenciais-grid { grid-template-columns: 1fr; }
+            .networking-banner h2 { font-size: 1.6rem; }
+            .pilares-grid { grid-template-columns: 1fr; }
+            .pilar:not(:last-child)::after { display: none; }
+            .pilar { padding: 36px 28px; border-bottom: 1px solid var(--gray-mid); }
+            .pilar:last-child { border-bottom: none; }
+            .pilares-header { padding: 36px 28px 28px; }
+            .quiz-body { padding: 32px 24px; }
+            .quiz-profiles { grid-template-columns: 1fr; }
+            .quiz-step h3 { font-size: 1.2rem; }
+            .quiz-nav { flex-direction: column-reverse; }
+            .quiz-btn-next { width: 100%; }
+            .stats-row .container { justify-content: space-evenly; }
+            .logo-img { width: 210px; }
+            .group-offer { padding: 60px 0; }
+            .photo-divider { height: 280px; }
+            .testimonial-section { grid-template-columns: 1fr; }
+            .testimonial-photo { height: 280px; }
+            .testimonial-photo::after { background: linear-gradient(180deg, transparent 50%, var(--gray-dark) 100%); }
+            .testimonial-content { padding: 40px 24px; }
+        }
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 1.55rem; }
+            .cta-btn { width: 100%; justify-content: center; }
+            .quiz-body { padding: 24px 16px; }
+            .quiz-profile-card { padding: 20px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="site-header">
+        <img src="/lp/logo-crop.png" alt="Fórmula do Boi">
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <div class="hero-bg">
+            <img src="/lp/login-bg.jpg" alt="Criador de Nelore PO no campo">
+        </div>
+        <div class="container">
+            <div class="hero-content">
+
+                <div class="badge">
+                    <span class="dot"></span>
+                    Comunidade Ativa de Nelore PO
+                </div>
+
+                <h1>
+                    Cada dia sem a <span>genética certa</span><br>
+                    é dinheiro que você não recupera.
+                </h1>
+
+                <p class="hero-sub">
+                    A Fórmula do Boi conecta criadores, investidores e apaixonados por Nelore PO onde <strong style="color:var(--gold);">genética de elite</strong>, dados reais e negócios acontecem todos os dias.
+                </p>
+
+                <a href="#formulario" class="cta-btn">
+                    Quero Fazer Parte Agora
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+
+                <div class="social-proof">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    +400 criadores e investidores já fazem parte
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== O QUE VOCÊ ENCONTRA NO GRUPO ===== -->
+    <section class="group-offer">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-label">O que está dentro do grupo</div>
+                <h2>Tudo que move o mercado de <span>Nelore PO</span> em um só lugar</h2>
+                <p>Acesso direto às melhores oportunidades de genética PO do Brasil, curadas e verificadas pela equipe da Fórmula do Boi.</p>
+            </div>
+
+            <div class="offer-grid">
+                <div class="offer-card reveal">
+                    <div class="offer-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 100 10A5 5 0 0012 2zm0 12c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z"/></svg>
+                    </div>
+                    <div>
+                        <h4>Sêmen dos Touros FDB</h4>
+                        <p>Comercialização direta de sêmen dos reprodutores da Fórmula do Boi — touros provados, com genealogia e DEPs verificados.</p>
+                    </div>
+                </div>
+
+                <div class="offer-card reveal">
+                    <div class="offer-icon">
+                        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                    </div>
+                    <div>
+                        <h4>Embriões de Elite</h4>
+                        <p>Acesso às melhores doadoras do mercado. Embriões com procedência verificada e potencial genético comprovado.</p>
+                    </div>
+                </div>
+
+                <div class="offer-card reveal">
+                    <div class="offer-icon">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+                    </div>
+                    <div>
+                        <h4>Melhores Leilões de PO</h4>
+                        <p>Curadoria dos principais leilões de Nelore PO do país. Saiba antes de todo mundo quais animais vale a pena disputar.</p>
+                    </div>
+                </div>
+
+                <div class="offer-card reveal">
+                    <div class="offer-icon">
+                        <svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <div>
+                        <h4>Conteúdo de Genética Nelore PO</h4>
+                        <p>Análises de DEPs, tendências de mercado, dicas de manejo e informações estratégicas para quem leva PO a sério.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== DIFERENCIAIS ===== -->
+    <section class="diferenciais">
+        <div class="container">
+            <div style="text-align:center;" class="reveal">
+                <div class="section-label">Por que entrar agora</div>
+                <h2 style="font-size:2rem; margin-bottom:8px;">Mais do que um grupo — <span style="color:var(--gold);">uma vantagem competitiva</span></h2>
+                <p style="color:var(--gray-text); font-size:0.95rem; max-width:520px; margin:0 auto;">Benefícios exclusivos para quem faz parte da Fórmula do Boi.</p>
+            </div>
+            <div class="diferenciais-grid">
+                <div class="diferencial-card reveal">
+                    <div class="diferencial-icon">
+                        <svg viewBox="0 0 24 24"><path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <h4>Parcelamento em até 30x no boleto</h4>
+                    <p>Facilidade de pagamento para que você invista na melhor genética sem comprometer seu fluxo de caixa. Até 30 parcelas no boleto bancário.</p>
+                </div>
+                <div class="diferencial-card reveal">
+                    <div class="diferencial-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    </div>
+                    <h4>Conteúdo personalizado sobre gado P.O</h4>
+                    <p>Material desenvolvido especialmente para o perfil de cada membro — do iniciante ao criador experiente — com foco prático e aplicado à realidade do mercado.</p>
+                </div>
+                <div class="diferencial-card reveal">
+                    <div class="diferencial-icon">
+                        <svg viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87V15.13a1 1 0 01-1.447.899L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+                    </div>
+                    <h4>Aulões semanais exclusivos</h4>
+                    <p>Dicas e análises toda semana através de aulas especialmente preparadas por especialistas em genética Nelore PO — direto para quem está dentro do grupo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== NETWORKING BANNER ===== -->
+    <section class="networking-banner">
+        <div class="container">
+            <div class="nb-label reveal">Networking de elite</div>
+            <h2 class="reveal">Amplie sua rede com os <span>grandes nomes da pecuária</span> de elite genética do Brasil</h2>
+            <p class="reveal">O grupo da Fórmula do Boi reúne criadores, investidores e especialistas que movem o mercado de Nelore PO. Estar aqui é estar onde as decisões são tomadas.</p>
+            <div class="networking-tags reveal">
+                <span class="networking-tag">
+                    <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Criadores de referência nacional
+                </span>
+                <span class="networking-tag">
+                    <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Investidores do setor
+                </span>
+                <span class="networking-tag">
+                    <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Especialistas em genética PO
+                </span>
+                <span class="networking-tag">
+                    <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Fazendas de elite em +12 estados
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== 3 PILARES ===== -->
+    <section class="pilares">
+        <div class="container">
+            <div class="pilares-inner reveal">
+                <div class="pilares-header">
+                    <h2>O que você leva ao entrar para o <span>grupo seleto</span></h2>
+                    <p>Três atributos que transformam a forma como você atua no mercado de Nelore PO.</p>
+                </div>
+                <div class="pilares-grid">
+                    <div class="pilar">
+                        <div class="pilar-number">01</div>
+                        <div class="pilar-icon">
+                            <svg viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        </div>
+                        <h3><span>Conhecimento</span></h3>
+                        <p>Acesso a conteúdo técnico, aulões semanais e análises de genética Nelore PO que aceleram sua curva de aprendizado e qualificam cada decisão de compra.</p>
+                    </div>
+                    <div class="pilar">
+                        <div class="pilar-number">02</div>
+                        <div class="pilar-icon">
+                            <svg viewBox="0 0 24 24"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                        </div>
+                        <h3>Produtos de <span>altíssima qualidade</span></h3>
+                        <p>Sêmen dos touros FDB, embriões das melhores doadoras e acesso aos principais leilões PO — tudo verificado e curado antes de chegar até você.</p>
+                    </div>
+                    <div class="pilar">
+                        <div class="pilar-number">03</div>
+                        <div class="pilar-icon">
+                            <svg viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                        <h3><span>Contatos qualificados</span></h3>
+                        <p>Uma rede seleta de criadores, investidores e especialistas que abrem portas, geram negócios e elevam o nível do que você pode alcançar no mercado de PO.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOTO DIVISÓRIA: REBANHO AÉREO ===== -->
+    <div class="photo-divider">
+        <img src="/lp/DJI_20231108093924_0025_D.jpg" alt="Rebanho Nelore PO — vista aérea" loading="lazy">
+    </div>
+
+    <!-- ===== STATS ===== -->
+    <div class="stats-row">
+        <div class="container">
+            <div class="stat-item reveal">
+                <h3 data-target="400">0</h3>
+                <p>Criadores no grupo</p>
+            </div>
+            <div class="stat-item reveal">
+                <div class="stat-text">Sempre</div>
+                <p>Negócios fechados</p>
+            </div>
+            <div class="stat-item reveal">
+                <h3 data-target="12">0</h3>
+                <p>Estados representados</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== QUIZ / FORMULÁRIO ===== -->
+    <section class="quiz-section" id="formulario">
+        <div class="container">
+            <div class="quiz-header reveal">
+                <div class="section-label">Seu próximo passo</div>
+                <h2>Entre para a <span>Fórmula do Boi</span></h2>
+                <p>Responda algumas perguntas rápidas para recebermos você da melhor forma.</p>
+            </div>
+
+            <div class="quiz-wrapper reveal">
+                <div class="quiz-form">
+                    <div class="quiz-progress">
+                        <div class="quiz-progress-bar" id="quizProgress"></div>
+                    </div>
+                    <div class="quiz-body">
+
+                        <!-- STEP 1 -->
+                        <div class="quiz-step active" id="step1">
+                            <div class="quiz-step-label">Passo 1 de 3</div>
+                            <h3>Qual é o <span>seu perfil</span> hoje?</h3>
+                            <p class="quiz-step-sub">Escolha a opção que melhor te representa.</p>
+
+                            <div class="quiz-profiles">
+                                <div class="quiz-profile-card" data-profile="experienced" onclick="selectProfile(this)">
+                                    <div class="qp-check"></div>
+                                    <div class="qp-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                                    </div>
+                                    <h4>Já trabalho com Nelore PO</h4>
+                                    <p>Tenho rebanho e quero escalar meus resultados</p>
+                                </div>
+                                <div class="quiz-profile-card" data-profile="beginner" onclick="selectProfile(this)">
+                                    <div class="qp-check"></div>
+                                    <div class="qp-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                    </div>
+                                    <h4>Quero começar no mercado PO</h4>
+                                    <p>Quero aprender e dar meus primeiros passos</p>
+                                </div>
+                            </div>
+
+                            <div class="quiz-nav" style="justify-content:flex-end;">
+                                <button class="quiz-btn-next" id="btn1next" disabled onclick="goToStep2()">
+                                    Próximo
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- STEP 2A -->
+                        <div class="quiz-step" id="step2a">
+                            <div class="quiz-step-label">Passo 2 de 3</div>
+                            <h3>Conte sobre o <span>seu rebanho</span></h3>
+                            <p class="quiz-step-sub">Isso nos ajuda a direcionar as melhores oportunidades para você.</p>
+
+                            <div class="quiz-field">
+                                <label>Quantos animais PO você tem hoje?</label>
+                                <select id="qAnimais">
+                                    <option value="">Selecione...</option>
+                                    <option value="1-10">1 a 10 animais</option>
+                                    <option value="11-50">11 a 50 animais</option>
+                                    <option value="51-200">51 a 200 animais</option>
+                                    <option value="200+">Mais de 200 animais</option>
+                                </select>
+                            </div>
+                            <div class="quiz-field">
+                                <label>Intenção de investimento nos próximos 12 meses?</label>
+                                <select id="qInvestExp">
+                                    <option value="">Selecione...</option>
+                                    <option value="ate-50k">Até R$ 50.000</option>
+                                    <option value="50k-150k">R$ 50.000 a R$ 150.000</option>
+                                    <option value="150k-500k">R$ 150.000 a R$ 500.000</option>
+                                    <option value="500k+">Acima de R$ 500.000</option>
+                                </select>
+                            </div>
+
+                            <div class="quiz-nav">
+                                <button class="quiz-btn-back" onclick="goToStep(1)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                    Voltar
+                                </button>
+                                <button class="quiz-btn-next" onclick="goToStep(3)">
+                                    Próximo
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- STEP 2B -->
+                        <div class="quiz-step" id="step2b">
+                            <div class="quiz-step-label">Passo 2 de 3</div>
+                            <h3>Seu <span>momento atual</span></h3>
+                            <p class="quiz-step-sub">Suas respostas nos ajudam a preparar o melhor conteúdo para você.</p>
+
+                            <div class="quiz-field">
+                                <label>Você já tem ideia de quanto quer investir?</label>
+                                <select id="qInvestBeg">
+                                    <option value="">Selecione...</option>
+                                    <option value="sim-valor">Sim, já tenho um valor em mente</option>
+                                    <option value="nao-sei">Ainda não sei quanto preciso</option>
+                                    <option value="entender-antes">Quero entender antes de definir</option>
+                                </select>
+                            </div>
+                            <div class="quiz-field">
+                                <label>O que mais te interessa agora?</label>
+                                <select id="qInteresse">
+                                    <option value="">Selecione...</option>
+                                    <option value="semen-embrioes">Comprar sêmen ou embriões PO</option>
+                                    <option value="leiloes">Participar de leilões de PO</option>
+                                    <option value="aprender">Aprender sobre genética Nelore</option>
+                                    <option value="assessoria">Encontrar assessoria especializada</option>
+                                </select>
+                            </div>
+                            <div class="quiz-field">
+                                <label>Gostaria de assessoria para os primeiros passos?</label>
+                                <select id="qAssessoria">
+                                    <option value="">Selecione...</option>
+                                    <option value="sim">Sim, preciso de orientação</option>
+                                    <option value="talvez">Talvez, quero saber mais</option>
+                                    <option value="sozinho">Prefiro ir sozinho por enquanto</option>
+                                </select>
+                            </div>
+
+                            <div class="quiz-nav">
+                                <button class="quiz-btn-back" onclick="goToStep(1)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                    Voltar
+                                </button>
+                                <button class="quiz-btn-next" onclick="goToStep(3)">
+                                    Próximo
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- STEP 3 -->
+                        <div class="quiz-step" id="step3">
+                            <div class="quiz-step-label">Passo 3 de 3</div>
+                            <h3>Quase lá! <span>Seus dados</span></h3>
+                            <p class="quiz-step-sub">Preencha para receber o acesso ao grupo e conteúdos exclusivos.</p>
+
+                            <div class="quiz-field">
+                                <label for="qNome">Nome completo *</label>
+                                <input type="text" id="qNome" placeholder="Seu nome completo" required>
+                                <div class="field-error">Preencha seu nome completo</div>
+                            </div>
+                            <div class="quiz-field">
+                                <label for="qEmail">E-mail *</label>
+                                <input type="email" id="qEmail" placeholder="seu@email.com" required>
+                                <div class="field-error">Informe um e-mail válido</div>
+                            </div>
+                            <div class="quiz-field">
+                                <label for="qTelefone">WhatsApp *</label>
+                                <input type="tel" id="qTelefone" placeholder="(31) 99999-9999" required>
+                                <div class="field-hint">Usaremos para enviar o link do grupo</div>
+                                <div class="field-error">Informe seu WhatsApp</div>
+                            </div>
+
+                            <div class="quiz-nav">
+                                <button class="quiz-btn-back" onclick="goToStep(2)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                    Voltar
+                                </button>
+                                <button class="quiz-btn-next" onclick="submitQuiz()">
+                                    Quero Entrar no Grupo
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- SUCCESS -->
+                        <div class="quiz-step" id="stepSuccess">
+                            <div class="quiz-success">
+                                <div class="quiz-success-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                </div>
+                                <h3>Cadastro <span>realizado!</span></h3>
+                                <p>Você está a um passo de entrar no grupo mais exclusivo de Nelore PO do Brasil. Clique abaixo para acessar.</p>
+                                <a href="__WHATSAPP_GROUP_LINK__" class="cta-btn">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                    Entrar no Grupo do WhatsApp
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="container">
+            <img src="/lp/logo.png" alt="Fórmula do Boi" style="width:160px; height:auto; display:block; margin:0 auto 12px;">
+            <p>Plataforma de comercialização de Nelore PO de alta performance</p>
+            <p class="footer-loc">Belo Horizonte — MG | Brasil</p>
+        </div>
+    </footer>
+
+    <!-- ===== FLOATING CTA ===== -->
+    <div class="floating-cta" id="floatingCta">
+        <a href="#formulario">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Entrar no Grupo
+        </a>
+    </div>
+
+    <script>
+        // ===== FLOATING CTA =====
+        const floatingCta = document.getElementById('floatingCta');
+        window.addEventListener('scroll', () => {
+            floatingCta.classList.toggle('visible', window.scrollY > 500);
+        });
+
+        // ===== SCROLL REVEAL =====
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        // ===== STATS COUNTER =====
+        const statNumbers = document.querySelectorAll('.stat-item h3[data-target]');
+        let counted = false;
+        const statsObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting && !counted) {
+                    counted = true;
+                    statNumbers.forEach(num => {
+                        const target = parseInt(num.dataset.target);
+                        const step = target / (2000 / 16);
+                        let val = 0;
+                        const t = setInterval(() => {
+                            val += step;
+                            if (val >= target) { val = target; clearInterval(t); }
+                            num.textContent = Math.floor(val).toLocaleString('pt-BR') + '+';
+                        }, 16);
+                    });
+                }
+            });
+        }, { threshold: 0.3 });
+        statNumbers.forEach(n => statsObs.observe(n));
+
+        // ===== QUIZ =====
+        let selectedProfile = null;
+        const progressBar = document.getElementById('quizProgress');
+
+        function selectProfile(card) {
+            document.querySelectorAll('.quiz-profile-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedProfile = card.dataset.profile;
+            document.getElementById('btn1next').disabled = false;
+        }
+
+        function showStep(id, pct) {
+            document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            progressBar.style.width = pct + '%';
+        }
+
+        function goToStep2() {
+            if (!selectedProfile) return;
+            showStep(selectedProfile === 'experienced' ? 'step2a' : 'step2b', 60);
+        }
+
+        function goToStep(n) {
+            if (n === 1) showStep('step1', 33);
+            else if (n === 2) showStep(selectedProfile === 'experienced' ? 'step2a' : 'step2b', 60);
+            else if (n === 3) showStep('step3', 85);
+        }
+
+        async function submitQuiz() {
+            document.querySelectorAll('.quiz-field').forEach(f => f.classList.remove('error'));
+            let err = false;
+            const nome  = document.getElementById('qNome');
+            const email = document.getElementById('qEmail');
+            const tel   = document.getElementById('qTelefone');
+            if (!nome.value.trim() || nome.value.trim().length < 3) { nome.closest('.quiz-field').classList.add('error'); err = true; }
+            if (!email.value.trim() || !email.value.includes('@') || !email.value.includes('.')) { email.closest('.quiz-field').classList.add('error'); err = true; }
+            if (!tel.value.trim() || tel.value.replace(/\D/g,'').length < 10) { tel.closest('.quiz-field').classList.add('error'); err = true; }
+            if (err) return;
+
+            const btn = document.querySelector('#step3 .quiz-btn-next');
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+
+            const lead = {
+                perfil: selectedProfile,
+                nome: nome.value.trim(),
+                email: email.value.trim(),
+                tel: tel.value.trim()
+            };
+            if (selectedProfile === 'experienced') {
+                lead.animais = document.getElementById('qAnimais').value;
+                lead.investimento = document.getElementById('qInvestExp').value;
+            } else {
+                lead.investimento = document.getElementById('qInvestBeg').value;
+                lead.interesse = document.getElementById('qInteresse').value;
+                lead.assessoria = document.getElementById('qAssessoria').value;
+            }
+
+            try {
+                const res = await fetch('/api/lp/lead', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(lead)
+                });
+                if (!res.ok) throw new Error('erro');
+            } catch (e) {
+                console.warn('Falha ao enviar lead (nao-critico):', e);
+            }
+
+            showStep('stepSuccess', 100);
+        }
+
+        // Phone mask
+        document.getElementById('qTelefone').addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g,'').slice(0,11);
+            if (v.length > 6) v = '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+            else if (v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
+            else if (v.length) v = '('+v;
+            e.target.value = v;
+        });
+    </script>
+
+</body>
+</html>
