@@ -1,7 +1,65 @@
 import Link from 'next/link'
 import { Wallet, Package, Calculator, ArrowRight, TrendingUp, TrendingDown, Clock, Activity, BarChart3, Users, Factory } from 'lucide-react'
+import { createClient } from '@/utils/supabase/server'
 
-export default function ERPDashboard() {
+function formatCurrency(value: number) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}
+
+export default async function ERPDashboard() {
+    const supabase = await createClient()
+
+    // Saldo Atual — soma de current_balance de todas as contas bancárias
+    const { data: accounts } = await supabase
+        .from('erp_finance_accounts')
+        .select('current_balance')
+
+    const saldoAtual = accounts?.reduce((sum, a) => sum + (Number(a.current_balance) || 0), 0) ?? 0
+
+    // Variação mensal: transações concluídas do mês atual para estimar saldo no início do mês
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+
+    const { data: thisMonthTx } = await supabase
+        .from('erp_finance_transactions')
+        .select('amount, type')
+        .eq('status', 'completed')
+        .gte('transaction_date', startOfMonth)
+
+    const thisMonthNet = thisMonthTx?.reduce((sum, t) => {
+        return sum + (t.type === 'income' ? Number(t.amount) : -Number(t.amount))
+    }, 0) ?? 0
+
+    const lastMonthBalance = saldoAtual - thisMonthNet
+    const balancePercent = lastMonthBalance !== 0
+        ? Math.round(((saldoAtual - lastMonthBalance) / Math.abs(lastMonthBalance)) * 100)
+        : 0
+
+    // A Pagar — despesas pendentes
+    const { data: pendingExpenses } = await supabase
+        .from('erp_finance_transactions')
+        .select('amount')
+        .eq('type', 'expense')
+        .eq('status', 'pending')
+
+    const aPagar = pendingExpenses?.reduce((sum, t) => sum + (Number(t.amount) || 0), 0) ?? 0
+    const pendingCount = pendingExpenses?.length ?? 0
+
+    // Estoque ativo
+    const { count: productCount } = await supabase
+        .from('erp_inventory_products')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_active', true)
+
+    const { count: warehouseCount } = await supabase
+        .from('erp_inventory_warehouses')
+        .select('id', { count: 'exact', head: true })
+
+    // Colaboradores — perfis cadastrados
+    const { count: profileCount } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+
     const modules = [
         {
             name: 'Financeiro',
@@ -58,6 +116,7 @@ export default function ERPDashboard() {
 
             {/* Premium Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Saldo Atual */}
                 <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                         <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Saldo Atual</p>
@@ -65,27 +124,36 @@ export default function ERPDashboard() {
                             <Wallet className="w-5 h-5 text-[#D4AF37]" />
                         </div>
                     </div>
-                    <p className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">R$ 0,00</p>
-                    <div className="mt-4 flex items-center text-xs font-semibold bg-emerald-500/10 w-fit px-2.5 py-1 rounded-md text-emerald-400">
-                        <TrendingUp className="w-3.5 h-3.5 mr-1" />
-                        <span>0% desde o último mês</span>
+                    <p className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                        {formatCurrency(saldoAtual)}
+                    </p>
+                    <div className={`mt-4 flex items-center text-xs font-semibold w-fit px-2.5 py-1 rounded-md ${balancePercent >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                        {balancePercent >= 0
+                            ? <TrendingUp className="w-3.5 h-3.5 mr-1" />
+                            : <TrendingDown className="w-3.5 h-3.5 mr-1" />
+                        }
+                        <span>{balancePercent > 0 ? '+' : ''}{balancePercent}% desde o último mês</span>
                     </div>
                 </div>
 
+                {/* A Pagar */}
                 <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
-                        <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">A Pagar (Hoje)</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">A Pagar (Pendente)</p>
                         <div className="p-2 bg-rose-500/10 rounded-lg group-hover:scale-110 transition-transform">
                             <TrendingDown className="w-5 h-5 text-rose-500" />
                         </div>
                     </div>
-                    <p className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">R$ 0,00</p>
+                    <p className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                        {formatCurrency(aPagar)}
+                    </p>
                     <div className="mt-4 flex items-center text-xs font-semibold bg-rose-500/10 w-fit px-2.5 py-1 rounded-md text-rose-400">
                         <Clock className="w-3.5 h-3.5 mr-1" />
-                        <span>0 títulos pendentes</span>
+                        <span>{pendingCount} {pendingCount === 1 ? 'título pendente' : 'títulos pendentes'}</span>
                     </div>
                 </div>
 
+                {/* Estoque Ativo */}
                 <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                         <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Estoque Ativo</p>
@@ -93,13 +161,16 @@ export default function ERPDashboard() {
                             <Package className="w-5 h-5 text-teal-500" />
                         </div>
                     </div>
-                    <p className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">0 <span className="text-lg text-gray-400 dark:text-[#666] font-medium">itens</span></p>
+                    <p className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                        {productCount ?? 0} <span className="text-lg text-gray-400 dark:text-[#666] font-medium">itens</span>
+                    </p>
                     <div className="mt-4 flex items-center text-xs font-semibold bg-teal-500/10 w-fit px-2.5 py-1 rounded-md text-teal-400">
                         <Factory className="w-3.5 h-3.5 mr-1" />
-                        <span>0 armazéns ativos</span>
+                        <span>{warehouseCount ?? 0} {(warehouseCount ?? 0) === 1 ? 'armazém ativo' : 'armazéns ativos'}</span>
                     </div>
                 </div>
 
+                {/* Colaboradores */}
                 <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                         <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Colaboradores</p>
@@ -107,7 +178,9 @@ export default function ERPDashboard() {
                             <Users className="w-5 h-5 text-indigo-400" />
                         </div>
                     </div>
-                    <p className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">0</p>
+                    <p className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                        {profileCount ?? 0}
+                    </p>
                     <div className="mt-4 flex items-center text-xs font-semibold bg-indigo-500/10 w-fit px-2.5 py-1 rounded-md text-indigo-400">
                         <Activity className="w-3.5 h-3.5 mr-1" />
                         <span>Acessos registrados</span>

@@ -113,3 +113,40 @@ export async function deleteTransaction(id: string) {
         return { success: false, error: error.message };
     }
 }
+
+export async function saveCategory(data: { id?: string; name: string; type: string }) {
+    const supabase = await createClient();
+    try {
+        if (data.id) {
+            const { error } = await supabase
+                .from('erp_finance_categories')
+                .update({ name: data.name, type: data.type })
+                .eq('id', data.id);
+            if (error) throw error;
+        } else {
+            const { error } = await supabase
+                .from('erp_finance_categories')
+                .insert([{ name: data.name, type: data.type }]);
+            if (error) throw error;
+        }
+        revalidatePath(PATH);
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function deleteCategory(id: string) {
+    const supabase = await createClient();
+    try {
+        const { error } = await supabase
+            .from('erp_finance_categories')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+        revalidatePath(PATH);
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}

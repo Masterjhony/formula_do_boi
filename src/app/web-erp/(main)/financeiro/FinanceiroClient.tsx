@@ -11,6 +11,7 @@ import {
 import {
     saveTransaction, updateTransactionStatus, deleteTransaction,
     conciliarMultiplos, updateTransactionCategory,
+    saveCategory, deleteCategory,
 } from './actions';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -68,7 +69,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
     const [activeTab, setActiveTab] = useState('dashboard');
     const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
     const [accounts] = useState<Account[]>(initialAccounts);
-    const [categories] = useState<Category[]>(initialCategories);
+    const [categories, setCategories] = useState<Category[]>(initialCategories);
     const [searchTerm, setSearchTerm] = useState('');
 
     // Modal
@@ -77,9 +78,17 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
     const [modalType, setModalType] = useState<'income' | 'expense'>('expense');
     const [saving, setSaving] = useState(false);
 
-    // Delete
+    // Delete transaction
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
+
+    // Category modal
+    const [showCatModal, setShowCatModal] = useState(false);
+    const [editingCat, setEditingCat] = useState<Category | null>(null);
+    const [catForm, setCatForm] = useState({ name: '', type: 'expense' });
+    const [savingCat, setSavingCat] = useState(false);
+    const [deleteCatConfirm, setDeleteCatConfirm] = useState<string | null>(null);
+    const [deletingCat, setDeletingCat] = useState(false);
 
     // Form
     const [form, setForm] = useState({
@@ -232,6 +241,35 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
         if (!res.success) router.refresh();
     };
 
+    const openNewCat = (type: 'income' | 'expense') => {
+        setEditingCat(null);
+        setCatForm({ name: '', type });
+        setShowCatModal(true);
+    };
+
+    const openEditCat = (cat: Category) => {
+        setEditingCat(cat);
+        setCatForm({ name: cat.name, type: cat.type });
+        setShowCatModal(true);
+    };
+
+    const closeCatModal = () => { setShowCatModal(false); setEditingCat(null); setSavingCat(false); };
+
+    const handleSaveCat = async () => {
+        if (!catForm.name.trim()) return;
+        setSavingCat(true);
+        const res = await saveCategory({ id: editingCat?.id, name: catForm.name.trim(), type: catForm.type });
+        if (res.success) { closeCatModal(); router.refresh(); }
+        else { alert('Erro ao salvar: ' + res.error); setSavingCat(false); }
+    };
+
+    const handleDeleteCat = async (id: string) => {
+        setDeletingCat(true);
+        const res = await deleteCategory(id);
+        if (res.success) { setDeleteCatConfirm(null); setDeletingCat(false); closeCatModal(); router.refresh(); }
+        else { alert('Erro ao excluir: ' + res.error); setDeletingCat(false); }
+    };
+
     // ── Shared sub-renders ───────────────────────────────────────────────────
     const statusBadge = (status: string) => {
         const map: Record<string, { cls: string; label: string }> = {
@@ -302,6 +340,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                         { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
                         { key: 'conciliacao', icon: CheckCircle2, label: 'Conciliação' },
                         { key: 'fluxo', icon: BarChart3, label: 'Fluxo de Caixa' },
+                        { key: 'categorias', icon: Tag, label: 'Categorias' },
                     ] as const).map(tab => (
                         <button
                             key={tab.key}
@@ -689,6 +728,207 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 </p>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════════════
+                CATEGORIAS TAB
+               ═══════════════════════════════════════════════════════════════════ */}
+            {activeTab === 'categorias' && (
+                <div className="animate-in fade-in duration-500 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Receitas */}
+                        <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
+                            <div className="p-5 border-b border-gray-100 dark:border-[#222] flex items-center justify-between bg-gray-50 dark:bg-[#141414]">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                                        <ArrowUpRight className="w-4 h-4 text-emerald-500" />
+                                    </div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">Receitas</h3>
+                                    <span className="text-xs text-gray-400 dark:text-[#666] bg-gray-100 dark:bg-[#222] px-2 py-0.5 rounded-full font-mono">{incomeCategories.length}</span>
+                                </div>
+                                <button
+                                    onClick={() => openNewCat('income')}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 text-xs font-bold rounded-lg transition-all"
+                                >
+                                    <Plus className="w-3.5 h-3.5" /> Nova
+                                </button>
+                            </div>
+                            <div className="p-3 space-y-1.5">
+                                {incomeCategories.length > 0 ? incomeCategories.map(cat => (
+                                    <div key={cat.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#111] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] hover:border-emerald-500/30 transition-all group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{cat.name}</span>
+                                        </div>
+                                        <button
+                                            onClick={() => openEditCat(cat)}
+                                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                )) : (
+                                    <div className="py-10 text-center text-xs text-gray-400 dark:text-[#555] font-bold uppercase tracking-widest">
+                                        Nenhuma categoria de receita
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Despesas */}
+                        <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
+                            <div className="p-5 border-b border-gray-100 dark:border-[#222] flex items-center justify-between bg-gray-50 dark:bg-[#141414]">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                                        <ArrowDownRight className="w-4 h-4 text-rose-500" />
+                                    </div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">Despesas</h3>
+                                    <span className="text-xs text-gray-400 dark:text-[#666] bg-gray-100 dark:bg-[#222] px-2 py-0.5 rounded-full font-mono">{expenseCategories.length}</span>
+                                </div>
+                                <button
+                                    onClick={() => openNewCat('expense')}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs font-bold rounded-lg transition-all"
+                                >
+                                    <Plus className="w-3.5 h-3.5" /> Nova
+                                </button>
+                            </div>
+                            <div className="p-3 space-y-1.5">
+                                {expenseCategories.length > 0 ? expenseCategories.map(cat => (
+                                    <div key={cat.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#111] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] hover:border-rose-500/30 transition-all group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-rose-500" />
+                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{cat.name}</span>
+                                        </div>
+                                        <button
+                                            onClick={() => openEditCat(cat)}
+                                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                )) : (
+                                    <div className="py-10 text-center text-xs text-gray-400 dark:text-[#555] font-bold uppercase tracking-widest">
+                                        Nenhuma categoria de despesa
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════════════
+                CATEGORY MODAL
+               ═══════════════════════════════════════════════════════════════════ */}
+            {showCatModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeCatModal} />
+                    <div className="relative bg-white dark:bg-[#111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl shadow-2xl w-full max-w-sm animate-in zoom-in-95 fade-in duration-200">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-[#222]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center">
+                                    <Tag className="w-5 h-5 text-[#D4AF37]" />
+                                </div>
+                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                                    {editingCat ? 'Editar Categoria' : 'Nova Categoria'}
+                                </h3>
+                            </div>
+                            <button onClick={closeCatModal} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#222] transition-colors">
+                                <X className="w-5 h-5 text-gray-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-5">
+                            {/* Type toggle */}
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCatForm(f => ({ ...f, type: 'income' }))}
+                                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${catForm.type === 'income' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-[#666] hover:text-gray-900 dark:hover:text-white'}`}
+                                >
+                                    Receita
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCatForm(f => ({ ...f, type: 'expense' }))}
+                                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${catForm.type === 'expense' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-[#666] hover:text-gray-900 dark:hover:text-white'}`}
+                                >
+                                    Despesa
+                                </button>
+                            </div>
+
+                            {/* Name */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-2">Nome</label>
+                                <input
+                                    type="text"
+                                    value={catForm.name}
+                                    onChange={e => setCatForm(f => ({ ...f, name: e.target.value }))}
+                                    onKeyDown={e => e.key === 'Enter' && handleSaveCat()}
+                                    placeholder="Ex: Marketing, Salários..."
+                                    autoFocus
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between p-6 border-t border-gray-100 dark:border-[#222]">
+                            <div>
+                                {editingCat && (
+                                    <button
+                                        onClick={() => setDeleteCatConfirm(editingCat.id)}
+                                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                                    >
+                                        <Trash2 className="w-4 h-4" /> Excluir
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex gap-3">
+                                <button onClick={closeCatModal} className="px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleSaveCat}
+                                    disabled={savingCat || !catForm.name.trim()}
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#B8860B]/20 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                                >
+                                    {savingCat && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    {savingCat ? 'Salvando...' : 'Salvar'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Category delete confirmation */}
+            {deleteCatConfirm && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteCatConfirm(null)} />
+                    <div className="relative bg-white dark:bg-[#111] border border-rose-500/20 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center animate-in zoom-in-95 fade-in duration-200">
+                        <div className="w-16 h-16 rounded-full bg-rose-500/10 flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle className="w-8 h-8 text-rose-500" />
+                        </div>
+                        <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2">Excluir Categoria?</h3>
+                        <p className="text-sm text-gray-500 dark:text-[#888] mb-6">Lançamentos vinculados perderão a categoria.</p>
+                        <div className="flex gap-3 justify-center">
+                            <button
+                                onClick={() => setDeleteCatConfirm(null)}
+                                className="px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-[#1A1A1A] rounded-xl transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => handleDeleteCat(deleteCatConfirm)}
+                                disabled={deletingCat}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-rose-500 text-white rounded-xl text-sm font-bold hover:bg-rose-600 transition-all disabled:opacity-50"
+                            >
+                                {deletingCat && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {deletingCat ? 'Excluindo...' : 'Excluir'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
