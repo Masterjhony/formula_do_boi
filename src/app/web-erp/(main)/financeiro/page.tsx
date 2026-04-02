@@ -12,7 +12,7 @@ export default async function FinanceiroPage() {
     const { data: transactions } = await supabase
         .from('erp_finance_transactions')
         .select(`
-            id, amount, type, description, transaction_date, status, account_id, category_id,
+            id, amount, type, description, observacao, transaction_date, status, account_id, category_id,
             account:erp_finance_accounts(id, name, type),
             category:erp_finance_categories(id, name, type)
         `)

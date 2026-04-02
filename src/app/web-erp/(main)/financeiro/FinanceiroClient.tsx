@@ -11,7 +11,7 @@ import {
 import {
     saveTransaction, updateTransactionStatus, deleteTransaction,
     conciliarMultiplos, updateTransactionCategory,
-    saveCategory, deleteCategory,
+    saveCategory, deleteCategory, saveObservacao,
 } from './actions';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -35,6 +35,7 @@ interface Transaction {
     type: string;
     amount: number;
     description: string;
+    observacao?: string | null;
     transaction_date: string;
     status: string;
     account?: { id: string; name: string; type?: string } | null;
@@ -98,7 +99,12 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
         account_id: '',
         category_id: '',
         status: 'pending',
+        observacao: '',
     });
+
+    // Inline observation editing
+    const [editingObsId, setEditingObsId] = useState<string | null>(null);
+    const [obsValue, setObsValue] = useState('');
 
     // Sync props → state after router.refresh()
     useEffect(() => { setTransactions(initialTransactions); }, [initialTransactions]);
@@ -174,7 +180,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
     const openNew = (type: 'income' | 'expense') => {
         setEditingTx(null);
         setModalType(type);
-        setForm({ description: '', amount: '', transaction_date: today(), account_id: accounts[0]?.id || '', category_id: '', status: 'pending' });
+        setForm({ description: '', amount: '', transaction_date: today(), account_id: accounts[0]?.id || '', category_id: '', status: 'pending', observacao: '' });
         setShowModal(true);
     };
 
@@ -188,6 +194,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
             account_id: tx.account_id || accounts[0]?.id || '',
             category_id: tx.category_id || '',
             status: tx.status,
+            observacao: tx.observacao || '',
         });
         setShowModal(true);
     };
@@ -206,6 +213,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
             transaction_date: form.transaction_date,
             status: form.status,
             category_id: form.category_id || null,
+            observacao: form.observacao.trim() || null,
         });
         if (res.success) { closeModal(); router.refresh(); }
         else { alert('Erro ao salvar: ' + res.error); setSaving(false); }
@@ -239,6 +247,13 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
         ));
         const res = await updateTransactionCategory(txId, catId || null);
         if (!res.success) router.refresh();
+    };
+
+    const handleObsSave = async (txId: string) => {
+        const trimmed = obsValue.trim();
+        setTransactions(prev => prev.map(tx => tx.id === txId ? { ...tx, observacao: trimmed || null } : tx));
+        setEditingObsId(null);
+        await saveObservacao(txId, trimmed);
     };
 
     const openNewCat = (type: 'income' | 'expense') => {
@@ -554,6 +569,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                         <th className="px-6 py-4 font-bold">Data</th>
                                         <th className="px-6 py-4 font-bold">Descrição</th>
                                         <th className="px-6 py-4 font-bold">Categoria</th>
+                                        <th className="px-6 py-4 font-bold">Observação</th>
                                         <th className="px-6 py-4 font-bold text-right">Valor</th>
                                         <th className="px-6 py-4 font-bold text-center">Status</th>
                                         <th className="px-6 py-4 font-bold text-center">Ação</th>
@@ -598,6 +614,27 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                                     </span>
                                                 )}
                                             </td>
+                                            <td className="px-6 py-4 min-w-[180px]">
+                                                {editingObsId === tx.id ? (
+                                                    <textarea
+                                                        autoFocus
+                                                        value={obsValue}
+                                                        onChange={e => setObsValue(e.target.value)}
+                                                        onBlur={() => handleObsSave(tx.id)}
+                                                        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleObsSave(tx.id); } if (e.key === 'Escape') { setEditingObsId(null); } }}
+                                                        rows={2}
+                                                        className="w-full px-3 py-2 text-xs bg-white dark:bg-[#0A0A0A] border border-[#B8860B]/50 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/50 resize-none transition-all"
+                                                        placeholder="Adicionar observação..."
+                                                    />
+                                                ) : (
+                                                    <button
+                                                        onClick={() => { setEditingObsId(tx.id); setObsValue(tx.observacao || ''); }}
+                                                        className={`w-full text-left text-xs px-3 py-2 rounded-lg border transition-all ${tx.observacao ? 'border-[#B8860B]/20 text-gray-700 dark:text-gray-300 bg-[#B8860B]/5 hover:border-[#B8860B]/40' : 'border-dashed border-gray-300 dark:border-[#333] text-gray-400 dark:text-[#555] hover:border-gray-400 dark:hover:border-[#555]'}`}
+                                                    >
+                                                        {tx.observacao || 'Adicionar obs...'}
+                                                    </button>
+                                                )}
+                                            </td>
                                             <td className={`px-6 py-4 text-right font-extrabold whitespace-nowrap ${tx.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
                                                 {tx.type === 'income' ? '+' : '-'} {fmt(Number(tx.amount))}
                                             </td>
@@ -627,7 +664,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-16 text-center text-gray-400 dark:text-[#555] font-bold uppercase tracking-widest text-xs">
+                                            <td colSpan={7} className="px-6 py-16 text-center text-gray-400 dark:text-[#555] font-bold uppercase tracking-widest text-xs">
                                                 {searchTerm ? 'Nenhum resultado encontrado.' : 'Nenhuma movimentação registrada.'}
                                             </td>
                                         </tr>
@@ -1063,6 +1100,18 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     </select>
                                 </div>
                             )}
+
+                            {/* Observation */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-2">Observação</label>
+                                <textarea
+                                    value={form.observacao}
+                                    onChange={e => setForm(f => ({ ...f, observacao: e.target.value }))}
+                                    placeholder="Informações adicionais sobre o lançamento..."
+                                    rows={3}
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all resize-none"
+                                />
+                            </div>
                         </div>
 
                         {/* Footer */}

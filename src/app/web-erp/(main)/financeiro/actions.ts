@@ -14,6 +14,7 @@ export async function saveTransaction(data: {
     transaction_date: string;
     status?: string;
     category_id?: string | null;
+    observacao?: string | null;
 }) {
     const supabase = await createClient();
 
@@ -24,6 +25,7 @@ export async function saveTransaction(data: {
         description: data.description,
         transaction_date: data.transaction_date,
         status: data.status || 'pending',
+        observacao: data.observacao || null,
     };
 
     if (data.category_id) {
@@ -105,6 +107,21 @@ export async function deleteTransaction(id: string) {
         const { error } = await supabase
             .from('erp_finance_transactions')
             .delete()
+            .eq('id', id);
+        if (error) throw error;
+        revalidatePath(PATH);
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function saveObservacao(id: string, observacao: string) {
+    const supabase = await createClient();
+    try {
+        const { error } = await supabase
+            .from('erp_finance_transactions')
+            .update({ observacao: observacao || null })
             .eq('id', id);
         if (error) throw error;
         revalidatePath(PATH);
