@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
 
                 await sheets.spreadsheets.values.append({
                     spreadsheetId: SPREADSHEET_ID,
-                    range: `${SHEET_NAME}!A:F`,
+                    range: `${SHEET_NAME}!A:I`,
                     valueInputOption: 'USER_ENTERED',
                     requestBody: {
                         values: [[
@@ -126,6 +126,9 @@ export async function POST(request: NextRequest) {
                             tel,
                             animais || '',
                             investimento || '',
+                            perfil ? (perfil === 'experienced' ? 'Criador experiente' : 'Iniciante') : '',
+                            interesse || '',
+                            assessoria || '',
                         ]],
                     },
                 });
