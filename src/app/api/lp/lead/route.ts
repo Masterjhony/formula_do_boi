@@ -29,23 +29,26 @@ export async function POST(request: NextRequest) {
 
         const position = (maxPosData?.[0]?.position || 0) + 1000;
 
-        const notes: string[] = [];
-        if (perfil) notes.push(`Perfil: ${perfil === 'experienced' ? 'Criador experiente' : 'Iniciante'}`);
-        if (animais) notes.push(`Animais: ${animais}`);
-        if (investimento) notes.push(`Investimento: ${investimento}`);
-        if (interesse) notes.push(`Interesse: ${interesse}`);
-        if (assessoria) notes.push(`Assessoria: ${assessoria}`);
+        const notesLines: string[] = [];
+        if (perfil) notesLines.push(`Perfil: ${perfil === 'experienced' ? 'Criador experiente' : 'Iniciante'}`);
+        if (animais) notesLines.push(`Animais: ${animais}`);
+        if (investimento) notesLines.push(`Investimento: ${investimento}`);
+        if (assessoria) notesLines.push(`Assessoria: ${assessoria}`);
 
         const { data: lead, error } = await supabase
             .from('crm_leads')
             .insert({
                 nome,
                 email,
-                telefone: tel,
-                origem: 'landing-whatsapp',
+                telefone: tel.replace(/\D/g, ''),
+                origem: 'landing-page',
                 stage: 'novo',
+                status: 'Lead',
                 position,
-                notes: notes.length > 0 ? notes.join('\n') : null,
+                notes: notesLines.length > 0 ? notesLines.join('\n') : null,
+                interesse: interesse || null,
+                quantidade_animais: animais || null,
+                source_page: 'lp.formuladoboi.com',
             })
             .select()
             .single();
@@ -55,17 +58,45 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Erro ao salvar lead' }, { status: 500 });
         }
 
-        // Dispara WhatsApp welcome
-        try {
-            const phone = tel.replace(/\D/g, '');
-            await fetch(`${WHATSAPP_SERVER_URL}/send`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone, name: nome }),
-            });
-        } catch (waErr) {
-            console.warn('WhatsApp send falhou (não-crítico):', waErr);
+        // Dispara WhatsApp welcome (fire-and-forget)
+        const phone = tel.replace(/\D/g, '');
+        let whatsappStatus: string = 'no_phone';
+        let whatsappReason: string | null = null;
+        let whatsappError: string | null = null;
+
+        if (phone) {
+            try {
+                const waRes = await fetch(`${WHATSAPP_SERVER_URL}/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, name: nome }),
+                    signal: AbortSignal.timeout(15000),
+                });
+                const waBody = await waRes.json().catch(() => ({}));
+                if (waRes.ok && (waBody.sent || waBody.queued)) {
+                    whatsappStatus = 'sent';
+                } else {
+                    whatsappStatus = 'failed';
+                    whatsappReason = waBody.reason ?? null;
+                    whatsappError = waBody.error ?? `HTTP ${waRes.status}`;
+                }
+            } catch (waErr: any) {
+                whatsappStatus = 'failed';
+                whatsappError = waErr.message;
+                console.warn('WhatsApp send falhou (não-crítico):', waErr);
+            }
         }
+
+        void Promise.resolve(
+            supabase.from('whatsapp_messages').insert({
+                phone: phone || null,
+                name: nome,
+                status: whatsappStatus,
+                reason: whatsappReason,
+                error_msg: whatsappError,
+                lead_id: lead.id,
+            })
+        ).catch(console.error);
 
         return NextResponse.json({ success: true, id: lead.id });
     } catch (err) {
