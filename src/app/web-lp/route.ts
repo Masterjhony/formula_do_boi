@@ -14,7 +14,7 @@ export async function GET(_request: NextRequest) {
     let html = fs.readFileSync(htmlPath, 'utf-8');
 
     // Inject WhatsApp group link from site_settings
-    let waGroupLink = '#formulario';
+    let waGroupLink = 'https://chat.whatsapp.com/EXSRr16zZh4JTUxCD3r3Ev';
     try {
         const supabase = getSupabaseAdmin();
         const { data } = await supabase
