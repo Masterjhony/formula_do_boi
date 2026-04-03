@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { google } from 'googleapis';
 
 const WHATSAPP_SERVER_URL = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001';
+const SPREADSHEET_ID = '1quOwhQEqT4kthdxPTZ0aHH9XRNhfquuJrBOcS6-QgZk';
+const SHEET_NAME = 'Pag-zap';
 
 function getSupabaseAdmin() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -97,6 +100,41 @@ export async function POST(request: NextRequest) {
                 lead_id: lead.id,
             })
         ).catch(console.error);
+
+        // Salva na aba Pag-zap do Google Sheets (fire-and-forget)
+        void (async () => {
+            try {
+                const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+                if (!serviceAccountJson) return;
+
+                const credentials = JSON.parse(serviceAccountJson);
+                const auth = new google.auth.GoogleAuth({
+                    credentials,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+                });
+                const sheets = google.sheets({ version: 'v4', auth });
+
+                const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+                await sheets.spreadsheets.values.append({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: `${SHEET_NAME}!A:F`,
+                    valueInputOption: 'USER_ENTERED',
+                    requestBody: {
+                        values: [[
+                            dataHora,
+                            nome,
+                            email,
+                            tel,
+                            animais || '',
+                            investimento || '',
+                        ]],
+                    },
+                });
+            } catch (sheetErr) {
+                console.warn('Google Sheets append falhou (não-crítico):', sheetErr);
+            }
+        })();
 
         return NextResponse.json({ success: true, id: lead.id });
     } catch (err) {
