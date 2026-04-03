@@ -101,12 +101,10 @@ export async function POST(request: NextRequest) {
             })
         ).catch(console.error);
 
-        // Salva na aba Pag-zap do Google Sheets (fire-and-forget)
-        void (async () => {
-            try {
-                const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-                if (!serviceAccountJson) return;
-
+        // Salva na aba Pag-zap do Google Sheets
+        try {
+            const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+            if (serviceAccountJson) {
                 const credentials = JSON.parse(serviceAccountJson);
                 const auth = new google.auth.GoogleAuth({
                     credentials,
@@ -131,10 +129,10 @@ export async function POST(request: NextRequest) {
                         ]],
                     },
                 });
-            } catch (sheetErr) {
-                console.warn('Google Sheets append falhou (não-crítico):', sheetErr);
             }
-        })();
+        } catch (sheetErr) {
+            console.warn('Google Sheets append falhou:', sheetErr);
+        }
 
         return NextResponse.json({ success: true, id: lead.id });
     } catch (err) {
