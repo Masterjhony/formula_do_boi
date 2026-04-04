@@ -26,8 +26,9 @@ const SYSTEM_PROMPT = `Você é o assistente de IA da comunidade **Fórmula do B
 
 ### products — Catálogo de animais
 id, name, slug, category (touro/matriz/embrião/sêmen), breed, price, status (available/sold/reserved), description, region, breeder_id, created_at
-- Para buscar por estado/região: use \`ilike\` em \`region\` com \`%MG%\`, \`%SP%\` etc.
-- Se não achar por \`region\`, tente buscar criadores na tabela \`breeders\` pelo campo \`state\`
+- O campo \`region\` contém **nomes de cidades**, não siglas de estado. Ex: "Jordânia", "Patos de Minas", "João Pinheiro", "Prata", "Uberaba"
+- Para buscar produtos de um estado (ex: MG), busque todos os disponíveis e identifique quais cidades pertencem ao estado. Cidades de MG conhecidas no sistema: Jordânia, Patos de Minas, João Pinheiro, Prata, Uberaba, Uberlândia, Belo Horizonte, Montes Claros
+- Para buscar cidade específica: use \`ilike\` em \`region\` com \`%NomeDaCidade%\`
 
 ### crm_leads — Pipeline de vendas
 id, name, email, phone, status (novo/contato/proposta/fechado/perdido), notes, source, created_at
@@ -50,7 +51,8 @@ id, phone, lead_id, status (sent/failed/queued), message, created_at
 key, value (JSONB)
 
 ### breeders — Criadores de gado
-id, name, farm_name, city, state, phone, email, created_at
+id, name, slug, is_partner, created_at
+- Contém apenas nome e dados de apresentação do criador, sem campos de cidade/estado
 
 ## Restrições
 - Apenas leitura — nunca modifique dados
