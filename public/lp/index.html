@@ -1160,108 +1160,80 @@
                         <!-- STEP 1 -->
                         <div class="quiz-step active" id="step1">
                             <div class="quiz-step-label">Passo 1 de 3</div>
-                            <h3>Qual é o <span>seu perfil</span> hoje?</h3>
-                            <p class="quiz-step-sub">Escolha a opção que melhor te representa.</p>
+                            <h3>Seus <span>dados de contato</span></h3>
+                            <p class="quiz-step-sub">Preencha para receber o acesso ao grupo e conteúdos exclusivos.</p>
 
-                            <div class="quiz-profiles">
-                                <div class="quiz-profile-card" data-profile="experienced" onclick="selectProfile(this)">
-                                    <div class="qp-check"></div>
-                                    <div class="qp-icon">
-                                        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                                    </div>
-                                    <h4>Já trabalho com Nelore PO</h4>
-                                    <p>Tenho rebanho e quero escalar meus resultados</p>
-                                </div>
-                                <div class="quiz-profile-card" data-profile="beginner" onclick="selectProfile(this)">
-                                    <div class="qp-check"></div>
-                                    <div class="qp-icon">
-                                        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                                    </div>
-                                    <h4>Quero começar no mercado PO</h4>
-                                    <p>Quero aprender e dar meus primeiros passos</p>
-                                </div>
+                            <div class="quiz-field">
+                                <label for="qNome">Nome completo *</label>
+                                <input type="text" id="qNome" placeholder="Seu nome completo" required>
+                                <div class="field-error">Preencha seu nome completo (mín. 3 caracteres)</div>
+                            </div>
+                            <div class="quiz-field">
+                                <label for="qEmail">E-mail *</label>
+                                <input type="email" id="qEmail" placeholder="seu@email.com" required>
+                                <div class="field-error">Informe um e-mail válido</div>
+                            </div>
+                            <div class="quiz-field">
+                                <label for="qTelefone">WhatsApp *</label>
+                                <input type="tel" id="qTelefone" placeholder="(31) 99999-9999" required>
+                                <div class="field-hint">Usaremos para enviar o link do grupo</div>
+                                <div class="field-error">Informe seu WhatsApp (mín. 10 dígitos)</div>
                             </div>
 
                             <div class="quiz-nav" style="justify-content:flex-end;">
-                                <button class="quiz-btn-next" id="btn1next" disabled onclick="goToStep2()">
+                                <button class="quiz-btn-next" onclick="goToStep(2)">
                                     Próximo
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- STEP 2A -->
-                        <div class="quiz-step" id="step2a">
+                        <!-- STEP 2 -->
+                        <div class="quiz-step" id="step2">
                             <div class="quiz-step-label">Passo 2 de 3</div>
-                            <h3>Conte sobre o <span>seu rebanho</span></h3>
-                            <p class="quiz-step-sub">Isso nos ajuda a direcionar as melhores oportunidades para você.</p>
+                            <h3>Sua <span>localização</span></h3>
+                            <p class="quiz-step-sub">Isso nos ajuda a conectar você com oportunidades na sua região.</p>
 
                             <div class="quiz-field">
-                                <label>Quantos animais PO você tem hoje?</label>
-                                <select id="qAnimais">
-                                    <option value="">Selecione...</option>
-                                    <option value="1-10">1 a 10 animais</option>
-                                    <option value="11-50">11 a 50 animais</option>
-                                    <option value="51-200">51 a 200 animais</option>
-                                    <option value="200+">Mais de 200 animais</option>
+                                <label for="qUF">Estado (UF) *</label>
+                                <select id="qUF" onchange="loadCidades()">
+                                    <option value="">Selecione o estado...</option>
+                                    <option value="AC">Acre</option>
+                                    <option value="AL">Alagoas</option>
+                                    <option value="AP">Amapá</option>
+                                    <option value="AM">Amazonas</option>
+                                    <option value="BA">Bahia</option>
+                                    <option value="CE">Ceará</option>
+                                    <option value="DF">Distrito Federal</option>
+                                    <option value="ES">Espírito Santo</option>
+                                    <option value="GO">Goiás</option>
+                                    <option value="MA">Maranhão</option>
+                                    <option value="MT">Mato Grosso</option>
+                                    <option value="MS">Mato Grosso do Sul</option>
+                                    <option value="MG">Minas Gerais</option>
+                                    <option value="PA">Pará</option>
+                                    <option value="PB">Paraíba</option>
+                                    <option value="PR">Paraná</option>
+                                    <option value="PE">Pernambuco</option>
+                                    <option value="PI">Piauí</option>
+                                    <option value="RJ">Rio de Janeiro</option>
+                                    <option value="RN">Rio Grande do Norte</option>
+                                    <option value="RS">Rio Grande do Sul</option>
+                                    <option value="RO">Rondônia</option>
+                                    <option value="RR">Roraima</option>
+                                    <option value="SC">Santa Catarina</option>
+                                    <option value="SP">São Paulo</option>
+                                    <option value="SE">Sergipe</option>
+                                    <option value="TO">Tocantins</option>
                                 </select>
+                                <div class="field-error">Selecione seu estado</div>
                             </div>
                             <div class="quiz-field">
-                                <label>Intenção de investimento nos próximos 12 meses?</label>
-                                <select id="qInvestExp">
-                                    <option value="">Selecione...</option>
-                                    <option value="ate-50k">Até R$ 50.000</option>
-                                    <option value="50k-150k">R$ 50.000 a R$ 150.000</option>
-                                    <option value="150k-500k">R$ 150.000 a R$ 500.000</option>
-                                    <option value="500k+">Acima de R$ 500.000</option>
+                                <label for="qCidade">Cidade *</label>
+                                <select id="qCidade" disabled>
+                                    <option value="">Selecione o estado primeiro...</option>
                                 </select>
-                            </div>
-
-                            <div class="quiz-nav">
-                                <button class="quiz-btn-back" onclick="goToStep(1)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                                    Voltar
-                                </button>
-                                <button class="quiz-btn-next" onclick="goToStep(3)">
-                                    Próximo
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- STEP 2B -->
-                        <div class="quiz-step" id="step2b">
-                            <div class="quiz-step-label">Passo 2 de 3</div>
-                            <h3>Seu <span>momento atual</span></h3>
-                            <p class="quiz-step-sub">Suas respostas nos ajudam a preparar o melhor conteúdo para você.</p>
-
-                            <div class="quiz-field">
-                                <label>Você já tem ideia de quanto quer investir?</label>
-                                <select id="qInvestBeg">
-                                    <option value="">Selecione...</option>
-                                    <option value="sim-valor">Sim, já tenho um valor em mente</option>
-                                    <option value="nao-sei">Ainda não sei quanto preciso</option>
-                                    <option value="entender-antes">Quero entender antes de definir</option>
-                                </select>
-                            </div>
-                            <div class="quiz-field">
-                                <label>O que mais te interessa agora?</label>
-                                <select id="qInteresse">
-                                    <option value="">Selecione...</option>
-                                    <option value="semen-embrioes">Comprar sêmen ou embriões PO</option>
-                                    <option value="leiloes">Participar de leilões de PO</option>
-                                    <option value="aprender">Aprender sobre genética Nelore</option>
-                                    <option value="assessoria">Encontrar assessoria especializada</option>
-                                </select>
-                            </div>
-                            <div class="quiz-field">
-                                <label>Gostaria de assessoria para os primeiros passos?</label>
-                                <select id="qAssessoria">
-                                    <option value="">Selecione...</option>
-                                    <option value="sim">Sim, preciso de orientação</option>
-                                    <option value="talvez">Talvez, quero saber mais</option>
-                                    <option value="sozinho">Prefiro ir sozinho por enquanto</option>
-                                </select>
+                                <div class="field-error">Selecione sua cidade</div>
                             </div>
 
                             <div class="quiz-nav">
@@ -1279,24 +1251,32 @@
                         <!-- STEP 3 -->
                         <div class="quiz-step" id="step3">
                             <div class="quiz-step-label">Passo 3 de 3</div>
-                            <h3>Quase lá! <span>Seus dados</span></h3>
-                            <p class="quiz-step-sub">Preencha para receber o acesso ao grupo e conteúdos exclusivos.</p>
+                            <h3>Seu <span>perfil no campo</span></h3>
+                            <p class="quiz-step-sub">Conte um pouco sobre seu momento na pecuária.</p>
 
                             <div class="quiz-field">
-                                <label for="qNome">Nome completo *</label>
-                                <input type="text" id="qNome" placeholder="Seu nome completo" required>
-                                <div class="field-error">Preencha seu nome completo</div>
+                                <label for="qMomento">Momento na pecuária *</label>
+                                <select id="qMomento">
+                                    <option value="">Selecione...</option>
+                                    <option value="nao-trabalho-quero-aprender">Não trabalho com pecuária mas quero aprender</option>
+                                    <option value="pecuaria-de-corte">Trabalho com pecuária de corte</option>
+                                    <option value="corte-e-po">Trabalho com corte e P.O.</option>
+                                    <option value="criador-renomado-po">Já sou criador renomado de P.O.</option>
+                                </select>
+                                <div class="field-error">Selecione seu momento na pecuária</div>
                             </div>
                             <div class="quiz-field">
-                                <label for="qEmail">E-mail *</label>
-                                <input type="email" id="qEmail" placeholder="seu@email.com" required>
-                                <div class="field-error">Informe um e-mail válido</div>
-                            </div>
-                            <div class="quiz-field">
-                                <label for="qTelefone">WhatsApp *</label>
-                                <input type="tel" id="qTelefone" placeholder="(31) 99999-9999" required>
-                                <div class="field-hint">Usaremos para enviar o link do grupo</div>
-                                <div class="field-error">Informe seu WhatsApp</div>
+                                <label for="qCabecas">Quantidade de cabeças *</label>
+                                <select id="qCabecas">
+                                    <option value="">Selecione...</option>
+                                    <option value="nenhuma">Nenhuma</option>
+                                    <option value="0-50">0-50</option>
+                                    <option value="50-100">50-100</option>
+                                    <option value="100-300">100-300</option>
+                                    <option value="300-500">300-500</option>
+                                    <option value="500+">500+</option>
+                                </select>
+                                <div class="field-error">Selecione a quantidade de cabeças</div>
                             </div>
 
                             <div class="quiz-nav">
@@ -1385,15 +1365,8 @@
         statNumbers.forEach(n => statsObs.observe(n));
 
         // ===== QUIZ =====
-        let selectedProfile = null;
         const progressBar = document.getElementById('quizProgress');
-
-        function selectProfile(card) {
-            document.querySelectorAll('.quiz-profile-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            selectedProfile = card.dataset.profile;
-            document.getElementById('btn1next').disabled = false;
-        }
+        let currentStep = 1;
 
         function showStep(id, pct) {
             document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
@@ -1401,19 +1374,8 @@
             progressBar.style.width = pct + '%';
         }
 
-        function goToStep2() {
-            if (!selectedProfile) return;
-            showStep(selectedProfile === 'experienced' ? 'step2a' : 'step2b', 60);
-        }
-
-        function goToStep(n) {
-            if (n === 1) showStep('step1', 33);
-            else if (n === 2) showStep(selectedProfile === 'experienced' ? 'step2a' : 'step2b', 60);
-            else if (n === 3) showStep('step3', 85);
-        }
-
-        async function submitQuiz() {
-            document.querySelectorAll('.quiz-field').forEach(f => f.classList.remove('error'));
+        function validateStep1() {
+            document.querySelectorAll('#step1 .quiz-field').forEach(f => f.classList.remove('error'));
             let err = false;
             const nome  = document.getElementById('qNome');
             const email = document.getElementById('qEmail');
@@ -1421,26 +1383,82 @@
             if (!nome.value.trim() || nome.value.trim().length < 3) { nome.closest('.quiz-field').classList.add('error'); err = true; }
             if (!email.value.trim() || !email.value.includes('@') || !email.value.includes('.')) { email.closest('.quiz-field').classList.add('error'); err = true; }
             if (!tel.value.trim() || tel.value.replace(/\D/g,'').length < 10) { tel.closest('.quiz-field').classList.add('error'); err = true; }
-            if (err) return;
+            return !err;
+        }
+
+        function validateStep2() {
+            document.querySelectorAll('#step2 .quiz-field').forEach(f => f.classList.remove('error'));
+            let err = false;
+            const uf     = document.getElementById('qUF');
+            const cidade = document.getElementById('qCidade');
+            if (!uf.value) { uf.closest('.quiz-field').classList.add('error'); err = true; }
+            if (!cidade.value) { cidade.closest('.quiz-field').classList.add('error'); err = true; }
+            return !err;
+        }
+
+        function validateStep3() {
+            document.querySelectorAll('#step3 .quiz-field').forEach(f => f.classList.remove('error'));
+            let err = false;
+            const momento = document.getElementById('qMomento');
+            const cabecas = document.getElementById('qCabecas');
+            if (!momento.value) { momento.closest('.quiz-field').classList.add('error'); err = true; }
+            if (!cabecas.value) { cabecas.closest('.quiz-field').classList.add('error'); err = true; }
+            return !err;
+        }
+
+        function goToStep(n) {
+            if (n > currentStep) {
+                if (currentStep === 1 && !validateStep1()) return;
+                if (currentStep === 2 && !validateStep2()) return;
+            }
+            currentStep = n;
+            const pcts = { 1: 33, 2: 66, 3: 90 };
+            showStep('step' + n, pcts[n] || 33);
+        }
+
+        async function loadCidades() {
+            const uf = document.getElementById('qUF').value;
+            const cidadeSelect = document.getElementById('qCidade');
+            if (!uf) {
+                cidadeSelect.innerHTML = '<option value="">Selecione o estado primeiro...</option>';
+                cidadeSelect.disabled = true;
+                return;
+            }
+            cidadeSelect.innerHTML = '<option value="">Carregando cidades...</option>';
+            cidadeSelect.disabled = true;
+            try {
+                const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados/' + uf + '/municipios?orderBy=nome');
+                const cidades = await res.json();
+                cidadeSelect.innerHTML = '<option value="">Selecione sua cidade...</option>';
+                cidades.forEach(function(c) {
+                    const opt = document.createElement('option');
+                    opt.value = c.nome;
+                    opt.textContent = c.nome;
+                    cidadeSelect.appendChild(opt);
+                });
+                cidadeSelect.disabled = false;
+            } catch (e) {
+                cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+                cidadeSelect.disabled = false;
+            }
+        }
+
+        async function submitQuiz() {
+            if (!validateStep3()) return;
 
             const btn = document.querySelector('#step3 .quiz-btn-next');
             btn.disabled = true;
             btn.textContent = 'Enviando...';
 
             const lead = {
-                perfil: selectedProfile,
-                nome: nome.value.trim(),
-                email: email.value.trim(),
-                tel: tel.value.trim()
+                nome:              document.getElementById('qNome').value.trim(),
+                email:             document.getElementById('qEmail').value.trim(),
+                tel:               document.getElementById('qTelefone').value.trim(),
+                uf:                document.getElementById('qUF').value,
+                cidade:            document.getElementById('qCidade').value,
+                momento_pecuaria:  document.getElementById('qMomento').value,
+                quantidade_cabecas: document.getElementById('qCabecas').value,
             };
-            if (selectedProfile === 'experienced') {
-                lead.animais = document.getElementById('qAnimais').value;
-                lead.investimento = document.getElementById('qInvestExp').value;
-            } else {
-                lead.investimento = document.getElementById('qInvestBeg').value;
-                lead.interesse = document.getElementById('qInteresse').value;
-                lead.assessoria = document.getElementById('qAssessoria').value;
-            }
 
             try {
                 const res = await fetch('/api/lp/lead', {

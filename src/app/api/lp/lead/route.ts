@@ -16,10 +16,10 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        const { nome, email, tel, perfil, animais, investimento, interesse, assessoria } = body;
+        const { nome, email, tel, uf, cidade, momento_pecuaria, quantidade_cabecas } = body;
 
-        if (!nome || !email || !tel) {
-            return NextResponse.json({ error: 'Campos obrigatórios: nome, email, tel' }, { status: 400 });
+        if (!nome || !email || !tel || !uf || !cidade || !momento_pecuaria || !quantidade_cabecas) {
+            return NextResponse.json({ error: 'Todos os campos são obrigatórios' }, { status: 400 });
         }
 
         const supabase = getSupabaseAdmin();
@@ -32,11 +32,12 @@ export async function POST(request: NextRequest) {
 
         const position = (maxPosData?.[0]?.position || 0) + 1000;
 
-        const notesLines: string[] = [];
-        if (perfil) notesLines.push(`Perfil: ${perfil === 'experienced' ? 'Criador experiente' : 'Iniciante'}`);
-        if (animais) notesLines.push(`Animais: ${animais}`);
-        if (investimento) notesLines.push(`Investimento: ${investimento}`);
-        if (assessoria) notesLines.push(`Assessoria: ${assessoria}`);
+        const notesLines = [
+            `Momento na pecuária: ${momento_pecuaria}`,
+            `Quantidade de cabeças: ${quantidade_cabecas}`,
+            `UF: ${uf}`,
+            `Cidade: ${cidade}`,
+        ];
 
         const { data: lead, error } = await supabase
             .from('crm_leads')
@@ -48,9 +49,10 @@ export async function POST(request: NextRequest) {
                 stage: 'novo',
                 status: 'Lead',
                 position,
-                notes: notesLines.length > 0 ? notesLines.join('\n') : null,
-                interesse: interesse || null,
-                quantidade_animais: animais || null,
+                notes: notesLines.join('\n'),
+                quantidade_animais: quantidade_cabecas,
+                estado: uf,
+                cidade,
                 source_page: 'lp.formuladoboi.com',
             })
             .select()
@@ -116,7 +118,7 @@ export async function POST(request: NextRequest) {
 
                 await sheets.spreadsheets.values.append({
                     spreadsheetId: SPREADSHEET_ID,
-                    range: `${SHEET_NAME}!A:I`,
+                    range: `${SHEET_NAME}!A:K`,
                     valueInputOption: 'USER_ENTERED',
                     requestBody: {
                         values: [[
@@ -124,11 +126,13 @@ export async function POST(request: NextRequest) {
                             nome,
                             email,
                             tel,
-                            animais || '',
-                            investimento || '',
-                            perfil ? (perfil === 'experienced' ? 'Criador experiente' : 'Iniciante') : '',
-                            interesse || '',
-                            assessoria || '',
+                            quantidade_cabecas,
+                            '',
+                            momento_pecuaria,
+                            '',
+                            '',
+                            uf,
+                            cidade,
                         ]],
                     },
                 });
