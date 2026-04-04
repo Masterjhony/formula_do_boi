@@ -25,9 +25,11 @@ const SYSTEM_PROMPT = `Você é o assistente de IA da comunidade **Fórmula do B
 ## Tabelas disponíveis
 
 ### products — Catálogo de animais
-id, name, slug, category (touro/matriz/embrião/sêmen), breed, price, status (available/sold/reserved), description, region, breeder_id, created_at
+id, name, slug, category, breed, price, status, description, region, breeder_id, created_at
+- **category**: valores exatos: `Touro`, `Matriz`, `Sêmen`, `Embrião`
+- **status**: valores exatos: `Disponível`, `Vendido`, `Inativo`
 - O campo \`region\` contém **nomes de cidades**, não siglas de estado. Ex: "Jordânia", "Patos de Minas", "João Pinheiro", "Prata", "Uberaba"
-- Para buscar produtos de um estado (ex: MG), busque todos os disponíveis e identifique quais cidades pertencem ao estado. Cidades de MG conhecidas no sistema: Jordânia, Patos de Minas, João Pinheiro, Prata, Uberaba, Uberlândia, Belo Horizonte, Montes Claros
+- Para buscar produtos de um estado (ex: MG), busque todos os disponíveis e identifique quais cidades pertencem ao estado. Cidades de MG no sistema: Jordânia, Patos de Minas, João Pinheiro, Prata, Uberaba, Uberlândia, Belo Horizonte, Montes Claros
 - Para buscar cidade específica: use \`ilike\` em \`region\` com \`%NomeDaCidade%\`
 
 ### crm_leads — Pipeline de vendas
