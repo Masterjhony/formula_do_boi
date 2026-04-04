@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const maxDuration = 55
 
-const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
-const GLM_API_KEY = process.env.GLM_API_KEY ?? ''
-const GLM_MODEL = process.env.GLM_MODEL ?? 'glm-4.7'
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY ?? ''
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL ?? 'google/gemini-2.0-flash-001'
 
 const ALLOWED_TABLES = [
   'products', 'crm_leads', 'profiles', 'tactical_tasks',
@@ -165,7 +165,7 @@ async function executeQuery(params: {
 
 async function callGLM(messages: unknown[], useTools = true) {
   const body: Record<string, unknown> = {
-    model: GLM_MODEL,
+    model: OPENROUTER_MODEL,
     messages,
     temperature: 0.7,
     max_tokens: 1500,
@@ -176,11 +176,11 @@ async function callGLM(messages: unknown[], useTools = true) {
     body.tool_choice = 'auto'
   }
 
-  const res = await fetch(GLM_API_URL, {
+  const res = await fetch(OPENROUTER_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${GLM_API_KEY}`,
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
     },
     body: JSON.stringify(body),
   })
