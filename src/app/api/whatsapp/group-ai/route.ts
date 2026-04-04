@@ -5,7 +5,7 @@ export const maxDuration = 55
 
 const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 const GLM_API_KEY = process.env.GLM_API_KEY ?? ''
-const GLM_MODEL = process.env.GLM_MODEL ?? 'glm-4-flash'
+const GLM_MODEL = process.env.GLM_MODEL ?? 'glm-4.7'
 
 const ALLOWED_TABLES = [
   'products', 'crm_leads', 'profiles', 'tactical_tasks',
