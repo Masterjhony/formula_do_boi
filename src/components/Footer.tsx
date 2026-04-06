@@ -17,8 +17,8 @@ export default function Footer() {
             // Only show if explicitly not false (or however we want to handle defaults)
             // Since we want to avoid flicker, default state is false (hidden).
             // We update to true only if check passes.
-            setShowTopBreeders(topBreedersEnabled !== false);
-            setShowSemen(semenEnabled !== false);
+            setShowTopBreeders(topBreedersEnabled === true);
+            setShowSemen(semenEnabled === true);
         };
         fetchSettings();
     }, []);
@@ -40,8 +40,7 @@ export default function Footer() {
                             </div>
                         </div>
                         <p className="text-gray-400 text-sm leading-relaxed">
-                            Referência em genética bovina e comercialização de gado de elite.
-                            Conectando criadores a o que há de melhor no agronegócio brasileiro.
+                            Ecossistema completo de genética Nelore P.O. — touros, sêmen, doadoras, embriões e leilões com curadoria especializada.
                         </p>
                         <div className="flex gap-4">
                             <a href="https://www.instagram.com/formuladoboi/" target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 rounded-full hover:bg-brand-gold hover:text-brand-black transition-colors">
@@ -55,14 +54,15 @@ export default function Footer() {
                         <h3 className="text-lg font-bold mb-3 md:mb-6 text-brand-gold uppercase tracking-wider">Navegação</h3>
                         <ul className="space-y-2 md:space-y-4 text-sm text-gray-400">
                             <li><Link href="/" className="hover:text-white transition-colors">Início</Link></li>
-                            <li><Link href="/animais" className="hover:text-white transition-colors">Animais</Link></li>
-                            <li><Link href="/embrioes" className="hover:text-white transition-colors">Embriões</Link></li>
+                            <li><Link href="/touros" className="hover:text-white transition-colors">Touros</Link></li>
                             {showSemen && (
                                 <li><Link href="/semen" className="hover:text-white transition-colors">Sêmen</Link></li>
                             )}
+                            <li><Link href="/embrioes" className="hover:text-white transition-colors">Doadoras & Embriões</Link></li>
                             {showTopBreeders && (
                                 <li><Link href="/top-criadores" className="hover:text-white transition-colors">Top Criadores</Link></li>
                             )}
+                            <li><Link href="/quem-somos" className="hover:text-white transition-colors">Quem Somos</Link></li>
                             <li><Link href="/venda-conosco" className="hover:text-white transition-colors">Venda Conosco</Link></li>
                         </ul>
                     </div>

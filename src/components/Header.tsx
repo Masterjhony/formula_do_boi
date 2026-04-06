@@ -10,10 +10,9 @@ import { SettingsService } from "@/services/settingsService";
 
 const defaultNavItems = [
     { href: "/", label: "Início" },
-    // Rankings removed from default
-    { href: "/matrizes", label: "Matrizes" },
     { href: "/touros", label: "Touros" },
-    { href: "/embrioes", label: "Embriões" },
+    { href: "/embrioes", label: "Doadoras & Embriões" },
+    { href: "/quem-somos", label: "Quem Somos" },
     { href: "/venda-conosco", label: "Venda Conosco" },
 ];
 
@@ -63,37 +62,32 @@ export default function Header() {
     }, []);
 
     const updateNavItems = (topBreedersEnabled: any, rankingEnabled: any, semenEnabled: any) => {
-        setNavItems(prev => {
+        setNavItems(() => {
             const newItems = [];
 
-            // Reconstruct the list based on settings to ensure correct order
-            // 1. Início (Index 0)
+            // 1. Início
             newItems.push(defaultNavItems[0]);
 
-            // 2. Rankings (Index 1 - if enabled)
-            if (rankingEnabled !== false) { // Default false, but we treat not-false as potential enable if logic changes? No, logic is 'false' in DB = disabled.
-                // Wait, getSetting returns null if missing? My service returns value or null.
-                // Assuming defaulting to FALSE for safety if missing.
-                if (rankingEnabled === true) {
-                    newItems.push({ href: "/rankings", label: "Rankings" });
-                }
+            // 2. Rankings (optional via settings)
+            if (rankingEnabled === true) {
+                newItems.push({ href: "/rankings", label: "Rankings" });
             }
 
-            // 3. Top Criadores
+            // 3. Top Criadores (optional via settings)
             if (topBreedersEnabled === true) {
                 newItems.push({ href: "/top-criadores", label: "Top Criadores" });
             }
 
-            // 4. Matrizes, Touros, Embriões (Indices 1, 2, 3 of default)
-            newItems.push(defaultNavItems[1]); // Matrizes
-            newItems.push(defaultNavItems[2]); // Touros
+            // 4. Touros, Doadoras & Embriões
+            newItems.push(defaultNavItems[1]); // Touros
 
-            // 5. Semen
+            // 5. Sêmen (optional via settings — fica dentro de /touros ou standalone)
             if (semenEnabled === true) {
                 newItems.push({ href: "/semen", label: "Sêmen" });
             }
 
-            newItems.push(defaultNavItems[3]); // Embriões
+            newItems.push(defaultNavItems[2]); // Doadoras & Embriões
+            newItems.push(defaultNavItems[3]); // Quem Somos
             newItems.push(defaultNavItems[4]); // Venda Conosco
 
             return newItems;
