@@ -24,13 +24,64 @@ export default function Footer() {
     }, []);
 
     return (
-        <footer className="bg-brand-black text-white pt-10 pb-6 md:pt-16 md:pb-8 border-t border-gray-800">
-            <div className="container mx-auto px-4">
+        <>
+        <footer className="relative bg-[#080808] text-white pt-10 pb-6 md:pt-16 md:pb-8 border-t border-yellow-900/40 overflow-hidden">
+
+            {/* Debossed Stamp Watermark — three-layer technique */}
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+                style={{ transform: 'translateY(-4%)' }}
+            >
+                {/* Layer 1 — cast shadow (offset down-right, pure black) */}
+                <img
+                    src="/logo_complete.svg"
+                    alt=""
+                    className="absolute w-[480px] md:w-[820px] lg:w-[1000px] object-contain"
+                    style={{
+                        filter: 'brightness(0)',
+                        opacity: 0.55,
+                        transform: 'translate(3px, 4px)',
+                    }}
+                />
+                {/* Layer 2 — debossed body (the stamp itself, very dark warm tone) */}
+                <img
+                    src="/logo_complete.svg"
+                    alt=""
+                    className="w-[480px] md:w-[820px] lg:w-[1000px] object-contain"
+                    style={{
+                        filter: 'brightness(0.08) sepia(0.4)',
+                        opacity: 0.92,
+                    }}
+                />
+                {/* Layer 3 — rim highlight (offset up-left, barely-there warm gold) */}
+                <img
+                    src="/logo_complete.svg"
+                    alt=""
+                    className="absolute w-[480px] md:w-[820px] lg:w-[1000px] object-contain"
+                    style={{
+                        filter: 'sepia(1) saturate(5) brightness(0.7)',
+                        opacity: 0.07,
+                        transform: 'translate(-2px, -3px)',
+                    }}
+                />
+            </div>
+
+            {/* Vignette depth overlay */}
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                    background: 'radial-gradient(ellipse 120% 100% at 50% 50%, transparent 25%, rgba(0,0,0,0.6) 100%)'
+                }}
+            />
+
+            <div className="container mx-auto px-4 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 md:gap-12 md:mb-12">
                     {/* Brand Column */}
                     <div className="space-y-4 md:space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
                         <div className="flex flex-col items-center md:items-start">
-                            {/* Brand Logo */}
+                            {/* Brand Logo with Gold Flare */}
                             <div className="relative h-16 w-60 md:h-24 md:w-80 lg:h-32 lg:w-96 mb-4 md:mb-6">
                                 <img
                                     src="/logo_complete.svg"
@@ -99,11 +150,12 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="pt-6 md:pt-8 border-t border-gray-800 text-center text-xs text-gray-500 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="pt-6 md:pt-8 border-t border-yellow-900/30 text-center text-xs text-gray-500 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p>&copy; 2024 Fórmula do Boi. Todos os direitos reservados.</p>
                     <p>Desenvolvido com tecnologia de ponta.</p>
                 </div>
             </div>
         </footer>
+        </>
     );
 }

@@ -205,6 +205,7 @@ export default function Header() {
     );
 
     return (
+        <>
         <header className="sticky top-0 z-50">
             {/* Top Bar */}
             <div className="bg-[#0a0a0a] border-b border-white/10">
@@ -377,5 +378,6 @@ export default function Header() {
             )}
 
         </header>
+        </>
     );
 }
