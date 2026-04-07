@@ -1,19 +1,17 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Beef, Dna, Trophy, ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 
 const MODELS = [
     {
-        Icon: Beef,
         tag: "01",
-        label: "Touros & Sêmen",
+        label: "Sêmen",
         sub: "Reprodutores Nelore P.O. certificados",
-        href: "#touros",
+        href: "#semen",
         cta: "Explorar",
     },
     {
-        Icon: Dna,
         tag: "02",
         label: "Doadoras & Embriões",
         sub: "Genética feminina de alto desempenho",
@@ -21,7 +19,6 @@ const MODELS = [
         cta: "Explorar",
     },
     {
-        Icon: Trophy,
         tag: "03",
         label: "Leilões P.O.",
         sub: "Curadoria especializada Bula Remates",
@@ -110,7 +107,7 @@ export default function Hero() {
 
                 {/* ── 3 Model Cards ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl">
-                    {MODELS.map(({ Icon, tag, label, sub, href, cta }) => (
+                    {MODELS.map(({ tag, label, sub, href, cta }) => (
                         <a
                             key={href}
                             href={href}
@@ -121,12 +118,7 @@ export default function Hero() {
                             {/* Gold top accent */}
                             <div className="absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-brand-gold/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                            <div className="flex items-start justify-between">
-                                <div className="w-11 h-11 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold/15 transition-colors">
-                                    <Icon className="w-5 h-5" />
-                                </div>
-                                <span className="text-[10px] font-black text-gray-600 tracking-[0.2em]">{tag}</span>
-                            </div>
+                            <span className="text-[10px] font-black text-gray-600 tracking-[0.2em]">{tag}</span>
 
                             <div>
                                 <p className="text-white font-black text-base uppercase tracking-wide leading-tight mb-1">{label}</p>
