@@ -30,3 +30,18 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+@keyframes drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(6%, 4%) scale(1.05); }
+  66%       { transform: translate(-4%, 8%) scale(0.97); }
+}
+@keyframes drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40%       { transform: translate(-8%, -5%) scale(1.08); }
+  70%       { transform: translate(5%, -2%) scale(0.95); }
+}
+@keyframes drift-c {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(7%, -6%) scale(1.06); }
+}

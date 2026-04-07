@@ -11,9 +11,9 @@ import { SettingsService } from "@/services/settingsService";
 const defaultNavItems = [
     { href: "/", label: "Início" },
     { href: "/touros", label: "Touros" },
-    { href: "/embrioes", label: "Doadoras & Embriões" },
-    { href: "/quem-somos", label: "Quem Somos" },
-    { href: "/venda-conosco", label: "Venda Conosco" },
+    { href: "/embrioes", label: "Embriões" },
+    { href: "/#leiloes", label: "Leilões" },
+    { href: "/venda-conosco", label: "Contato" },
 ];
 
 export default function Header() {
@@ -36,59 +36,50 @@ export default function Header() {
                 try {
                     const parsed = JSON.parse(cached);
                     // Update state immediately with cached data
-                    updateNavItems(parsed.topBreedersEnabled, parsed.rankingEnabled, parsed.semenEnabled);
+                    updateNavItems(parsed.semenEnabled);
                 } catch (e) {
                     // Ignore parse error
                 }
             }
 
             // Always fetch fresh data
-            const topBreedersEnabled = await SettingsService.getSetting('top_breeders_enabled');
-            const rankingEnabled = await SettingsService.getSetting('ranking_page_enabled');
             const semenEnabled = await SettingsService.getSetting('semen_page_enabled');
 
             // Save to cache
             localStorage.setItem(CACHE_KEY, JSON.stringify({
-                topBreedersEnabled,
-                rankingEnabled,
                 semenEnabled,
                 timestamp: Date.now()
             }));
 
-            updateNavItems(topBreedersEnabled, rankingEnabled, semenEnabled);
+            updateNavItems(semenEnabled);
         };
 
         fetchSettings();
     }, []);
 
-    const updateNavItems = (topBreedersEnabled: any, rankingEnabled: any, semenEnabled: any) => {
+    const updateNavItems = (semenEnabled: any) => {
         setNavItems(() => {
             const newItems = [];
 
             // 1. Início
             newItems.push(defaultNavItems[0]);
 
-            // 2. Rankings (optional via settings)
-            if (rankingEnabled === true) {
-                newItems.push({ href: "/rankings", label: "Rankings" });
-            }
-
-            // 3. Top Criadores (optional via settings)
-            if (topBreedersEnabled === true) {
-                newItems.push({ href: "/top-criadores", label: "Top Criadores" });
-            }
-
-            // 4. Touros, Doadoras & Embriões
-            newItems.push(defaultNavItems[1]); // Touros
-
-            // 5. Sêmen (optional via settings — fica dentro de /touros ou standalone)
+            // 2. Sêmen (optional via settings)
             if (semenEnabled === true) {
                 newItems.push({ href: "/semen", label: "Sêmen" });
             }
 
-            newItems.push(defaultNavItems[2]); // Doadoras & Embriões
-            newItems.push(defaultNavItems[3]); // Quem Somos
-            newItems.push(defaultNavItems[4]); // Venda Conosco
+            // 3. Touros
+            newItems.push(defaultNavItems[1]);
+
+            // 4. Embriões
+            newItems.push(defaultNavItems[2]);
+
+            // 5. Leilões
+            newItems.push(defaultNavItems[3]);
+
+            // 6. Contato
+            newItems.push(defaultNavItems[4]);
 
             return newItems;
         });
