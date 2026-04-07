@@ -1,25 +1,25 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, Droplets, Dna, Gavel } from "lucide-react";
 
 const MODELS = [
     {
-        tag: "01",
+        Icon: Droplets,
         label: "Sêmen",
         sub: "Reprodutores Nelore P.O. certificados",
         href: "#semen",
         cta: "Explorar",
     },
     {
-        tag: "02",
+        Icon: Dna,
         label: "Doadoras & Embriões",
         sub: "Genética feminina de alto desempenho",
         href: "#doadoras",
         cta: "Explorar",
     },
     {
-        tag: "03",
+        Icon: Gavel,
         label: "Leilões P.O.",
         sub: "Curadoria especializada Bula Remates",
         href: "#leiloes",
@@ -99,7 +99,7 @@ export default function Hero() {
                 </h1>
 
                 {/* Sub */}
-                <p className="text-gray-300 text-lg md:text-xl font-light max-w-xl mb-16 leading-relaxed">
+                <p className="text-white/80 text-lg md:text-xl font-semibold max-w-xl mb-16 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                     Genética certificada. Curadoria especializada.
                     <br />
                     Estratégia para o criador sério.
@@ -107,7 +107,7 @@ export default function Hero() {
 
                 {/* ── 3 Model Cards ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl">
-                    {MODELS.map(({ tag, label, sub, href, cta }) => (
+                    {MODELS.map(({ Icon, label, sub, href, cta }) => (
                         <a
                             key={href}
                             href={href}
@@ -117,15 +117,19 @@ export default function Hero() {
                         >
                             {/* Gold top accent */}
                             <div className="absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-brand-gold/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {/* Bottom depth gradient */}
+                            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent rounded-b-2xl pointer-events-none" />
 
-                            <span className="text-[10px] font-black text-gray-600 tracking-[0.2em]">{tag}</span>
+                            <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/25 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold/20 transition-colors">
+                                <Icon className="w-4.5 h-4.5 w-[18px] h-[18px]" />
+                            </div>
 
                             <div>
                                 <p className="text-white font-black text-base uppercase tracking-wide leading-tight mb-1">{label}</p>
-                                <p className="text-gray-400 text-xs leading-relaxed">{sub}</p>
+                                <p className="text-gray-300 text-xs leading-relaxed font-medium">{sub}</p>
                             </div>
 
-                            <div className="flex items-center gap-1.5 text-brand-gold text-xs font-bold uppercase tracking-widest mt-auto">
+                            <div className="relative z-10 flex items-center gap-2 mt-auto border border-brand-gold/30 rounded-lg px-3 py-2 text-brand-gold text-xs font-bold uppercase tracking-widest w-fit group-hover:bg-brand-gold/10 group-hover:border-brand-gold/60 transition-all">
                                 {cta}
                                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                             </div>

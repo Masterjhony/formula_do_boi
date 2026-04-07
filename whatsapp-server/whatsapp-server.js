@@ -28,6 +28,9 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const NEXT_JS_URL = process.env.NEXT_JS_URL || '';
 const GROUP_TASK_SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || '';
+const LP_GROUP_INVITE_CODE = process.env.LP_GROUP_INVITE_CODE || 'JYxJPWfkoHHLZfosHlywN9';
+let lpGroupJid = process.env.LP_GROUP_JID || null; // resolvido no startup se não definido
+
 const GROUP_TASK_PREFIX = '/tarefa';
 const GROUP_DECISION_PREFIX = '/decisao';
 const GROUP_RISK_PREFIX = '/risco';
@@ -344,9 +347,13 @@ async function runMsgQueue() {
   if (queueRunning) return;
   queueRunning = true;
   while (msgQueue.length > 0) {
-    const { phone, name } = msgQueue.shift();
+    const { phone, name, message } = msgQueue.shift();
     try {
-      await _executeSend(phone, name);
+      if (message) {
+        await _executeSendDirect(phone, message);
+      } else {
+        await _executeSend(phone, name);
+      }
     } catch (err) {
       console.error(`[Queue] Falha ao enviar para ${phone}:`, err.message);
     }
@@ -362,6 +369,17 @@ function enqueueSend(phone, name) {
     throw new Error('Fila de envio cheia (max 200).');
   }
   msgQueue.push({ phone, name });
+  const position = msgQueue.length;
+  const estimatedSeconds = (position - 1) * (QUEUE_DELAY_MS / 1000);
+  runMsgQueue();
+  return { queued: true, position, estimatedSeconds };
+}
+
+function enqueueSendDirect(phone, message) {
+  if (msgQueue.length >= 200) {
+    throw new Error('Fila de envio cheia (max 200).');
+  }
+  msgQueue.push({ phone, message });
   const position = msgQueue.length;
   const estimatedSeconds = (position - 1) * (QUEUE_DELAY_MS / 1000);
   runMsgQueue();
@@ -486,6 +504,15 @@ async function startSocket() {
         currentQr = null;
         reconnectAttempts = 0;
         console.log(`[WA] Conectado (gen=${myGen})`);
+        // Resolve o JID do grupo da LP a partir do código de convite (uma vez)
+        if (!lpGroupJid && LP_GROUP_INVITE_CODE) {
+          sock.groupGetInviteInfo(LP_GROUP_INVITE_CODE)
+            .then(info => {
+              lpGroupJid = info.id;
+              console.log(`[LP] Grupo da LP resolvido: ${lpGroupJid}`);
+            })
+            .catch(e => console.warn('[LP] Não foi possível resolver JID do grupo:', e.message));
+        }
       }
     });
 
@@ -813,6 +840,58 @@ async function _executeSend(phone, name) {
 }
 
 // =============================================================================
+// Adiciona número diretamente ao grupo da LP (bot precisa ser admin)
+// =============================================================================
+async function _executeAddToGroup(phone) {
+  if (currentStatus !== 'connected' || !sock) {
+    throw new Error(`WhatsApp nao conectado. Status: ${currentStatus}`);
+  }
+  if (!lpGroupJid) {
+    throw new Error('JID do grupo ainda nao resolvido. Aguarde a conexao ou defina LP_GROUP_JID.');
+  }
+
+  const formattedPhone = formatBRNumber(phone);
+  if (!formattedPhone) throw new Error(`Numero invalido: ${phone}`);
+
+  const results = await sock.groupParticipantsUpdate(lpGroupJid, [formattedPhone], 'add');
+  const result = results?.[0];
+  const status = result?.status;
+
+  if (status === '200') {
+    console.log(`[LP] ${formattedPhone} adicionado ao grupo ${lpGroupJid}`);
+    return { added: true };
+  }
+
+  // 403 = privacidade bloqueou; 408 = não está no WA; 409 = já é membro
+  console.warn(`[LP] Não foi possível adicionar ${formattedPhone} ao grupo. Status: ${status}`);
+  return { added: false, status };
+}
+
+// =============================================================================
+// Envio direto com mensagem customizada (sem usar o flow config)
+// =============================================================================
+async function _executeSendDirect(phone, message) {
+  if (currentStatus !== 'connected' || !sock) {
+    throw new Error(`WhatsApp nao conectado. Status: ${currentStatus}`);
+  }
+
+  const formattedPhone = formatBRNumber(phone);
+  if (!formattedPhone) throw new Error(`Numero invalido: ${phone}`);
+
+  const result = await sock.onWhatsApp(formattedPhone);
+  if (!result || result.length === 0 || !result[0].exists) {
+    console.log(`[Queue] ${formattedPhone} nao esta no WhatsApp.`);
+    return { sent: false, reason: 'not_on_whatsapp' };
+  }
+
+  const jid = result[0].jid || formattedPhone;
+  const msgResult = await sock.sendMessage(jid, { text: message });
+  console.log(`[Queue] Mensagem direta enviada para ${jid} — id: ${msgResult?.key?.id}`);
+
+  return { sent: true };
+}
+
+// =============================================================================
 // Servidor HTTP
 // =============================================================================
 async function handleRequest(req, res) {
@@ -846,6 +925,50 @@ async function handleRequest(req, res) {
         const result = enqueueSend(phone, name);
         res.writeHead(200);
         res.end(JSON.stringify({ success: true, sent: true, ...result }));
+      } catch (error) {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: error.message }));
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/add-to-group') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const { phone } = JSON.parse(body);
+        if (!phone) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: 'phone e obrigatorio' }));
+          return;
+        }
+        const result = await _executeAddToGroup(phone);
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true, ...result }));
+      } catch (error) {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: error.message }));
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/send-direct') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const { phone, message } = JSON.parse(body);
+        if (!phone || !message) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: 'phone e message sao obrigatorios' }));
+          return;
+        }
+        const result = enqueueSendDirect(phone, message);
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true, ...result }));
       } catch (error) {
         res.writeHead(500);
         res.end(JSON.stringify({ error: error.message }));

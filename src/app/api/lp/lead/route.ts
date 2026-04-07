@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Erro ao salvar lead' }, { status: 500 });
         }
 
-        // Dispara WhatsApp welcome (fire-and-forget)
+        // Dispara WhatsApp welcome + convite do grupo (fire-and-forget)
+        const WHATSAPP_GROUP_INVITE = 'https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9';
         const phone = tel.replace(/\D/g, '');
         let whatsappStatus: string = 'no_phone';
         let whatsappReason: string | null = null;
@@ -80,6 +81,27 @@ export async function POST(request: NextRequest) {
                 const waBody = await waRes.json().catch(() => ({}));
                 if (waRes.ok && (waBody.sent || waBody.queued)) {
                     whatsappStatus = 'sent';
+                    // Tenta adicionar direto ao grupo; se falhar (privacidade), envia o link
+                    void fetch(`${WHATSAPP_SERVER_URL}/add-to-group`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone }),
+                        signal: AbortSignal.timeout(15000),
+                    }).then(async r => {
+                        const data = await r.json().catch(() => ({}));
+                        if (!r.ok || !data.added) {
+                            // Fallback: envia o link de convite
+                            return fetch(`${WHATSAPP_SERVER_URL}/send-direct`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    phone,
+                                    message: `🐂 Entre no grupo exclusivo da *Fórmula do Boi*:\n👉 ${WHATSAPP_GROUP_INVITE}`,
+                                }),
+                                signal: AbortSignal.timeout(15000),
+                            });
+                        }
+                    }).catch(err => console.warn('[LP] Add ao grupo falhou:', err.message));
                 } else {
                     whatsappStatus = 'failed';
                     whatsappReason = waBody.reason ?? null;
