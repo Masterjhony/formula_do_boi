@@ -91,14 +91,13 @@ export default function LeiloesSection() {
                 </div>
 
                 {/* ── Stats ── */}
-                <div className="grid grid-cols-3 gap-3 mb-10">
+                <div className="flex justify-center gap-3 mb-10">
                     {[
                         { label: "Leilões", value: "18" },
                         { label: "Animais", value: totalAnimais.toLocaleString("pt-BR") },
-                        { label: "Prev. de Venda", value: "R$ 25,3M" },
                     ].map((s) => (
-                        <div key={s.label} className="card-engraved rounded-2xl border border-white/8 bg-[#0f0f0f] px-5 py-4 text-center">
-                            <p className="text-2xl md:text-3xl font-black text-brand-gold leading-none mb-1">{s.value}</p>
+                        <div key={s.label} className="card-engraved rounded-2xl border border-white/8 bg-[#0f0f0f] px-8 py-5 text-center w-40 md:w-52">
+                            <p className="text-3xl md:text-4xl font-black text-brand-gold leading-none mb-1.5">{s.value}</p>
                             <p className="text-[11px] text-gray-500 uppercase tracking-wider font-medium">{s.label}</p>
                         </div>
                     ))}
@@ -185,7 +184,6 @@ export default function LeiloesSection() {
 }
 
 function LeilaoCard({ ev }: { ev: Leilao }) {
-    const isTouros = ev.categoria.toLowerCase().includes("touro");
     const isVirtual = ev.modelo === "Virtual";
 
     return (
@@ -204,11 +202,11 @@ function LeilaoCard({ ev }: { ev: Leilao }) {
                         {ev.criador}
                     </p>
                     {isVirtual ? (
-                        <span className="flex-shrink-0 inline-flex items-center gap-1 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400">
+                        <span className="flex-shrink-0 inline-flex items-center gap-1 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-white/5 border border-white/15 text-gray-300">
                             <Tv className="w-2.5 h-2.5" /> Virtual
                         </span>
                     ) : (
-                        <span className="flex-shrink-0 inline-flex items-center gap-1 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
+                        <span className="flex-shrink-0 inline-flex items-center gap-1 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-brand-gold/10 border border-brand-gold/25 text-brand-gold">
                             <Users className="w-2.5 h-2.5" /> Presencial
                         </span>
                     )}
@@ -216,7 +214,7 @@ function LeilaoCard({ ev }: { ev: Leilao }) {
 
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     {/* Categoria */}
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${isTouros ? "text-amber-400" : "text-pink-400"}`}>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-brand-gold">
                         <Tag className="w-3 h-3" />
                         {ev.categoria}
                         <span className="text-gray-500 font-normal">· {ev.quantidade} animais</span>
