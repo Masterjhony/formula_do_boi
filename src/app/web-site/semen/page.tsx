@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { getProductsServer } from '@/services/products.server';
-import { getIsAuthenticated } from '@/lib/auth-helpers';
 import SemenClient from './SemenClient';
 
 export const metadata: Metadata = {
@@ -13,8 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SemenPage() {
-    const isAuthenticated = await getIsAuthenticated();
-    const products = await getProductsServer(isAuthenticated);
+    const products = await getProductsServer(true);
     
     // Filter products for only "Sêmen" category
     const semenProducts = products.filter(p => p.category === 'Sêmen');

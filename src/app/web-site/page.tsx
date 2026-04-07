@@ -6,11 +6,9 @@ import LeiloesSection from "@/components/LeiloesSection";
 import WhatsappSection from "@/components/WhatsappSection";
 import Footer from "@/components/Footer";
 import { getProductsServer } from "@/services/products.server";
-import { getIsAuthenticated } from "@/lib/auth-helpers";
 
 export default async function Home() {
-    const isAuthenticated = await getIsAuthenticated();
-    const products = await getProductsServer(isAuthenticated);
+    const products = await getProductsServer(true);
 
     return (
         <main className="min-h-screen bg-[#0a0a0a]">
@@ -20,10 +18,10 @@ export default async function Home() {
             <Hero />
 
             {/* 2 — Touros Fórmula do Boi */}
-            <TourosDestaque products={products} isAuthenticated={isAuthenticated} />
+            <TourosDestaque products={products} isAuthenticated={true} />
 
             {/* 3 — Doadoras & Embriões */}
-            <DoadoresDestaque products={products} isAuthenticated={isAuthenticated} />
+            <DoadoresDestaque products={products} isAuthenticated={true} />
 
             {/* 4 — Leilões de P.O. */}
             <LeiloesSection />

@@ -9,7 +9,6 @@ import { Metadata, ResolvingMetadata } from "next";
 import ProductCard from "@/components/ProductCard";
 import PaywallOverlay from "@/components/PaywallOverlay";
 import PaywallLink from "@/components/PaywallLink";
-import { getIsAuthenticated } from "@/lib/auth-helpers";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -108,11 +107,11 @@ export async function generateMetadata(
 export default async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const numericId = Number(id);
-    const isAuthenticated = await getIsAuthenticated();
+    const isAuthenticated = true;
     const redirectPath = `/lote/${numericId}`;
 
     // Check DB first (Source of Truth)
-    let product: any = await getProductById(numericId, isAuthenticated);
+    let product: any = await getProductById(numericId, true);
 
     // If not found in DB, check static EMBRYOS
     if (!product) {

@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { getProductsServer } from "@/services/products.server";
-import { getIsAuthenticated } from "@/lib/auth-helpers";
 import TourosClient from "./TourosClient";
 
 export const metadata: Metadata = {
@@ -14,7 +13,6 @@ export const metadata: Metadata = {
 };
 
 export default async function TourosPage() {
-    const isAuthenticated = await getIsAuthenticated();
-    const products = await getProductsServer(isAuthenticated);
-    return <TourosClient products={products} isAuthenticated={isAuthenticated} />;
+    const products = await getProductsServer(true);
+    return <TourosClient products={products} isAuthenticated={true} />;
 }
