@@ -31,7 +31,7 @@ const MODELS = [
 ];
 
 const CLD = "https://res.cloudinary.com/dkh2nsugb/video/upload";
-const VID = "v1775523013/hero-agro-hero-optimized_f2oh1q";
+const VID = "v1775568904/cam_1_lifky2";
 
 // Poster: frame do vídeo servido como imagem — carrega imediatamente
 const POSTER = `${CLD}/f_jpg,q_75,w_1280,so_0/${VID}.jpg`;
