@@ -77,12 +77,12 @@ export default function Footer() {
             />
 
             <div className="container mx-auto px-4 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 md:gap-12 md:mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 md:gap-12 md:mb-12">
                     {/* Brand Column */}
                     <div className="space-y-4 md:space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
                         <div className="flex flex-col items-center md:items-start">
-                            {/* Brand Logo with Gold Flare */}
-                            <div className="relative h-16 w-60 md:h-24 md:w-80 lg:h-32 lg:w-96 mb-4 md:mb-6">
+                            {/* Brand Logo */}
+                            <div className="relative h-24 w-72 md:h-24 md:w-80 lg:h-32 lg:w-96 mb-4 md:mb-6">
                                 <img
                                     src="/logo_complete.svg"
                                     alt="Fórmula do Boi"
@@ -115,18 +115,6 @@ export default function Footer() {
                             )}
                             <li><Link href="/quem-somos" className="hover:text-white transition-colors">Quem Somos</Link></li>
                             <li><Link href="/venda-conosco" className="hover:text-white transition-colors">Venda Conosco</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Links Column */}
-                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                        <h3 className="text-lg font-bold mb-3 md:mb-6 text-brand-gold uppercase tracking-wider">Suporte</h3>
-                        <ul className="space-y-2 md:space-y-4 text-sm text-gray-400">
-                            <li><a href="#" className="hover:text-white transition-colors">Como Comprar</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Regulamento</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Política de Privacidade</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Termos de Uso</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Fale Conosco</a></li>
                         </ul>
                     </div>
 
