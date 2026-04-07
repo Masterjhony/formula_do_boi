@@ -58,14 +58,15 @@ export default function TourosDestaque({ products, isAuthenticated = true }: Tou
                 </div>
 
                 {/* ── Cards ── */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div className="no-scrollbar flex overflow-x-auto snap-x snap-mandatory gap-4 -mx-4 px-4 pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible sm:snap-none sm:mx-0 sm:px-0 sm:pb-0 sm:gap-5 lg:grid-cols-4">
                     {touros.map((product) => (
-                        <ProductCard
-                            key={product.id}
-                            product={product}
-                            theme="premium"
-                            isAuthenticated={isAuthenticated}
-                        />
+                        <div key={product.id} className="shrink-0 w-[78vw] snap-start sm:w-auto">
+                            <ProductCard
+                                product={product}
+                                theme="premium"
+                                isAuthenticated={isAuthenticated}
+                            />
+                        </div>
                     ))}
                 </div>
             </div>
