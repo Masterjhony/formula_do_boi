@@ -23,7 +23,33 @@
   --color-brand-gold: var(--brand-gold);
   --color-brand-black: var(--brand-black);
   --color-brand-light: var(--brand-light);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-mono), ui-monospace, "JetBrains Mono", monospace;
+}
+
+/* ── Tipografia de Autoridade e Legado ── */
+body {
+  font-family: var(--font-sans);
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+h1, h2, h3,
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-feature-settings: "kern" 1, "liga" 1, "lnum" 1, "tnum" 0;
+  letter-spacing: -0.02em;
+}
+
+/* Números em contextos de peso (kg) e valor (R$): alinhamento tabular perfeito */
+.tabular-nums,
+[data-unit="kg"],
+[data-unit="rs"] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: 0;
 }
 
 body {
