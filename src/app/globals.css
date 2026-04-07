@@ -66,6 +66,63 @@ body::after {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
+/* ══════════════════════════════════════════════════════════
+   COSTURA DIGITAL — Separador de seção estilo selaria
+   Duas fileiras de pontos ouro ligeiramente offset,
+   evocando costura dupla de máquina em couro.
+══════════════════════════════════════════════════════════ */
+.stitch-divider {
+  position: relative;
+}
+.stitch-divider::before,
+.stitch-divider::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+/* Fileira superior — pontos cheios, ouro médio */
+.stitch-divider::before {
+  height: 1px;
+  top: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(197, 160, 89, 0.30) 0px,
+    rgba(197, 160, 89, 0.30) 7px,
+    transparent                7px,
+    transparent               14px
+  );
+}
+/* Fileira inferior — pontos deslocados em 7px, mais tênues */
+.stitch-divider::after {
+  height: 1px;
+  top: 5px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent                0px,
+    transparent                7px,
+    rgba(197, 160, 89, 0.14)   7px,
+    rgba(197, 160, 89, 0.14)  14px
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   INNER SHADOW — Campo "gravado no couro"
+   Sombra interna escura no topo (profundidade) +
+   reflexo dourado leve embaixo (brilho do couro polido).
+   Evoca estampagem a ferro quente ou relevo em negativo.
+══════════════════════════════════════════════════════════ */
+.card-engraved {
+  box-shadow:
+    inset 0 2px 8px  rgba(0,   0,   0,   0.55),
+    inset 0 1px 3px  rgba(0,   0,   0,   0.40),
+    inset 0 -1px 0px rgba(197, 160, 89,  0.08),
+          0 1px 0px  rgba(255, 255, 255, 0.025);
+}
+
 @keyframes drift-a {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33%       { transform: translate(6%, 4%) scale(1.05); }

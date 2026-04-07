@@ -167,7 +167,7 @@ export default function ProductCard({ product, featured = false, isAuthenticated
         <div
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            className={`group rounded-xl overflow-hidden transition-all duration-300 flex flex-col h-full relative
+            className={`card-engraved group rounded-xl overflow-hidden transition-all duration-300 flex flex-col h-full relative
             ${theme === 'premium' ? 'bg-[#151515] hover:shadow-[0_0_20px_rgba(197,160,89,0.15)]' : 'bg-white hover:shadow-xl'}
             ${featured
                     ? 'border-2 border-brand-gold shadow-[0_0_15px_rgba(197,160,89,0.2)]'

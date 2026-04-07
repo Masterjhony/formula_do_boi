@@ -2,7 +2,7 @@ import { ArrowRight, Handshake } from "lucide-react";
 
 export default function BulaRematesSection() {
     return (
-        <section className="py-20 bg-[#050505] border-t border-white/5">
+        <section className="stitch-divider py-20 bg-[#050505] border-t border-white/5">
             <div className="container mx-auto px-4">
                 <div className="relative rounded-3xl overflow-hidden border border-brand-gold/20">
                     {/* Background gradient */}

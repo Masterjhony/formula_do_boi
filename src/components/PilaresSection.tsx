@@ -59,7 +59,7 @@ const pilares = [
 
 export default function PilaresSection() {
     return (
-        <section className="py-24 bg-[#050505] border-t border-white/5">
+        <section className="stitch-divider py-24 bg-[#050505] border-t border-white/5">
             <div className="container mx-auto px-4">
                 {/* Section Header */}
                 <div className="text-center mb-16">

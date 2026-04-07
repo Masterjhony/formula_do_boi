@@ -114,7 +114,7 @@ export default function Hero() {
                         <a
                             key={href}
                             href={href}
-                            className="group relative flex flex-col gap-3 p-6 rounded-2xl border border-white/10 bg-[rgba(0,0,0,0.65)] text-left
+                            className="card-engraved group relative flex flex-col gap-3 p-6 rounded-2xl border border-white/10 bg-[rgba(0,0,0,0.65)] text-left
                                 hover:border-brand-gold/40 hover:bg-[rgba(20,14,2,0.75)] hover:shadow-[0_0_30px_-6px_rgba(197,160,89,0.2)]
                                 transition-colors duration-300"
                         >

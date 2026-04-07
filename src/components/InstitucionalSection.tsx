@@ -21,7 +21,7 @@ const diferenciais = [
 
 export default function InstitucionalSection() {
     return (
-        <section className="py-24 bg-[#0a0a0a] border-t border-white/5 overflow-hidden">
+        <section className="stitch-divider py-24 bg-[#0a0a0a] border-t border-white/5 overflow-hidden">
             <div className="container mx-auto px-4">
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                     {/* Left — Text */}

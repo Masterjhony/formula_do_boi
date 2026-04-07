@@ -58,7 +58,7 @@ export default function LeiloesSection() {
     const totalAnimais = LEILOES.reduce((a, b) => a + b.quantidade, 0);
 
     return (
-        <section id="leiloes" className="py-24 bg-[#050505] border-t border-white/5 scroll-mt-20">
+        <section id="leiloes" className="stitch-divider py-24 bg-[#050505] border-t border-white/5 scroll-mt-20">
             <div className="container mx-auto px-4">
 
                 {/* ── Header ── */}
@@ -97,7 +97,7 @@ export default function LeiloesSection() {
                         { label: "Animais", value: totalAnimais.toLocaleString("pt-BR") },
                         { label: "Prev. de Venda", value: "R$ 25,3M" },
                     ].map((s) => (
-                        <div key={s.label} className="rounded-2xl border border-white/8 bg-[#0f0f0f] px-5 py-4 text-center">
+                        <div key={s.label} className="card-engraved rounded-2xl border border-white/8 bg-[#0f0f0f] px-5 py-4 text-center">
                             <p className="text-2xl md:text-3xl font-black text-brand-gold leading-none mb-1">{s.value}</p>
                             <p className="text-[11px] text-gray-500 uppercase tracking-wider font-medium">{s.label}</p>
                         </div>
@@ -189,10 +189,10 @@ function LeilaoCard({ ev }: { ev: Leilao }) {
     const isVirtual = ev.modelo === "Virtual";
 
     return (
-        <div className="group grid grid-cols-[64px_1fr] sm:grid-cols-[64px_1fr_auto] items-center gap-4 sm:gap-6 p-5 rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300">
+        <div className="card-engraved group grid grid-cols-[64px_1fr] sm:grid-cols-[64px_1fr_auto] items-center gap-4 sm:gap-6 p-5 rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300">
 
             {/* Data chip */}
-            <div className="flex flex-col items-center justify-center w-16 h-16 rounded-xl border border-brand-gold/20 bg-brand-gold/6 flex-shrink-0">
+            <div className="card-engraved flex flex-col items-center justify-center w-16 h-16 rounded-xl border border-brand-gold/20 bg-brand-gold/6 flex-shrink-0">
                 <span className="text-brand-gold font-black text-xl leading-none">{ev.dia}</span>
                 <span className="text-brand-gold/70 text-[10px] font-bold uppercase tracking-wider mt-0.5">{ev.mes.slice(0, 3)}</span>
             </div>
