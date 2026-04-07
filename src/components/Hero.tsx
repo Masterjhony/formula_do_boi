@@ -30,6 +30,17 @@ const MODELS = [
     },
 ];
 
+const CLD = "https://res.cloudinary.com/dkh2nsugb/video/upload";
+const VID = "v1775523013/hero-agro-hero-optimized_f2oh1q";
+
+// Poster: frame do vídeo servido como imagem — carrega imediatamente
+const POSTER = `${CLD}/f_jpg,q_75,w_1280,so_0/${VID}.jpg`;
+
+// Bitrate baixo = buffer enche rápido = playback fluido sem travar
+// MP4 primeiro: H264 tem decodificação por hardware em todos os dispositivos
+const SRC_MP4  = `${CLD}/f_mp4,w_1024,q_auto:low,vc_h264,br_700k/${VID}.mp4`;
+const SRC_WEBM = `${CLD}/f_webm,w_1024,q_auto:low,vc_vp9,br_500k/${VID}.webm`;
+
 export default function Hero() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [videoReady, setVideoReady] = useState(false);
@@ -37,30 +48,15 @@ export default function Hero() {
 
     return (
         <section className="relative w-full min-h-screen bg-brand-black overflow-hidden flex flex-col" style={{ isolation: "isolate", contain: "layout style" }}>
-            {/* ── Animated cinematic fallback (hidden once video loads) ── */}
-            {!videoReady && (
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute inset-0 bg-[#07080a]" />
-                    <div className="absolute -top-1/4 -left-1/4 w-[80vw] h-[80vh] rounded-full
-                        bg-[radial-gradient(ellipse,rgba(197,160,89,0.18)_0%,transparent_65%)]
-                        animate-[drift-a_18s_ease-in-out_infinite]" />
-                    <div className="absolute top-1/3 -right-1/4 w-[70vw] h-[70vh] rounded-full
-                        bg-[radial-gradient(ellipse,rgba(197,160,89,0.13)_0%,transparent_60%)]
-                        animate-[drift-b_22s_ease-in-out_infinite]" />
-                    <div className="absolute -bottom-1/4 left-1/4 w-[60vw] h-[60vh] rounded-full
-                        bg-[radial-gradient(ellipse,rgba(160,100,20,0.14)_0%,transparent_55%)]
-                        animate-[drift-c_26s_ease-in-out_infinite]" />
-                    <div className="absolute inset-0 opacity-[0.025]"
-                        style={{
-                            backgroundImage:
-                                "linear-gradient(rgba(197,160,89,0.8) 1px,transparent 1px),linear-gradient(90deg,rgba(197,160,89,0.8) 1px,transparent 1px)",
-                            backgroundSize: "90px 90px",
-                        }}
-                    />
-                </div>
-            )}
+            {/* ── Poster estático — aparece imediatamente, some quando vídeo inicia ── */}
+            <img
+                src={POSTER}
+                aria-hidden
+                className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${videoReady ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+                style={{ transform: "translateZ(0)" }}
+            />
 
-            {/* ── Video background — Cloudinary CDN, bitrate controlado ── */}
+            {/* ── Vídeo — fade-in sobre o poster quando pronto ── */}
             {!videoFailed && (
                 <video
                     ref={videoRef}
@@ -70,21 +66,13 @@ export default function Hero() {
                     playsInline
                     disablePictureInPicture
                     preload="auto"
-                    className={`absolute inset-0 w-full h-full object-cover ${videoReady ? "opacity-100" : "opacity-0"}`}
-                    style={{ transform: "translateZ(0)", willChange: "auto", transition: "opacity 800ms ease" }}
+                    className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${videoReady ? "opacity-100" : "opacity-0"}`}
+                    style={{ transform: "translateZ(0)" }}
                     onCanPlay={() => setVideoReady(true)}
                     onError={() => setVideoFailed(true)}
                 >
-                    {/* WebM/VP9 — menor bitrate, prioridade em Chrome/Firefox */}
-                    <source
-                        src="https://res.cloudinary.com/dkh2nsugb/video/upload/f_webm,w_1280,q_30,vc_vp9,br_900k/v1775526049/hero-nelore-option-1-optimized_uortpl.webm"
-                        type="video/webm"
-                    />
-                    {/* MP4/H264 — fallback Safari/iOS */}
-                    <source
-                        src="https://res.cloudinary.com/dkh2nsugb/video/upload/f_mp4,w_1280,q_35,vc_h264,br_1100k/v1775526049/hero-nelore-option-1-optimized_uortpl.mp4"
-                        type="video/mp4"
-                    />
+                    <source src={SRC_MP4} type="video/mp4" />
+                    <source src={SRC_WEBM} type="video/webm" />
                 </video>
             )}
 
