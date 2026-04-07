@@ -1,36 +1,73 @@
-import { ArrowRight, Handshake, CalendarDays, MapPin, ExternalLink } from "lucide-react";
+"use client";
 
-// Upcoming auctions — update as events are scheduled
-const AGENDA: {
-    data: string;
-    titulo: string;
-    local: string;
-    descricao: string;
-    link?: string;
-}[] = [
-    // Example entry — replace or add real events:
-    // {
-    //   data: "15 MAR",
-    //   titulo: "Leilão Nelore P.O. — Ciclo Primavera",
-    //   local: "Uberaba — MG",
-    //   descricao: "Lotes selecionados de touros e matrizes PO com curadoria Fórmula do Boi × Bula Remates.",
-    //   link: "https://bulaassessoria.com.br/",
-    // },
+import { useState } from "react";
+import { ArrowRight, Handshake, CalendarDays, ExternalLink, Tv, Users, Tag } from "lucide-react";
+
+type Leilao = {
+    dia: number;
+    mes: string;
+    mesNum: number;
+    diaSemana: string;
+    horario: string;
+    criador: string;
+    categoria: string;
+    quantidade: number;
+    modelo: "Presencial" | "Virtual";
+    leiloeira: string;
+    transmissao: string;
+};
+
+const LEILOES: Leilao[] = [
+    { dia: 9,  mes: "Abril",    mesNum: 4,  diaSemana: "Quinta",  horario: "13:00", criador: "Toka Jakaré / 3 Nascentes", categoria: "Fêmeas P.O.",  quantidade: 80,  modelo: "Presencial", leiloeira: "Bula",      transmissao: "RuralPlay"     },
+    { dia: 11, mes: "Abril",    mesNum: 4,  diaSemana: "Sábado",  horario: "13:00", criador: "Nelore IPB",                 categoria: "Fêmeas P.O.",  quantidade: 30,  modelo: "Presencial", leiloeira: "Bula",      transmissao: "AgroBrasil"    },
+    { dia: 14, mes: "Abril",    mesNum: 4,  diaSemana: "Terça",   horario: "19:30", criador: "Cachoeirão",                 categoria: "Fêmeas P.O.",  quantidade: 30,  modelo: "Presencial", leiloeira: "Bula",      transmissao: "RuralPlay"     },
+    { dia: 13, mes: "Maio",     mesNum: 5,  diaSemana: "Quarta",  horario: "19:00", criador: "Grupo Ribalta",              categoria: "Touros P.O.",  quantidade: 70,  modelo: "Presencial", leiloeira: "LeiloBoI",  transmissao: "Canal do Boi"  },
+    { dia: 21, mes: "Maio",     mesNum: 5,  diaSemana: "Quinta",  horario: "19:00", criador: "Nelore Tresmar",             categoria: "Touros P.O.",  quantidade: 60,  modelo: "Virtual",    leiloeira: "Bula",      transmissao: "Canal do Boi"  },
+    { dia: 24, mes: "Maio",     mesNum: 5,  diaSemana: "Domingo", horario: "09:30", criador: "Nelore MEAB & Modelo",       categoria: "Fêmeas P.O.",  quantidade: 45,  modelo: "Virtual",    leiloeira: "Bula",      transmissao: "ERural/RP"     },
+    { dia: 3,  mes: "Junho",    mesNum: 6,  diaSemana: "Quarta",  horario: "19:00", criador: "Nelore Cachoeirão",          categoria: "Touros P.O.",  quantidade: 45,  modelo: "Presencial", leiloeira: "Bula",      transmissao: "Canal do Boi"  },
+    { dia: 4,  mes: "Junho",    mesNum: 6,  diaSemana: "Quinta",  horario: "12:00", criador: "Nelore MNO",                 categoria: "Touros P.O.",  quantidade: 50,  modelo: "Presencial", leiloeira: "Capitaliza", transmissao: "RuralPlay"    },
+    { dia: 11, mes: "Junho",    mesNum: 6,  diaSemana: "Quinta",  horario: "19:00", criador: "Nelore Tresmar",             categoria: "Fêmeas P.O.",  quantidade: 35,  modelo: "Presencial", leiloeira: "Bula",      transmissao: "Canal do Boi"  },
+    { dia: 16, mes: "Junho",    mesNum: 6,  diaSemana: "Terça",   horario: "19:30", criador: "Nelore Kriz",                categoria: "Fêmeas P.O.",  quantidade: 50,  modelo: "Virtual",    leiloeira: "Bula",      transmissao: "Canal do Boi"  },
+    { dia: 20, mes: "Junho",    mesNum: 6,  diaSemana: "Sábado",  horario: "12:00", criador: "Rio Bonito",                 categoria: "Touros P.O.",  quantidade: 80,  modelo: "Presencial", leiloeira: "Bula",      transmissao: "RuralPlay"     },
+    { dia: 28, mes: "Junho",    mesNum: 6,  diaSemana: "Domingo", horario: "12:00", criador: "Nelore IPB",                 categoria: "Touros IPB",   quantidade: 70,  modelo: "Presencial", leiloeira: "Capitaliza", transmissao: "AgroBrasil"   },
+    { dia: 7,  mes: "Julho",    mesNum: 7,  diaSemana: "Terça",   horario: "19:30", criador: "Nelore Kriz",                categoria: "Touros P.O.",  quantidade: 60,  modelo: "Virtual",    leiloeira: "Bula",      transmissao: "Canal do Boi"  },
+    { dia: 25, mes: "Julho",    mesNum: 7,  diaSemana: "Sábado",  horario: "12:00", criador: "Neloraço P.O.",              categoria: "Touros P.O.",  quantidade: 50,  modelo: "Presencial", leiloeira: "Bula",      transmissao: "RuralPlay"     },
+    { dia: 30, mes: "Julho",    mesNum: 7,  diaSemana: "Quinta",  horario: "19:00", criador: "Fazenda São Geraldo",        categoria: "Fêmeas P.O.",  quantidade: 30,  modelo: "Virtual",    leiloeira: "Bula",      transmissao: "RuralPlay"     },
+    { dia: 1,  mes: "Agosto",   mesNum: 8,  diaSemana: "Sábado",  horario: "12:00", criador: "Fazenda São Geraldo",        categoria: "Touros P.O.",  quantidade: 120, modelo: "Presencial", leiloeira: "Bula",      transmissao: "RuralPlay"     },
+    { dia: 29, mes: "Agosto",   mesNum: 8,  diaSemana: "Sábado",  horario: "12:00", criador: "Melhoradores",               categoria: "Touros P.O.",  quantidade: 50,  modelo: "Presencial", leiloeira: "Bula",      transmissao: "RuralPlay"     },
+    { dia: 21, mes: "Novembro", mesNum: 11, diaSemana: "Sábado",  horario: "—",     criador: "Fazendas C+4 / Camparino",   categoria: "Touros & Fêmeas", quantidade: 100, modelo: "Presencial", leiloeira: "Bula",   transmissao: "Canal Leilões" },
 ];
 
+const MESES = [...new Set(LEILOES.map((l) => l.mes))];
+
 export default function LeiloesSection() {
-    const hasEvents = AGENDA.length > 0;
+    const [mesSelecionado, setMesSelecionado] = useState("Todos");
+    const abas = ["Todos", ...MESES];
+
+    const lista = mesSelecionado === "Todos"
+        ? LEILOES
+        : LEILOES.filter((l) => l.mes === mesSelecionado);
+
+    // Agrupar por mês para exibição quando "Todos"
+    const grupos: Record<string, Leilao[]> = {};
+    for (const l of lista) {
+        if (!grupos[l.mes]) grupos[l.mes] = [];
+        grupos[l.mes].push(l);
+    }
+
+    const totalAnimais = LEILOES.reduce((a, b) => a + b.quantidade, 0);
 
     return (
-        <section id="leiloes" className="py-20 bg-[#050505] border-t border-white/5 scroll-mt-20">
+        <section id="leiloes" className="py-24 bg-[#050505] border-t border-white/5 scroll-mt-20">
             <div className="container mx-auto px-4">
+
                 {/* ── Header ── */}
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
                     <div>
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-gold/25 bg-brand-gold/6 mb-4">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-gold" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse" />
                             <span className="text-brand-gold text-[10px] font-black tracking-[0.22em] uppercase">
-                                Leilões de P.O.
+                                Temporada 2025
                             </span>
                         </div>
                         <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none mb-4">
@@ -39,13 +76,6 @@ export default function LeiloesSection() {
                                 Leilões
                             </span>
                         </h2>
-                        <div className="flex flex-wrap gap-2">
-                            {["Curadoria especializada", "Parceria Bula Remates", "Lotes Nelore P.O. selecionados"].map((s) => (
-                                <span key={s} className="text-[11px] text-gray-400 bg-white/[0.04] border border-white/8 px-3 py-1 rounded-full font-medium">
-                                    {s}
-                                </span>
-                            ))}
-                        </div>
                     </div>
 
                     <a
@@ -54,117 +84,159 @@ export default function LeiloesSection() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-sm font-bold text-brand-gold hover:text-yellow-400 uppercase tracking-widest transition-colors group whitespace-nowrap"
                     >
+                        <Handshake className="w-4 h-4" />
                         Bula Remates
-                        <ExternalLink className="w-4 h-4" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                 </div>
 
-                {/* ── Agenda ou Empty State ── */}
-                {hasEvents ? (
-                    <div className="space-y-4">
-                        {AGENDA.map((ev, i) => (
-                            <div key={i} className="group flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 transition-all">
-                                {/* Date chip */}
-                                <div className="flex-shrink-0 w-20 h-20 rounded-xl border border-brand-gold/20 bg-brand-gold/6 flex flex-col items-center justify-center">
-                                    <CalendarDays className="w-5 h-5 text-brand-gold mb-1" />
-                                    <span className="text-brand-gold font-black text-sm tracking-wider">{ev.data}</span>
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-white font-black text-lg uppercase tracking-wide mb-1">{ev.titulo}</p>
-                                    <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-2">
-                                        <MapPin className="w-3.5 h-3.5" />
-                                        {ev.local}
-                                    </div>
-                                    <p className="text-gray-400 text-sm leading-relaxed">{ev.descricao}</p>
-                                </div>
-                                {ev.link && (
-                                    <a
-                                        href={ev.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 border border-brand-gold/30 text-brand-gold text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-brand-gold hover:text-brand-black transition-all group-hover:border-brand-gold/60"
-                                    >
-                                        Detalhes
-                                        <ArrowRight className="w-3.5 h-3.5" />
-                                    </a>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    /* Empty state — visually premium */
-                    <div className="relative rounded-3xl border border-brand-gold/15 bg-gradient-to-br from-brand-gold/[0.04] via-transparent to-transparent overflow-hidden">
-                        <div className="absolute top-0 right-0 w-72 h-72 bg-brand-gold/[0.04] rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2" />
+                {/* ── Stats ── */}
+                <div className="grid grid-cols-3 gap-3 mb-10">
+                    {[
+                        { label: "Leilões", value: "18" },
+                        { label: "Animais", value: totalAnimais.toLocaleString("pt-BR") },
+                        { label: "Prev. de Venda", value: "R$ 25,3M" },
+                    ].map((s) => (
+                        <div key={s.label} className="rounded-2xl border border-white/8 bg-[#0f0f0f] px-5 py-4 text-center">
+                            <p className="text-2xl md:text-3xl font-black text-brand-gold leading-none mb-1">{s.value}</p>
+                            <p className="text-[11px] text-gray-500 uppercase tracking-wider font-medium">{s.label}</p>
+                        </div>
+                    ))}
+                </div>
 
-                        <div className="relative z-10 grid lg:grid-cols-2 gap-0">
-                            {/* Left */}
-                            <div className="p-10 md:p-14 flex flex-col justify-center">
-                                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-brand-gold/30 bg-brand-gold/8 mb-8 w-fit">
-                                    <Handshake className="w-4 h-4 text-brand-gold" />
-                                    <span className="text-brand-gold text-xs font-bold tracking-[0.15em] uppercase">Parceria Oficial</span>
-                                </div>
+                {/* ── Filtro de meses ── */}
+                <div className="flex gap-2 flex-wrap mb-10">
+                    {abas.map((mes) => (
+                        <button
+                            key={mes}
+                            onClick={() => setMesSelecionado(mes)}
+                            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${
+                                mesSelecionado === mes
+                                    ? "bg-brand-gold text-brand-black border-brand-gold"
+                                    : "border-white/10 text-gray-400 hover:border-brand-gold/30 hover:text-brand-gold"
+                            }`}
+                        >
+                            {mes}
+                        </button>
+                    ))}
+                </div>
 
-                                <h3 className="text-3xl md:text-4xl font-black text-white uppercase leading-tight tracking-tight mb-5">
-                                    Bula Remates{" "}
-                                    <span className="text-brand-gold">×</span>{" "}
-                                    Fórmula do Boi
-                                </h3>
-
-                                <p className="text-gray-400 leading-relaxed mb-4 text-base">
-                                    Mais de{" "}
-                                    <span className="text-white font-medium">10 anos de dedicação</span> e{" "}
-                                    <span className="text-white font-medium">R$30 milhões comercializados</span> em 2021.
-                                    Leilões com curadoria do campo ao comprador.
-                                </p>
-
-                                <p className="text-gray-500 text-sm leading-relaxed mb-8">
-                                    Próximas datas serão divulgadas em breve. Entre no grupo de WhatsApp para receber a agenda em primeira mão.
-                                </p>
-
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <a
-                                        href="https://bulaassessoria.com.br/"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center justify-center gap-2 px-7 py-3 bg-brand-gold hover:bg-yellow-500 text-brand-black font-bold uppercase tracking-widest text-sm rounded-lg transition-all hover:shadow-lg hover:shadow-brand-gold/20 group"
-                                    >
-                                        Conhecer a Bula Remates
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </a>
-                                    <a
-                                        href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20gostaria%20de%20receber%20a%20agenda%20dos%20pr%C3%B3ximos%20leil%C3%B5es."
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center justify-center gap-2 px-7 py-3 border border-white/15 hover:border-brand-gold/40 text-white hover:text-brand-gold font-semibold uppercase tracking-widest text-sm rounded-lg transition-all hover:bg-white/5"
-                                    >
-                                        Receber Agenda
-                                    </a>
-                                </div>
+                {/* ── Lista agrupada por mês ── */}
+                <div className="space-y-10">
+                    {Object.entries(grupos).map(([mes, events]) => (
+                        <div key={mes}>
+                            {/* Separador de mês */}
+                            <div className="flex items-center gap-3 mb-4">
+                                <CalendarDays className="w-4 h-4 text-brand-gold flex-shrink-0" />
+                                <span className="text-brand-gold text-xs font-black uppercase tracking-[0.2em]">{mes}</span>
+                                <div className="flex-1 h-px bg-gradient-to-r from-brand-gold/20 to-transparent" />
+                                <span className="text-[10px] text-gray-600 font-medium">{events.length} evento{events.length > 1 ? "s" : ""}</span>
                             </div>
 
-                            {/* Right — highlights */}
-                            <div className="p-10 md:p-14 border-t lg:border-t-0 lg:border-l border-white/8 flex flex-col justify-center gap-5">
-                                {[
-                                    { n: "01", label: "Filmagem e catalogação dos lotes", desc: "Cada animal registrado com qualidade e apresentado da forma certa." },
-                                    { n: "02", label: "Transmissão e leiloeiro especializado", desc: "Infraestrutura completa para leilões presenciais e online." },
-                                    { n: "03", label: "Análise de crédito e contratos", desc: "Processo seguro do interesse até o fechamento do negócio." },
-                                    { n: "04", label: "Pós-venda e logística", desc: "Suporte na entrega com parceiros homologados." },
-                                ].map((item) => (
-                                    <div key={item.n} className="flex gap-4 items-start">
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold text-xs font-black">
-                                            {item.n}
-                                        </div>
-                                        <div>
-                                            <p className="text-white font-semibold text-sm mb-0.5">{item.label}</p>
-                                            <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
-                                        </div>
-                                    </div>
+                            <div className="space-y-3">
+                                {events.map((ev, i) => (
+                                    <LeilaoCard key={i} ev={ev} />
                                 ))}
                             </div>
                         </div>
+                    ))}
+                </div>
+
+                {/* ── Parceria Bula ── */}
+                <div className="mt-16 relative rounded-3xl border border-brand-gold/15 bg-gradient-to-br from-brand-gold/[0.04] via-transparent to-transparent overflow-hidden">
+                    <div className="absolute top-0 right-0 w-72 h-72 bg-brand-gold/[0.04] rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2" />
+                    <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center gap-8">
+                        <div className="flex-1">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-brand-gold/30 bg-brand-gold/8 mb-5 w-fit">
+                                <Handshake className="w-4 h-4 text-brand-gold" />
+                                <span className="text-brand-gold text-xs font-bold tracking-[0.15em] uppercase">Parceria Oficial</span>
+                            </div>
+                            <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-3">
+                                Bula Remates <span className="text-brand-gold">×</span> Fórmula do Boi
+                            </h3>
+                            <p className="text-gray-400 text-sm leading-relaxed max-w-lg">
+                                Mais de <span className="text-white font-medium">10 anos de dedicação</span> e curadoria especializada do campo ao comprador — filmagem dos lotes, transmissão, crédito e logística.
+                            </p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+                            <a
+                                href="https://bulaassessoria.com.br/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-gold hover:bg-yellow-500 text-brand-black font-bold uppercase tracking-widest text-sm rounded-lg transition-all hover:shadow-lg hover:shadow-brand-gold/20 group"
+                            >
+                                Conhecer a Bula
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </a>
+                            <a
+                                href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20gostaria%20de%20receber%20a%20agenda%20dos%20pr%C3%B3ximos%20leil%C3%B5es."
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-white/15 hover:border-brand-gold/40 text-white hover:text-brand-gold font-semibold uppercase tracking-widest text-sm rounded-lg transition-all hover:bg-white/5"
+                            >
+                                Receber Agenda
+                            </a>
+                        </div>
                     </div>
-                )}
+                </div>
             </div>
         </section>
+    );
+}
+
+function LeilaoCard({ ev }: { ev: Leilao }) {
+    const isTouros = ev.categoria.toLowerCase().includes("touro");
+    const isVirtual = ev.modelo === "Virtual";
+
+    return (
+        <div className="group grid grid-cols-[64px_1fr] sm:grid-cols-[64px_1fr_auto] items-center gap-4 sm:gap-6 p-5 rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300">
+
+            {/* Data chip */}
+            <div className="flex flex-col items-center justify-center w-16 h-16 rounded-xl border border-brand-gold/20 bg-brand-gold/6 flex-shrink-0">
+                <span className="text-brand-gold font-black text-xl leading-none">{ev.dia}</span>
+                <span className="text-brand-gold/70 text-[10px] font-bold uppercase tracking-wider mt-0.5">{ev.mes.slice(0, 3)}</span>
+            </div>
+
+            {/* Info */}
+            <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    <p className="text-white font-black text-base uppercase tracking-wide leading-tight truncate">
+                        {ev.criador}
+                    </p>
+                    {isVirtual ? (
+                        <span className="flex-shrink-0 inline-flex items-center gap-1 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400">
+                            <Tv className="w-2.5 h-2.5" /> Virtual
+                        </span>
+                    ) : (
+                        <span className="flex-shrink-0 inline-flex items-center gap-1 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
+                            <Users className="w-2.5 h-2.5" /> Presencial
+                        </span>
+                    )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    {/* Categoria */}
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${isTouros ? "text-amber-400" : "text-pink-400"}`}>
+                        <Tag className="w-3 h-3" />
+                        {ev.categoria}
+                        <span className="text-gray-500 font-normal">· {ev.quantidade} animais</span>
+                    </span>
+
+                    {/* Meta */}
+                    <span className="text-[11px] text-gray-500">
+                        <span className="text-gray-400">{ev.diaSemana}</span>
+                        {ev.horario !== "—" && <span className="text-gray-600"> · {ev.horario}</span>}
+                    </span>
+
+                    {/* Leiloeira + transmissão */}
+                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">
+                        {ev.leiloeira} · {ev.transmissao}
+                    </span>
+                </div>
+            </div>
+
+            {/* Linha dourada no hover — desktop */}
+            <div className="hidden sm:block w-1 h-12 rounded-full bg-brand-gold/0 group-hover:bg-brand-gold/40 transition-all duration-300" />
+        </div>
     );
 }
