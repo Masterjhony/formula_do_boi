@@ -36,7 +36,7 @@ export default function Hero() {
     const [videoFailed, setVideoFailed] = useState(false);
 
     return (
-        <section className="relative w-full min-h-screen bg-brand-black overflow-hidden flex flex-col">
+        <section className="relative w-full min-h-screen bg-brand-black overflow-hidden flex flex-col" style={{ isolation: "isolate", contain: "layout style" }}>
             {/* ── Animated cinematic fallback (hidden once video loads) ── */}
             {!videoReady && (
                 <div className="absolute inset-0 overflow-hidden">
@@ -60,7 +60,7 @@ export default function Hero() {
                 </div>
             )}
 
-            {/* ── Video background ── */}
+            {/* ── Video background — Cloudinary CDN, bitrate controlado ── */}
             {!videoFailed && (
                 <video
                     ref={videoRef}
@@ -70,13 +70,21 @@ export default function Hero() {
                     playsInline
                     disablePictureInPicture
                     preload="auto"
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ${videoReady ? "opacity-100" : "opacity-0"}`}
-                    style={{ willChange: "opacity", transform: "translateZ(0)" }}
+                    className={`absolute inset-0 w-full h-full object-cover ${videoReady ? "opacity-100" : "opacity-0"}`}
+                    style={{ transform: "translateZ(0)", willChange: "auto", transition: "opacity 800ms ease" }}
                     onCanPlay={() => setVideoReady(true)}
                     onError={() => setVideoFailed(true)}
                 >
-                    <source src="/hero-video.webm" type="video/webm" />
-                    <source src="/hero-video.mp4" type="video/mp4" />
+                    {/* WebM/VP9 — menor bitrate, prioridade em Chrome/Firefox */}
+                    <source
+                        src="https://res.cloudinary.com/dkh2nsugb/video/upload/f_webm,w_1280,q_30,vc_vp9,br_900k/v1775526049/hero-nelore-option-1-optimized_uortpl.webm"
+                        type="video/webm"
+                    />
+                    {/* MP4/H264 — fallback Safari/iOS */}
+                    <source
+                        src="https://res.cloudinary.com/dkh2nsugb/video/upload/f_mp4,w_1280,q_35,vc_h264,br_1100k/v1775526049/hero-nelore-option-1-optimized_uortpl.mp4"
+                        type="video/mp4"
+                    />
                 </video>
             )}
 
