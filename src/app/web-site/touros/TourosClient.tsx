@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Calendar, Activity, User } from "lucide-react";
@@ -8,6 +9,7 @@ import FilterSidebar, { commonFilters } from "@/components/FilterSidebar";
 import CatalogGrid from "@/components/CatalogGrid";
 import Pagination from "@/components/Pagination";
 import { Product } from "@/services/products";
+import { SettingsService } from "@/services/settingsService";
 
 interface TourosClientProps {
     products: Product[];
@@ -15,6 +17,17 @@ interface TourosClientProps {
 }
 
 export default function TourosClient({ products: allProducts, isAuthenticated = true }: TourosClientProps) {
+    const router = useRouter();
+
+    useEffect(() => {
+        async function checkVisibility() {
+            const isEnabled = await SettingsService.getSetting('touros_page_enabled');
+            if (isEnabled === false) {
+                router.push('/');
+            }
+        }
+        checkVisibility();
+    }, [router]);
     // Extract unique breeders for filter options
     const breederOptions = useMemo(() => {
         const breeders = new Set<string>();

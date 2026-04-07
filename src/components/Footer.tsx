@@ -8,17 +8,17 @@ import { SettingsService } from "@/services/settingsService";
 export default function Footer() {
     const [showTopBreeders, setShowTopBreeders] = useState(false);
     const [showSemen, setShowSemen] = useState(false);
+    const [showTouros, setShowTouros] = useState(true);
 
     useEffect(() => {
         const fetchSettings = async () => {
             const topBreedersEnabled = await SettingsService.getSetting('top_breeders_enabled');
             const semenEnabled = await SettingsService.getSetting('semen_page_enabled');
+            const tourosEnabled = await SettingsService.getSetting('touros_page_enabled');
 
-            // Only show if explicitly not false (or however we want to handle defaults)
-            // Since we want to avoid flicker, default state is false (hidden).
-            // We update to true only if check passes.
             setShowTopBreeders(topBreedersEnabled === true);
             setShowSemen(semenEnabled === true);
+            setShowTouros(tourosEnabled !== false);
         };
         fetchSettings();
     }, []);
@@ -105,7 +105,9 @@ export default function Footer() {
                         <h3 className="text-lg font-bold mb-3 md:mb-6 text-brand-gold uppercase tracking-wider">Navegação</h3>
                         <ul className="space-y-2 md:space-y-4 text-sm text-gray-400">
                             <li><Link href="/" className="hover:text-white transition-colors">Início</Link></li>
-                            <li><Link href="/touros" className="hover:text-white transition-colors">Touros</Link></li>
+                            {showTouros && (
+                                <li><Link href="/touros" className="hover:text-white transition-colors">Touros</Link></li>
+                            )}
                             {showSemen && (
                                 <li><Link href="/semen" className="hover:text-white transition-colors">Sêmen</Link></li>
                             )}

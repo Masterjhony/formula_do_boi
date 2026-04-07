@@ -26,25 +26,26 @@ export default function Header() {
             if (cached) {
                 try {
                     const parsed = JSON.parse(cached);
-                    updateNavItems(parsed.semenEnabled);
+                    updateNavItems(parsed.semenEnabled, parsed.tourosEnabled);
                 } catch (e) {
                     // ignore
                 }
             }
 
             const semenEnabled = await SettingsService.getSetting('semen_page_enabled');
-            localStorage.setItem(CACHE_KEY, JSON.stringify({ semenEnabled, timestamp: Date.now() }));
-            updateNavItems(semenEnabled);
+            const tourosEnabled = await SettingsService.getSetting('touros_page_enabled');
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ semenEnabled, tourosEnabled, timestamp: Date.now() }));
+            updateNavItems(semenEnabled, tourosEnabled);
         };
 
         fetchSettings();
     }, []);
 
-    const updateNavItems = (semenEnabled: any) => {
+    const updateNavItems = (semenEnabled: any, tourosEnabled: any) => {
         setNavItems(() => {
             const items = [defaultNavItems[0]];
             if (semenEnabled === true) items.push({ href: "/semen", label: "Sêmen" });
-            items.push(defaultNavItems[1]);
+            if (tourosEnabled !== false) items.push(defaultNavItems[1]);
             items.push(defaultNavItems[2]);
             items.push(defaultNavItems[3]);
             items.push(defaultNavItems[4]);
