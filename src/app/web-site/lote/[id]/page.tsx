@@ -509,7 +509,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                 {/* WhatsApp Group Banner — Touro */}
                 {categoryLabel === 'Touro' && (
                     <a
-                        href="https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9"
+                        href="https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9?mode=gi_t"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-black border border-[#b8953a]/40 rounded-xl px-6 py-5 hover:border-[#b8953a]/80 transition-colors group"
@@ -519,8 +519,8 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <MessageCircle className="w-6 h-6 text-[#b8953a]" />
                             </div>
                             <div>
-                                <p className="text-white font-bold text-base leading-tight">Shopping de Touros Nelore P.O</p>
-                                <p className="text-gray-400 text-sm mt-0.5">Receba ofertas de touros selecionados diretamente no seu WhatsApp.</p>
+                                <p className="text-white font-bold text-base leading-tight">Academia do Nelore P.O | Fórmula do Boi e Bula Remates</p>
+                                <p className="text-gray-400 text-sm mt-0.5">Receba ofertas selecionadas diretamente no seu WhatsApp.</p>
                             </div>
                         </div>
                         <span className="shrink-0 flex items-center gap-2 bg-[#b8953a] hover:bg-[#a07e2e] text-black font-bold text-sm px-5 py-2.5 rounded-lg transition-colors group-hover:bg-[#a07e2e]">
@@ -533,7 +533,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                 {/* WhatsApp Group Banner — Matriz */}
                 {categoryLabel === 'Matriz' && (
                     <a
-                        href="https://chat.whatsapp.com/E0KH0Z5IL4x1fvEzLtaX03"
+                        href="https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9?mode=gi_t"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-black border border-[#b8953a]/40 rounded-xl px-6 py-5 hover:border-[#b8953a]/80 transition-colors group"
@@ -543,8 +543,8 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <MessageCircle className="w-6 h-6 text-[#b8953a]" />
                             </div>
                             <div>
-                                <p className="text-white font-bold text-base leading-tight">Shopping de Matrizes Nelore P.O</p>
-                                <p className="text-gray-400 text-sm mt-0.5">Acompanhe as melhores matrizes disponíveis em primeira mão.</p>
+                                <p className="text-white font-bold text-base leading-tight">Academia do Nelore P.O | Fórmula do Boi e Bula Remates</p>
+                                <p className="text-gray-400 text-sm mt-0.5">Acompanhe as melhores ofertas disponíveis em primeira mão.</p>
                             </div>
                         </div>
                         <span className="shrink-0 flex items-center gap-2 bg-[#b8953a] hover:bg-[#a07e2e] text-black font-bold text-sm px-5 py-2.5 rounded-lg transition-colors group-hover:bg-[#a07e2e]">

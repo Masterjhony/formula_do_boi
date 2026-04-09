@@ -5,12 +5,8 @@ import { MessageCircle, X, ArrowRight } from "lucide-react";
 
 const whatsappGroups = [
     {
-        name: "Shopping de Matrizes Nelore P.O",
-        link: "https://chat.whatsapp.com/E0KH0Z5IL4x1fvEzLtaX03"
-    },
-    {
-        name: "Shopping de Touros - Nelore P.O",
-        link: "https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9"
+        name: "Academia do Nelore P.O | Fórmula do Boi e Bula Remates",
+        link: "https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9?mode=gi_t"
     }
 ];
 
@@ -119,7 +115,7 @@ export default function WhatsappSection() {
                                 className="text-xl md:text-2xl font-black uppercase mb-2"
                                 style={debossTitle}
                             >
-                                Entre nos grupos para receber ofertas exclusivas
+                                Entre no grupo para receber ofertas exclusivas
                             </h2>
 
                             {/* Gold accent subtitle */}
@@ -131,11 +127,11 @@ export default function WhatsappSection() {
                                     textShadow: "0 1px 4px rgba(0,0,0,0.6)",
                                 }}
                             >
-                                Acesso exclusivo aos grupos &lsquo;Selo Ouro&rsquo;
+                                Acesso exclusivo ao grupo &lsquo;Selo Ouro&rsquo;
                             </p>
 
                             <p className="text-white/60 text-sm max-w-lg mx-auto mb-7">
-                                Tenha acesso a ofertas exclusivas e oportunidades selecionadas em nossos grupos de WhatsApp.
+                                Tenha acesso a ofertas exclusivas e oportunidades selecionadas no nosso grupo de WhatsApp.
                             </p>
 
                             {/* Brushed steel button */}
@@ -145,7 +141,7 @@ export default function WhatsappSection() {
                                 style={steelButton}
                             >
                                 <MessageCircle className="w-4 h-4 opacity-80" />
-                                Acessar Grupos
+                                Acessar Grupo
                             </button>
                         </div>
                     </div>
@@ -159,7 +155,7 @@ export default function WhatsappSection() {
                         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#0a0a0a]">
                             <h3 className="text-lg font-bold text-white flex items-center gap-2">
                                 <MessageCircle className="w-5 h-5 text-green-500" />
-                                Grupos VIP WhatsApp
+                                Grupo VIP WhatsApp
                             </h3>
                             <button
                                 onClick={() => setShowModal(false)}
@@ -170,7 +166,7 @@ export default function WhatsappSection() {
                         </div>
                         <div className="p-6 space-y-4">
                             <p className="text-gray-400 text-sm mb-4">
-                                Entre em nossos grupos exclusivos para acompanhar as ofertas e novidades em primeira mão.
+                                Entre no nosso grupo exclusivo para acompanhar as ofertas e novidades em primeira mão.
                             </p>
                             {whatsappGroups.map((group, index) => (
                                 <a

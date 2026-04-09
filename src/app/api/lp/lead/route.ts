@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Dispara WhatsApp welcome + convite do grupo (fire-and-forget)
-        const WHATSAPP_GROUP_INVITE = 'https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9';
+        const WHATSAPP_GROUP_INVITE = 'https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9?mode=gi_t';
         const phone = tel.replace(/\D/g, '');
         let whatsappStatus: string = 'no_phone';
         let whatsappReason: string | null = null;
