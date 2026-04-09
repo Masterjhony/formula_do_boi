@@ -27,42 +27,69 @@ export default function Footer() {
         <>
         <footer className="relative bg-[#080808] text-white pt-10 pb-6 md:pt-16 md:pb-8 border-t border-yellow-900/40 overflow-hidden">
 
-            {/* Debossed Stamp Watermark — three-layer technique */}
+            {/* Deep Relief / Intaglio Watermark
+                Luz vem do topo-esquerda. Cada traço é um sulco cavado:
+                - Sombra escura na borda superior-esquerda (dentro do sulco, sem luz)
+                - Realce metálico na borda inferior-direita (parede do sulco pega a luz)
+                - Piso do sulco = levemente mais escuro que o fundo
+            */}
             <div
                 aria-hidden="true"
                 className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
                 style={{ transform: 'translateY(-4%)' }}
             >
-                {/* Layer 1 — cast shadow (offset down-right, pure black) */}
+                {/* Shadow 1 — sombra profunda no topo-esquerdo do sulco (a aresta bloqueia a luz) */}
                 <img
                     src="/logo_complete.svg"
                     alt=""
                     className="absolute w-[480px] md:w-[820px] lg:w-[1000px] object-contain"
                     style={{
                         filter: 'brightness(0)',
-                        opacity: 0.55,
-                        transform: 'translate(3px, 4px)',
+                        opacity: 0.85,
+                        transform: 'translate(-2.5px, -3px)',
                     }}
                 />
-                {/* Layer 2 — debossed body (the stamp itself, very dark warm tone) */}
-                <img
-                    src="/logo_complete.svg"
-                    alt=""
-                    className="w-[480px] md:w-[820px] lg:w-[1000px] object-contain"
-                    style={{
-                        filter: 'brightness(0.08) sepia(0.4)',
-                        opacity: 0.92,
-                    }}
-                />
-                {/* Layer 3 — rim highlight (offset up-left, barely-there warm gold) */}
+                {/* Shadow 2 — sombra difusa mais larga para profundidade extra */}
                 <img
                     src="/logo_complete.svg"
                     alt=""
                     className="absolute w-[480px] md:w-[820px] lg:w-[1000px] object-contain"
                     style={{
-                        filter: 'sepia(1) saturate(5) brightness(0.7)',
-                        opacity: 0.07,
-                        transform: 'translate(-2px, -3px)',
+                        filter: 'brightness(0) blur(1.5px)',
+                        opacity: 0.5,
+                        transform: 'translate(-3.5px, -4px)',
+                    }}
+                />
+                {/* Highlight 1 — realce metálico na borda inferior-direita (luz pega a parede do sulco) */}
+                <img
+                    src="/logo_complete.svg"
+                    alt=""
+                    className="absolute w-[480px] md:w-[820px] lg:w-[1000px] object-contain"
+                    style={{
+                        filter: 'brightness(0.45) sepia(0.2) saturate(0.3)',
+                        opacity: 0.28,
+                        transform: 'translate(2px, 2.5px)',
+                    }}
+                />
+                {/* Highlight 2 — realce mais fino e definido, borda nítida */}
+                <img
+                    src="/logo_complete.svg"
+                    alt=""
+                    className="absolute w-[480px] md:w-[820px] lg:w-[1000px] object-contain"
+                    style={{
+                        filter: 'brightness(0.55) sepia(0.15) saturate(0.2)',
+                        opacity: 0.12,
+                        transform: 'translate(1px, 1px)',
+                    }}
+                />
+                {/* Body — piso do sulco, tom ligeiramente mais escuro que #080808 */}
+                <img
+                    src="/logo_complete.svg"
+                    alt=""
+                    className="absolute w-[480px] md:w-[820px] lg:w-[1000px] object-contain"
+                    style={{
+                        filter: 'brightness(0.035)',
+                        opacity: 1,
                     }}
                 />
             </div>
@@ -72,7 +99,7 @@ export default function Footer() {
                 aria-hidden="true"
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                    background: 'radial-gradient(ellipse 120% 100% at 50% 50%, transparent 25%, rgba(0,0,0,0.6) 100%)'
+                    background: 'radial-gradient(ellipse 120% 100% at 50% 50%, transparent 30%, rgba(0,0,0,0.5) 100%)'
                 }}
             />
 
