@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { ArrowRight, ChevronDown, Droplets, Dna, Gavel } from "lucide-react";
 
 const MODELS = [
@@ -33,27 +33,54 @@ const VID = "v1775568904/cam_1_lifky2";
 // Poster: frame do vídeo servido como imagem — carrega imediatamente
 const POSTER = `${CLD}/f_jpg,q_75,w_1280,so_0/${VID}.jpg`;
 
-// Bitrate baixo = buffer enche rápido = playback fluido sem travar
-// MP4 primeiro: H264 tem decodificação por hardware em todos os dispositivos
-const SRC_MP4  = `${CLD}/f_mp4,w_1024,q_auto:low,vc_h264,br_700k/${VID}.mp4`;
-const SRC_WEBM = `${CLD}/f_webm,w_1024,q_auto:low,vc_vp9,br_500k/${VID}.webm`;
+// Bitrate baixo + resolução moderada = buffer enche rápido = playback fluido
+// MP4 H264: decodificação por hardware em todos os dispositivos
+const SRC_MP4  = `${CLD}/f_mp4,w_960,q_auto:low,vc_h264,br_600k/${VID}.mp4`;
+const SRC_WEBM = `${CLD}/f_webm,w_960,q_auto:low,vc_vp9,br_400k/${VID}.webm`;
 
 export default function Hero() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [videoReady, setVideoReady] = useState(false);
     const [videoFailed, setVideoFailed] = useState(false);
 
+    // Só mostra o vídeo quando ele estiver de fato reproduzindo frames
+    const handlePlaying = useCallback(() => setVideoReady(true), []);
+    const handleError = useCallback(() => setVideoFailed(true), []);
+
+    // Garante play() explícito — autoplay pode falhar silenciosamente
+    useEffect(() => {
+        const v = videoRef.current;
+        if (!v) return;
+
+        const tryPlay = () => {
+            v.play().catch(() => {
+                // Autoplay bloqueado (raro com muted) — mantém poster
+                setVideoFailed(true);
+            });
+        };
+
+        // Se já tem buffer suficiente, inicia direto
+        if (v.readyState >= 3) {
+            tryPlay();
+        } else {
+            v.addEventListener("canplaythrough", tryPlay, { once: true });
+            return () => v.removeEventListener("canplaythrough", tryPlay);
+        }
+    }, []);
+
     return (
-        <section className="relative w-full min-h-screen bg-brand-black overflow-hidden flex flex-col" style={{ isolation: "isolate", contain: "layout style" }}>
+        <section className="relative w-full min-h-screen bg-brand-black overflow-hidden flex flex-col" style={{ isolation: "isolate", contain: "layout style paint" }}>
             {/* ── Poster estático — aparece imediatamente, some quando vídeo inicia ── */}
             <img
                 src={POSTER}
-                aria-hidden
+                alt=""
+                aria-hidden="true"
+                fetchPriority="high"
                 className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${videoReady ? "opacity-0 pointer-events-none" : "opacity-100"}`}
                 style={{ transform: "translateZ(0)" }}
             />
 
-            {/* ── Vídeo — fade-in sobre o poster quando pronto ── */}
+            {/* ── Vídeo — fade-in sobre o poster quando está de fato reproduzindo ── */}
             {!videoFailed && (
                 <video
                     ref={videoRef}
@@ -64,9 +91,9 @@ export default function Hero() {
                     disablePictureInPicture
                     preload="auto"
                     className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${videoReady ? "opacity-100" : "opacity-0"}`}
-                    style={{ transform: "translateZ(0)" }}
-                    onCanPlay={() => setVideoReady(true)}
-                    onError={() => setVideoFailed(true)}
+                    style={{ transform: "translateZ(0)", willChange: "transform" }}
+                    onPlaying={handlePlaying}
+                    onError={handleError}
                 >
                     <source src={SRC_MP4} type="video/mp4" />
                     <source src={SRC_WEBM} type="video/webm" />
