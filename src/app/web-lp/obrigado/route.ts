@@ -13,7 +13,7 @@ export async function GET(_request: NextRequest) {
     const htmlPath = path.join(process.cwd(), 'public', 'lp', 'obrigado.html');
     let html = fs.readFileSync(htmlPath, 'utf-8');
 
-    let waGroupLink = 'https://chat.whatsapp.com/EXSRr16zZh4JTUxCD3r3Ev';
+    let waGroupLink = 'https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9?mode=gi_t';
     try {
         const supabase = getSupabaseAdmin();
         const { data } = await supabase
