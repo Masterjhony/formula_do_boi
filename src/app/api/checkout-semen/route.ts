@@ -7,7 +7,7 @@ const SHEET_NAME = 'Checkout-Semen';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { nome, fazenda, cpf, animais, cidade, doses, parcelamento, utm_source, utm_medium, utm_campaign, utm_content } = body;
+        const { nome, fazenda, cpf, telefone, animais, cidade, doses, parcelamento, utm_source, utm_medium, utm_campaign, utm_content } = body;
 
         if (!nome || !fazenda || !cpf || !animais || !cidade || !doses || !parcelamento) {
             return NextResponse.json({ error: 'Campos obrigatórios faltando' }, { status: 400 });
@@ -36,13 +36,14 @@ export async function POST(request: Request) {
 
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A:L`,
+            range: `${SHEET_NAME}!A:M`,
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [[
                     nome,
                     fazenda,
                     cpf,
+                    telefone || '',
                     animais,
                     cidade,
                     doses,
@@ -55,6 +56,20 @@ export async function POST(request: Request) {
                 ]],
             },
         });
+
+        // Adiciona o contato ao grupo do WhatsApp da LP
+        if (telefone) {
+            const whatsappUrl = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001';
+            try {
+                await fetch(`${whatsappUrl}/add-to-group`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: telefone }),
+                });
+            } catch (err) {
+                console.error('[checkout-semen] Erro ao adicionar ao grupo WhatsApp:', err);
+            }
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

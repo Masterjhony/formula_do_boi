@@ -231,6 +231,10 @@ export default function SertanejoCheckout() {
                                     <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" maxLength={14} onChange={handleCpfInput} required />
                                 </div>
                                 <div className="form-group">
+                                    <label htmlFor="telefone">WhatsApp / Telefone</label>
+                                    <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" required />
+                                </div>
+                                <div className="form-group">
                                     <label htmlFor="animais">Número de Animais</label>
                                     <input type="number" id="animais" name="animais" placeholder="Ex: 500" min="1" required />
                                 </div>
