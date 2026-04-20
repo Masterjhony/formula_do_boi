@@ -20,6 +20,7 @@ interface Account {
     name: string;
     type: string;
     current_balance: number;
+    initial_balance: number;
 }
 
 interface Category {
@@ -120,10 +121,14 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
     useEffect(() => { setTransactions(initialTransactions); }, [initialTransactions]);
 
     // ── Computed ──────────────────────────────────────────────────────────────
-    const totalBalance = useMemo(
-        () => accounts.reduce((s, a) => s + Number(a.current_balance), 0),
-        [accounts],
-    );
+    // Saldo real = initial_balance de todas as contas + transações completed
+    const totalBalance = useMemo(() => {
+        const initial = accounts.reduce((s, a) => s + Number(a.initial_balance || 0), 0);
+        const txNet = transactions
+            .filter(t => t.status === 'completed')
+            .reduce((s, t) => s + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+        return initial + txNet;
+    }, [accounts, transactions]);
 
     const currentMonth = new Date().toISOString().substring(0, 7);
 

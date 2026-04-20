@@ -9,26 +9,29 @@ function formatCurrency(value: number) {
 export default async function ERPDashboard() {
     const supabase = await createClient()
 
-    // Saldo Atual — soma de current_balance de todas as contas bancárias
+    // Saldo Atual — initial_balance + todas as transações completed
     const { data: accounts } = await supabase
         .from('erp_finance_accounts')
-        .select('current_balance')
+        .select('initial_balance')
 
-    const saldoAtual = accounts?.reduce((sum, a) => sum + (Number(a.current_balance) || 0), 0) ?? 0
+    const totalInitial = accounts?.reduce((sum, a) => sum + (Number(a.initial_balance) || 0), 0) ?? 0
 
-    // Variação mensal: transações concluídas do mês atual para estimar saldo no início do mês
+    const { data: allCompletedTx } = await supabase
+        .from('erp_finance_transactions')
+        .select('amount, type, transaction_date')
+        .eq('status', 'completed')
+
+    const saldoAtual = (allCompletedTx ?? []).reduce((sum, t) => {
+        return sum + (t.type === 'income' ? Number(t.amount) : -Number(t.amount))
+    }, totalInitial)
+
+    // Variação mensal: saldo sem as transações do mês atual
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
 
-    const { data: thisMonthTx } = await supabase
-        .from('erp_finance_transactions')
-        .select('amount, type')
-        .eq('status', 'completed')
-        .gte('transaction_date', startOfMonth)
-
-    const thisMonthNet = thisMonthTx?.reduce((sum, t) => {
-        return sum + (t.type === 'income' ? Number(t.amount) : -Number(t.amount))
-    }, 0) ?? 0
+    const thisMonthNet = (allCompletedTx ?? [])
+        .filter(t => t.transaction_date >= startOfMonth)
+        .reduce((sum, t) => sum + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0)
 
     const lastMonthBalance = saldoAtual - thisMonthNet
     const balancePercent = lastMonthBalance !== 0
