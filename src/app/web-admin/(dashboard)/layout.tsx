@@ -71,7 +71,7 @@ export default function AdminLayout({
         { href: '/lotes-touros', label: 'Lotes Touros', icon: Award },
         { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
         { href: '/ia', label: 'IA Mapeamento de Leilões', icon: Sparkles },
-        { href: '/contratos', label: 'Contratos & MOUs', icon: FileText },
+        { href: '/contratos', label: 'Contratos', icon: FileText },
         { href: '/central-bela-vista', label: 'Central Bela Vista', icon: Building2 },
         { href: '/biblioteca-midia', label: 'Biblioteca de Mídia', icon: ImageIcon },
         { href: '/whatsapp', label: 'Marketing & Automação', icon: MessageCircle },
