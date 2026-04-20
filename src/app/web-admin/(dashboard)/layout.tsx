@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, LogOut, Menu, X, User, Settings, Activity, Calendar, ChevronLeft, ChevronRight, MessageCircle, MapPin, GitBranch, FileText, Sparkles, Gavel } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar, ChevronLeft, ChevronRight, MessageCircle, FileText, Sparkles, Gavel, Dna, Award, Building2, ImageIcon, Shield, ExternalLink } from 'lucide-react';
 
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -65,18 +65,17 @@ export default function AdminLayout({
 
     const navItems = [
         { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/products', label: 'Cards (Animais)', icon: Package },
-        { href: '/animal-availability', label: 'Disponibilidade', icon: MapPin },
-        { href: '/breeders', label: 'Criadores', icon: User },
-        { href: '/users', label: 'Usuários', icon: User },
-        { href: '/analytics', label: 'Analytics', icon: Activity },
-        { href: '/crm', label: 'CRM de Vendas', icon: User }, // Using User/Target icon; let's use User or maybe an Inbox icon but User is imported
+        { href: '/leiloes', label: 'Agenda de Leilões', icon: Gavel },
+        { href: '/crm', label: 'CRM', icon: Users },
+        { href: '/lotes-doadoras', label: 'Lotes Doadoras', icon: Dna },
+        { href: '/lotes-touros', label: 'Lotes Touros', icon: Award },
         { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
-        { href: '/contratos', label: 'Contratos', icon: FileText },
-        { href: '/genealogia', label: 'Genealogia', icon: GitBranch },
-        { href: '/whatsapp', label: 'WhatsApp', icon: MessageCircle },
-        { href: '/leiloes', label: 'Leilões', icon: Gavel },
-        { href: '/ia', label: 'IA', icon: Sparkles },
+        { href: '/ia', label: 'IA Mapeamento de Leilões', icon: Sparkles },
+        { href: '/contratos', label: 'Contratos & MOUs', icon: FileText },
+        { href: '/central-bela-vista', label: 'Central Bela Vista', icon: Building2 },
+        { href: '/biblioteca-midia', label: 'Biblioteca de Mídia', icon: ImageIcon },
+        { href: '/whatsapp', label: 'Marketing & Automação', icon: MessageCircle },
+        { href: '/users', label: 'Usuários & Permissões', icon: Shield },
         { href: '/settings', label: 'Configurações', icon: Settings },
     ];
 
@@ -160,7 +159,17 @@ export default function AdminLayout({
                     })}
                 </nav>
 
-                <div className={`p-6 border-t border-gray-200 dark:border-[#222222] space-y-4 transition-all duration-300 ${isCollapsed ? 'px-3 flex flex-col items-center' : ''}`}>
+                <div className={`p-6 border-t border-gray-200 dark:border-[#222222] space-y-3 transition-all duration-300 ${isCollapsed ? 'px-3 flex flex-col items-center' : ''}`}>
+                    <a
+                        href="https://erp.formuladoboi.com"
+                        target="_blank"
+                        rel="noreferrer"
+                        title={isCollapsed ? 'Abrir ERP' : undefined}
+                        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#B8860B]/30 bg-[#B8860B]/5 text-[#B8860B] hover:bg-[#B8860B]/10 hover:border-[#B8860B]/50 transition-all ${isCollapsed ? 'justify-center px-0' : ''}`}
+                    >
+                        <ExternalLink size={18} className="shrink-0" />
+                        {!isCollapsed && <span className="font-semibold text-sm whitespace-nowrap">Abrir ERP</span>}
+                    </a>
                     {!isCollapsed ? (
                         <div className="flex items-center justify-between px-4">
                             <span className="text-sm font-medium text-gray-500">Tema</span>
