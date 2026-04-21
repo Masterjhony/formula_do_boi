@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Facebook, Instagram, Youtube, Phone, Mail, MapPin } from "lucide-react";
+import { Instagram, Phone, Mail, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SettingsService } from "@/services/settingsService";
 
@@ -168,7 +168,7 @@ export default function Footer() {
                 </div>
 
                 <div className="pt-6 md:pt-8 border-t border-yellow-900/30 text-center text-xs text-gray-500 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p>&copy; 2024 Fórmula do Boi. Todos os direitos reservados.</p>
+                    <p>&copy; 2026 Fórmula do Boi. Todos os direitos reservados.</p>
                     <p>Desenvolvido com tecnologia de ponta.</p>
                 </div>
             </div>

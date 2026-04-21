@@ -1,119 +1,143 @@
-import { ArrowRight, Shield, Gavel, TrendingUp } from "lucide-react";
-
-const DESTAQUES = [
-    {
-        Icon: Shield,
-        titulo: "Curadoria de Campo",
-        desc: "Filmagem, apartação e análise técnica de todos os lotes antes de qualquer oferta.",
-    },
-    {
-        Icon: Gavel,
-        titulo: "Leilão com Estrutura",
-        desc: "Transmissão ao vivo, equipe comercial dedicada e crédito para o comprador.",
-    },
-    {
-        Icon: TrendingUp,
-        titulo: "Resultado Mensurável",
-        desc: "Mais de 10 anos de mercado. Médias acima do mercado e reincidência de compradores.",
-    },
-];
+"use client";
 
 export default function SociedadeBulinha() {
     return (
-        <section className="py-24 bg-[#080808] border-t border-white/5">
-            <div className="container mx-auto px-4">
+        <section
+            className="py-20 md:py-28 border-t border-b"
+            style={{ background: "#FAFAF7", borderColor: "#E8E4DB" }}
+        >
+            <div className="container mx-auto px-4" style={{ maxWidth: 1200 }}>
 
-                {/* ── Layout principal ── */}
-                <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                {/* Kicker */}
+                <div
+                    className="inline-block mb-3"
+                    style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#A0802A", fontWeight: 700 }}
+                >
+                    Novo capítulo
+                </div>
 
-                    {/* ── Foto Bulinha ── */}
-                    <div className="order-2 lg:order-1 flex justify-center">
-                        <div className="relative w-full max-w-sm">
-                            {/* Moldura dourada */}
-                            <div
-                                className="w-full aspect-[4/5] rounded-3xl overflow-hidden"
-                                style={{
-                                    background: "linear-gradient(135deg, #D4A017 0%, #7A5010 50%, #C9A84C 100%)",
-                                    padding: "1.5px",
-                                }}
-                            >
-                                <div className="w-full h-full rounded-3xl bg-[#111] relative overflow-hidden">
-                                    <img
-                                        src="/bulinha.png"
-                                        alt="Bulinha — Bula Remates"
-                                        className="w-full h-full object-cover object-top"
-                                    />
-                                    {/* Gradiente base para legibilidade do badge */}
-                                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-9 md:gap-14 items-center">
 
-                                    {/* Badge no canto */}
-                                    <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
-                                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-gold/15 border border-brand-gold/35 backdrop-blur-sm">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-brand-gold" />
-                                            <span className="text-brand-gold text-[10px] font-bold uppercase tracking-widest">Bula Remates</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Glow exterior */}
-                            <div className="absolute inset-0 rounded-3xl blur-2xl bg-brand-gold/[0.06] -z-10 scale-110" />
-                        </div>
-                    </div>
-
-                    {/* ── Texto ── */}
-                    <div className="order-1 lg:order-2">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-gold/25 bg-brand-gold/6 mb-6">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-gold" />
-                            <span className="text-brand-gold text-[10px] font-black tracking-[0.22em] uppercase">
-                                Sociedade Exclusiva
-                            </span>
-                        </div>
-
-                        <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none mb-5">
-                            Sociedade com<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200">
-                                a Bulinha
-                            </span>
+                    {/* Texto */}
+                    <div>
+                        <h2
+                            className="font-display"
+                            style={{ fontSize: "clamp(38px, 10vw, 78px)", fontWeight: 400, lineHeight: 0.98, letterSpacing: "-0.03em", marginBottom: 26, color: "#1A1A1A" }}
+                        >
+                            <em style={{ fontStyle: "italic", color: "#A0802A" }}>Bulinha</em>
+                            <br />agora é sócio.
                         </h2>
 
-                        <p className="text-gray-400 text-base leading-relaxed mb-4">
-                            Não é parceria — é sociedade. A Fórmula do Boi e a Bula Remates operam juntas
-                            de ponta a ponta: da seleção dos criadores à transmissão do leilão,
-                            com a mesma régua técnica e o mesmo compromisso com o criador sério.
+                        <p style={{ fontSize: 17, lineHeight: 1.6, marginBottom: 16, color: "#1A1A1A" }}>
+                            Felipe "Bulinha" Andrade — fundador da{" "}
+                            <strong>Bula Assessoria Pecuária</strong> e da{" "}
+                            <strong>Bula Remates</strong> — entra na Fórmula do Boi como sócio e
+                            Diretor Comercial de Marcas e Relacionamento.
                         </p>
 
-                        <p className="text-gray-500 text-sm leading-relaxed mb-8">
-                            Cada lote que passa pela nossa curadoria passa pelo olho do Bulinha —
-                            quem tem{" "}
-                            <span className="text-white font-medium">mais de 10 anos</span>{" "}
-                            de campo e sabe o que o mercado Nelore P.O. exige.
+                        <p style={{ fontSize: 15, lineHeight: 1.7, color: "#6B6558", marginBottom: 32 }}>
+                            Mais de uma década curando P.O. do campo ao comprador. R$ 300 milhões em gado
+                            assessorado. Uma leiloeira ativa. Tudo isso agora dentro da casa, sob a mesma
+                            filosofia:{" "}
+                            <em style={{ color: "#A0802A", fontStyle: "italic", fontWeight: 500 }}>
+                                de criador, pra criador.
+                            </em>
                         </p>
 
-                        {/* Destaques */}
-                        <div className="space-y-4 mb-8">
-                            {DESTAQUES.map(({ Icon, titulo, desc }) => (
-                                <div key={titulo} className="flex items-start gap-4">
-                                    <div className="w-9 h-9 rounded-lg bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <Icon className="w-4 h-4 text-brand-gold" />
-                                    </div>
-                                    <div>
-                                        <p className="text-white text-sm font-bold uppercase tracking-wide mb-0.5">{titulo}</p>
-                                        <p className="text-gray-500 text-xs leading-relaxed">{desc}</p>
-                                    </div>
+                        {/* Stats */}
+                        <div
+                            className="flex flex-wrap gap-x-9 gap-y-4"
+                            style={{ paddingTop: 28, borderTop: "1px solid #E8E4DB" }}
+                        >
+                            {[
+                                { value: "+10",     label: "anos de leiloeira" },
+                                { value: "R$ 300M", label: "em gado assessorado" },
+                                { value: "18",      label: "leilões em 2026" },
+                            ].map(({ value, label }) => (
+                                <div key={label} className="flex flex-col gap-1">
+                                    <b
+                                        className="font-display"
+                                        style={{ fontSize: 28, fontWeight: 500, color: "#1A1A1A", letterSpacing: "-0.01em", lineHeight: 1 }}
+                                    >
+                                        {value}
+                                    </b>
+                                    <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.18em", color: "#6B6558", fontWeight: 600 }}>
+                                        {label}
+                                    </span>
                                 </div>
                             ))}
                         </div>
+                    </div>
 
-                        <a
-                            href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20quero%20saber%20mais%20sobre%20os%20leil%C3%B5es%20Bula%20Remates%20%C3%97%20F%C3%B3rmula%20do%20Boi."
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold hover:bg-yellow-500 text-brand-black font-black uppercase tracking-widest text-sm rounded-lg transition-all hover:shadow-lg hover:shadow-brand-gold/20 group"
+                    {/* Portrait card */}
+                    <div
+                        className="relative rounded-2xl overflow-hidden flex items-end order-first lg:order-last"
+                        style={{
+                            aspectRatio: "4/5",
+                            background: "linear-gradient(135deg, #0A0A0A 0%, #1F1A0E 100%)",
+                            padding: 28,
+                        }}
+                    >
+                        {/* Grande "B" de fundo */}
+                        <div
+                            aria-hidden
+                            className="absolute font-display pointer-events-none select-none"
+                            style={{
+                                top: -60, right: -40,
+                                fontSize: "clamp(280px, 70vw, 460px)",
+                                fontWeight: 300,
+                                fontStyle: "italic",
+                                color: "rgba(201,169,97,0.12)",
+                                lineHeight: 0.8,
+                            }}
                         >
-                            Falar com a equipe
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </a>
+                            B
+                        </div>
+
+                        {/* Grain / couro */}
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.8 0 0 0 0 0.7 0 0 0 0 0.3 0 0 0 0.10 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+                                opacity: 0.5,
+                                mixBlendMode: "overlay",
+                            }}
+                        />
+
+                        {/* Foto */}
+                        <img
+                            src="/bulinha.png"
+                            alt="Bulinha — Bula Remates"
+                            className="absolute inset-0 w-full h-full object-cover object-top"
+                            style={{ opacity: 0.85 }}
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+
+                        {/* Gradiente na base para texto */}
+                        <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/85 to-transparent pointer-events-none" />
+
+                        {/* Info */}
+                        <div className="relative z-10">
+                            <div
+                                className="inline-block mb-4"
+                                style={{
+                                    fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase",
+                                    color: "#C9A961", fontWeight: 700,
+                                    padding: "6px 12px", border: "1px solid rgba(201,169,97,0.35)", borderRadius: 999,
+                                }}
+                            >
+                                Sócio · Diretor Comercial
+                            </div>
+                            <div
+                                className="font-display"
+                                style={{ fontSize: 26, fontWeight: 500, marginBottom: 6, color: "#F6F2EA", lineHeight: 1.1, letterSpacing: "-0.01em" }}
+                            >
+                                Felipe &ldquo;Bulinha&rdquo;<br />Andrade
+                            </div>
+                            <div style={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(246,242,234,0.70)", fontWeight: 600 }}>
+                                Bula Assessoria · Bula Remates
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

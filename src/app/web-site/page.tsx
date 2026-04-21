@@ -13,7 +13,7 @@ export default async function Home() {
     const products = await getProductsServer(true);
 
     return (
-        <main className="min-h-screen bg-[#0a0a0a]">
+        <main className="min-h-screen bg-[#FAFAF7]">
             <Header />
 
             {/* 1 — Hero: video bg + 3 modelos de negócio */}
