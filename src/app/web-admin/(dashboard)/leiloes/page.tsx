@@ -283,9 +283,9 @@ function DetailDrawer({ leilao, onClose, onEdit, onDelete, onTasksUpdate }: {
         <div className="flex-1 px-6 py-5 space-y-6">
           {/* Cover image */}
           {leilao.img && (
-            <div className="rounded-2xl overflow-hidden -mx-6 -mt-5 mb-0">
+            <div className="rounded-2xl overflow-hidden -mx-6 -mt-5 mb-0 bg-[#0C0C0C] flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={leilao.img} alt={leilao.nome} className="w-full h-52 object-cover" />
+              <img src={leilao.img} alt={leilao.nome} className="max-h-64 w-auto mx-auto object-contain" />
             </div>
           )}
           {/* Info grid */}
@@ -676,50 +676,47 @@ function LeilaoCard({ leilao, selected, onClick }: {
     return (
       <button
         onClick={onClick}
-        className={`w-full text-left group rounded-2xl border overflow-hidden transition-all duration-200 ${
+        className={`w-full text-left group flex overflow-hidden rounded-2xl border transition-all duration-200 ${
           selected
-            ? 'border-[#B8860B]/50 shadow-md shadow-[#B8860B]/10'
-            : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] hover:border-[#B8860B]/30'
+            ? 'border-[#B8860B]/50 bg-[#B8860B]/5 dark:bg-[#B8860B]/8 shadow-md shadow-[#B8860B]/10'
+            : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] hover:border-[#B8860B]/30 hover:bg-[#B8860B]/3'
         }`}
       >
-        {/* Cover image */}
-        <div className="relative h-44 overflow-hidden">
+        {/* Image thumbnail – fixed width, full height, image shown complete */}
+        <div className="relative flex-shrink-0 w-36 bg-[#0C0C0C] flex items-center justify-center self-stretch overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={leilao.img}
             alt={leilao.nome}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-contain"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          {/* Date badge overlay */}
-          <div className="absolute bottom-3 left-3 flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-white/30 bg-black/50 backdrop-blur-sm">
-            <span className="text-white font-black text-xl leading-none">{dt.dia}</span>
-            <span className="text-white/70 text-[9px] font-bold uppercase tracking-wider mt-0.5">{dt.mesNome.slice(0, 3)}</span>
-          </div>
-          {/* Badges overlay */}
-          <div className="absolute top-3 right-3 flex gap-1.5">
-            {isVirtual ? (
-              <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-1 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white">
-                <Tv size={9} /> Virtual
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-1 rounded-full bg-[#B8860B]/80 backdrop-blur-sm text-black">
-                <Users size={9} /> Presencial
-              </span>
-            )}
-            <span className={`inline-flex items-center text-[9px] font-bold uppercase px-2 py-1 rounded-full backdrop-blur-sm ${STATUS_STYLES[leilao.status]}`}>
-              {STATUS_LABELS[leilao.status]}
-            </span>
-          </div>
-          {/* Name overlay bottom */}
-          <div className="absolute bottom-3 left-16 right-3">
-            <p className="text-white font-black text-sm uppercase leading-tight drop-shadow line-clamp-2">{leilao.nome}</p>
+          {/* Date badge overlay bottom-left */}
+          <div className="absolute bottom-2 left-2 flex flex-col items-center justify-center w-11 h-11 rounded-lg border border-white/25 bg-black/60 backdrop-blur-sm">
+            <span className="text-white font-black text-base leading-none">{dt.dia}</span>
+            <span className="text-white/65 text-[8px] font-bold uppercase tracking-wide mt-0.5">{dt.mesNome.slice(0, 3)}</span>
           </div>
         </div>
 
-        {/* Content strip */}
-        <div className={`px-4 py-3 flex items-center justify-between gap-4 ${selected ? 'bg-[#B8860B]/5 dark:bg-[#B8860B]/8' : 'bg-white dark:bg-[#111111]'}`}>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+        {/* Content */}
+        <div className="flex-1 min-w-0 px-4 py-4 flex flex-col justify-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="text-gray-900 dark:text-white font-black text-sm uppercase leading-tight">
+              {leilao.nome}
+            </p>
+            {isVirtual ? (
+              <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-400 dark:border-white/15">
+                <Tv size={9} /> Virtual
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-[#B8860B]/10 border border-[#B8860B]/20 text-[#B8860B]">
+                <Users size={9} /> Presencial
+              </span>
+            )}
+            <span className={`inline-flex items-center text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${STATUS_STYLES[leilao.status]}`}>
+              {STATUS_LABELS[leilao.status]}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase text-[#B8860B]">
               <Tag size={10} /> {leilao.tipo}
               <span className="text-gray-400 font-normal">· {leilao.animais} animais</span>
@@ -730,24 +727,26 @@ function LeilaoCard({ leilao, selected, onClick }: {
             {leilao.leiloeira && (
               <span className="text-[10px] text-gray-400 uppercase">{leilao.leiloeira}{leilao.transmissao ? ` · ${leilao.transmissao}` : ''}</span>
             )}
-            {total > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="w-16 bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-1 overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct === 100 ? '#22c55e' : '#B8860B' }} />
-                </div>
-                <span className="text-[10px] text-gray-400">{done}/{total}</span>
-                {pct === 100 && <CheckCircle2 size={11} className="text-emerald-500" />}
+          </div>
+          {total > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="w-20 bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-1 overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct === 100 ? '#22c55e' : '#B8860B' }} />
               </div>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            {leilao.catalogo_url && (
-              <span className="inline-flex items-center gap-1 text-[10px] text-[#B8860B] bg-[#B8860B]/10 px-2 py-1 rounded-lg">
-                <BookOpen size={11} /> Catálogo
-              </span>
-            )}
-            <ChevronRight size={16} className={`text-gray-300 dark:text-gray-700 transition-transform ${selected ? 'rotate-90 text-[#B8860B]' : 'group-hover:text-gray-500'}`} />
-          </div>
+              <span className="text-[10px] text-gray-400">{done}/{total}</span>
+              {pct === 100 && <CheckCircle2 size={11} className="text-emerald-500" />}
+            </div>
+          )}
+        </div>
+
+        {/* Right side */}
+        <div className="flex flex-col items-center justify-center gap-1.5 px-3 flex-shrink-0">
+          {leilao.catalogo_url && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-[#B8860B] bg-[#B8860B]/10 px-2 py-1 rounded-lg">
+              <BookOpen size={11} /> Catálogo
+            </span>
+          )}
+          <ChevronRight size={16} className={`text-gray-300 dark:text-gray-700 transition-transform ${selected ? 'rotate-90 text-[#B8860B]' : 'group-hover:text-gray-500'}`} />
         </div>
       </button>
     )
