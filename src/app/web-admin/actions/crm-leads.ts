@@ -30,6 +30,7 @@ export interface CRMLead {
     medium?: string | null;
     campaign?: string | null;
     data_entrada?: string | null;
+    extra_data?: Record<string, any> | null;
 }
 
 export async function getLeads(): Promise<CRMLead[]> {

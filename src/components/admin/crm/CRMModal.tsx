@@ -4,17 +4,21 @@ import { useState, useEffect } from 'react';
 import { X, Save, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { CRMLead, deleteLead } from '@/app/web-admin/actions/crm-leads';
 import { CRM_COLUMNS } from './CRMKanbanBoard';
+import type { CRMCustomField } from '@/lib/crm-types';
 
 interface CRMModalProps {
     isOpen: boolean;
     onClose: () => void;
     lead?: CRMLead;
     defaultStatus: string;
+    stages?: string[];
+    customFields?: CRMCustomField[];
     onSave: (data: any) => Promise<void>;
     onDelete?: () => void;
 }
 
-export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelete }: CRMModalProps) {
+export function CRMModal({ isOpen, onClose, lead, defaultStatus, stages, customFields = [], onSave, onDelete }: CRMModalProps) {
+    const activeStages = stages && stages.length > 0 ? stages : CRM_COLUMNS;
     const [formData, setFormData] = useState<Partial<CRMLead>>({
         nome: '',
         status: defaultStatus,
@@ -140,7 +144,7 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelet
                                     onChange={e => setFormData({ ...formData, status: e.target.value })}
                                     className={`${inputClass} appearance-none`}
                                 >
-                                    {CRM_COLUMNS.map(col => (
+                                    {activeStages.map(col => (
                                         <option key={col} value={col}>{col}</option>
                                     ))}
                                 </select>
@@ -268,6 +272,63 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, onSave, onDelet
                                 placeholder="Ex: Matheus Amormino"
                             />
                         </div>
+
+                        {/* Campos personalizados */}
+                        {customFields.length > 0 && (
+                            <div className="border border-gray-200 dark:border-[#333] rounded-xl overflow-hidden">
+                                <div className="px-4 py-3 bg-gray-50 dark:bg-[#1A1A1A] text-sm font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-[#333]">
+                                    🔧 Campos personalizados
+                                </div>
+                                <div className="p-4 space-y-3">
+                                    {customFields.map(field => (
+                                        <div key={field.id}>
+                                            <label className={labelClass}>
+                                                {field.label}
+                                                {field.required && <span className="text-red-500 ml-1">*</span>}
+                                            </label>
+                                            {field.type === 'textarea' ? (
+                                                <textarea
+                                                    required={field.required}
+                                                    rows={2}
+                                                    value={formData.extra_data?.[field.id] ?? ''}
+                                                    onChange={e => setFormData({
+                                                        ...formData,
+                                                        extra_data: { ...formData.extra_data, [field.id]: e.target.value }
+                                                    })}
+                                                    className={inputClass}
+                                                />
+                                            ) : field.type === 'select' ? (
+                                                <select
+                                                    required={field.required}
+                                                    value={formData.extra_data?.[field.id] ?? ''}
+                                                    onChange={e => setFormData({
+                                                        ...formData,
+                                                        extra_data: { ...formData.extra_data, [field.id]: e.target.value }
+                                                    })}
+                                                    className={`${inputClass} appearance-none`}
+                                                >
+                                                    <option value="">Selecione...</option>
+                                                    {(field.options || []).map(opt => (
+                                                        <option key={opt} value={opt}>{opt}</option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                <input
+                                                    type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
+                                                    required={field.required}
+                                                    value={formData.extra_data?.[field.id] ?? ''}
+                                                    onChange={e => setFormData({
+                                                        ...formData,
+                                                        extra_data: { ...formData.extra_data, [field.id]: e.target.value }
+                                                    })}
+                                                    className={inputClass}
+                                                />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Seção Origem (colapsável) */}
                         <div className="border border-gray-200 dark:border-[#333] rounded-xl overflow-hidden">

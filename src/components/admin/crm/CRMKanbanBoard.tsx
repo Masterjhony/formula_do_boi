@@ -22,6 +22,7 @@ import { createPortal } from 'react-dom';
 
 interface CRMKanbanBoardProps {
     leads: CRMLead[];
+    stages?: string[];
     onEditLead: (lead: CRMLead) => void;
     onAddLead: (status: string) => void;
     onMoveLead: (id: string, newStatus: string, newPosition: number) => Promise<void>;
@@ -29,7 +30,8 @@ interface CRMKanbanBoardProps {
 
 export const CRM_COLUMNS = ['Lead', 'Qualificado', 'Proposta', 'Negociação', 'Fechado', 'Perdido', 'Sem Status'];
 
-export function CRMKanbanBoard({ leads: externalLeads, onEditLead, onAddLead, onMoveLead }: CRMKanbanBoardProps) {
+export function CRMKanbanBoard({ leads: externalLeads, stages, onEditLead, onAddLead, onMoveLead }: CRMKanbanBoardProps) {
+    const columns = stages && stages.length > 0 ? stages : CRM_COLUMNS;
     const [leads, setLeads] = useState<CRMLead[]>(externalLeads);
     const [activeLead, setActiveLead] = useState<CRMLead | null>(null);
     const [isClient, setIsClient] = useState(false);
@@ -150,7 +152,7 @@ export function CRMKanbanBoard({ leads: externalLeads, onEditLead, onAddLead, on
             onDragEnd={onDragEnd}
         >
             <div className="flex gap-6 overflow-x-auto pb-4 h-full snap-x">
-                {CRM_COLUMNS.map((colId) => (
+                {columns.map((colId) => (
                     <CRMColumn
                         key={colId}
                         id={colId}
