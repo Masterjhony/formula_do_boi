@@ -127,7 +127,7 @@ export function ContractsView({ initialContracts }: Props) {
     const isRoot = currentFolder === 'all' && !search.trim();
 
     return (
-        <div className="flex flex-1 min-h-0 gap-0 overflow-hidden rounded-xl border border-gray-200 dark:border-[#222222]">
+        <div className="flex flex-1 min-h-0 h-full gap-0 overflow-hidden rounded-xl border border-gray-200 dark:border-[#222222]">
 
             {/* ── Sidebar ── */}
             <aside className="w-52 shrink-0 flex flex-col bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-[#222222]">

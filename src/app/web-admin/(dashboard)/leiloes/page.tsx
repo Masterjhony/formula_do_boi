@@ -5,8 +5,10 @@ import {
   Plus, Edit2, Trash2, X, ExternalLink, CalendarDays, Users, Tv, Tag,
   Check, Link2, Loader2, BookOpen, Clock, MapPin, ChevronDown, ChevronUp,
   AlertCircle, CheckCircle2, Circle, FileText, ChevronRight,
+  TableProperties, List,
 } from 'lucide-react'
 import type { BulaLeilao, LeilaoGrupo, LeilaoTask, LeilaoSubtask } from '@/lib/bula/types'
+import { CRONOGRAMA_2026, MES_LABELS, type CronogramaLeilao } from './cronograma-data'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -679,9 +681,191 @@ function LeilaoCard({ leilao, selected, onClick }: {
   )
 }
 
+// ── CronogramaTab ─────────────────────────────────────────────────────────────
+
+const PRESENCIAL_STYLES: Record<string, string> = {
+  VIRTUAL:    'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+  PRESENCIAL: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
+  EXPOGRANDE: 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400',
+  EXPOZEBU:   'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
+}
+
+function CronogramaTab() {
+  const meses = Object.keys(MES_LABELS)
+  const [mesFiltro, setMesFiltro] = useState('todos')
+
+  const filtered = mesFiltro === 'todos'
+    ? CRONOGRAMA_2026
+    : CRONOGRAMA_2026.filter(l => l.data.startsWith(mesFiltro))
+
+  const grupos: Record<string, CronogramaLeilao[]> = {}
+  for (const l of filtered) {
+    const key = l.data.slice(0, 7)
+    if (!grupos[key]) grupos[key] = []
+    grupos[key].push(l)
+  }
+
+  const fmtBrl = (v: number | null) =>
+    v ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}` : '—'
+
+  return (
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="flex gap-3 flex-wrap">
+        {[
+          { label: 'Total de leilões', value: CRONOGRAMA_2026.length, accent: true },
+          { label: 'Com comissão', value: CRONOGRAMA_2026.filter(l => l.comissao && l.comissao !== 'A DEFINIR').length },
+          { label: 'Expozebu / Presencial', value: CRONOGRAMA_2026.filter(l => ['EXPOZEBU', 'EXPOGRANDE', 'PRESENCIAL'].includes(l.presencial)).length },
+          { label: 'Virtuais', value: CRONOGRAMA_2026.filter(l => l.presencial === 'VIRTUAL').length },
+        ].map(s => (
+          <div key={s.label} className={`px-5 py-3 rounded-2xl border text-center min-w-[90px] ${
+            s.accent
+              ? 'border-[#B8860B]/30 bg-[#B8860B]/8'
+              : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'
+          }`}>
+            <p className={`text-2xl font-black leading-none mb-0.5 ${s.accent ? 'text-[#B8860B]' : 'text-gray-900 dark:text-white'}`}>
+              {s.value}
+            </p>
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Filtro de mês */}
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={() => setMesFiltro('todos')}
+          className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${
+            mesFiltro === 'todos'
+              ? 'bg-[#B8860B] text-black border-[#B8860B]'
+              : 'border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B]'
+          }`}
+        >
+          Todos
+        </button>
+        {meses.map(m => (
+          <button
+            key={m}
+            onClick={() => setMesFiltro(m)}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${
+              mesFiltro === m
+                ? 'bg-[#B8860B] text-black border-[#B8860B]'
+                : 'border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B]'
+            }`}
+          >
+            {MES_LABELS[m]}
+          </button>
+        ))}
+      </div>
+
+      {/* Tabela por mês */}
+      {Object.entries(grupos).map(([mesKey, leiloes]) => (
+        <div key={mesKey}>
+          <div className="flex items-center gap-3 mb-3">
+            <CalendarDays size={14} className="text-[#B8860B] flex-shrink-0" />
+            <span className="text-[#B8860B] text-xs font-black uppercase tracking-[0.2em]">
+              {MES_LABELS[mesKey]} 2026
+            </span>
+            <div className="flex-1 h-px bg-gradient-to-r from-[#B8860B]/20 to-transparent" />
+            <span className="text-[10px] text-gray-400">{leiloes.length} leilão{leiloes.length !== 1 ? 'ões' : ''}</span>
+          </div>
+
+          <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-[#1E1E1E]">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-[#151515] border-b border-gray-100 dark:border-[#1E1E1E]">
+                  {['Data', 'Hora', 'Leilão', 'Criador', 'Modalidade', 'Leiloeira', 'Raça', 'Qtd', 'Sexo', 'Comissão', 'Fat. Realizado'].map(h => (
+                    <th key={h} className="px-3 py-2.5 text-left font-semibold uppercase tracking-wider text-gray-400 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
+                {leiloes.map((l, i) => (
+                  <tr
+                    key={`${l.data}-${l.nome}-${i}`}
+                    className="bg-white dark:bg-[#111111] hover:bg-[#B8860B]/3 transition-colors"
+                  >
+                    {/* Data */}
+                    <td className="px-3 py-2.5 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col items-center justify-center w-9 h-9 rounded-lg border border-[#B8860B]/20 bg-[#B8860B]/6 flex-shrink-0">
+                          <span className="text-[#B8860B] font-black text-sm leading-none">{l.data.slice(8)}</span>
+                          <span className="text-[#B8860B]/60 text-[8px] font-bold uppercase">{MES_LABELS[l.data.slice(0,7)]?.slice(0,3)}</span>
+                        </div>
+                        <span className="text-gray-400 text-[10px]">{l.diaSemana.slice(0, 3)}</span>
+                      </div>
+                    </td>
+                    {/* Hora */}
+                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-gray-700 dark:text-gray-300">
+                      {l.hora || '—'}
+                    </td>
+                    {/* Nome */}
+                    <td className="px-3 py-2.5 font-bold text-gray-900 dark:text-white uppercase max-w-[220px]">
+                      <span className="line-clamp-2 leading-tight">{l.nome}</span>
+                    </td>
+                    {/* Criador */}
+                    <td className="px-3 py-2.5 text-gray-600 dark:text-gray-400 max-w-[160px]">
+                      <span className="line-clamp-1">{l.criador || '—'}</span>
+                    </td>
+                    {/* Modalidade */}
+                    <td className="px-3 py-2.5 whitespace-nowrap">
+                      {l.presencial ? (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${PRESENCIAL_STYLES[l.presencial] ?? 'bg-gray-100 text-gray-500 dark:bg-gray-500/15 dark:text-gray-400'}`}>
+                          {l.presencial === 'VIRTUAL' ? <Tv size={9} className="mr-1" /> : <Users size={9} className="mr-1" />}
+                          {l.presencial}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
+                    {/* Leiloeira */}
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400 uppercase font-medium">
+                      {l.leiloeira || '—'}
+                    </td>
+                    {/* Raça */}
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400">
+                      {l.raca || '—'}
+                    </td>
+                    {/* Qtd */}
+                    <td className="px-3 py-2.5 whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-300">
+                      {l.qtdAnimais ?? '—'}
+                    </td>
+                    {/* Sexo */}
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400 capitalize">
+                      {l.sexo || '—'}
+                    </td>
+                    {/* Comissão */}
+                    <td className="px-3 py-2.5 text-gray-600 dark:text-gray-400 max-w-[180px]">
+                      <span className="line-clamp-2 leading-tight">{l.comissao || '—'}</span>
+                    </td>
+                    {/* Fat. Realizado */}
+                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-gray-700 dark:text-gray-300">
+                      {fmtBrl(l.faturamentoRealizado)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+
+      {filtered.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+          <TableProperties size={40} className="text-gray-200 dark:text-gray-800" />
+          <p className="text-sm text-gray-500">Nenhum leilão no período selecionado</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function AgendaLeiloesPage() {
+  const [aba, setAba] = useState<'agenda' | 'cronograma'>('agenda')
   const [leiloes, setLeiloes] = useState<(BulaLeilao & { catalogo_url?: string })[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<(BulaLeilao & { catalogo_url?: string }) | null>(null)
@@ -752,19 +936,48 @@ export default function AgendaLeiloesPage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
-            Agenda de Leilões
+            Leilões
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-            {leiloes.length} leilões · {totalAnimais.toLocaleString('pt-BR')} animais cadastrados
+            {leiloes.length} leilões na agenda · {CRONOGRAMA_2026.length} no cronograma 2026
           </p>
         </div>
-        <button
-          onClick={() => { setEditTarget(null); setShowForm(true) }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#B8860B]/20"
-        >
-          <Plus size={16} /> Novo Leilão
-        </button>
+        {aba === 'agenda' && (
+          <button
+            onClick={() => { setEditTarget(null); setShowForm(true) }}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#B8860B]/20"
+          >
+            <Plus size={16} /> Novo Leilão
+          </button>
+        )}
       </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 rounded-2xl bg-gray-100 dark:bg-[#151515] w-fit">
+        {([
+          { key: 'agenda',     label: 'Agenda de Leilões', icon: List },
+          { key: 'cronograma', label: 'Cronograma 2026',   icon: TableProperties },
+        ] as const).map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setAba(key)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+              aba === key
+                ? 'bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <Icon size={14} />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Cronograma tab */}
+      {aba === 'cronograma' && <CronogramaTab />}
+
+      {/* Agenda tab content below */}
+      {aba === 'agenda' && <>
 
       {/* Stats */}
       <div className="flex gap-3 flex-wrap">
@@ -871,6 +1084,8 @@ export default function AgendaLeiloesPage() {
           onSaved={() => { fetchLeiloes(); setSelected(null) }}
         />
       )}
+
+      </>}
     </div>
   )
 }
