@@ -1,20 +1,37 @@
-import { Dna } from 'lucide-react';
+import { createClient } from '@/utils/supabase/server';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
+import LotesDoadoresClient from './LotesDoadoresClient';
 
-export default function LotesDoadoras() {
+export default async function LotesDoadoresPage() {
+    const supabase = createClient();
+    const { data: products, error } = await (await supabase)
+        .from('products')
+        .select('*')
+        .or("category.ilike.%Embrião%,category.ilike.%Embriao%,category.ilike.%DOADORA%,category.ilike.%Doadora%")
+        .order('display_order', { ascending: false });
+
+    if (error) {
+        return <div className="text-red-500">Erro ao carregar doadoras: {error.message}</div>;
+    }
+
     return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#B8860B]/20 to-[#D4AF37]/10 flex items-center justify-center border border-[#B8860B]/20">
-                <Dna size={36} className="text-[#B8860B]" />
+        <div className="space-y-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 dark:border-[#222222] pb-6">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Lotes Doadoras</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Gerencie as doadoras e lotes de embriões do catálogo.</p>
+                </div>
+                <Link
+                    href="/products/new"
+                    className="flex items-center gap-2 bg-gradient-to-r from-[#B8860B] to-[#DAA520] hover:from-[#D4AF37] hover:to-[#FFD700] text-black font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-[#B8860B]/20 hover:shadow-[#B8860B]/30 hover:-translate-y-0.5"
+                >
+                    <Plus size={18} />
+                    Nova Doadora
+                </Link>
             </div>
-            <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Lotes Doadoras</h1>
-                <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                    Gestão de lotes de doadoras em desenvolvimento. Em breve será possível cadastrar e acompanhar lotes de embriões por matriz.
-                </p>
-            </div>
-            <span className="px-4 py-1.5 rounded-full bg-[#B8860B]/10 text-[#B8860B] text-sm font-medium border border-[#B8860B]/20">
-                Em breve
-            </span>
+
+            <LotesDoadoresClient initialProducts={products ?? []} />
         </div>
     );
 }

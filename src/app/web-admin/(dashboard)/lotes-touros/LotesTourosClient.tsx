@@ -1,0 +1,209 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Edit, Eye, EyeOff, Search, Award, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
+
+export default function LotesTourosClient({ initialProducts }: { initialProducts: any[] }) {
+    const [products, setProducts] = useState(initialProducts);
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('Todos');
+    const supabase = createClient();
+
+    const handleToggleActive = async (product: any) => {
+        const next = !product.active;
+        try {
+            const { error } = await supabase.from('products').update({ active: next }).eq('id', product.id);
+            if (error) throw error;
+            setProducts(p => p.map(x => x.id === product.id ? { ...x, active: next } : x));
+        } catch {
+            alert('Erro ao atualizar visibilidade.');
+        }
+    };
+
+    const filtered = products.filter(p => {
+        const s = search.toLowerCase();
+        const matchSearch =
+            p.name?.toLowerCase().includes(s) ||
+            (p.details?.registro ?? p.registro ?? '').toLowerCase().includes(s) ||
+            (p.details?.pai ?? p.pai ?? '').toLowerCase().includes(s);
+        const st = p.details?.status ?? p.status ?? 'Disponível';
+        const matchStatus = statusFilter === 'Todos' || st.includes(statusFilter);
+        return matchSearch && matchStatus;
+    });
+
+    const counts = {
+        total: products.length,
+        disponivel: products.filter(p => !(p.details?.status ?? p.status ?? '').includes('Vendido') && !(p.details?.status ?? p.status ?? '').includes('Reservado')).length,
+        reservado: products.filter(p => (p.details?.status ?? p.status ?? '').includes('Reservado')).length,
+        vendido: products.filter(p => (p.details?.status ?? p.status ?? '').includes('Vendido')).length,
+    };
+
+    const getStatus = (p: any) => p.details?.status ?? p.status ?? 'Disponível';
+
+    const statusStyle = (st: string) => {
+        if (st.includes('Vendido')) return { dot: 'bg-red-400', badge: 'bg-red-500/10 text-red-400 border-red-500/20' };
+        if (st.includes('Reservado')) return { dot: 'bg-yellow-400', badge: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' };
+        return { dot: 'bg-green-400', badge: 'bg-green-500/10 text-green-400 border-green-500/20' };
+    };
+
+    const getImage = (p: any) => p.image_url || p.gallery?.[0] || p.image || null;
+
+    return (
+        <div className="space-y-6">
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                    { label: 'Total', value: counts.total, icon: Award, color: 'text-[#B8860B]', bg: 'bg-[#B8860B]/10' },
+                    { label: 'Disponíveis', value: counts.disponivel, icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10' },
+                    { label: 'Reservados', value: counts.reservado, icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+                    { label: 'Vendidos', value: counts.vendido, icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10' },
+                ].map(({ label, value, icon: Icon, color, bg }) => (
+                    <div key={label} className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-5 flex items-center gap-4">
+                        <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+                            <Icon size={20} className={color} />
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+                            <p className="text-xs text-gray-500">{label}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Buscar por nome, RGD, pai..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/30 transition-all"
+                    />
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                    {['Todos', 'Disponível', 'Reservado', 'Vendido'].map(s => (
+                        <button
+                            key={s}
+                            onClick={() => setStatusFilter(s)}
+                            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${statusFilter === s
+                                ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black shadow-md shadow-[#B8860B]/20'
+                                : 'bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] text-gray-600 dark:text-gray-400 hover:border-[#B8860B]/40'
+                                }`}
+                        >
+                            {s}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Grid */}
+            {filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-[#1A1A1A] flex items-center justify-center">
+                        <AlertCircle size={24} className="text-gray-400" />
+                    </div>
+                    <p className="text-gray-500">Nenhum touro encontrado.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    {filtered.map(p => {
+                        const st = getStatus(p);
+                        const style = statusStyle(st);
+                        const img = getImage(p);
+                        const registro = p.details?.registro ?? p.registro ?? null;
+                        const pai = p.details?.pai ?? p.pai ?? null;
+                        const mae = p.details?.mae ?? p.mae ?? null;
+                        const price = typeof p.price === 'number'
+                            ? `R$ ${p.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                            : p.price || 'Sob Consulta';
+
+                        return (
+                            <div
+                                key={p.id}
+                                className={`group bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden hover:border-[#B8860B]/40 hover:shadow-lg hover:shadow-[#B8860B]/5 transition-all duration-200 flex flex-col ${p.active === false ? 'opacity-60' : ''}`}
+                            >
+                                {/* Image */}
+                                <div className="relative h-48 bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                    {img ? (
+                                        img.endsWith('.mp4') ? (
+                                            <video src={img} className="w-full h-full object-cover" muted playsInline />
+                                        ) : img.includes('youtube.com') || img.includes('youtu.be') ? (
+                                            <img
+                                                src={`https://img.youtube.com/vi/${img.split('v=')[1]?.split('&')[0] || img.split('/').pop()}/0.jpg`}
+                                                alt={p.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                                            />
+                                        ) : (
+                                            <img src={img} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                        )
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Award size={40} className="text-gray-300 dark:text-[#333333]" />
+                                        </div>
+                                    )}
+                                    {/* Status badge overlay */}
+                                    <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold backdrop-blur-sm ${style.badge}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                                        {st}
+                                    </div>
+                                    {/* Visibility badge */}
+                                    {p.active === false && (
+                                        <div className="absolute top-3 right-3 bg-gray-900/70 text-gray-300 text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                                            Oculto
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-4 flex-1 flex flex-col gap-3">
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-tight group-hover:text-[#B8860B] transition-colors line-clamp-2">
+                                            {p.name}
+                                        </h3>
+                                        {registro && (
+                                            <p className="text-xs text-gray-400 font-mono mt-0.5">{registro}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Genealogy */}
+                                    {(pai || mae) && (
+                                        <div className="space-y-1 text-xs text-gray-500">
+                                            {pai && <p><span className="text-gray-400">Pai:</span> {pai}</p>}
+                                            {mae && <p><span className="text-gray-400">Mãe:</span> {mae}</p>}
+                                        </div>
+                                    )}
+
+                                    {/* Price */}
+                                    <p className="text-sm font-bold text-[#B8860B] mt-auto">{price}</p>
+
+                                    {/* Actions */}
+                                    <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-[#222222]">
+                                        <Link
+                                            href={`/products/${p.id}`}
+                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#B8860B]/10 text-[#B8860B] hover:bg-[#B8860B]/20 text-xs font-semibold transition-all"
+                                        >
+                                            <Edit size={13} />
+                                            Editar
+                                        </Link>
+                                        <button
+                                            onClick={() => handleToggleActive(p)}
+                                            title={p.active === false ? 'Tornar visível' : 'Ocultar'}
+                                            className="flex items-center justify-center w-9 h-9 rounded-xl bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 hover:bg-gray-200 dark:hover:bg-[#252525] transition-all"
+                                        >
+                                            {p.active === false ? <Eye size={15} /> : <EyeOff size={15} />}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}

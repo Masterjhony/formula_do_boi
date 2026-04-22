@@ -1,47 +1,83 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar, ChevronLeft, ChevronRight, MessageCircle, FileText, Sparkles, Gavel, Dna, Award, Building2, ImageIcon, Shield, ExternalLink } from 'lucide-react';
-
+import {
+    LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar,
+    MessageCircle, FileText, Sparkles, Gavel, Dna, Award, Building2,
+    ImageIcon, Shield, ExternalLink, ChevronDown,
+} from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 
-export default function AdminLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isCollapsed, setIsCollapsed] = useState(false);
+type NavItem = { href: string; label: string; icon: React.ElementType };
+type NavGroup = { label: string; icon: React.ElementType; items: NavItem[] };
+type NavEntry = NavItem | NavGroup;
+
+function isGroup(e: NavEntry): e is NavGroup {
+    return 'items' in e;
+}
+
+const navConfig: NavEntry[] = [
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/crm', label: 'CRM', icon: Users },
+    {
+        label: 'Animais', icon: Dna,
+        items: [
+            { href: '/lotes-doadoras', label: 'Lotes Doadoras', icon: Dna },
+            { href: '/lotes-touros', label: 'Lotes Touros', icon: Award },
+            { href: '/leiloes', label: 'Agenda de Leilões', icon: Gavel },
+        ],
+    },
+    {
+        label: 'Operações', icon: Calendar,
+        items: [
+            { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
+            { href: '/contratos', label: 'Contratos', icon: FileText },
+            { href: '/central-bela-vista', label: 'Central Bela Vista', icon: Building2 },
+        ],
+    },
+    {
+        label: 'Ferramentas', icon: Sparkles,
+        items: [
+            { href: '/ia', label: 'IA Mapeamento', icon: Sparkles },
+            { href: '/biblioteca-midia', label: 'Biblioteca de Mídia', icon: ImageIcon },
+            { href: '/whatsapp', label: 'Marketing & Automação', icon: MessageCircle },
+        ],
+    },
+    {
+        label: 'Administração', icon: Shield,
+        items: [
+            { href: '/users', label: 'Usuários & Permissões', icon: Shield },
+            { href: '/settings', label: 'Configurações', icon: Settings },
+        ],
+    },
+];
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const pathname = usePathname();
     const router = useRouter();
     const supabase = createClient();
+    const navRef = useRef<HTMLDivElement>(null);
+    const userRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         const checkUser = async () => {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
-                if (!user) {
-                    return router.push('/login');
-                }
-
+                if (!user) return router.push('/login');
                 const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
-
-                if (profile?.role !== 'admin') {
-                    // Not an admin, redirect to dashboard or home
-                    return router.push('/dashboard');
-                }
-            } catch (error) {
-                console.error('Error checking admin:', error);
+                    .from('profiles').select('role').eq('id', user.id).single();
+                if (profile?.role !== 'admin') return router.push('/dashboard');
+            } catch (e) {
+                console.error(e);
             } finally {
                 setIsLoading(false);
             }
@@ -49,10 +85,21 @@ export default function AdminLayout({
         checkUser();
     }, [router, supabase]);
 
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (navRef.current && !navRef.current.contains(e.target as Node)) setOpenDropdown(null);
+            if (userRef.current && !userRef.current.contains(e.target as Node)) setUserMenuOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    useEffect(() => { setMobileOpen(false); setOpenDropdown(null); }, [pathname]);
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-100 dark:bg-[#0A0A0A] flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B8860B]" />
             </div>
         );
     }
@@ -63,169 +110,277 @@ export default function AdminLayout({
         router.refresh();
     };
 
-    const navItems = [
-        { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/leiloes', label: 'Agenda de Leilões', icon: Gavel },
-        { href: '/crm', label: 'CRM', icon: Users },
-        { href: '/lotes-doadoras', label: 'Lotes Doadoras', icon: Dna },
-        { href: '/lotes-touros', label: 'Lotes Touros', icon: Award },
-        { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
-        { href: '/ia', label: 'IA Mapeamento de Leilões', icon: Sparkles },
-        { href: '/contratos', label: 'Contratos', icon: FileText },
-        { href: '/central-bela-vista', label: 'Central Bela Vista', icon: Building2 },
-        { href: '/biblioteca-midia', label: 'Biblioteca de Mídia', icon: ImageIcon },
-        { href: '/whatsapp', label: 'Marketing & Automação', icon: MessageCircle },
-        { href: '/users', label: 'Usuários & Permissões', icon: Shield },
-        { href: '/settings', label: 'Configurações', icon: Settings },
-    ];
+    const isActive = (href: string) =>
+        href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
+
+    const isGroupActive = (items: NavItem[]) => items.some(i => isActive(i.href));
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
-            {/* Sidebar */}
-            <aside
-                className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-[#222222] transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                    } lg:relative lg:translate-x-0 flex flex-col ${isCollapsed ? 'lg:w-20' : 'lg:w-72'} w-72`}
-            >
-                <div className={`p-8 border-b border-gray-200 dark:border-[#222222] flex justify-center items-center relative transition-all duration-300 ${isCollapsed ? 'px-4' : ''}`}>
-                    {!isCollapsed ? (
-                        <Link href="/" className="block relative h-24 w-full max-w-[240px]">
-                            <Image
-                                src="/logo_complete.svg"
-                                alt="Fórmula do Boi"
-                                fill
-                                className="object-contain"
-                                style={{ filter: "brightness(0) saturate(100%) invert(62%) sepia(34%) saturate(762%) hue-rotate(2deg) brightness(89%) contrast(85%)" }}
-                                priority
-                            />
-                        </Link>
-                    ) : (
-                        <Link href="/" className="block relative h-10 w-10">
-                            <Image
-                                src="/icon.svg"
-                                alt="Fórmula do Boi"
-                                fill
-                                className="object-contain"
-                            />
-                        </Link>
-                    )}
-                    <button
-                        className="lg:hidden absolute right-4 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                        onClick={() => setIsSidebarOpen(false)}
-                    >
-                        <X size={24} />
-                    </button>
-                    {/* Desktop Collapse Toggle */}
-                    <button
-                        className="hidden lg:flex absolute -right-3 top-10 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-full p-1 text-gray-500 hover:text-black dark:hover:text-white z-50 shadow-md transition-colors"
-                        onClick={() => setIsCollapsed(!isCollapsed)}
-                    >
-                        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-                    </button>
-                </div>
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+            {/* ─── Top Navbar ─── */}
+            <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#111111]/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-[#1E1E1E] shadow-sm shadow-black/5">
+                <div className="px-4 lg:px-6">
+                    <div className="flex items-center h-[60px] gap-3">
 
-                <div className={`px-6 py-6 transition-all duration-300 ${isCollapsed ? 'px-3' : ''}`}>
-                    <div className={`flex items-center gap-3 p-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-2xl border border-gray-200 dark:border-[#222222]/50 shadow-inner ${isCollapsed ? 'p-2 justify-center' : ''}`}>
-                        <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-black font-bold text-lg shadow-lg shadow-[#B8860B]/20">
-                            A
-                        </div>
-                        {!isCollapsed && (
-                            <div className="flex-1 overflow-hidden">
-                                <h3 className="text-gray-900 dark:text-white text-sm font-bold truncate">Administrador</h3>
-                                <p className="text-gray-500 text-xs truncate">Gestão Global</p>
+                        {/* Logo */}
+                        <Link href="/" className="shrink-0 flex items-center">
+                            <div className="relative h-10 w-40">
+                                <Image
+                                    src="/logo_complete.svg"
+                                    alt="Fórmula do Boi"
+                                    fill
+                                    className="object-contain"
+                                    style={{ filter: 'brightness(0) saturate(100%) invert(62%) sepia(34%) saturate(762%) hue-rotate(2deg) brightness(89%) contrast(85%)' }}
+                                    priority
+                                />
                             </div>
-                        )}
+                        </Link>
+
+                        {/* Separator */}
+                        <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-[#2A2A2A] mx-1" />
+
+                        {/* Desktop Nav */}
+                        <nav ref={navRef} className="hidden lg:flex items-center gap-0.5 flex-1">
+                            {navConfig.map((entry) => {
+                                if (!isGroup(entry)) {
+                                    const Icon = entry.icon;
+                                    const active = isActive(entry.href);
+                                    return (
+                                        <Link
+                                            key={entry.href}
+                                            href={entry.href}
+                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${active
+                                                ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black shadow-md shadow-[#B8860B]/25'
+                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:text-gray-900 dark:hover:text-white'
+                                                }`}
+                                        >
+                                            <Icon size={15} />
+                                            <span>{entry.label}</span>
+                                        </Link>
+                                    );
+                                }
+
+                                const Icon = entry.icon;
+                                const active = isGroupActive(entry.items);
+                                const open = openDropdown === entry.label;
+
+                                return (
+                                    <div key={entry.label} className="relative">
+                                        <button
+                                            onClick={() => setOpenDropdown(open ? null : entry.label)}
+                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${active
+                                                ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black shadow-md shadow-[#B8860B]/25'
+                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:text-gray-900 dark:hover:text-white'
+                                                }`}
+                                        >
+                                            <Icon size={15} />
+                                            <span>{entry.label}</span>
+                                            <ChevronDown size={13} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''} ${active ? 'text-black/60' : 'text-gray-400'}`} />
+                                        </button>
+
+                                        {open && (
+                                            <div className="absolute top-[calc(100%+8px)] left-0 w-56 bg-white dark:bg-[#181818] border border-gray-100 dark:border-[#2A2A2A] rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/50 overflow-hidden py-1.5">
+                                                <div className="px-3 pt-1 pb-2">
+                                                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-600">{entry.label}</p>
+                                                </div>
+                                                {entry.items.map((item) => {
+                                                    const ItemIcon = item.icon;
+                                                    const itemActive = isActive(item.href);
+                                                    return (
+                                                        <Link
+                                                            key={item.href}
+                                                            href={item.href}
+                                                            onClick={() => setOpenDropdown(null)}
+                                                            className={`flex items-center gap-3 mx-1.5 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${itemActive
+                                                                ? 'bg-[#B8860B]/10 text-[#B8860B] font-semibold'
+                                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#242424] hover:text-gray-900 dark:hover:text-white'
+                                                                }`}
+                                                        >
+                                                            <ItemIcon size={15} className={itemActive ? 'text-[#B8860B]' : 'text-gray-400'} />
+                                                            <span>{item.label}</span>
+                                                            {itemActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#B8860B]" />}
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </nav>
+
+                        {/* Right Side */}
+                        <div className="flex items-center gap-1.5 ml-auto">
+                            {/* ERP */}
+                            <a
+                                href="https://erp.formuladoboi.com"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#B8860B]/30 bg-[#B8860B]/5 text-[#B8860B] hover:bg-[#B8860B]/10 hover:border-[#B8860B]/50 text-sm font-semibold transition-all"
+                            >
+                                <ExternalLink size={14} />
+                                <span>ERP</span>
+                            </a>
+
+                            <ThemeToggle />
+
+                            {/* User Menu */}
+                            <div ref={userRef} className="relative">
+                                <button
+                                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                    className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all"
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-black font-bold text-sm shadow-md shadow-[#B8860B]/20">
+                                        A
+                                    </div>
+                                    <span className="hidden lg:block text-sm font-medium text-gray-700 dark:text-gray-300">Admin</span>
+                                    <ChevronDown size={13} className={`hidden lg:block text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {userMenuOpen && (
+                                    <div className="absolute top-[calc(100%+8px)] right-0 w-52 bg-white dark:bg-[#181818] border border-gray-100 dark:border-[#2A2A2A] rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/50 overflow-hidden py-1.5">
+                                        <div className="px-4 py-3 border-b border-gray-100 dark:border-[#2A2A2A]">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-black font-bold text-sm">A</div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-gray-900 dark:text-white">Administrador</p>
+                                                    <p className="text-xs text-gray-500">Gestão Global</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a
+                                            href="https://erp.formuladoboi.com"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center gap-3 mx-1.5 px-3 py-2.5 mt-1 rounded-xl text-sm text-[#B8860B] hover:bg-[#B8860B]/10 transition-all lg:hidden"
+                                        >
+                                            <ExternalLink size={15} />
+                                            Abrir ERP
+                                        </a>
+                                        <button
+                                            onClick={handleSignOut}
+                                            className="flex items-center gap-3 w-full mx-1.5 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-all"
+                                            style={{ width: 'calc(100% - 12px)' }}
+                                        >
+                                            <LogOut size={15} />
+                                            Sair do Painel
+                                        </button>
+                                        <p className="text-center text-[10px] text-gray-400 dark:text-gray-700 uppercase tracking-widest mt-2 mb-1.5">
+                                            Fórmula do Boi v1.0
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Mobile Toggle */}
+                            <button
+                                onClick={() => setMobileOpen(!mobileOpen)}
+                                className="lg:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all"
+                            >
+                                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-2 overflow-y-auto overflow-x-hidden">
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                title={isCollapsed ? item.label : undefined}
-                                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
-                                    ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-bold shadow-lg shadow-[#B8860B]/20'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:text-gray-900 dark:hover:text-white'
-                                    } ${isCollapsed ? 'justify-center px-0' : ''}`}
-                            >
-                                <Icon size={20} className={`${isActive ? 'text-black' : 'text-gray-400 dark:text-gray-500 group-hover:text-[#B8860B]'} transition-colors shrink-0`} />
-                                {!isCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
-                                {isActive && !isCollapsed && <div className="ml-auto shrink-0 w-1.5 h-1.5 rounded-full bg-black/40" />}
-                            </Link>
-                        );
-                    })}
-                </nav>
+                {/* Mobile Menu */}
+                {mobileOpen && (
+                    <div className="lg:hidden border-t border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] max-h-[calc(100svh-60px)] overflow-y-auto">
+                        <div className="px-4 py-3 space-y-0.5">
+                            {navConfig.map((entry) => {
+                                if (!isGroup(entry)) {
+                                    const Icon = entry.icon;
+                                    const active = isActive(entry.href);
+                                    return (
+                                        <Link
+                                            key={entry.href}
+                                            href={entry.href}
+                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${active
+                                                ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black'
+                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
+                                                }`}
+                                        >
+                                            <Icon size={18} />
+                                            {entry.label}
+                                        </Link>
+                                    );
+                                }
 
-                <div className={`p-6 border-t border-gray-200 dark:border-[#222222] space-y-3 transition-all duration-300 ${isCollapsed ? 'px-3 flex flex-col items-center' : ''}`}>
-                    <a
-                        href="https://erp.formuladoboi.com"
-                        target="_blank"
-                        rel="noreferrer"
-                        title={isCollapsed ? 'Abrir ERP' : undefined}
-                        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#B8860B]/30 bg-[#B8860B]/5 text-[#B8860B] hover:bg-[#B8860B]/10 hover:border-[#B8860B]/50 transition-all ${isCollapsed ? 'justify-center px-0' : ''}`}
-                    >
-                        <ExternalLink size={18} className="shrink-0" />
-                        {!isCollapsed && <span className="font-semibold text-sm whitespace-nowrap">Abrir ERP</span>}
-                    </a>
-                    {!isCollapsed ? (
-                        <div className="flex items-center justify-between px-4">
-                            <span className="text-sm font-medium text-gray-500">Tema</span>
-                            <ThemeToggle />
+                                const Icon = entry.icon;
+                                const active = isGroupActive(entry.items);
+                                const open = openDropdown === entry.label;
+
+                                return (
+                                    <div key={entry.label}>
+                                        <button
+                                            onClick={() => setOpenDropdown(open ? null : entry.label)}
+                                            className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all ${active
+                                                ? 'text-[#B8860B] bg-[#B8860B]/5'
+                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
+                                                }`}
+                                        >
+                                            <Icon size={18} />
+                                            <span className="flex-1 text-left">{entry.label}</span>
+                                            <ChevronDown size={15} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+                                        </button>
+                                        {open && (
+                                            <div className="ml-6 mt-0.5 mb-1 space-y-0.5">
+                                                {entry.items.map((item) => {
+                                                    const ItemIcon = item.icon;
+                                                    const itemActive = isActive(item.href);
+                                                    return (
+                                                        <Link
+                                                            key={item.href}
+                                                            href={item.href}
+                                                            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all ${itemActive
+                                                                ? 'bg-[#B8860B]/10 text-[#B8860B] font-semibold'
+                                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
+                                                                }`}
+                                                        >
+                                                            <ItemIcon size={15} />
+                                                            {item.label}
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+
+                            <div className="pt-3 mt-2 border-t border-gray-100 dark:border-[#222222] space-y-1">
+                                <a
+                                    href="https://erp.formuladoboi.com"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#B8860B]/30 bg-[#B8860B]/5 text-[#B8860B] text-sm font-semibold transition-all"
+                                >
+                                    <ExternalLink size={17} />
+                                    Abrir ERP
+                                </a>
+                                <button
+                                    onClick={handleSignOut}
+                                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
+                                >
+                                    <LogOut size={17} />
+                                    Sair do Painel
+                                </button>
+                            </div>
                         </div>
-                    ) : (
-                        <ThemeToggle />
-                    )}
-                    <button
-                        onClick={handleSignOut}
-                        title={isCollapsed ? "Sair do Painel" : undefined}
-                        className={`flex items-center gap-3 w-full px-4 py-3.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300 rounded-xl transition-all ${isCollapsed ? 'justify-center px-0' : ''}`}
-                    >
-                        <LogOut size={20} className="shrink-0" />
-                        {!isCollapsed && <span className="font-medium whitespace-nowrap">Sair do Painel</span>}
-                    </button>
-                    {!isCollapsed && (
-                        <div className="text-center mt-4 text-[10px] text-gray-400 dark:text-gray-700 uppercase tracking-widest whitespace-nowrap">
-                            Fórmula do Boi v1.0
-                        </div>
-                    )}
-                </div>
-            </aside>
+                    </div>
+                )}
+            </header>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-                {/* Mobile Header */}
-                <header className="lg:hidden bg-white dark:bg-[#111111] border-b border-gray-200 dark:border-[#222222] p-4 flex items-center justify-between z-40">
-                    <button
-                        onClick={() => setIsSidebarOpen(true)}
-                        className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                    >
-                        <Menu size={24} />
-                    </button>
-                    <Image
-                        src="/logo_complete.svg"
-                        alt="Fórmula"
-                        width={120}
-                        height={40}
-                        className="h-8 w-auto object-contain"
-                        style={{ filter: "brightness(0) saturate(100%) invert(62%) sepia(34%) saturate(762%) hue-rotate(2deg) brightness(89%) contrast(85%)" }}
-                    />
-                    <ThemeToggle />
-                </header>
-
-                <main className="flex-1 overflow-auto bg-gray-50 dark:bg-[#0A0A0A] p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
-                    <div className="max-w-7xl mx-auto space-y-8">
-                        {children}
-                    </div>
-                    {/* Background Glow Effects */}
-                    <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] overflow-hidden">
-                        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#B8860B]/5 rounded-full blur-[120px]" />
-                        <div className="absolute bottom-[-10%] left-[10%] w-[400px] h-[400px] bg-[#B8860B]/5 rounded-full blur-[100px]" />
-                    </div>
-                </main>
-            </div>
+            <main className="flex-1 overflow-auto bg-gray-50 dark:bg-[#0A0A0A] p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
+                <div className="max-w-7xl mx-auto space-y-8">
+                    {children}
+                </div>
+                <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] overflow-hidden">
+                    <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#B8860B]/5 rounded-full blur-[120px]" />
+                    <div className="absolute bottom-[-10%] left-[10%] w-[400px] h-[400px] bg-[#B8860B]/5 rounded-full blur-[100px]" />
+                </div>
+            </main>
         </div>
     );
 }
