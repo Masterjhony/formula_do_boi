@@ -24,6 +24,7 @@ export interface LeilaoPublico {
     leiloeira?: string | null;
     status?: string | null;
     catalogo_url?: string | null;
+    criador?: string | null;
 }
 
 function parse(l: LeilaoPublico) {
@@ -73,6 +74,11 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
                     {!!ev.animais && (
                         <span className="text-gray-500 font-normal">· {ev.animais} animais</span>
                     )}
+                </span>
+            )}
+            {ev.criador && !ev.tipo && (
+                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-gold/70">
+                    {ev.criador}
                 </span>
             )}
             {ev.diaSemana && (
