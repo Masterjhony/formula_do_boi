@@ -6,8 +6,8 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar,
-    MessageCircle, FileText, Sparkles, Gavel, Dna, Award, Building2,
-    ImageIcon, Shield, ExternalLink, ChevronDown,
+    MessageCircle, FileText, Sparkles, Gavel, Dna, Award,
+    ImageIcon, Shield, ExternalLink, ChevronDown, BarChart2,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,7 @@ function isGroup(e: NavEntry): e is NavGroup {
 
 const navConfig: NavEntry[] = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/analytics', label: 'Analytics', icon: BarChart2 },
     { href: '/crm', label: 'CRM', icon: Users },
     {
         label: 'Animais', icon: Dna,
@@ -37,7 +38,6 @@ const navConfig: NavEntry[] = [
         items: [
             { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
             { href: '/contratos', label: 'Contratos', icon: FileText },
-            { href: '/central-bela-vista', label: 'Central Bela Vista', icon: Building2 },
         ],
     },
     {
