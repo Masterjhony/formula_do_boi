@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar,
     MessageCircle, FileText, Sparkles, Gavel, Dna, Award,
-    ImageIcon, Shield, ExternalLink, ChevronDown, BarChart2,
+    ImageIcon, Shield, ExternalLink, ChevronDown, BarChart2, Target,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -36,6 +36,7 @@ const navConfig: NavEntry[] = [
         label: 'Operações', icon: Calendar,
         items: [
             { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
+            { href: '/okr', label: 'OKR', icon: Target },
             { href: '/contratos', label: 'Contratos', icon: FileText },
         ],
     },
@@ -117,7 +118,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const isCRM = pathname === '/crm';
     const isTactical = pathname === '/tactical-plan';
-    const isFullWidth = isCRM || isTactical;
+    const isOKR = pathname === '/okr';
+    const isFullWidth = isCRM || isTactical || isOKR;
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -377,7 +379,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Main Content */}
             <main className={`flex-1 bg-gray-50 dark:bg-[#0A0A0A] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent ${
-                isCRM
+                (isCRM || isOKR)
                     ? 'overflow-hidden flex flex-col p-4'
                     : isTactical
                         ? 'overflow-auto flex flex-col p-4'

@@ -21,52 +21,40 @@ import { TaskModal } from './TaskModal';
 import { GanttView } from './GanttView';
 import { WhiteboardView } from './WhiteboardView';
 import { ExecutiveDashboard } from './ExecutiveDashboard';
-import { OKRView } from './OKRView';
-import { ReviewView } from './ReviewView';
 import { MembersView } from './MembersView';
-import { StrategyView } from './StrategyView';
 import {
     TacticalTask, TacticalColumn,
     updateTask, createTask, moveTask, deleteTask,
     createColumn, updateColumn, deleteColumn,
 } from '@/app/web-admin/actions/tactical-tasks';
 import {
-    TacticalObjective, TacticalRisk, TacticalDecision, TacticalMember, StrategicFlow,
+    TacticalObjective, TacticalMember,
 } from '@/app/web-admin/actions/tactical-strategic';
 import { createPortal } from 'react-dom';
 import {
     Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2,
-    Presentation, BarChart3, Target, ClipboardList, Zap, Eye, Users, Compass,
+    Presentation, BarChart3, Eye, Users,
 } from 'lucide-react';
 
-type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'dashboard' | 'okrs' | 'review' | 'members' | 'strategy';
+type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'dashboard' | 'members';
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];
     initialColumns: TacticalColumn[];
     initialObjectives: TacticalObjective[];
-    initialRisks: TacticalRisk[];
-    initialDecisions: TacticalDecision[];
     initialMembers: TacticalMember[];
-    initialFlows: StrategicFlow[];
 }
 
 export function KanbanBoard({
     initialTasks,
     initialColumns,
     initialObjectives,
-    initialRisks,
-    initialDecisions,
     initialMembers,
-    initialFlows,
 }: KanbanBoardProps) {
     const [tasks, setTasks] = useState<TacticalTask[]>(initialTasks);
     const [columns, setColumns] = useState<TacticalColumn[]>(initialColumns);
     const [objectives, setObjectives] = useState<TacticalObjective[]>(initialObjectives);
-    const [risks, setRisks] = useState<TacticalRisk[]>(initialRisks);
-    const [decisions, setDecisions] = useState<TacticalDecision[]>(initialDecisions);
     const [members, setMembers] = useState<TacticalMember[]>(initialMembers);
-    const [flows, setFlows] = useState<StrategicFlow[]>(initialFlows);
 
     const [isCreatingColumn, setIsCreatingColumn] = useState(false);
     const [newColumnTitle, setNewColumnTitle] = useState('');
@@ -210,25 +198,12 @@ export function KanbanBoard({
         sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }),
     };
 
-    // OKR quick summary bar
-    const okrSummary = useMemo(() => {
-        const all = objectives.flatMap(o => o.key_results || []);
-        if (!all.length) return null;
-        const avg = Math.round(all.reduce((a, kr) => a + (kr.progress ?? 0), 0) / all.length);
-        return avg;
-    }, [objectives]);
-
-    const activeRisks = risks.filter(r => r.status === 'active');
-
     const viewTabs: { key: ViewMode; label: string; icon: React.ReactNode }[] = [
         { key: 'kanban', label: 'Kanban', icon: <LayoutGrid size={15} /> },
         { key: 'gantt', label: 'Gantt', icon: <CalendarIcon size={15} /> },
         { key: 'whiteboard', label: 'Lousa', icon: <Presentation size={15} /> },
         { key: 'dashboard', label: 'Dashboard', icon: <BarChart3 size={15} /> },
-        { key: 'okrs', label: `OKRs${okrSummary !== null ? ` ${okrSummary}%` : ''}`, icon: <Target size={15} /> },
-        { key: 'review', label: `Revisão${activeRisks.length > 0 ? ` ⚠️${activeRisks.length}` : ''}`, icon: <ClipboardList size={15} /> },
         { key: 'members', label: `Equipe${members.length > 0 ? ` (${members.length})` : ''}`, icon: <Users size={15} /> },
-        { key: 'strategy', label: 'Estratégia', icon: <Compass size={15} /> },
     ];
 
     const showKanbanFilters = viewMode === 'kanban' || viewMode === 'gantt';
@@ -317,38 +292,6 @@ export function KanbanBoard({
                     </div>
                 </div>
 
-                {/* OKR quick bar */}
-                {okrSummary !== null && viewMode !== 'okrs' && (
-                    <div
-                        className="flex items-center gap-3 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-xl px-4 py-2 cursor-pointer hover:border-[#B8860B]/40 transition-colors"
-                        onClick={() => setViewMode('okrs')}
-                    >
-                        <Target size={14} className="text-[#B8860B] shrink-0" />
-                        <div className="flex-1 flex items-center gap-3 overflow-x-auto">
-                            {objectives.slice(0, 4).map(obj => {
-                                const krs = obj.key_results || [];
-                                const pct = krs.length > 0
-                                    ? Math.round(krs.reduce((a, kr) => a + (kr.progress ?? 0), 0) / krs.length)
-                                    : 0;
-                                return (
-                                    <div key={obj.id} className="flex items-center gap-2 shrink-0">
-                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: obj.color }} />
-                                        <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[120px]">{obj.title}</span>
-                                        <div className="w-16 bg-gray-100 dark:bg-[#111111] rounded-full h-1.5">
-                                            <div
-                                                className={`h-1.5 rounded-full ${pct >= 70 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
-                                                style={{ width: `${pct}%` }}
-                                            />
-                                        </div>
-                                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{pct}%</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        <span className="text-[10px] text-gray-400 shrink-0">Geral: <b className="text-gray-600 dark:text-gray-300">{okrSummary}%</b></span>
-                        <Zap size={12} className="text-gray-300 dark:text-gray-600 shrink-0" />
-                    </div>
-                )}
             </div>
 
             {/* ── Views ── */}
@@ -446,23 +389,6 @@ export function KanbanBoard({
                     <ExecutiveDashboard tasks={tasks} columns={columns} objectives={objectives} />
                 )}
 
-                {/* OKRs */}
-                {viewMode === 'okrs' && (
-                    <OKRView objectives={objectives} onObjectivesChange={setObjectives} />
-                )}
-
-                {/* REVIEW */}
-                {viewMode === 'review' && (
-                    <ReviewView
-                        tasks={tasks}
-                        columns={columns}
-                        risks={risks}
-                        decisions={decisions}
-                        onRisksChange={setRisks}
-                        onDecisionsChange={setDecisions}
-                    />
-                )}
-
                 {/* MEMBERS */}
                 {viewMode === 'members' && (
                     <MembersView
@@ -472,17 +398,6 @@ export function KanbanBoard({
                     />
                 )}
 
-                {/* STRATEGY */}
-                {viewMode === 'strategy' && (
-                    <StrategyView
-                        flows={flows}
-                        onFlowsChange={setFlows}
-                        tasks={tasks}
-                        onTasksChange={setTasks}
-                        objectives={objectives}
-                        doneStatus={doneStatus}
-                    />
-                )}
             </div>
 
             <TaskModal

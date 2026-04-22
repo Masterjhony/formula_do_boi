@@ -133,6 +133,93 @@ function WeeklyReviewTab({ tasks, columns }: { tasks: TacticalTask[]; columns: T
   );
 }
 
+// ─── Risk Matrix ──────────────────────────────────────────────────────────────
+
+const PROB_ROWS = ['alta', 'media', 'baixa'] as const;
+const IMPACT_COLS = ['baixo', 'medio', 'alto'] as const;
+
+const PROB_LABELS: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
+const IMPACT_LABELS: Record<string, string> = { baixo: 'Baixo', medio: 'Médio', alto: 'Alto' };
+
+function matrixCellStyle(prob: string, impact: string) {
+  const pi = ['baixa', 'media', 'alta'].indexOf(prob);
+  const ii = ['baixo', 'medio', 'alto'].indexOf(impact);
+  const score = pi + ii;
+  if (score >= 4) return { bg: 'bg-red-100 dark:bg-red-500/10 border-red-200 dark:border-red-500/20', dot: 'bg-red-500', label: 'Crítico' };
+  if (score >= 3) return { bg: 'bg-orange-100 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/20', dot: 'bg-orange-500', label: 'Alto' };
+  if (score >= 2) return { bg: 'bg-amber-100 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20', dot: 'bg-amber-500', label: 'Moderado' };
+  if (score >= 1) return { bg: 'bg-yellow-50 dark:bg-yellow-500/5 border-yellow-200 dark:border-yellow-500/15', dot: 'bg-yellow-400', label: 'Baixo' };
+  return { bg: 'bg-emerald-50 dark:bg-emerald-500/5 border-emerald-200 dark:border-emerald-500/15', dot: 'bg-emerald-500', label: 'Mínimo' };
+}
+
+function RiskMatrix({ risks }: { risks: TacticalRisk[] }) {
+  const active = risks.filter(r => r.status === 'active');
+  if (active.length === 0) return null;
+
+  return (
+    <div className="bg-white dark:bg-[#161616] rounded-2xl border border-gray-200 dark:border-[#222222] p-4 mb-4">
+      <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+        Matriz de Risco — Probabilidade × Impacto
+      </p>
+      <div className="flex gap-2">
+        {/* Y-axis label */}
+        <div className="flex flex-col justify-around pb-5 pr-1">
+          {PROB_ROWS.map(p => (
+            <span key={p} className="text-[10px] text-gray-400 font-medium w-8 text-right leading-none">
+              {PROB_LABELS[p]}
+            </span>
+          ))}
+        </div>
+        <div className="flex-1">
+          {/* Matrix grid */}
+          <div className="grid grid-cols-3 gap-1.5">
+            {PROB_ROWS.map(prob =>
+              IMPACT_COLS.map(impact => {
+                const cell = matrixCellStyle(prob, impact);
+                const cellRisks = active.filter(r => r.probability === prob && r.impact === impact);
+                return (
+                  <div
+                    key={`${prob}-${impact}`}
+                    className={`relative rounded-xl border p-2.5 min-h-[52px] flex flex-col justify-between ${cell.bg}`}
+                    title={cellRisks.map(r => r.title).join('\n') || undefined}
+                  >
+                    {cellRisks.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-1">
+                        {cellRisks.slice(0, 3).map(r => (
+                          <span key={r.id} className={`w-2 h-2 rounded-full ${cell.dot} shrink-0`} />
+                        ))}
+                        {cellRisks.length > 3 && (
+                          <span className="text-[9px] text-gray-400">+{cellRisks.length - 3}</span>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex items-end justify-between">
+                      {cellRisks.length > 0 ? (
+                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{cellRisks.length}</span>
+                      ) : (
+                        <span className="text-[10px] text-gray-300 dark:text-gray-700">—</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          {/* X-axis labels */}
+          <div className="grid grid-cols-3 gap-1.5 mt-1.5">
+            {IMPACT_COLS.map(i => (
+              <span key={i} className="text-[10px] text-gray-400 font-medium text-center leading-none">
+                {IMPACT_LABELS[i]}
+              </span>
+            ))}
+          </div>
+          <p className="text-[10px] text-gray-400 text-center mt-0.5">← Impacto →</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Risks ────────────────────────────────────────────────────────────────────
 
 function RisksTab({ risks, onRisksChange }: { risks: TacticalRisk[]; onRisksChange: (r: TacticalRisk[]) => void }) {
@@ -264,6 +351,8 @@ function RisksTab({ risks, onRisksChange }: { risks: TacticalRisk[]; onRisksChan
       </div>
 
       {showForm && !editId && <FormRow />}
+
+      <RiskMatrix risks={risks} />
 
       {risks.length === 0 && !showForm && (
         <div className="text-center py-12 text-gray-400">

@@ -1,18 +1,15 @@
 import { KanbanBoard } from '@/components/admin/kanban/KanbanBoard';
 import { getTasks, getColumns } from '@/app/web-admin/actions/tactical-tasks';
-import { getObjectives, getRisks, getDecisions, getMembers, getFlows } from '@/app/web-admin/actions/tactical-strategic';
+import { getObjectives, getMembers } from '@/app/web-admin/actions/tactical-strategic';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TacticalPlanPage() {
-    const [tasks, columns, objectives, risks, decisions, members, flows] = await Promise.all([
+    const [tasks, columns, objectives, members] = await Promise.all([
         getTasks(),
         getColumns(),
         getObjectives(),
-        getRisks(),
-        getDecisions(),
         getMembers(),
-        getFlows(),
     ]);
 
     return (
@@ -33,10 +30,7 @@ export default async function TacticalPlanPage() {
                     initialTasks={tasks || []}
                     initialColumns={columns || []}
                     initialObjectives={objectives || []}
-                    initialRisks={risks || []}
-                    initialDecisions={decisions || []}
                     initialMembers={members || []}
-                    initialFlows={flows || []}
                 />
             </div>
         </div>
