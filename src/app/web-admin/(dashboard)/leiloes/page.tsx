@@ -5,7 +5,7 @@ import {
   Plus, Edit2, Trash2, X, ExternalLink, CalendarDays, Users, Tv, Tag,
   Check, Link2, Loader2, BookOpen, Clock, MapPin, ChevronDown, ChevronUp,
   AlertCircle, CheckCircle2, Circle, FileText, ChevronRight,
-  TableProperties, List, Save,
+  TableProperties, List, Save, ImageIcon, Upload,
 } from 'lucide-react'
 import type { BulaLeilao, LeilaoGrupo, LeilaoTask, LeilaoSubtask } from '@/lib/bula/types'
 
@@ -281,6 +281,13 @@ function DetailDrawer({ leilao, onClose, onEdit, onDelete, onTasksUpdate }: {
 
         {/* Body */}
         <div className="flex-1 px-6 py-5 space-y-6">
+          {/* Cover image */}
+          {leilao.img && (
+            <div className="rounded-2xl overflow-hidden -mx-6 -mt-5 mb-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={leilao.img} alt={leilao.nome} className="w-full h-52 object-cover" />
+            </div>
+          )}
           {/* Info grid */}
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -413,10 +420,30 @@ function FormModal({ initial, onClose, onSaved }: {
       : emptyForm()
   )
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const set = (k: keyof FormState, v: string | number) =>
     setForm(prev => ({ ...prev, [k]: v }))
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/bula/leiloes/upload', { method: 'POST', body: fd })
+      const json = await res.json()
+      if (json.url) set('img', json.url)
+      else setError('Erro ao fazer upload da imagem')
+    } catch {
+      setError('Erro ao fazer upload da imagem')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -479,6 +506,48 @@ function FormModal({ initial, onClose, onSaved }: {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          {/* Cover image upload */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+              Capa do Leilão
+            </label>
+            <label className="block cursor-pointer group">
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+              {form.img ? (
+                <div className="relative rounded-xl overflow-hidden h-44">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.img} alt="Capa" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 text-white text-sm font-semibold bg-black/60 px-4 py-2 rounded-xl">
+                      <Upload size={14} /> Trocar imagem
+                    </span>
+                  </div>
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <Loader2 size={24} className="animate-spin text-white" />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className={`flex flex-col items-center justify-center h-36 rounded-xl border-2 border-dashed transition-colors ${uploading ? 'border-[#B8860B]/50 bg-[#B8860B]/5' : 'border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/50 hover:bg-[#B8860B]/3'}`}>
+                  {uploading
+                    ? <Loader2 size={24} className="animate-spin text-[#B8860B]" />
+                    : <>
+                        <ImageIcon size={28} className="text-gray-300 dark:text-gray-700 mb-2" />
+                        <p className="text-sm font-semibold text-gray-400">Clique para adicionar capa</p>
+                        <p className="text-xs text-gray-300 dark:text-gray-600 mt-0.5">JPG, PNG, WEBP</p>
+                      </>
+                  }
+                </div>
+              )}
+            </label>
+            {form.img && (
+              <button type="button" onClick={() => set('img', '')} className="mt-1.5 text-xs text-red-400 hover:text-red-600 transition-colors">
+                Remover capa
+              </button>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <Field label="Nome / Criador" required>
               <input className={`${inputCls} col-span-2`} value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: Fazenda São Geraldo" />
@@ -601,6 +670,88 @@ function LeilaoCard({ leilao, selected, onClick }: {
   const isVirtual = leilao.modelo?.toUpperCase() === 'VIRTUAL'
   const { done, total } = checklistProgress(leilao.tasks ?? [])
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
+  const hasImage = !!leilao.img
+
+  if (hasImage) {
+    return (
+      <button
+        onClick={onClick}
+        className={`w-full text-left group rounded-2xl border overflow-hidden transition-all duration-200 ${
+          selected
+            ? 'border-[#B8860B]/50 shadow-md shadow-[#B8860B]/10'
+            : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] hover:border-[#B8860B]/30'
+        }`}
+      >
+        {/* Cover image */}
+        <div className="relative h-44 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={leilao.img}
+            alt={leilao.nome}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {/* Date badge overlay */}
+          <div className="absolute bottom-3 left-3 flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-white/30 bg-black/50 backdrop-blur-sm">
+            <span className="text-white font-black text-xl leading-none">{dt.dia}</span>
+            <span className="text-white/70 text-[9px] font-bold uppercase tracking-wider mt-0.5">{dt.mesNome.slice(0, 3)}</span>
+          </div>
+          {/* Badges overlay */}
+          <div className="absolute top-3 right-3 flex gap-1.5">
+            {isVirtual ? (
+              <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-1 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white">
+                <Tv size={9} /> Virtual
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-1 rounded-full bg-[#B8860B]/80 backdrop-blur-sm text-black">
+                <Users size={9} /> Presencial
+              </span>
+            )}
+            <span className={`inline-flex items-center text-[9px] font-bold uppercase px-2 py-1 rounded-full backdrop-blur-sm ${STATUS_STYLES[leilao.status]}`}>
+              {STATUS_LABELS[leilao.status]}
+            </span>
+          </div>
+          {/* Name overlay bottom */}
+          <div className="absolute bottom-3 left-16 right-3">
+            <p className="text-white font-black text-sm uppercase leading-tight drop-shadow line-clamp-2">{leilao.nome}</p>
+          </div>
+        </div>
+
+        {/* Content strip */}
+        <div className={`px-4 py-3 flex items-center justify-between gap-4 ${selected ? 'bg-[#B8860B]/5 dark:bg-[#B8860B]/8' : 'bg-white dark:bg-[#111111]'}`}>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase text-[#B8860B]">
+              <Tag size={10} /> {leilao.tipo}
+              <span className="text-gray-400 font-normal">· {leilao.animais} animais</span>
+            </span>
+            <span className="text-[11px] text-gray-500">
+              {dt.diaSemana}{leilao.horario ? ` · ${leilao.horario}` : ''}
+            </span>
+            {leilao.leiloeira && (
+              <span className="text-[10px] text-gray-400 uppercase">{leilao.leiloeira}{leilao.transmissao ? ` · ${leilao.transmissao}` : ''}</span>
+            )}
+            {total > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="w-16 bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-1 overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct === 100 ? '#22c55e' : '#B8860B' }} />
+                </div>
+                <span className="text-[10px] text-gray-400">{done}/{total}</span>
+                {pct === 100 && <CheckCircle2 size={11} className="text-emerald-500" />}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {leilao.catalogo_url && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-[#B8860B] bg-[#B8860B]/10 px-2 py-1 rounded-lg">
+                <BookOpen size={11} /> Catálogo
+              </span>
+            )}
+            <ChevronRight size={16} className={`text-gray-300 dark:text-gray-700 transition-transform ${selected ? 'rotate-90 text-[#B8860B]' : 'group-hover:text-gray-500'}`} />
+          </div>
+        </div>
+      </button>
+    )
+  }
 
   return (
     <button
