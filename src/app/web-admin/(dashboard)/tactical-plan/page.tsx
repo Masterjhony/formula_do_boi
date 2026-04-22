@@ -16,7 +16,7 @@ export default async function TacticalPlanPage() {
     ]);
 
     return (
-        <div className="h-[calc(100vh-140px)] min-h-[500px] flex flex-col resize-y overflow-auto border-b border-gray-200/50 dark:border-[#333333]/50 pb-2">
+        <div className="h-full min-h-[500px] flex flex-col resize-y overflow-auto border-b border-gray-200/50 dark:border-[#333333]/50 pb-2">
             <div className="mb-6 flex justify-between items-end shrink-0">
                 <div>
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">

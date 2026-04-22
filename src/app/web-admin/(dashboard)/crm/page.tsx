@@ -8,7 +8,7 @@ export default async function CRMPage() {
     const leads = await getLeads();
 
     return (
-        <div className="h-[calc(100vh-140px)] flex flex-col pt-4">
+        <div className="h-full flex flex-col">
             <div className="flex-1 overflow-hidden">
                 <CRMDashboardClient initialLeads={leads || []} />
             </div>

@@ -23,7 +23,6 @@ function isGroup(e: NavEntry): e is NavGroup {
 
 const navConfig: NavEntry[] = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/analytics', label: 'Analytics', icon: BarChart2 },
     { href: '/crm', label: 'CRM', icon: Users },
     {
         label: 'Animais', icon: Dna,
@@ -43,6 +42,7 @@ const navConfig: NavEntry[] = [
     {
         label: 'Ferramentas', icon: Sparkles,
         items: [
+            { href: '/analytics', label: 'Analytics', icon: BarChart2 },
             { href: '/ia', label: 'IA Mapeamento', icon: Sparkles },
             { href: '/biblioteca-midia', label: 'Biblioteca de Mídia', icon: ImageIcon },
             { href: '/whatsapp', label: 'Marketing & Automação', icon: MessageCircle },
@@ -114,6 +114,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
     const isGroupActive = (items: NavItem[]) => items.some(i => isActive(i.href));
+
+    const isCRM = pathname === '/crm';
+    const isTactical = pathname === '/tactical-plan';
+    const isFullWidth = isCRM || isTactical;
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -372,10 +376,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto bg-gray-50 dark:bg-[#0A0A0A] p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
-                <div className="max-w-7xl mx-auto space-y-8">
-                    {children}
-                </div>
+            <main className={`flex-1 bg-gray-50 dark:bg-[#0A0A0A] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent ${
+                isCRM
+                    ? 'overflow-hidden flex flex-col p-4'
+                    : isTactical
+                        ? 'overflow-auto flex flex-col p-4'
+                        : 'overflow-auto p-6 lg:p-10'
+            }`}>
+                {isFullWidth ? children : (
+                    <div className="max-w-7xl mx-auto space-y-8">
+                        {children}
+                    </div>
+                )}
                 <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] overflow-hidden">
                     <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#B8860B]/5 rounded-full blur-[120px]" />
                     <div className="absolute bottom-[-10%] left-[10%] w-[400px] h-[400px] bg-[#B8860B]/5 rounded-full blur-[100px]" />
