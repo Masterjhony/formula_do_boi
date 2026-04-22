@@ -5,10 +5,9 @@ import {
   Plus, Edit2, Trash2, X, ExternalLink, CalendarDays, Users, Tv, Tag,
   Check, Link2, Loader2, BookOpen, Clock, MapPin, ChevronDown, ChevronUp,
   AlertCircle, CheckCircle2, Circle, FileText, ChevronRight,
-  TableProperties, List,
+  TableProperties, List, Save,
 } from 'lucide-react'
 import type { BulaLeilao, LeilaoGrupo, LeilaoTask, LeilaoSubtask } from '@/lib/bula/types'
-import { CRONOGRAMA_2026, MES_LABELS, type CronogramaLeilao } from './cronograma-data'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -683,6 +682,36 @@ function LeilaoCard({ leilao, selected, onClick }: {
 
 // ── CronogramaTab ─────────────────────────────────────────────────────────────
 
+type DbLeilao = {
+  id: string
+  data: string
+  dia_semana: string
+  hora: string
+  nome: string
+  criador: string
+  presencial: string
+  leiloeira: string
+  raca: string
+  qtd_animais: number | null
+  sexo: string
+  comissao: string
+  contrato: string
+  faturamento_previsto: number | null
+  faturamento_realizado: number | null
+  venda_bula: number | null
+  comissao_receber: string
+  recebido: string
+}
+
+type DbForm = Omit<DbLeilao, 'id'>
+
+const EMPTY_FORM: DbForm = {
+  data: '', dia_semana: '', hora: '', nome: '', criador: '',
+  presencial: '', leiloeira: '', raca: '', qtd_animais: null,
+  sexo: '', comissao: '', contrato: '', faturamento_previsto: null,
+  faturamento_realizado: null, venda_bula: null, comissao_receber: '', recebido: '',
+}
+
 const PRESENCIAL_STYLES: Record<string, string> = {
   VIRTUAL:    'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
   PRESENCIAL: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
@@ -690,70 +719,269 @@ const PRESENCIAL_STYLES: Record<string, string> = {
   EXPOZEBU:   'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
 }
 
+const MES_LABELS: Record<string, string> = {
+  '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
+  '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto',
+  '09': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro',
+}
+
+const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#B8860B] transition-colors"
+
+function CronogramaFormModal({ initial, onClose, onSaved }: {
+  initial: DbLeilao | null
+  onClose: () => void
+  onSaved: (row: DbLeilao) => void
+}) {
+  const isEdit = !!initial
+  const [form, setForm] = useState<DbForm>(initial
+    ? { ...initial }
+    : { ...EMPTY_FORM }
+  )
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const set = <K extends keyof DbForm>(k: K, v: DbForm[K]) =>
+    setForm(prev => ({ ...prev, [k]: v }))
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.nome.trim() || !form.data) { setError('Preencha nome e data'); return }
+    setSaving(true); setError(null)
+    try {
+      const res = isEdit
+        ? await fetch(`/api/bula/cronograma/${initial!.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+        : await fetch('/api/bula/cronograma', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      if (!res.ok) throw new Error(await res.text())
+      onSaved(await res.json())
+      onClose()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao salvar')
+    } finally { setSaving(false) }
+  }
+
+  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div>
+      <label className="block text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">{label}</label>
+      {children}
+    </div>
+  )
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="relative w-full max-w-3xl bg-white dark:bg-[#111111] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#1E1E1E]">
+          <h2 className="font-bold text-gray-900 dark:text-white text-lg">
+            {isEdit ? 'Editar Leilão' : 'Novo Leilão no Cronograma'}
+          </h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-gray-400 transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          {/* Row 1: Data + hora + dia_semana */}
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Data *">
+              <input type="date" className={inputCls} value={form.data} onChange={e => set('data', e.target.value)} required />
+            </Field>
+            <Field label="Hora">
+              <input className={inputCls} value={form.hora} onChange={e => set('hora', e.target.value)} placeholder="Ex: 19:30" />
+            </Field>
+            <Field label="Dia da Semana">
+              <input className={inputCls} value={form.dia_semana} onChange={e => set('dia_semana', e.target.value)} placeholder="Ex: Sexta-feira" />
+            </Field>
+          </div>
+
+          {/* Row 2: Nome */}
+          <Field label="Nome do Leilão *">
+            <input className={inputCls} value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: NELORE KATAYAMA - TRIOLOGIA" required />
+          </Field>
+
+          {/* Row 3: Criador + Raça */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Criador">
+              <input className={inputCls} value={form.criador} onChange={e => set('criador', e.target.value)} placeholder="Nome do criador" />
+            </Field>
+            <Field label="Raça">
+              <input className={inputCls} value={form.raca} onChange={e => set('raca', e.target.value)} placeholder="Ex: Nelore Padrão" />
+            </Field>
+          </div>
+
+          {/* Row 4: Modalidade + Leiloeira + Qtd + Sexo */}
+          <div className="grid grid-cols-4 gap-3">
+            <Field label="Modalidade">
+              <select className={inputCls} value={form.presencial} onChange={e => set('presencial', e.target.value)}>
+                <option value="">—</option>
+                <option value="VIRTUAL">Virtual</option>
+                <option value="PRESENCIAL">Presencial</option>
+                <option value="EXPOGRANDE">ExpoGrande</option>
+                <option value="EXPOZEBU">ExpoZebu</option>
+              </select>
+            </Field>
+            <Field label="Leiloeira">
+              <input className={inputCls} value={form.leiloeira} onChange={e => set('leiloeira', e.target.value)} placeholder="Ex: E-RURAL" />
+            </Field>
+            <Field label="Qtd. Animais">
+              <input type="number" className={inputCls} value={form.qtd_animais ?? ''} onChange={e => set('qtd_animais', e.target.value ? Number(e.target.value) : null)} placeholder="0" min={0} />
+            </Field>
+            <Field label="Sexo">
+              <select className={inputCls} value={form.sexo} onChange={e => set('sexo', e.target.value)}>
+                <option value="">—</option>
+                <option value="MACHOS">Machos</option>
+                <option value="FÊMEAS">Fêmeas</option>
+                <option value="MACHOS E FÊMEAS">Machos e Fêmeas</option>
+                <option value="TOUROS">Touros</option>
+                <option value="EMBRIÕES">Embriões</option>
+              </select>
+            </Field>
+          </div>
+
+          {/* Row 5: Comissão + Contrato */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Negociação de Comissão">
+              <input className={inputCls} value={form.comissao} onChange={e => set('comissao', e.target.value)} placeholder="Ex: 1% do Faturamento" />
+            </Field>
+            <Field label="Contrato">
+              <select className={inputCls} value={form.contrato} onChange={e => set('contrato', e.target.value)}>
+                <option value="">—</option>
+                <option value="SIM">SIM</option>
+                <option value="NÃO">NÃO</option>
+              </select>
+            </Field>
+          </div>
+
+          {/* Row 6: Financeiro */}
+          <div className="pt-2 border-t border-gray-100 dark:border-[#1E1E1E]">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">Financeiro (opcional)</p>
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Fat. Previsto (R$)">
+                <input type="number" className={inputCls} value={form.faturamento_previsto ?? ''} onChange={e => set('faturamento_previsto', e.target.value ? Number(e.target.value) : null)} placeholder="0" min={0} />
+              </Field>
+              <Field label="Fat. Realizado (R$)">
+                <input type="number" className={inputCls} value={form.faturamento_realizado ?? ''} onChange={e => set('faturamento_realizado', e.target.value ? Number(e.target.value) : null)} placeholder="0" min={0} />
+              </Field>
+              <Field label="Venda Bula (R$)">
+                <input type="number" className={inputCls} value={form.venda_bula ?? ''} onChange={e => set('venda_bula', e.target.value ? Number(e.target.value) : null)} placeholder="0" min={0} />
+              </Field>
+            </div>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm">
+              <AlertCircle size={15} /> {error}
+            </div>
+          )}
+        </form>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-[#1E1E1E] flex justify-end gap-3">
+          <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors">
+            Cancelar
+          </button>
+          <button onClick={handleSubmit} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#B8860B] hover:bg-[#D4AF37] text-black text-sm font-semibold disabled:opacity-50 transition-colors">
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            {isEdit ? 'Salvar alterações' : 'Adicionar leilão'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function CronogramaTab() {
-  const meses = Object.keys(MES_LABELS)
+  const [rows, setRows] = useState<DbLeilao[]>([])
+  const [loading, setLoading] = useState(true)
   const [mesFiltro, setMesFiltro] = useState('todos')
+  const [showForm, setShowForm] = useState(false)
+  const [editTarget, setEditTarget] = useState<DbLeilao | null>(null)
 
-  const filtered = mesFiltro === 'todos'
-    ? CRONOGRAMA_2026
-    : CRONOGRAMA_2026.filter(l => l.data.startsWith(mesFiltro))
+  const fetchRows = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/bula/cronograma')
+      if (res.ok) setRows(await res.json())
+    } finally { setLoading(false) }
+  }, [])
 
-  const grupos: Record<string, CronogramaLeilao[]> = {}
-  for (const l of filtered) {
-    const key = l.data.slice(0, 7)
-    if (!grupos[key]) grupos[key] = []
-    grupos[key].push(l)
+  useEffect(() => { fetchRows() }, [fetchRows])
+
+  const handleDelete = async (row: DbLeilao) => {
+    if (!confirm(`Excluir "${row.nome}"?`)) return
+    await fetch(`/api/bula/cronograma/${row.id}`, { method: 'DELETE' })
+    setRows(prev => prev.filter(r => r.id !== row.id))
+  }
+
+  const handleSaved = (saved: DbLeilao) => {
+    setRows(prev => {
+      const idx = prev.findIndex(r => r.id === saved.id)
+      return idx >= 0 ? prev.map(r => r.id === saved.id ? saved : r) : [saved, ...prev]
+    })
   }
 
   const fmtBrl = (v: number | null) =>
     v ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}` : '—'
 
+  const mesesDisponiveis = Array.from(new Set(rows.map(r => r.data?.slice(0, 7)))).filter(Boolean).sort()
+
+  const filtered = mesFiltro === 'todos' ? rows : rows.filter(r => r.data?.startsWith(mesFiltro))
+
+  const grupos: Record<string, DbLeilao[]> = {}
+  for (const l of filtered) {
+    const key = l.data?.slice(0, 7) ?? ''
+    if (!grupos[key]) grupos[key] = []
+    grupos[key].push(l)
+  }
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 size={28} className="animate-spin text-[#B8860B]" />
+    </div>
+  )
+
   return (
     <div className="space-y-6">
-      {/* Stats */}
-      <div className="flex gap-3 flex-wrap">
-        {[
-          { label: 'Total de leilões', value: CRONOGRAMA_2026.length, accent: true },
-          { label: 'Com comissão', value: CRONOGRAMA_2026.filter(l => l.comissao && l.comissao !== 'A DEFINIR').length },
-          { label: 'Expozebu / Presencial', value: CRONOGRAMA_2026.filter(l => ['EXPOZEBU', 'EXPOGRANDE', 'PRESENCIAL'].includes(l.presencial)).length },
-          { label: 'Virtuais', value: CRONOGRAMA_2026.filter(l => l.presencial === 'VIRTUAL').length },
-        ].map(s => (
-          <div key={s.label} className={`px-5 py-3 rounded-2xl border text-center min-w-[90px] ${
-            s.accent
-              ? 'border-[#B8860B]/30 bg-[#B8860B]/8'
-              : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'
-          }`}>
-            <p className={`text-2xl font-black leading-none mb-0.5 ${s.accent ? 'text-[#B8860B]' : 'text-gray-900 dark:text-white'}`}>
-              {s.value}
-            </p>
-            <p className="text-[10px] text-gray-400 uppercase tracking-wider">{s.label}</p>
-          </div>
-        ))}
+      {/* Header do cronograma */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-3 flex-wrap">
+          {[
+            { label: 'Total', value: rows.length, accent: true },
+            { label: 'Com comissão', value: rows.filter(l => l.comissao && l.comissao !== 'A DEFINIR').length },
+            { label: 'Presencial / Expo', value: rows.filter(l => ['EXPOZEBU', 'EXPOGRANDE', 'PRESENCIAL'].includes(l.presencial)).length },
+            { label: 'Virtuais', value: rows.filter(l => l.presencial === 'VIRTUAL').length },
+          ].map(s => (
+            <div key={s.label} className={`px-4 py-2.5 rounded-2xl border text-center min-w-[80px] ${s.accent ? 'border-[#B8860B]/30 bg-[#B8860B]/8' : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'}`}>
+              <p className={`text-xl font-black leading-none mb-0.5 ${s.accent ? 'text-[#B8860B]' : 'text-gray-900 dark:text-white'}`}>{s.value}</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wider">{s.label}</p>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => { setEditTarget(null); setShowForm(true) }}
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#B8860B]/20"
+        >
+          <Plus size={15} /> Novo Leilão
+        </button>
       </div>
 
       {/* Filtro de mês */}
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setMesFiltro('todos')}
-          className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${
-            mesFiltro === 'todos'
-              ? 'bg-[#B8860B] text-black border-[#B8860B]'
-              : 'border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B]'
-          }`}
+          className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${mesFiltro === 'todos' ? 'bg-[#B8860B] text-black border-[#B8860B]' : 'border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B]'}`}
         >
           Todos
         </button>
-        {meses.map(m => (
+        {mesesDisponiveis.map(m => (
           <button
             key={m}
             onClick={() => setMesFiltro(m)}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${
-              mesFiltro === m
-                ? 'bg-[#B8860B] text-black border-[#B8860B]'
-                : 'border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B]'
-            }`}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${mesFiltro === m ? 'bg-[#B8860B] text-black border-[#B8860B]' : 'border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B]'}`}
           >
-            {MES_LABELS[m]}
+            {MES_LABELS[m.slice(5)] ?? m}
           </button>
         ))}
       </div>
@@ -764,7 +992,7 @@ function CronogramaTab() {
           <div className="flex items-center gap-3 mb-3">
             <CalendarDays size={14} className="text-[#B8860B] flex-shrink-0" />
             <span className="text-[#B8860B] text-xs font-black uppercase tracking-[0.2em]">
-              {MES_LABELS[mesKey]} 2026
+              {MES_LABELS[mesKey.slice(5)] ?? mesKey} {mesKey.slice(0, 4)}
             </span>
             <div className="flex-1 h-px bg-gradient-to-r from-[#B8860B]/20 to-transparent" />
             <span className="text-[10px] text-gray-400">{leiloes.length} leilão{leiloes.length !== 1 ? 'ões' : ''}</span>
@@ -774,75 +1002,63 @@ function CronogramaTab() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 dark:bg-[#151515] border-b border-gray-100 dark:border-[#1E1E1E]">
-                  {['Data', 'Hora', 'Leilão', 'Criador', 'Modalidade', 'Leiloeira', 'Raça', 'Qtd', 'Sexo', 'Comissão', 'Fat. Realizado'].map(h => (
-                    <th key={h} className="px-3 py-2.5 text-left font-semibold uppercase tracking-wider text-gray-400 whitespace-nowrap">
-                      {h}
-                    </th>
+                  {['Data', 'Hora', 'Leilão', 'Criador', 'Modalidade', 'Leiloeira', 'Raça', 'Qtd', 'Sexo', 'Comissão', 'Fat. Realizado', ''].map(h => (
+                    <th key={h} className="px-3 py-2.5 text-left font-semibold uppercase tracking-wider text-gray-400 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
-                {leiloes.map((l, i) => (
-                  <tr
-                    key={`${l.data}-${l.nome}-${i}`}
-                    className="bg-white dark:bg-[#111111] hover:bg-[#B8860B]/3 transition-colors"
-                  >
+                {leiloes.map((l) => (
+                  <tr key={l.id} className="group bg-white dark:bg-[#111111] hover:bg-[#B8860B]/3 transition-colors">
                     {/* Data */}
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <div className="flex flex-col items-center justify-center w-9 h-9 rounded-lg border border-[#B8860B]/20 bg-[#B8860B]/6 flex-shrink-0">
-                          <span className="text-[#B8860B] font-black text-sm leading-none">{l.data.slice(8)}</span>
-                          <span className="text-[#B8860B]/60 text-[8px] font-bold uppercase">{MES_LABELS[l.data.slice(0,7)]?.slice(0,3)}</span>
+                          <span className="text-[#B8860B] font-black text-sm leading-none">{l.data?.slice(8)}</span>
+                          <span className="text-[#B8860B]/60 text-[8px] font-bold uppercase">{MES_LABELS[l.data?.slice(5, 7) ?? '']?.slice(0, 3)}</span>
                         </div>
-                        <span className="text-gray-400 text-[10px]">{l.diaSemana.slice(0, 3)}</span>
+                        <span className="text-gray-400 text-[10px]">{l.dia_semana?.slice(0, 3)}</span>
                       </div>
                     </td>
-                    {/* Hora */}
-                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-gray-700 dark:text-gray-300">
-                      {l.hora || '—'}
-                    </td>
-                    {/* Nome */}
+                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-gray-700 dark:text-gray-300">{l.hora || '—'}</td>
                     <td className="px-3 py-2.5 font-bold text-gray-900 dark:text-white uppercase max-w-[220px]">
                       <span className="line-clamp-2 leading-tight">{l.nome}</span>
                     </td>
-                    {/* Criador */}
                     <td className="px-3 py-2.5 text-gray-600 dark:text-gray-400 max-w-[160px]">
                       <span className="line-clamp-1">{l.criador || '—'}</span>
                     </td>
-                    {/* Modalidade */}
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       {l.presencial ? (
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${PRESENCIAL_STYLES[l.presencial] ?? 'bg-gray-100 text-gray-500 dark:bg-gray-500/15 dark:text-gray-400'}`}>
-                          {l.presencial === 'VIRTUAL' ? <Tv size={9} className="mr-1" /> : <Users size={9} className="mr-1" />}
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${PRESENCIAL_STYLES[l.presencial] ?? 'bg-gray-100 text-gray-500 dark:bg-gray-500/15 dark:text-gray-400'}`}>
+                          {l.presencial === 'VIRTUAL' ? <Tv size={9} /> : <Users size={9} />}
                           {l.presencial}
                         </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
+                      ) : <span className="text-gray-400">—</span>}
                     </td>
-                    {/* Leiloeira */}
-                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400 uppercase font-medium">
-                      {l.leiloeira || '—'}
-                    </td>
-                    {/* Raça */}
-                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400">
-                      {l.raca || '—'}
-                    </td>
-                    {/* Qtd */}
-                    <td className="px-3 py-2.5 whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-300">
-                      {l.qtdAnimais ?? '—'}
-                    </td>
-                    {/* Sexo */}
-                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400 capitalize">
-                      {l.sexo || '—'}
-                    </td>
-                    {/* Comissão */}
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400 uppercase font-medium">{l.leiloeira || '—'}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400">{l.raca || '—'}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-center font-semibold text-gray-700 dark:text-gray-300">{l.qtd_animais ?? '—'}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600 dark:text-gray-400">{l.sexo || '—'}</td>
                     <td className="px-3 py-2.5 text-gray-600 dark:text-gray-400 max-w-[180px]">
                       <span className="line-clamp-2 leading-tight">{l.comissao || '—'}</span>
                     </td>
-                    {/* Fat. Realizado */}
-                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-gray-700 dark:text-gray-300">
-                      {fmtBrl(l.faturamentoRealizado)}
+                    <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-gray-700 dark:text-gray-300">{fmtBrl(l.faturamento_realizado)}</td>
+                    {/* Ações */}
+                    <td className="px-3 py-2.5 whitespace-nowrap">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => { setEditTarget(l); setShowForm(true) }}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-[#B8860B] hover:bg-[#B8860B]/10 transition-colors"
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(l)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -852,11 +1068,22 @@ function CronogramaTab() {
         </div>
       ))}
 
-      {filtered.length === 0 && (
+      {filtered.length === 0 && !loading && (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
           <TableProperties size={40} className="text-gray-200 dark:text-gray-800" />
-          <p className="text-sm text-gray-500">Nenhum leilão no período selecionado</p>
+          <p className="text-sm text-gray-500">Nenhum leilão encontrado</p>
+          <button onClick={() => { setEditTarget(null); setShowForm(true) }} className="text-sm text-[#B8860B] hover:underline">
+            Adicionar primeiro leilão
+          </button>
         </div>
+      )}
+
+      {showForm && (
+        <CronogramaFormModal
+          initial={editTarget}
+          onClose={() => { setShowForm(false); setEditTarget(null) }}
+          onSaved={handleSaved}
+        />
       )}
     </div>
   )
@@ -939,7 +1166,7 @@ export default function AgendaLeiloesPage() {
             Leilões
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-            {leiloes.length} leilões na agenda · {CRONOGRAMA_2026.length} no cronograma 2026
+            {leiloes.length} leilões na agenda
           </p>
         </div>
         {aba === 'agenda' && (
