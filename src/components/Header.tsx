@@ -10,7 +10,7 @@ const defaultNavItems = [
     { href: "/", label: "Início" },
     { href: "/touros", label: "Touros" },
     { href: "/embrioes", label: "Embriões" },
-    { href: "/#leiloes", label: "Leilões" },
+    { href: "/agenda", label: "Leilões" },
     { href: "/venda-conosco", label: "Contato" },
 ];
 
