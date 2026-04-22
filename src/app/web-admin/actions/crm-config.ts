@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { CRMConfig, DEFAULT_STAGES, DEFAULT_CRM_CONFIG } from '@/lib/crm-types';
+import { CRMConfig, CRMFunnel, DEFAULT_STAGES, DEFAULT_CRM_CONFIG } from '@/lib/crm-types';
 
 export async function getCRMConfig(): Promise<CRMConfig> {
     const supabase = await createClient();
@@ -16,9 +16,20 @@ export async function getCRMConfig(): Promise<CRMConfig> {
     if (!data?.value) return DEFAULT_CRM_CONFIG;
 
     const config = data.value as Partial<CRMConfig>;
+    const stages = config.stages?.length ? config.stages : DEFAULT_STAGES;
+    const custom_fields = config.custom_fields || [];
+
+    // Migrate: if no funnels array, build one from existing stages/custom_fields
+    let funnels: CRMFunnel[] = config.funnels || [];
+    if (funnels.length === 0) {
+        funnels = [{ id: 'default', name: 'Pipeline Principal', color: 'yellow', stages, custom_fields }];
+    }
+
     return {
-        stages: config.stages?.length ? config.stages : DEFAULT_STAGES,
-        custom_fields: config.custom_fields || [],
+        stages,
+        custom_fields,
+        funnels,
+        responsaveis: config.responsaveis || [],
     };
 }
 

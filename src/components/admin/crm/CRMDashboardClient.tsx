@@ -193,6 +193,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                 defaultStatus={defaultStatus}
                 stages={stages}
                 customFields={crmConfig.custom_fields}
+                responsaveis={crmConfig.responsaveis}
                 onSave={handleSaveLead}
                 onDelete={editingLead ? () => handleDeleteLead(editingLead.id) : undefined}
             />

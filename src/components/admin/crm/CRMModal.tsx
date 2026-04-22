@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Save, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { CRMLead, deleteLead } from '@/app/web-admin/actions/crm-leads';
 import { CRM_COLUMNS } from './CRMKanbanBoard';
-import type { CRMCustomField } from '@/lib/crm-types';
+import type { CRMCustomField, CRMResponsavel } from '@/lib/crm-types';
 
 interface CRMModalProps {
     isOpen: boolean;
@@ -13,11 +13,12 @@ interface CRMModalProps {
     defaultStatus: string;
     stages?: string[];
     customFields?: CRMCustomField[];
+    responsaveis?: CRMResponsavel[];
     onSave: (data: any) => Promise<void>;
     onDelete?: () => void;
 }
 
-export function CRMModal({ isOpen, onClose, lead, defaultStatus, stages, customFields = [], onSave, onDelete }: CRMModalProps) {
+export function CRMModal({ isOpen, onClose, lead, defaultStatus, stages, customFields = [], responsaveis = [], onSave, onDelete }: CRMModalProps) {
     const activeStages = stages && stages.length > 0 ? stages : CRM_COLUMNS;
     const [formData, setFormData] = useState<Partial<CRMLead>>({
         nome: '',
@@ -264,13 +265,26 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, stages, customF
 
                         <div>
                             <label className={labelClass}>Responsável pela Conta</label>
-                            <input
-                                type="text"
-                                value={formData.responsavel || ''}
-                                onChange={e => setFormData({ ...formData, responsavel: e.target.value })}
-                                className={inputClass}
-                                placeholder="Ex: Matheus Amormino"
-                            />
+                            {responsaveis.length > 0 ? (
+                                <select
+                                    value={formData.responsavel || ''}
+                                    onChange={e => setFormData({ ...formData, responsavel: e.target.value })}
+                                    className={inputClass}
+                                >
+                                    <option value="">Selecionar responsável...</option>
+                                    {responsaveis.map(r => (
+                                        <option key={r.id} value={r.name}>{r.name}</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <input
+                                    type="text"
+                                    value={formData.responsavel || ''}
+                                    onChange={e => setFormData({ ...formData, responsavel: e.target.value })}
+                                    className={inputClass}
+                                    placeholder="Ex: Matheus Amormino"
+                                />
+                            )}
                         </div>
 
                         {/* Campos personalizados */}
