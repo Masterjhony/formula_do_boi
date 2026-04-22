@@ -242,7 +242,7 @@ function DetailDrawer({ leilao, onClose, onEdit, onDelete, onTasksUpdate }: {
   const catalogoUrl = (leilao as BulaLeilao & { catalogo_url?: string }).catalogo_url
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex justify-end" onClick={onClose}>
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
       <div
         className="relative w-full max-w-xl bg-white dark:bg-[#111111] h-full overflow-y-auto shadow-2xl flex flex-col"
