@@ -153,7 +153,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
 
             {/* Content */}
             <div className={`flex-1 overflow-auto p-6 ${isSettingsOrLeads ? 'bg-gray-50/50 dark:bg-[#0A0A0A]' : 'overflow-hidden bg-gray-50/50 dark:bg-[#0A0A0A]'}`}>
-                {activeView === 'grafico' && <CRMChart leads={leads} />}
+                {activeView === 'grafico' && <CRMChart leads={leads} stages={stages} />}
 
                 {activeView === 'kanban' && (
                     <CRMKanbanBoard
