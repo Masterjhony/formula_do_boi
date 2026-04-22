@@ -1,449 +1,876 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
-  Activity,
-  RefreshCw,
-  TrendingUp,
-  DollarSign,
-  Package,
-  Users,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Wifi,
-  WifiOff,
-  BarChart2,
+  Plus, Edit2, Trash2, X, ExternalLink, CalendarDays, Users, Tv, Tag,
+  Check, Link2, Loader2, BookOpen, Clock, MapPin, ChevronDown, ChevronUp,
+  AlertCircle, CheckCircle2, Circle, FileText, ChevronRight,
 } from 'lucide-react'
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface StatsExtended {
-  total_lotes: number
-  lotes_vendidos: number
-  lotes_nao_vendidos: number
-  total_valor: number
-  viewers_atual: number
-  taxa_conversao: number
-  preco_medio: number | null
-  preco_maximo: number | null
-  preco_minimo: number | null
-  peso_medio: number | null
-  preco_medio_kg: number | null
-  preco_medio_arroba: number | null
-}
-
-interface StreamStatus {
-  is_live: boolean
-  url: string | null
-  video_id: string | null
-  last_vlm_at: string | null
-}
-
-interface Lote {
-  id: number
-  numero_lote: string
-  valor_final: number | null
-  comprador: string | null
-  assessoria: string | null
-  nome_animal: string | null
-  vendedor: string | null
-  descricao_lote: string | null
-  motivo: 'VENDIDO' | 'NAO_VENDIDO'
-  timestamp: string
-  video_id: string | null
-  peso_kg: number | null
-  valor_parcela: number | null
-  total_parcelas: number | null
-}
+import type { BulaLeilao, LeilaoGrupo, LeilaoTask, LeilaoSubtask } from '@/lib/bula/types'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatCurrency(value: number | null | undefined): string {
-  if (value == null) return '—'
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+const MES_NAMES = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+const DIA_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+
+function parseDate(iso: string) {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dt = new Date(y, m - 1, d)
+  return { dia: d, mesNum: m, mesNome: MES_NAMES[m], diaSemana: DIA_NAMES[dt.getDay()] }
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+function checklistProgress(groups: LeilaoGrupo[]): { done: number; total: number } {
+  let done = 0, total = 0
+  for (const g of groups ?? []) {
+    for (const t of g.tasks ?? []) {
+      for (const s of t.subs ?? []) {
+        total++
+        if (s.done) done++
+      }
+    }
+  }
+  return { done, total }
 }
 
-// ── Sub-components ───────────────────────────────────────────────────────────
+const STATUS_STYLES: Record<string, string> = {
+  confirmado: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
+  negociacao: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
+  prospecto:  'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+  concluido:  'bg-gray-100 text-gray-500 dark:bg-gray-500/15 dark:text-gray-400',
+}
+const STATUS_LABELS: Record<string, string> = {
+  confirmado: 'Confirmado', negociacao: 'Em negociação',
+  prospecto: 'Prospecto', concluido: 'Concluído',
+}
 
-function StatCard({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  accent,
-}: {
-  label: string
-  value: string
-  sub?: string
-  icon: React.ElementType
-  accent?: boolean
+const DEFAULT_TASKS: LeilaoGrupo[] = [
+  {
+    nome: 'Pré-Leilão', cor: '#4A8FBF',
+    tasks: [
+      { id: 'pre1', nome: 'Contrato', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [
+        { lbl: 'Minuta enviada', done: false },
+        { lbl: 'Contrato assinado', done: false },
+      ]},
+      { id: 'pre2', nome: 'Catálogo', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [
+        { lbl: 'Fotos recebidas', done: false },
+        { lbl: 'Catálogo criado', done: false },
+        { lbl: 'Catálogo aprovado', done: false },
+      ]},
+      { id: 'pre3', nome: 'Divulgação', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [
+        { lbl: 'Posts programados', done: false },
+        { lbl: 'WhatsApp disparado', done: false },
+        { lbl: 'E-mail marketing enviado', done: false },
+      ]},
+    ],
+  },
+  {
+    nome: 'Dia do Leilão', cor: '#C8A96E',
+    tasks: [
+      { id: 'dia1', nome: 'Operação', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [
+        { lbl: 'Assessor escalado confirmado', done: false },
+        { lbl: 'Transmissão online OK', done: false },
+        { lbl: 'Lotes conferidos', done: false },
+        { lbl: 'Resultados anotados', done: false },
+      ]},
+    ],
+  },
+  {
+    nome: 'Pós-Leilão', cor: '#6B8F5C',
+    tasks: [
+      { id: 'pos1', nome: 'Pós-venda', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [
+        { lbl: 'Resultado registrado no sistema', done: false },
+        { lbl: 'Comissão lançada', done: false },
+        { lbl: 'Relatório enviado ao criador', done: false },
+      ]},
+    ],
+  },
+]
+
+type FormState = Omit<BulaLeilao, 'id' | 'assessores' | 'tasks'> & { catalogo_url: string }
+
+function emptyForm(): FormState {
+  return {
+    nome: '', data: '', tipo: '', local: '', animais: 0,
+    expectativa: 0, meta_bula: 0, realizado_bula: 0,
+    status: 'confirmado', img: '',
+    horario: '', transmissao: '', modelo: 'PRESENCIAL',
+    leiloeira: 'BULA', condicao: '', frete_gratis: '', acordo_comissao: '',
+    catalogo_url: '',
+  }
+}
+
+// ── ChecklistPanel ────────────────────────────────────────────────────────────
+
+function ChecklistPanel({ leilao, onUpdate }: {
+  leilao: BulaLeilao
+  onUpdate: (tasks: LeilaoGrupo[]) => void
 }) {
+  const [groups, setGroups] = useState<LeilaoGrupo[]>(leilao.tasks ?? DEFAULT_TASKS)
+  const [saving, setSaving] = useState(false)
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(groups.map(g => g.nome)))
+
+  const toggle = async (gi: number, ti: number, si: number) => {
+    const next = groups.map((g, gIdx) => ({
+      ...g,
+      tasks: g.tasks.map((t, tIdx) => ({
+        ...t,
+        subs: t.subs.map((s, sIdx) =>
+          gIdx === gi && tIdx === ti && sIdx === si ? { ...s, done: !s.done } : s
+        ),
+      })),
+    }))
+    setGroups(next)
+    setSaving(true)
+    try {
+      await fetch(`/api/bula/leiloes/${leilao.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasks: next }),
+      })
+      onUpdate(next)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const toggleGroup = (nome: string) => {
+    setExpanded(prev => {
+      const next = new Set(prev)
+      next.has(nome) ? next.delete(nome) : next.add(nome)
+      return next
+    })
+  }
+
+  const { done, total } = checklistProgress(groups)
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0
+
   return (
-    <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-6 flex items-start gap-4">
-      <div
-        className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-          accent
-            ? 'bg-gradient-to-br from-[#B8860B] to-[#D4AF37] shadow-lg shadow-[#B8860B]/20'
-            : 'bg-gray-100 dark:bg-[#1A1A1A]'
-        }`}
-      >
-        <Icon size={22} className={accent ? 'text-black' : 'text-gray-500 dark:text-gray-400'} />
+    <div className="space-y-4">
+      {/* Progress */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-2 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${pct}%`,
+              background: pct === 100 ? '#22c55e' : 'linear-gradient(to right, #B8860B, #D4AF37)',
+            }}
+          />
+        </div>
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 w-14 text-right">
+          {done}/{total} {saving && <Loader2 size={10} className="inline animate-spin ml-1" />}
+        </span>
       </div>
-      <div>
-        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
-        {sub && <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">{sub}</p>}
+
+      {/* Groups */}
+      {groups.map((group, gi) => {
+        const isOpen = expanded.has(group.nome)
+        const gDone = group.tasks.flatMap(t => t.subs).filter(s => s.done).length
+        const gTotal = group.tasks.flatMap(t => t.subs).length
+        return (
+          <div key={group.nome} className="rounded-xl border border-gray-100 dark:border-[#222222] overflow-hidden">
+            <button
+              onClick={() => toggleGroup(group.nome)}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-[#151515] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ background: group.cor }}
+              />
+              <span className="flex-1 text-left text-sm font-semibold text-gray-800 dark:text-gray-200">
+                {group.nome}
+              </span>
+              <span className="text-xs text-gray-400">{gDone}/{gTotal}</span>
+              {isOpen ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+            </button>
+
+            {isOpen && (
+              <div className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
+                {group.tasks.map((task, ti) => (
+                  <div key={task.id} className="px-4 py-3">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-2">
+                      {task.nome}
+                    </p>
+                    <div className="space-y-2">
+                      {task.subs.map((sub, si) => (
+                        <button
+                          key={si}
+                          onClick={() => toggle(gi, ti, si)}
+                          className="flex items-center gap-2.5 w-full text-left group"
+                        >
+                          <span className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border transition-all ${
+                            sub.done
+                              ? 'bg-[#B8860B] border-[#B8860B]'
+                              : 'border-gray-200 dark:border-[#333333] group-hover:border-[#B8860B]/50'
+                          }`}>
+                            {sub.done && <Check size={10} className="text-black" />}
+                          </span>
+                          <span className={`text-sm transition-colors ${
+                            sub.done
+                              ? 'line-through text-gray-400 dark:text-gray-600'
+                              : 'text-gray-700 dark:text-gray-300'
+                          }`}>
+                            {sub.lbl}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── DetailDrawer ──────────────────────────────────────────────────────────────
+
+function DetailDrawer({ leilao, onClose, onEdit, onDelete, onTasksUpdate }: {
+  leilao: BulaLeilao
+  onClose: () => void
+  onEdit: () => void
+  onDelete: () => void
+  onTasksUpdate: (tasks: LeilaoGrupo[]) => void
+}) {
+  const dt = parseDate(leilao.data)
+  const { done, total } = checklistProgress(leilao.tasks ?? [])
+  const isVirtual = leilao.modelo?.toUpperCase() === 'VIRTUAL'
+  const catalogoUrl = (leilao as BulaLeilao & { catalogo_url?: string }).catalogo_url
+
+  return (
+    <div className="fixed inset-0 z-40 flex justify-end" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-xl bg-white dark:bg-[#111111] h-full overflow-y-auto shadow-2xl flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-white dark:bg-[#111111] border-b border-gray-100 dark:border-[#1E1E1E] px-6 py-4 flex items-start gap-4">
+          <div className="flex flex-col items-center justify-center w-14 h-14 rounded-xl border border-[#B8860B]/30 bg-[#B8860B]/8 flex-shrink-0">
+            <span className="text-[#B8860B] font-black text-xl leading-none">{dt.dia}</span>
+            <span className="text-[#B8860B]/70 text-[10px] font-bold uppercase tracking-wider mt-0.5">
+              {dt.mesNome.slice(0, 3)}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-black text-gray-900 dark:text-white text-lg leading-tight uppercase">{leilao.nome}</h2>
+            <div className="flex flex-wrap gap-2 mt-1.5">
+              <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${STATUS_STYLES[leilao.status]}`}>
+                {STATUS_LABELS[leilao.status]}
+              </span>
+              {isVirtual ? (
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500">
+                  <Tv size={9} /> Virtual
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#B8860B]/10 border border-[#B8860B]/25 text-[#B8860B]">
+                  <Users size={9} /> Presencial
+                </span>
+              )}
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-gray-400 transition-colors flex-shrink-0">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 px-6 py-5 space-y-6">
+          {/* Info grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { icon: CalendarDays, label: 'Data', value: `${dt.diaSemana}, ${dt.dia} de ${dt.mesNome}` },
+              { icon: Clock, label: 'Horário', value: leilao.horario || '—' },
+              { icon: Tag, label: 'Categoria', value: leilao.tipo || '—' },
+              { icon: Users, label: 'Animais', value: leilao.animais ? `${leilao.animais.toLocaleString('pt-BR')} animais` : '—' },
+              { icon: MapPin, label: 'Local', value: leilao.local || '—' },
+              { icon: FileText, label: 'Leiloeira', value: leilao.leiloeira || '—' },
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="bg-gray-50 dark:bg-[#151515] rounded-xl px-3.5 py-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Icon size={11} className="text-[#B8860B]" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
+                </div>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight">{value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Financial */}
+          {(leilao.expectativa > 0 || leilao.meta_bula > 0) && (
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'Expectativa', value: leilao.expectativa },
+                { label: 'Meta Bula', value: leilao.meta_bula },
+                { label: 'Realizado', value: leilao.realizado_bula },
+              ].map(({ label, value }) => (
+                <div key={label} className="text-center bg-gray-50 dark:bg-[#151515] rounded-xl py-2.5 px-2">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">{label}</p>
+                  <p className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                    {value ? `R$ ${(value / 1000).toFixed(0)}k` : '—'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Extra fields */}
+          {(leilao.condicao || leilao.frete_gratis || leilao.acordo_comissao || leilao.transmissao) && (
+            <div className="space-y-2">
+              {[
+                { label: 'Condição', value: leilao.condicao },
+                { label: 'Frete grátis', value: leilao.frete_gratis },
+                { label: 'Comissão', value: leilao.acordo_comissao },
+                { label: 'Transmissão', value: leilao.transmissao },
+              ].filter(x => x.value).map(({ label, value }) => (
+                <div key={label} className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-400 dark:text-gray-500 w-24 flex-shrink-0">{label}:</span>
+                  <span className="text-gray-700 dark:text-gray-300">{value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Catálogo */}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Catálogo</p>
+            {catalogoUrl ? (
+              <a
+                href={catalogoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#B8860B]/10 border border-[#B8860B]/30 text-[#B8860B] text-sm font-semibold hover:bg-[#B8860B]/20 transition-colors"
+              >
+                <BookOpen size={15} />
+                Abrir catálogo
+                <ExternalLink size={12} className="ml-auto opacity-60" />
+              </a>
+            ) : (
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-[#151515] border border-dashed border-gray-200 dark:border-[#2A2A2A] text-sm text-gray-400">
+                <Link2 size={15} />
+                Nenhum catálogo adicionado
+              </div>
+            )}
+          </div>
+
+          {/* Checklist */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Checklist</p>
+              <span className="text-xs text-gray-400">{done}/{total} concluídas</span>
+            </div>
+            <ChecklistPanel leilao={leilao} onUpdate={onTasksUpdate} />
+          </div>
+        </div>
+
+        {/* Footer actions */}
+        <div className="sticky bottom-0 bg-white dark:bg-[#111111] border-t border-gray-100 dark:border-[#1E1E1E] px-6 py-4 flex gap-2">
+          <button
+            onClick={onEdit}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black text-sm font-semibold rounded-xl transition-colors"
+          >
+            <Edit2 size={15} /> Editar
+          </button>
+          <button
+            onClick={onDelete}
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 text-sm font-semibold rounded-xl transition-colors"
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-function MotivoBadge({ motivo }: { motivo: 'VENDIDO' | 'NAO_VENDIDO' }) {
-  if (motivo === 'VENDIDO') {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-        <CheckCircle2 size={11} /> Vendido
-      </span>
-    )
+// ── FormModal ─────────────────────────────────────────────────────────────────
+
+function FormModal({ initial, onClose, onSaved }: {
+  initial: (BulaLeilao & { catalogo_url?: string }) | null
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const isEdit = !!initial
+  const [form, setForm] = useState<FormState>(() =>
+    initial
+      ? {
+          nome: initial.nome, data: initial.data, tipo: initial.tipo,
+          local: initial.local, animais: initial.animais,
+          expectativa: initial.expectativa, meta_bula: initial.meta_bula,
+          realizado_bula: initial.realizado_bula, status: initial.status,
+          img: initial.img ?? '',
+          horario: initial.horario ?? '', transmissao: initial.transmissao ?? '',
+          modelo: initial.modelo ?? 'PRESENCIAL', leiloeira: initial.leiloeira ?? 'BULA',
+          condicao: initial.condicao ?? '', frete_gratis: initial.frete_gratis ?? '',
+          acordo_comissao: initial.acordo_comissao ?? '',
+          catalogo_url: initial.catalogo_url ?? '',
+        }
+      : emptyForm()
+  )
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const set = (k: keyof FormState, v: string | number) =>
+    setForm(prev => ({ ...prev, [k]: v }))
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.nome.trim() || !form.data) { setError('Preencha nome e data'); return }
+    setSaving(true)
+    setError(null)
+    try {
+      const payload = { ...form }
+      if (isEdit) {
+        const res = await fetch(`/api/bula/leiloes/${initial!.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) throw new Error('Erro ao salvar')
+      } else {
+        const res = await fetch('/api/bula/leiloes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, tasks: DEFAULT_TASKS, assessor_ids: [] }),
+        })
+        if (!res.ok) throw new Error('Erro ao criar')
+      }
+      onSaved()
+      onClose()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao salvar')
+    } finally {
+      setSaving(false)
+    }
   }
+
+  const Field = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
+    <div>
+      <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
+      </label>
+      {children}
+    </div>
+  )
+
+  const inputCls = "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#B8860B] transition-colors"
+
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400">
-      <XCircle size={11} /> Não vendido
-    </span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-2xl bg-white dark:bg-[#111111] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#1E1E1E]">
+          <h2 className="font-bold text-gray-900 dark:text-white text-lg">
+            {isEdit ? 'Editar Leilão' : 'Novo Leilão'}
+          </h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-gray-400 transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Nome / Criador" required>
+              <input className={`${inputCls} col-span-2`} value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: Fazenda São Geraldo" />
+            </Field>
+            <Field label="Data" required>
+              <input type="date" className={inputCls} value={form.data} onChange={e => set('data', e.target.value)} />
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Categoria (tipo)">
+              <input className={inputCls} value={form.tipo} onChange={e => set('tipo', e.target.value)} placeholder="Ex: Touros P.O." />
+            </Field>
+            <Field label="Nº de Animais">
+              <input type="number" className={inputCls} value={form.animais || ''} onChange={e => set('animais', Number(e.target.value))} placeholder="0" min={0} />
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="Modelo">
+              <select className={inputCls} value={form.modelo} onChange={e => set('modelo', e.target.value)}>
+                <option value="PRESENCIAL">Presencial</option>
+                <option value="VIRTUAL">Virtual</option>
+              </select>
+            </Field>
+            <Field label="Horário">
+              <input className={inputCls} value={form.horario} onChange={e => set('horario', e.target.value)} placeholder="Ex: 13:00" />
+            </Field>
+            <Field label="Status">
+              <select className={inputCls} value={form.status} onChange={e => set('status', e.target.value as FormState['status'])}>
+                <option value="confirmado">Confirmado</option>
+                <option value="negociacao">Em negociação</option>
+                <option value="prospecto">Prospecto</option>
+                <option value="concluido">Concluído</option>
+              </select>
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Leiloeira">
+              <input className={inputCls} value={form.leiloeira} onChange={e => set('leiloeira', e.target.value)} placeholder="Ex: BULA" />
+            </Field>
+            <Field label="Transmissão">
+              <input className={inputCls} value={form.transmissao} onChange={e => set('transmissao', e.target.value)} placeholder="Ex: RURALPLAY" />
+            </Field>
+          </div>
+
+          <Field label="Local">
+            <input className={inputCls} value={form.local} onChange={e => set('local', e.target.value)} placeholder="Cidade / Fazenda" />
+          </Field>
+
+          <Field label="URL do Catálogo">
+            <div className="relative">
+              <Link2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input className={`${inputCls} pl-9`} value={form.catalogo_url} onChange={e => set('catalogo_url', e.target.value)} placeholder="https://..." type="url" />
+            </div>
+          </Field>
+
+          <div className="pt-1 border-t border-gray-100 dark:border-[#1E1E1E]">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">Financeiro (opcional)</p>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { key: 'expectativa' as keyof FormState, label: 'Expectativa (R$)' },
+                { key: 'meta_bula' as keyof FormState, label: 'Meta Bula (R$)' },
+                { key: 'realizado_bula' as keyof FormState, label: 'Realizado (R$)' },
+              ].map(({ key, label }) => (
+                <Field key={key} label={label}>
+                  <input type="number" className={inputCls} value={(form[key] as number) || ''} onChange={e => set(key, Number(e.target.value))} placeholder="0" min={0} />
+                </Field>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Condição">
+              <input className={inputCls} value={form.condicao} onChange={e => set('condicao', e.target.value)} placeholder="Ex: 30(2+2+…)" />
+            </Field>
+            <Field label="Frete grátis">
+              <input className={inputCls} value={form.frete_gratis} onChange={e => set('frete_gratis', e.target.value)} placeholder="Ex: Brasil inteiro" />
+            </Field>
+            <Field label="Comissão">
+              <input className={inputCls} value={form.acordo_comissao} onChange={e => set('acordo_comissao', e.target.value)} placeholder="Ex: 8% comprador" />
+            </Field>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm">
+              <AlertCircle size={15} /> {error}
+            </div>
+          )}
+        </form>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-[#1E1E1E] flex justify-end gap-3">
+          <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors">
+            Cancelar
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#B8860B] hover:bg-[#D4AF37] text-black text-sm font-semibold disabled:opacity-50 transition-colors"
+          >
+            {saving && <Loader2 size={14} className="animate-spin" />}
+            {isEdit ? 'Salvar alterações' : 'Criar leilão'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── LeilaoCard ────────────────────────────────────────────────────────────────
+
+function LeilaoCard({ leilao, selected, onClick }: {
+  leilao: BulaLeilao & { catalogo_url?: string }
+  selected: boolean
+  onClick: () => void
+}) {
+  const dt = parseDate(leilao.data)
+  const isVirtual = leilao.modelo?.toUpperCase() === 'VIRTUAL'
+  const { done, total } = checklistProgress(leilao.tasks ?? [])
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0
+
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left group grid grid-cols-[64px_1fr_auto] items-center gap-4 sm:gap-5 p-4 rounded-2xl border transition-all duration-200 ${
+        selected
+          ? 'border-[#B8860B]/50 bg-[#B8860B]/5 dark:bg-[#B8860B]/8 shadow-md shadow-[#B8860B]/10'
+          : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] hover:border-[#B8860B]/30 hover:bg-[#B8860B]/3'
+      }`}
+    >
+      {/* Day badge */}
+      <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl border flex-shrink-0 transition-colors ${
+        selected ? 'border-[#B8860B]/40 bg-[#B8860B]/12' : 'border-[#B8860B]/20 bg-[#B8860B]/6 group-hover:border-[#B8860B]/35'
+      }`}>
+        <span className="text-[#B8860B] font-black text-2xl leading-none">{dt.dia}</span>
+        <span className="text-[#B8860B]/70 text-[10px] font-bold uppercase tracking-wider mt-0.5">
+          {dt.mesNome.slice(0, 3)}
+        </span>
+      </div>
+
+      {/* Content */}
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2 mb-1">
+          <p className="text-gray-900 dark:text-white font-black text-sm uppercase leading-tight">
+            {leilao.nome}
+          </p>
+          {isVirtual ? (
+            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-gray-400 dark:border-white/15">
+              <Tv size={9} /> Virtual
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-[#B8860B]/10 border border-[#B8860B]/20 text-[#B8860B]">
+              <Users size={9} /> Presencial
+            </span>
+          )}
+          <span className={`inline-flex items-center text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${STATUS_STYLES[leilao.status]}`}>
+            {STATUS_LABELS[leilao.status]}
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase text-[#B8860B]">
+            <Tag size={10} /> {leilao.tipo}
+            <span className="text-gray-400 font-normal">· {leilao.animais} animais</span>
+          </span>
+          <span className="text-[11px] text-gray-500">
+            {dt.diaSemana}{leilao.horario ? ` · ${leilao.horario}` : ''}
+          </span>
+          {leilao.leiloeira && (
+            <span className="text-[10px] text-gray-400 uppercase">{leilao.leiloeira}{leilao.transmissao ? ` · ${leilao.transmissao}` : ''}</span>
+          )}
+        </div>
+        {/* Checklist mini progress */}
+        {total > 0 && (
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex-1 max-w-24 bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-1 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: `${pct}%`, background: pct === 100 ? '#22c55e' : '#B8860B' }}
+              />
+            </div>
+            <span className="text-[10px] text-gray-400">{done}/{total}</span>
+            {pct === 100 && <CheckCircle2 size={11} className="text-emerald-500" />}
+          </div>
+        )}
+      </div>
+
+      {/* Catalog indicator */}
+      <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+        {leilao.catalogo_url && (
+          <span className="inline-flex items-center gap-1 text-[10px] text-[#B8860B] bg-[#B8860B]/10 px-2 py-1 rounded-lg">
+            <BookOpen size={11} /> Catálogo
+          </span>
+        )}
+        <ChevronRight size={16} className={`text-gray-300 dark:text-gray-700 transition-transform ${selected ? 'rotate-90 text-[#B8860B]' : 'group-hover:text-gray-500'}`} />
+      </div>
+    </button>
   )
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-export default function LeIloesPage() {
-  const [stats, setStats] = useState<StatsExtended | null>(null)
-  const [status, setStatus] = useState<StreamStatus | null>(null)
-  const [lotes, setLotes] = useState<Lote[]>([])
+export default function AgendaLeiloesPage() {
+  const [leiloes, setLeiloes] = useState<(BulaLeilao & { catalogo_url?: string })[]>([])
   const [loading, setLoading] = useState(true)
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
-  const [search, setSearch] = useState('')
-  const [filterMotivo, setFilterMotivo] = useState<'TODOS' | 'VENDIDO' | 'NAO_VENDIDO'>('TODOS')
-  const [serverError, setServerError] = useState(false)
+  const [selected, setSelected] = useState<(BulaLeilao & { catalogo_url?: string }) | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [editTarget, setEditTarget] = useState<(BulaLeilao & { catalogo_url?: string }) | null>(null)
+  const [mesFiltro, setMesFiltro] = useState('Todos')
+  const [deleting, setDeleting] = useState(false)
 
-  const fetchAll = useCallback(async () => {
+  const fetchLeiloes = useCallback(async () => {
     setLoading(true)
-    setServerError(false)
     try {
-      const [statsRes, statusRes, lotesRes] = await Promise.all([
-        fetch('/api/leilao/stats/extended'),
-        fetch('/api/leilao/status'),
-        fetch('/api/leilao/lotes?limit=200'),
-      ])
-
-      if (!statsRes.ok || statusRes.status === 503 || lotesRes.status === 503) {
-        setServerError(true)
-        return
+      const res = await fetch('/api/bula/leiloes')
+      if (res.ok) {
+        const data = await res.json()
+        setLeiloes(data)
       }
-
-      const [statsData, statusData, lotesData] = await Promise.all([
-        statsRes.json(),
-        statusRes.json(),
-        lotesRes.json(),
-      ])
-
-      if (statsData.error) { setServerError(true); return }
-
-      setStats(statsData)
-      setStatus(statusData)
-      setLotes(Array.isArray(lotesData) ? lotesData : [])
-      setLastRefresh(new Date())
-    } catch {
-      setServerError(true)
     } finally {
       setLoading(false)
     }
   }, [])
 
+  useEffect(() => { fetchLeiloes() }, [fetchLeiloes])
+
+  // Keep selected in sync after refresh
   useEffect(() => {
-    fetchAll()
-    const interval = setInterval(fetchAll, 30_000)
-    return () => clearInterval(interval)
-  }, [fetchAll])
+    if (selected) {
+      const updated = leiloes.find(l => l.id === selected.id)
+      if (updated) setSelected(updated)
+    }
+  }, [leiloes]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Filtered lotes ──
-  const filteredLotes = lotes.filter((l) => {
-    if (filterMotivo !== 'TODOS' && l.motivo !== filterMotivo) return false
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      l.numero_lote?.toLowerCase().includes(q) ||
-      l.comprador?.toLowerCase().includes(q) ||
-      l.assessoria?.toLowerCase().includes(q) ||
-      l.vendedor?.toLowerCase().includes(q) ||
-      l.nome_animal?.toLowerCase().includes(q) ||
-      l.descricao_lote?.toLowerCase().includes(q)
-    )
-  })
+  // Derived
+  const meses = ['Todos', ...Array.from(new Set(
+    leiloes.map(l => { const { mesNome } = parseDate(l.data); return mesNome })
+  ))]
 
-  // ── Offline state ──
-  if (!loading && serverError) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Monitor de Leilões</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Dados extraídos em tempo real dos leilões transmitidos no YouTube</p>
-          </div>
-          <button
-            onClick={fetchAll}
-            className="flex items-center gap-2 px-4 py-2 bg-[#B8860B] text-black rounded-xl font-medium text-sm hover:bg-[#D4AF37] transition-colors"
-          >
-            <RefreshCw size={16} /> Tentar novamente
-          </button>
-        </div>
-        <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-12 flex flex-col items-center gap-4 text-center">
-          <AlertCircle size={48} className="text-gray-300 dark:text-gray-700" />
-          <div>
-            <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">Servidor de leilão offline</p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-              O monitor não está respondendo em <code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">LEILAO_SERVER_URL</code>.
-              <br />Verifique se o Docker do Extratoreloi está rodando.
-            </p>
-          </div>
-        </div>
-      </div>
-    )
+  const listFiltered = mesFiltro === 'Todos'
+    ? leiloes
+    : leiloes.filter(l => parseDate(l.data).mesNome === mesFiltro)
+
+  const grupos: Record<string, typeof leiloes> = {}
+  for (const l of listFiltered) {
+    const { mesNome } = parseDate(l.data)
+    if (!grupos[mesNome]) grupos[mesNome] = []
+    grupos[mesNome].push(l)
+  }
+
+  const totalAnimais = leiloes.reduce((s, l) => s + (l.animais || 0), 0)
+
+  const handleDelete = async () => {
+    if (!selected) return
+    if (!confirm(`Excluir o leilão "${selected.nome}"? Esta ação não pode ser desfeita.`)) return
+    setDeleting(true)
+    await fetch(`/api/bula/leiloes/${selected.id}`, { method: 'DELETE' })
+    setDeleting(false)
+    setSelected(null)
+    fetchLeiloes()
+  }
+
+  const handleTasksUpdate = (tasks: LeilaoGrupo[]) => {
+    setLeiloes(prev => prev.map(l => l.id === selected?.id ? { ...l, tasks } : l))
+    if (selected) setSelected(s => s ? { ...s, tasks } : s)
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Monitor de Leilões</h1>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+            Agenda de Leilões
+          </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-            Dados extraídos em tempo real dos leilões transmitidos no YouTube
+            {leiloes.length} leilões · {totalAnimais.toLocaleString('pt-BR')} animais cadastrados
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {lastRefresh && (
-            <span className="text-xs text-gray-400 dark:text-gray-600">
-              Atualizado às {lastRefresh.toLocaleTimeString('pt-BR', { timeStyle: 'short' })}
-            </span>
-          )}
+        <button
+          onClick={() => { setEditTarget(null); setShowForm(true) }}
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#B8860B]/20"
+        >
+          <Plus size={16} /> Novo Leilão
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="flex gap-3 flex-wrap">
+        {[
+          { label: 'Leilões', value: leiloes.length, accent: true },
+          { label: 'Animais', value: totalAnimais.toLocaleString('pt-BR') },
+          { label: 'Confirmados', value: leiloes.filter(l => l.status === 'confirmado').length },
+          { label: 'Com catálogo', value: leiloes.filter(l => l.catalogo_url).length },
+        ].map(s => (
+          <div key={s.label} className={`px-5 py-3 rounded-2xl border text-center min-w-[90px] ${
+            s.accent
+              ? 'border-[#B8860B]/30 bg-[#B8860B]/8'
+              : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'
+          }`}>
+            <p className={`text-2xl font-black leading-none mb-0.5 ${s.accent ? 'text-[#B8860B]' : 'text-gray-900 dark:text-white'}`}>
+              {s.value}
+            </p>
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Month filter */}
+      <div className="flex gap-2 flex-wrap">
+        {meses.map(mes => (
           <button
-            onClick={fetchAll}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#B8860B] text-black rounded-xl font-medium text-sm hover:bg-[#D4AF37] transition-colors disabled:opacity-50"
+            key={mes}
+            onClick={() => setMesFiltro(mes)}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${
+              mesFiltro === mes
+                ? 'bg-[#B8860B] text-black border-[#B8860B]'
+                : 'border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B]'
+            }`}
           >
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-            Atualizar
+            {mes}
+          </button>
+        ))}
+      </div>
+
+      {/* List */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 size={28} className="animate-spin text-[#B8860B]" />
+        </div>
+      ) : Object.keys(grupos).length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+          <Circle size={40} className="text-gray-200 dark:text-gray-800" />
+          <p className="text-sm text-gray-500">Nenhum leilão cadastrado</p>
+          <button
+            onClick={() => { setEditTarget(null); setShowForm(true) }}
+            className="text-sm text-[#B8860B] hover:underline"
+          >
+            Adicionar primeiro leilão
           </button>
         </div>
-      </div>
-
-      {/* Stream status banner */}
-      {status && (
-        <div
-          className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl border text-sm font-medium ${
-            status.is_live
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400'
-              : 'bg-gray-50 border-gray-200 text-gray-600 dark:bg-[#1A1A1A] dark:border-[#222222] dark:text-gray-400'
-          }`}
-        >
-          {status.is_live ? (
-            <>
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-              </span>
-              <Wifi size={16} />
-              <span>Transmissão ao vivo detectada</span>
-              {status.video_id && (
-                <a
-                  href={`https://www.youtube.com/watch?v=${status.video_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-1 underline opacity-70 hover:opacity-100"
-                >
-                  {status.video_id}
-                </a>
-              )}
-              {stats && (
-                <span className="ml-auto flex items-center gap-1 text-xs opacity-70">
-                  <Users size={13} /> {stats.viewers_atual.toLocaleString('pt-BR')} espectadores
-                </span>
-              )}
-            </>
-          ) : (
-            <>
-              <WifiOff size={16} />
-              <span>Nenhuma transmissão ao vivo no momento</span>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Stats cards */}
-      {stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            label="Lotes Vendidos"
-            value={stats.lotes_vendidos.toLocaleString('pt-BR')}
-            sub={`${stats.taxa_conversao}% de conversão`}
-            icon={Package}
-            accent
-          />
-          <StatCard
-            label="Volume Total"
-            value={formatCurrency(stats.total_valor)}
-            sub={`${stats.total_lotes} lotes processados`}
-            icon={DollarSign}
-          />
-          <StatCard
-            label="Preço Médio"
-            value={formatCurrency(stats.preco_medio)}
-            sub={stats.preco_medio_arroba ? `${formatCurrency(stats.preco_medio_arroba)}/@ arroba` : undefined}
-            icon={TrendingUp}
-          />
-          <StatCard
-            label="Maior Lance"
-            value={formatCurrency(stats.preco_maximo)}
-            sub={stats.preco_minimo ? `Mín: ${formatCurrency(stats.preco_minimo)}` : undefined}
-            icon={BarChart2}
-          />
-        </div>
-      )}
-
-      {/* Table */}
-      <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden">
-        {/* Table header */}
-        <div className="p-5 border-b border-gray-200 dark:border-[#222222] flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Activity size={18} className="text-[#B8860B]" />
-            <h2 className="font-semibold text-gray-900 dark:text-white text-sm">
-              Histórico de Lotes
-            </h2>
-            {filteredLotes.length > 0 && (
-              <span className="text-xs text-gray-400 dark:text-gray-600">
-                {filteredLotes.length} registros
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            {/* Filter buttons */}
-            <div className="flex rounded-lg border border-gray-200 dark:border-[#333333] overflow-hidden text-xs">
-              {(['TODOS', 'VENDIDO', 'NAO_VENDIDO'] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilterMotivo(f)}
-                  className={`px-3 py-1.5 font-medium transition-colors ${
-                    filterMotivo === f
-                      ? 'bg-[#B8860B] text-black'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
-                  }`}
-                >
-                  {f === 'TODOS' ? 'Todos' : f === 'VENDIDO' ? 'Vendidos' : 'Não vendidos'}
-                </button>
-              ))}
-            </div>
-            {/* Search */}
-            <input
-              type="text"
-              placeholder="Buscar comprador, lote…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#333333] bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#B8860B] w-48"
-            />
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B8860B]" />
-          </div>
-        ) : filteredLotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <Package size={40} className="text-gray-200 dark:text-gray-800" />
-            <p className="text-sm text-gray-500 dark:text-gray-500">
-              {search || filterMotivo !== 'TODOS' ? 'Nenhum lote encontrado com esses filtros' : 'Nenhum lote registrado ainda'}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-[#1A1A1A]">
-                  {['Lote', 'Animal / Descrição', 'Comprador', 'Assessoria', 'Vendedor', 'Valor Final', 'Peso', 'Status', 'Data'].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                      >
-                        {h}
-                      </th>
-                    )
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
-                {filteredLotes.map((lote) => (
-                  <tr
-                    key={lote.id}
-                    className="hover:bg-gray-50 dark:hover:bg-[#151515] transition-colors"
-                  >
-                    <td className="px-4 py-3 font-bold text-[#B8860B] whitespace-nowrap">
-                      #{lote.numero_lote}
-                    </td>
-                    <td className="px-4 py-3 max-w-[180px]">
-                      {lote.nome_animal ? (
-                        <span className="font-medium text-gray-800 dark:text-gray-200 block truncate">{lote.nome_animal}</span>
-                      ) : null}
-                      {lote.descricao_lote ? (
-                        <span className="text-xs text-gray-400 dark:text-gray-500 block truncate">{lote.descricao_lote}</span>
-                      ) : !lote.nome_animal ? (
-                        <span className="text-gray-400 dark:text-gray-600">—</span>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-3 text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                      {lote.comprador || <span className="text-gray-400">—</span>}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400 whitespace-nowrap text-xs">
-                      {lote.assessoria || <span className="text-gray-400">—</span>}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400 whitespace-nowrap text-xs">
-                      {lote.vendedor || <span className="text-gray-400">—</span>}
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                      {lote.valor_final != null ? (
-                        <span>
-                          {formatCurrency(lote.valor_final)}
-                          {lote.total_parcelas && lote.total_parcelas > 1 && (
-                            <span className="text-xs font-normal text-gray-400 ml-1">
-                              ({lote.total_parcelas}×)
-                            </span>
-                          )}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap text-xs">
-                      {lote.peso_kg != null ? `${lote.peso_kg.toLocaleString('pt-BR')} kg` : '—'}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <MotivoBadge motivo={lote.motivo} />
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap text-xs">
-                      {formatDate(lote.timestamp)}
-                    </td>
-                  </tr>
+      ) : (
+        <div className="space-y-8">
+          {Object.entries(grupos).map(([mes, events]) => (
+            <div key={mes}>
+              <div className="flex items-center gap-3 mb-4">
+                <CalendarDays size={14} className="text-[#B8860B] flex-shrink-0" />
+                <span className="text-[#B8860B] text-xs font-black uppercase tracking-[0.2em]">{mes}</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-[#B8860B]/20 to-transparent" />
+                <span className="text-[10px] text-gray-400">{events.length} evento{events.length > 1 ? 's' : ''}</span>
+              </div>
+              <div className="space-y-2.5">
+                {events.map(leilao => (
+                  <LeilaoCard
+                    key={leilao.id}
+                    leilao={leilao}
+                    selected={selected?.id === leilao.id}
+                    onClick={() => setSelected(s => s?.id === leilao.id ? null : leilao)}
+                  />
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Detail drawer */}
+      {selected && (
+        <DetailDrawer
+          leilao={selected}
+          onClose={() => setSelected(null)}
+          onEdit={() => { setEditTarget(selected); setShowForm(true) }}
+          onDelete={handleDelete}
+          onTasksUpdate={handleTasksUpdate}
+        />
+      )}
+
+      {/* Delete loading overlay */}
+      {deleting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <Loader2 size={32} className="animate-spin text-white" />
+        </div>
+      )}
+
+      {/* Form modal */}
+      {showForm && (
+        <FormModal
+          initial={editTarget}
+          onClose={() => { setShowForm(false); setEditTarget(null) }}
+          onSaved={() => { fetchLeiloes(); setSelected(null) }}
+        />
+      )}
     </div>
   )
 }

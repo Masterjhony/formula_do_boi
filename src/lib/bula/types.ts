@@ -50,6 +50,7 @@ export interface BulaLeilao {
     condicao?: string
     frete_gratis?: string
     acordo_comissao?: string
+    catalogo_url?: string
 }
 
 // ── Projeto / Kanban ─────────────────────────────────────
