@@ -6,12 +6,13 @@ import {
     Wallet, ArrowUpRight, ArrowDownRight, TrendingUp, Search, Plus,
     Building2, LayoutDashboard, CheckCircle2, Tag, X, Trash2,
     Loader2, BarChart3, Pencil, AlertTriangle, PiggyBank, Banknote,
-    CreditCard,
+    CreditCard, Gavel, Trophy, CheckCheck, ChevronRight, Users, Sparkles,
 } from 'lucide-react';
 import {
     saveTransaction, updateTransactionStatus, deleteTransaction,
     conciliarMultiplos, updateTransactionCategory,
     saveCategory, deleteCategory, saveObservacao,
+    registrarLeiloesLote,
 } from './actions';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -43,10 +44,35 @@ interface Transaction {
     category?: { id: string; name: string; type?: string } | null;
 }
 
+interface BulaLeilao {
+    id: string;
+    nome: string;
+    data: string | null;
+    criador: string | null;
+    status: string | null;
+    comissao: string | null;
+    comissao_receber: string | null;
+    recebido: string | null;
+    faturamento_realizado: number | null;
+    venda_bula: number | null;
+    realizado_bula: number | null;
+}
+
+interface FechamentoLite {
+    id: string;
+    nome: string;
+    data: string;
+    vgv_total: number | null;
+    comissao_assessoria: number | null;
+    por_assessor: Array<{ nome?: string; empresa?: string; vgv?: number; transacoes?: number; animais?: number }> | null;
+}
+
 interface Props {
     initialAccounts: Account[];
     initialTransactions: Transaction[];
     initialCategories: Category[];
+    initialLeiloes?: BulaLeilao[];
+    initialFechamentos?: FechamentoLite[];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -69,8 +95,19 @@ const CAT_COLORS = [
     '#F59E0B', '#14B8A6', '#EF4444', '#60A5FA', '#A78BFA',
 ];
 
+// Parse currency-ish text (ex: "R$ 12.500,00" | "12500" | "12.500,50") → number
+const parseMoneyText = (raw: unknown): number => {
+    if (raw == null) return 0;
+    if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
+    const s = String(raw).trim();
+    if (!s) return 0;
+    const clean = s.replace(/[^\d,.\-]/g, '').replace(/\./g, '').replace(',', '.');
+    const v = parseFloat(clean);
+    return isNaN(v) ? 0 : v;
+};
+
 // ─── Component ───────────────────────────────────────────────────────────────
-export default function FinanceiroClient({ initialAccounts, initialTransactions, initialCategories }: Props) {
+export default function FinanceiroClient({ initialAccounts, initialTransactions, initialCategories, initialLeiloes = [], initialFechamentos = [] }: Props) {
     const router = useRouter();
 
     // ── State ────────────────────────────────────────────────────────────────
@@ -426,6 +463,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                 <div className="flex flex-wrap items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-[#111] p-1.5 rounded-2xl w-fit">
                     {([
                         { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                        { key: 'leiloes', icon: Gavel, label: 'Leilões' },
                         { key: 'conciliacao', icon: CheckCircle2, label: 'Conciliação' },
                         { key: 'fluxo', icon: BarChart3, label: 'Fluxo de Caixa' },
                         { key: 'categorias', icon: Tag, label: 'Categorias' },
@@ -575,6 +613,20 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════════════
+                LEILÕES TAB — A Receber / A Pagar vinculados aos leilões
+               ═══════════════════════════════════════════════════════════════════ */}
+            {activeTab === 'leiloes' && (
+                <LeiloesIntegracao
+                    accounts={accounts}
+                    categories={categories}
+                    transactions={transactions}
+                    leiloes={initialLeiloes}
+                    fechamentos={initialFechamentos}
+                    onDone={() => router.refresh()}
+                />
             )}
 
             {/* ═══════════════════════════════════════════════════════════════════
@@ -1441,6 +1493,462 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// LEILÕES INTEGRATION SUB-COMPONENT
+// Conecta bula_leiloes.comissao_receber → A Receber (income pending)
+// Conecta bula_leilao_fechamento.comissao_assessoria → A Pagar (expense pending)
+// ═════════════════════════════════════════════════════════════════════════════
+function LeiloesIntegracao({
+    accounts, categories, transactions, leiloes, fechamentos, onDone,
+}: {
+    accounts: Account[];
+    categories: Category[];
+    transactions: Transaction[];
+    leiloes: BulaLeilao[];
+    fechamentos: FechamentoLite[];
+    onDone: () => void;
+}) {
+    const [busy, setBusy] = useState<string | null>(null);
+    const [hideLancados, setHideLancados] = useState(false);
+    const [accountId, setAccountId] = useState<string>(accounts[0]?.id || '');
+    const [catReceber, setCatReceber] = useState<string>('');
+    const [catPagar, setCatPagar] = useState<string>('');
+
+    // Detectar transações já vinculadas (via observacao com tag [LEILAO:id] ou [FECHAMENTO:id])
+    const linkedSet = useMemo(() => {
+        const set = new Set<string>();
+        for (const tx of transactions) {
+            const obs = tx.observacao || '';
+            const m = obs.match(/\[([A-Z]+:[^\]]+)\]/);
+            if (m) set.add(m[1]);
+        }
+        return set;
+    }, [transactions]);
+
+    // ── A RECEBER ────────────────────────────────────────────────────────────
+    type Receivable = {
+        sourceTag: string; leilaoId: string; nome: string; criador: string;
+        data: string; total: number; recebido: number; saldo: number;
+        comissaoPct: string; status: string; alreadyLinked: boolean;
+    };
+    const receivables = useMemo<Receivable[]>(() => {
+        const out: Receivable[] = [];
+        for (const l of leiloes ?? []) {
+            const total = parseMoneyText(l.comissao_receber);
+            const recebido = parseMoneyText(l.recebido);
+            const saldo = total - recebido;
+            if (saldo <= 0) continue; // ignora sem comissão pendente
+            const sourceTag = `LEILAO:${l.id}`;
+            out.push({
+                sourceTag,
+                leilaoId: l.id,
+                nome: l.nome,
+                criador: l.criador || '',
+                data: l.data || '',
+                total, recebido, saldo,
+                comissaoPct: l.comissao || '',
+                status: l.status || '',
+                alreadyLinked: linkedSet.has(sourceTag),
+            });
+        }
+        return out.sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+    }, [leiloes, linkedSet]);
+
+    // ── A PAGAR (comissão p/ assessores a partir dos fechamentos) ───────────
+    type Payable = {
+        sourceTag: string; fechamentoId: string; leilaoNome: string;
+        data: string; assessor: string; empresa: string; valor: number;
+        vgvAssessor: number; alreadyLinked: boolean;
+    };
+    const payables = useMemo<Payable[]>(() => {
+        const out: Payable[] = [];
+        for (const f of fechamentos ?? []) {
+            const comissaoTotal = Number(f.comissao_assessoria) || 0;
+            if (comissaoTotal <= 0) continue;
+            const assessores = (f.por_assessor ?? []).filter(a => a?.nome);
+            const totalVgv = assessores.reduce((s, a) => s + (Number(a.vgv) || 0), 0);
+
+            if (assessores.length > 0 && totalVgv > 0) {
+                // split proporcional ao VGV de cada assessor
+                for (const a of assessores) {
+                    const share = (Number(a.vgv) || 0) / totalVgv;
+                    const valor = comissaoTotal * share;
+                    if (valor < 0.01) continue;
+                    const key = (a.nome || '').toUpperCase().replace(/\s+/g, '_').slice(0, 40);
+                    const sourceTag = `FECHAMENTO:${f.id}:ASSESSOR:${key}`;
+                    out.push({
+                        sourceTag,
+                        fechamentoId: f.id,
+                        leilaoNome: f.nome,
+                        data: f.data,
+                        assessor: a.nome || '—',
+                        empresa: a.empresa || '',
+                        valor,
+                        vgvAssessor: Number(a.vgv) || 0,
+                        alreadyLinked: linkedSet.has(sourceTag),
+                    });
+                }
+            } else {
+                // lump sum único
+                const sourceTag = `FECHAMENTO:${f.id}:COMISSAO`;
+                out.push({
+                    sourceTag,
+                    fechamentoId: f.id,
+                    leilaoNome: f.nome,
+                    data: f.data,
+                    assessor: 'Equipe de assessoria',
+                    empresa: '',
+                    valor: comissaoTotal,
+                    vgvAssessor: 0,
+                    alreadyLinked: linkedSet.has(sourceTag),
+                });
+            }
+        }
+        return out.sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+    }, [fechamentos, linkedSet]);
+
+    // ── Totais ──────────────────────────────────────────────────────────────
+    const totReceberPend = receivables.filter(r => !r.alreadyLinked).reduce((s, r) => s + r.saldo, 0);
+    const totReceberTotal = receivables.reduce((s, r) => s + r.saldo, 0);
+    const totPagarPend = payables.filter(p => !p.alreadyLinked).reduce((s, p) => s + p.valor, 0);
+    const totPagarTotal = payables.reduce((s, p) => s + p.valor, 0);
+    const resultadoLiquido = totReceberTotal - totPagarTotal;
+
+    const receiveList = hideLancados ? receivables.filter(r => !r.alreadyLinked) : receivables;
+    const payList = hideLancados ? payables.filter(p => !p.alreadyLinked) : payables;
+
+    const incomeCats = categories.filter(c => c.type === 'income');
+    const expenseCats = categories.filter(c => c.type === 'expense');
+
+    // ── Lançar um único ──────────────────────────────────────────────────────
+    const lancarUm = async (tipo: 'income' | 'expense', itemTag: string) => {
+        if (!accountId) { alert('Selecione uma conta ERP primeiro.'); return; }
+        setBusy(itemTag);
+        try {
+            if (tipo === 'income') {
+                const r = receivables.find(x => x.sourceTag === itemTag);
+                if (!r) return;
+                await registrarLeiloesLote([{
+                    type: 'income',
+                    amount: r.saldo,
+                    description: `Comissão a receber — ${r.nome}${r.criador ? ` (${r.criador})` : ''}`,
+                    transaction_date: r.data || today(),
+                    account_id: accountId,
+                    category_id: catReceber || null,
+                    sourceTag: itemTag,
+                }]);
+            } else {
+                const p = payables.find(x => x.sourceTag === itemTag);
+                if (!p) return;
+                await registrarLeiloesLote([{
+                    type: 'expense',
+                    amount: p.valor,
+                    description: `Comissão assessor ${p.assessor} — ${p.leilaoNome}`,
+                    transaction_date: p.data || today(),
+                    account_id: accountId,
+                    category_id: catPagar || null,
+                    sourceTag: itemTag,
+                }]);
+            }
+            onDone();
+        } finally {
+            setBusy(null);
+        }
+    };
+
+    // ── Lançar tudo pendente ─────────────────────────────────────────────────
+    const lancarTudo = async () => {
+        if (!accountId) { alert('Selecione uma conta ERP primeiro.'); return; }
+        const pendReceb = receivables.filter(r => !r.alreadyLinked);
+        const pendPag = payables.filter(p => !p.alreadyLinked);
+        if (pendReceb.length + pendPag.length === 0) return;
+        if (!confirm(`Lançar ${pendReceb.length} a receber e ${pendPag.length} a pagar como pendentes no ERP?`)) return;
+
+        setBusy('all');
+        try {
+            const items: Parameters<typeof registrarLeiloesLote>[0] = [
+                ...pendReceb.map(r => ({
+                    type: 'income' as const,
+                    amount: r.saldo,
+                    description: `Comissão a receber — ${r.nome}${r.criador ? ` (${r.criador})` : ''}`,
+                    transaction_date: r.data || today(),
+                    account_id: accountId,
+                    category_id: catReceber || null,
+                    sourceTag: r.sourceTag,
+                })),
+                ...pendPag.map(p => ({
+                    type: 'expense' as const,
+                    amount: p.valor,
+                    description: `Comissão assessor ${p.assessor} — ${p.leilaoNome}`,
+                    transaction_date: p.data || today(),
+                    account_id: accountId,
+                    category_id: catPagar || null,
+                    sourceTag: p.sourceTag,
+                })),
+            ];
+            const res = await registrarLeiloesLote(items);
+            if (res.success) alert(`✓ ${res.created} criados, ${res.skipped} já existentes, ${res.failed} falharam.`);
+            onDone();
+        } finally {
+            setBusy(null);
+        }
+    };
+
+    return (
+        <div className="animate-in fade-in duration-500 space-y-6">
+            {/* ── Resumo ─────────────────────────────────────────────────── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/25 rounded-2xl p-6 relative overflow-hidden">
+                    <div className="absolute -top-8 -right-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl" />
+                    <div className="flex items-center gap-2 mb-2 relative">
+                        <ArrowUpRight className="w-4 h-4 text-emerald-500" />
+                        <span className="text-[10px] uppercase tracking-widest text-emerald-500 font-bold">A Receber — Leilões</span>
+                    </div>
+                    <p className="text-3xl font-black text-emerald-500 leading-tight">{fmt(totReceberTotal)}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                        {receivables.length} leilão(ões) com comissão pendente · {fmt(totReceberPend)} ainda não lançados
+                    </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent border border-rose-500/25 rounded-2xl p-6 relative overflow-hidden">
+                    <div className="absolute -top-8 -right-8 w-32 h-32 bg-rose-500/10 rounded-full blur-3xl" />
+                    <div className="flex items-center gap-2 mb-2 relative">
+                        <ArrowDownRight className="w-4 h-4 text-rose-500" />
+                        <span className="text-[10px] uppercase tracking-widest text-rose-500 font-bold">A Pagar — Comissões</span>
+                    </div>
+                    <p className="text-3xl font-black text-rose-500 leading-tight">{fmt(totPagarTotal)}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                        {payables.length} comissão(ões) · {fmt(totPagarPend)} ainda não lançadas
+                    </p>
+                </div>
+
+                <div className={`bg-gradient-to-br border rounded-2xl p-6 relative overflow-hidden ${resultadoLiquido >= 0
+                    ? 'from-[#B8860B]/15 via-[#B8860B]/5 to-transparent border-[#B8860B]/30'
+                    : 'from-rose-600/15 via-rose-500/5 to-transparent border-rose-500/30'}`}>
+                    <div className="absolute -top-8 -right-8 w-32 h-32 bg-[#B8860B]/10 rounded-full blur-3xl" />
+                    <div className="flex items-center gap-2 mb-2 relative">
+                        <Trophy className={`w-4 h-4 ${resultadoLiquido >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`} />
+                        <span className={`text-[10px] uppercase tracking-widest font-bold ${resultadoLiquido >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>
+                            Resultado líquido esperado
+                        </span>
+                    </div>
+                    <p className={`text-3xl font-black leading-tight ${resultadoLiquido >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>
+                        {resultadoLiquido >= 0 ? '+' : ''}{fmt(resultadoLiquido)}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                        Sobre o histórico de leilões com dados financeiros
+                    </p>
+                </div>
+            </div>
+
+            {/* ── Toolbar ─────────────────────────────────────────────────── */}
+            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-2xl p-4 flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#B8860B]" />
+                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Lançar no ERP</span>
+                </div>
+                <div className="flex items-center gap-2 flex-1 flex-wrap">
+                    <select value={accountId} onChange={e => setAccountId(e.target.value)}
+                        className="px-3 py-2 text-xs font-semibold bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-[#B8860B] outline-none">
+                        <option value="">Conta ERP…</option>
+                        {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                    <select value={catReceber} onChange={e => setCatReceber(e.target.value)}
+                        className="px-3 py-2 text-xs font-semibold bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none">
+                        <option value="">Categoria (receber)…</option>
+                        {incomeCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                    <select value={catPagar} onChange={e => setCatPagar(e.target.value)}
+                        className="px-3 py-2 text-xs font-semibold bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-rose-500 outline-none">
+                        <option value="">Categoria (pagar)…</option>
+                        {expenseCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                </div>
+                <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400 cursor-pointer">
+                    <input type="checkbox" checked={hideLancados} onChange={e => setHideLancados(e.target.checked)}
+                        className="w-3.5 h-3.5 accent-[#B8860B]" />
+                    Ocultar já lançados
+                </label>
+                <button onClick={lancarTudo} disabled={busy !== null || !accountId}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-lg text-xs font-bold shadow-md hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100">
+                    {busy === 'all' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCheck className="w-3.5 h-3.5" />}
+                    Lançar tudo pendente
+                </button>
+            </div>
+
+            {/* ── A Receber ──────────────────────────────────────────────── */}
+            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-2xl overflow-hidden">
+                <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 bg-emerald-500/10 rounded-xl">
+                            <ArrowUpRight className="w-4 h-4 text-emerald-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-gray-900 dark:text-white">A Receber — Comissões de Leilão</h3>
+                            <p className="text-[10px] text-gray-500 mt-0.5">Origem: <code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">bula_leiloes.comissao_receber</code> − <code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">recebido</code></p>
+                        </div>
+                    </div>
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">
+                        {receivables.filter(r => !r.alreadyLinked).length} pendente(s)
+                    </span>
+                </div>
+
+                {receiveList.length === 0 ? (
+                    <div className="p-12 text-center text-gray-400">
+                        <Gavel className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">{hideLancados ? 'Tudo lançado — parabéns!' : 'Nenhuma comissão a receber cadastrada.'}</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-50 dark:bg-[#0A0A0A] text-[10px] uppercase tracking-wider text-gray-500">
+                                <tr>
+                                    <th className="px-4 py-3 text-left font-bold">Data</th>
+                                    <th className="px-4 py-3 text-left font-bold">Leilão · Criador</th>
+                                    <th className="px-4 py-3 text-left font-bold">Comissão %</th>
+                                    <th className="px-4 py-3 text-right font-bold">Total</th>
+                                    <th className="px-4 py-3 text-right font-bold">Recebido</th>
+                                    <th className="px-4 py-3 text-right font-bold">Saldo</th>
+                                    <th className="px-4 py-3 text-center font-bold">Status</th>
+                                    <th className="px-4 py-3 text-right font-bold">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {receiveList.map(r => (
+                                    <tr key={r.sourceTag} className="border-b border-gray-100 dark:border-[#1A1A1A] hover:bg-gray-50/50 dark:hover:bg-[#0E0E0E]">
+                                        <td className="px-4 py-3 font-mono text-xs text-gray-500">{r.data ? fmtDate(r.data) : '—'}</td>
+                                        <td className="px-4 py-3">
+                                            <p className="font-bold text-gray-900 dark:text-white">{r.nome}</p>
+                                            {r.criador && <p className="text-[10px] text-gray-500">{r.criador}</p>}
+                                        </td>
+                                        <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{r.comissaoPct || '—'}</td>
+                                        <td className="px-4 py-3 text-right font-semibold text-gray-700 dark:text-gray-300">{fmt(r.total)}</td>
+                                        <td className="px-4 py-3 text-right text-xs text-gray-500">{r.recebido > 0 ? fmt(r.recebido) : '—'}</td>
+                                        <td className="px-4 py-3 text-right font-black text-emerald-500">{fmt(r.saldo)}</td>
+                                        <td className="px-4 py-3 text-center">
+                                            {r.alreadyLinked ? (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                                    <CheckCheck className="w-3 h-3" /> Lançado
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                                                    Pendente
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            {r.alreadyLinked ? (
+                                                <span className="text-[10px] text-gray-400">—</span>
+                                            ) : (
+                                                <button onClick={() => lancarUm('income', r.sourceTag)}
+                                                    disabled={busy !== null || !accountId}
+                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 rounded-lg text-xs font-bold hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50">
+                                                    {busy === r.sourceTag ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                                                    Lançar
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* ── A Pagar ────────────────────────────────────────────────── */}
+            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-2xl overflow-hidden">
+                <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 bg-rose-500/10 rounded-xl">
+                            <Users className="w-4 h-4 text-rose-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-gray-900 dark:text-white">A Pagar — Comissões de Assessores</h3>
+                            <p className="text-[10px] text-gray-500 mt-0.5">Split proporcional ao VGV de cada assessor dentro de <code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">bula_leilao_fechamento.comissao_assessoria</code></p>
+                        </div>
+                    </div>
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">
+                        {payables.filter(p => !p.alreadyLinked).length} pendente(s)
+                    </span>
+                </div>
+
+                {payList.length === 0 ? (
+                    <div className="p-12 text-center text-gray-400">
+                        <Trophy className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">{hideLancados ? 'Tudo quitado — sem pendências.' : 'Nenhum fechamento com comissão de assessoria cadastrada.'}</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-50 dark:bg-[#0A0A0A] text-[10px] uppercase tracking-wider text-gray-500">
+                                <tr>
+                                    <th className="px-4 py-3 text-left font-bold">Data</th>
+                                    <th className="px-4 py-3 text-left font-bold">Leilão</th>
+                                    <th className="px-4 py-3 text-left font-bold">Assessor</th>
+                                    <th className="px-4 py-3 text-right font-bold">VGV Próprio</th>
+                                    <th className="px-4 py-3 text-right font-bold">Valor</th>
+                                    <th className="px-4 py-3 text-center font-bold">Status</th>
+                                    <th className="px-4 py-3 text-right font-bold">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {payList.map(p => (
+                                    <tr key={p.sourceTag} className="border-b border-gray-100 dark:border-[#1A1A1A] hover:bg-gray-50/50 dark:hover:bg-[#0E0E0E]">
+                                        <td className="px-4 py-3 font-mono text-xs text-gray-500">{fmtDate(p.data)}</td>
+                                        <td className="px-4 py-3 font-bold text-gray-900 dark:text-white">{p.leilaoNome}</td>
+                                        <td className="px-4 py-3">
+                                            <p className="font-semibold text-gray-800 dark:text-gray-200">{p.assessor}</p>
+                                            {p.empresa && <p className="text-[10px] text-gray-500">{p.empresa}</p>}
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-xs text-gray-500">{p.vgvAssessor > 0 ? fmt(p.vgvAssessor) : '—'}</td>
+                                        <td className="px-4 py-3 text-right font-black text-rose-500">{fmt(p.valor)}</td>
+                                        <td className="px-4 py-3 text-center">
+                                            {p.alreadyLinked ? (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                                    <CheckCheck className="w-3 h-3" /> Lançado
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                                                    Pendente
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            {p.alreadyLinked ? (
+                                                <span className="text-[10px] text-gray-400">—</span>
+                                            ) : (
+                                                <button onClick={() => lancarUm('expense', p.sourceTag)}
+                                                    disabled={busy !== null || !accountId}
+                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500/10 text-rose-500 border border-rose-500/30 rounded-lg text-xs font-bold hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50">
+                                                    {busy === p.sourceTag ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                                                    Lançar
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* ── Ajuda ──────────────────────────────────────────────────── */}
+            <div className="bg-gradient-to-br from-[#B8860B]/5 to-transparent border border-[#B8860B]/20 rounded-2xl p-5 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                <div className="flex items-start gap-3">
+                    <ChevronRight className="w-4 h-4 text-[#B8860B] shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                        <p><strong className="text-[#B8860B]">Como funciona:</strong> cada comissão de leilão vira uma conta a receber e cada comissão de assessor vira uma conta a pagar, ambas como <em>Pendentes</em> no ERP.</p>
+                        <p><strong className="text-[#B8860B]">Deduplicação:</strong> o sistema marca o lançamento com uma tag na observação (<code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">[LEILAO:&lt;id&gt;]</code> / <code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">[FECHAMENTO:&lt;id&gt;:ASSESSOR:&lt;nome&gt;]</code>) evitando duplicatas ao re-lançar.</p>
+                        <p><strong className="text-[#B8860B]">Conciliar:</strong> depois de recebido/pago, vá em <em>Conciliação</em> e mude o status para Efetivado — isso atualiza o saldo real da conta.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
