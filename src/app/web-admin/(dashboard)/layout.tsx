@@ -8,6 +8,7 @@ import {
     LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar,
     MessageCircle, FileText, Sparkles, Gavel, Dna, Award,
     ImageIcon, Shield, ExternalLink, ChevronDown, BarChart2, Target, BarChart3,
+    Megaphone,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -23,7 +24,13 @@ function isGroup(e: NavEntry): e is NavGroup {
 
 const navConfig: NavEntry[] = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/crm', label: 'CRM', icon: Users },
+    {
+        label: 'Vendas & Marketing', icon: Megaphone,
+        items: [
+            { href: '/vendas-marketing', label: 'Visão Geral', icon: LayoutDashboard },
+            { href: '/crm', label: 'CRM', icon: Users },
+        ],
+    },
     {
         label: 'Leilões', icon: Gavel,
         items: [
@@ -52,13 +59,13 @@ const navConfig: NavEntry[] = [
             { href: '/analytics', label: 'Analytics', icon: BarChart2 },
             { href: '/ia', label: 'IA Mapeamento', icon: Sparkles },
             { href: '/biblioteca-midia', label: 'Biblioteca de Mídia', icon: ImageIcon },
-            { href: '/whatsapp', label: 'Marketing & Automação', icon: MessageCircle },
         ],
     },
     {
         label: 'Administração', icon: Shield,
         items: [
             { href: '/users', label: 'Usuários & Permissões', icon: Shield },
+            { href: '/whatsapp', label: 'Automação WhatsApp', icon: MessageCircle },
             { href: '/settings', label: 'Configurações', icon: Settings },
         ],
     },
