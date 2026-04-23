@@ -1,137 +1,238 @@
-import zipfile
+"""
+Sincroniza TODAS as capas embutidas na planilha ESCALA LEILÕES 2026 (fonte:
+Google Sheets) para a tabela bula_leiloes.img no Supabase.
+
+Fonte: https://docs.google.com/spreadsheets/d/1rzEUSB1Rt4DQ7xlj3Wej4Rn-NwnMSgGk
+       (export automático em formato xlsx)
+
+Para cada imagem embutida nas planilhas mensais:
+  1. Identifica (data, leilão, criador) pela linha-âncora
+  2. Procura registro em bula_leiloes pela data + similaridade de nome
+  3. Se não existe, cria um registro novo
+  4. Faz upload ao bucket leilao-covers e atualiza img
+
+Nunca apaga img de registros não-mapeados (o script antigo fazia isso e
+apagava capas inseridas manualmente).
+
+Uso:
+    export SUPABASE_SERVICE_ROLE_KEY=...
+    python scripts/upload_leilao_images.py
+"""
+
+import difflib
 import os
-import requests
+import re
+import sys
 import tempfile
+import zipfile
+
+import openpyxl
+import requests
+
+GSHEETS_ID = "1rzEUSB1Rt4DQ7xlj3Wej4Rn-NwnMSgGk"
+GSHEETS_EXPORT = (
+    f"https://docs.google.com/spreadsheets/d/{GSHEETS_ID}/export?format=xlsx"
+)
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://hghtikjaqixglmpujbwj.supabase.co")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 BUCKET = "leilao-covers"
 
-HEADERS = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
-}
+if not SUPABASE_KEY:
+    raise SystemExit("Defina SUPABASE_SERVICE_ROLE_KEY no ambiente")
 
-# Definitive mapping from Excel drawing XML analysis:
-# drawing5.xml (sheet ABRIL2026): row 3 = image4.png, row 7 = image5.png,
-#   row 12 = image3.jpg, row 15 = image2.jpg
-# drawing6.xml (sheet MAIO2026): row 24 = image1.jpg
-#
-# bula_leiloes matches (by date + name):
-#   image3.jpg -> 833148aa (Nelore IPB, 2026-04-11)
-#   image2.jpg -> 6bc31223 (Cachoeirao, 2026-04-14)
-#   image1.jpg -> 98326ae9 (Nelore Tresmar, 2026-05-21)
-#   image4.png -> no bula_leiloes record (FAZENDA BELA ROSA, 2026-04-02)
-#   image5.png -> no bula_leiloes record (NELORE FLOC, 2026-04-06)
+HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+HEADERS_JSON = {**HEADERS, "Content-Type": "application/json"}
 
-IMAGE_TO_RECORD = {
-    "image3.jpg": "833148aa-c411-4874-b700-2642b53dd7e6",
-    "image2.jpg": "6bc31223-b49d-4231-9a4d-e43382ac1d22",
-    "image1.jpg": "98326ae9-9111-41be-aeae-2aebaa97243a",
-}
 
-# Find Excel file
-script_dir = os.path.dirname(os.path.abspath(__file__))
-repo_dir = os.path.dirname(script_dir)
-excel_path = None
-for fname in os.listdir(repo_dir):
-    if fname.endswith(".xlsx") and not fname.startswith("~$"):
-        excel_path = os.path.join(repo_dir, fname)
-        break
+def norm(s):
+    if not s:
+        return ""
+    s = str(s).lower()
+    s = re.sub(r"[^a-zà-ÿ0-9 ]", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    repl = {
+        "ã": "a", "â": "a", "á": "a", "à": "a",
+        "é": "e", "ê": "e", "í": "i",
+        "ó": "o", "ô": "o", "õ": "o",
+        "ú": "u", "ç": "c",
+    }
+    for k, v in repl.items():
+        s = s.replace(k, v)
+    return s
 
-if not excel_path:
-    raise FileNotFoundError("Excel file not found")
 
-print(f"Excel: {excel_path}")
+def similar(a, b):
+    return difflib.SequenceMatcher(None, norm(a), norm(b)).ratio()
 
-# Extract images from Excel zip
-temp_dir = tempfile.mkdtemp()
-extracted = {}
 
-with zipfile.ZipFile(excel_path, "r") as z:
-    for img_name in IMAGE_TO_RECORD:
-        path_in_zip = f"xl/media/{img_name}"
-        if path_in_zip in z.namelist():
-            out_path = os.path.join(temp_dir, img_name)
-            with open(out_path, "wb") as f:
-                f.write(z.read(path_in_zip))
-            extracted[img_name] = out_path
-            print(f"Extracted: {img_name} ({os.path.getsize(out_path)} bytes)")
-        else:
-            print(f"WARNING: {path_in_zip} not found in Excel")
-
-print(f"\nExtracted {len(extracted)} images to {temp_dir}")
-
-# Query current bula_leiloes state
-resp = requests.get(
-    f"{SUPABASE_URL}/rest/v1/bula_leiloes?select=id,nome,data,img&order=data",
-    headers={**HEADERS, "Content-Type": "application/json"},
-)
-print(f"\nbula_leiloes: {resp.status_code}")
-bula_records = resp.json()
-print(f"Total records: {len(bula_records)}")
-
-# Upload each image and update the matching record
-assigned_ids = set()
-
-for img_name, record_id in IMAGE_TO_RECORD.items():
-    if img_name not in extracted:
-        print(f"\nSKIP {img_name} - not extracted")
-        continue
-
-    local_path = extracted[img_name]
-    ext = img_name.rsplit(".", 1)[-1].lower()
-    content_type = "image/jpeg" if ext in ("jpg", "jpeg") else "image/png"
-    storage_path = f"bula_{record_id}.{ext}"
-
-    # Delete any existing file with this path
-    del_resp = requests.delete(
-        f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{storage_path}",
-        headers=HEADERS,
-    )
-
-    # Upload
-    with open(local_path, "rb") as f:
-        data = f.read()
-
-    up_resp = requests.post(
-        f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{storage_path}",
-        headers={**HEADERS, "Content-Type": content_type},
-        data=data,
-    )
-
-    if up_resp.status_code not in (200, 201):
-        print(f"\nERROR uploading {img_name}: {up_resp.status_code} {up_resp.text}")
-        continue
-
-    public_url = f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET}/{storage_path}"
-
-    # Update bula_leiloes record
-    patch_resp = requests.patch(
-        f"{SUPABASE_URL}/rest/v1/bula_leiloes?id=eq.{record_id}",
-        headers={**HEADERS, "Content-Type": "application/json"},
-        json={"img": public_url},
-    )
-
-    rec_name = next((r["nome"] for r in bula_records if r["id"] == record_id), "?")
-    if patch_resp.status_code in (200, 204):
-        print(f"\nOK: {img_name} -> '{rec_name}' (id={record_id})")
-        print(f"    URL: {public_url}")
-        assigned_ids.add(record_id)
-    else:
-        print(f"\nERROR updating record {record_id}: {patch_resp.status_code} {patch_resp.text}")
-
-# Clear img for all records NOT in the assignment set
-print("\n--- Clearing img for unmatched records ---")
-for rec in bula_records:
-    if rec["id"] not in assigned_ids:
-        patch_resp = requests.patch(
-            f"{SUPABASE_URL}/rest/v1/bula_leiloes?id=eq.{rec['id']}",
-            headers={**HEADERS, "Content-Type": "application/json"},
-            json={"img": None},
+def find_match(records, data_iso, leilao_name, criador_name, used_ids):
+    cands = [r for r in records if r["data"][:10] == data_iso and r["id"] not in used_ids]
+    if not cands:
+        return None
+    best, best_score = None, 0.0
+    for r in cands:
+        score = max(
+            similar(r["nome"], criador_name or ""),
+            similar(r["nome"], leilao_name or ""),
+            similar(r["nome"], f"{leilao_name or ''} {criador_name or ''}"),
         )
-        status = "OK" if patch_resp.status_code in (200, 204) else f"ERROR {patch_resp.status_code}"
-        had_img = "had img" if rec.get("img") else "no img"
-        print(f"  {status}: '{rec['nome']}' ({rec['data'][:10]}) [{had_img}]")
+        if score > best_score:
+            best, best_score = r, score
+    if len(cands) == 1 or best_score >= 0.35:
+        return best
+    return None
 
-print("\nDone!")
+
+def iso_data(v):
+    if hasattr(v, "strftime"):
+        return v.strftime("%Y-%m-%d")
+    return str(v)[:10]
+
+
+def pretty_nome(criador, leilao):
+    src = (criador or leilao or "").strip()
+    if not src:
+        return "LEILÃO"
+    return src.title() if src.isupper() else src
+
+
+def query_all():
+    r = requests.get(
+        f"{SUPABASE_URL}/rest/v1/bula_leiloes?select=id,nome,data,img&order=data",
+        headers=HEADERS_JSON,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+def create_record(payload):
+    r = requests.post(
+        f"{SUPABASE_URL}/rest/v1/bula_leiloes",
+        headers={**HEADERS_JSON, "Prefer": "return=representation"},
+        json=payload,
+    )
+    if r.status_code not in (200, 201):
+        print(f"ERRO criar: {r.status_code} {r.text}")
+        return None
+    d = r.json()
+    return d[0] if isinstance(d, list) else d
+
+
+def upload_image(rec_id, media_name, data_bytes):
+    ext = media_name.rsplit(".", 1)[-1].lower()
+    content_type = "image/png" if ext == "png" else "image/jpeg"
+    path = f"bula_{rec_id}.{ext}"
+    requests.delete(f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{path}", headers=HEADERS)
+    r = requests.post(
+        f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{path}",
+        headers={**HEADERS, "Content-Type": content_type},
+        data=data_bytes,
+    )
+    r.raise_for_status()
+    return f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET}/{path}"
+
+
+def patch_img(rec_id, url):
+    r = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/bula_leiloes?id=eq.{rec_id}",
+        headers=HEADERS_JSON,
+        json={"img": url},
+    )
+    return r.status_code in (200, 204)
+
+
+def download_xlsx(dst):
+    r = requests.get(GSHEETS_EXPORT, allow_redirects=True)
+    r.raise_for_status()
+    with open(dst, "wb") as f:
+        f.write(r.content)
+
+
+def gather_image_map(xlsx_path):
+    wb = openpyxl.load_workbook(xlsx_path, data_only=True)
+    out = []
+    for sn in wb.sheetnames:
+        ws = wb[sn]
+        imgs = getattr(ws, "_images", [])
+        if not imgs:
+            continue
+        for idx, img in enumerate(imgs):
+            f = img.anchor._from
+            row_1b = f.row + 1
+            data_val = iso_data(ws.cell(row=row_1b, column=1).value)
+            leilao = ws.cell(row=row_1b, column=5).value or ws.cell(row=row_1b + 1, column=5).value
+            criador = ws.cell(row=row_1b, column=6).value or ws.cell(row=row_1b + 1, column=6).value
+            try:
+                raw = img._data() if callable(getattr(img, "_data", None)) else None
+            except Exception:
+                raw = None
+            ext = (getattr(img, "format", None) or "jpg").lower()
+            if ext == "jpeg":
+                ext = "jpg"
+            out.append({
+                "sheet": sn,
+                "idx": idx,
+                "media_name": f"{sn}_img{idx}.{ext}",
+                "row_1b": row_1b,
+                "data_iso": data_val,
+                "leilao": leilao,
+                "criador": criador,
+                "bytes": raw,
+                "ext": ext,
+            })
+    return out
+
+
+def main():
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+        xlsx_path = tmp.name
+    try:
+        print(f"Baixando do Google Sheets: {GSHEETS_ID}")
+        download_xlsx(xlsx_path)
+
+        items = gather_image_map(xlsx_path)
+        print(f"Encontradas {len(items)} imagens embutidas\n")
+
+        records = query_all()
+        print(f"bula_leiloes: {len(records)} registros\n")
+
+        used_ids = set()
+        for it in items:
+            if not it["bytes"]:
+                print(f"SKIP {it['sheet']} img#{it['idx']}: sem bytes")
+                continue
+            match = find_match(records, it["data_iso"], it["leilao"], it["criador"], used_ids)
+            if match is None:
+                payload = {
+                    "nome": pretty_nome(it["criador"], it["leilao"]),
+                    "data": it["data_iso"],
+                    "tipo": "Fêmeas P.O.",
+                    "local": "",
+                    "horario": "",
+                    "modelo": "VIRTUAL",
+                    "leiloeira": "BULA",
+                    "status": "confirmado",
+                }
+                match = create_record(payload)
+                if not match:
+                    continue
+                records.append(match)
+                print(f"Criado: {match['nome']} ({match['data'][:10]}) id={match['id']}")
+
+            url = upload_image(match["id"], it["media_name"], it["bytes"])
+            ok = patch_img(match["id"], url)
+            used_ids.add(match["id"])
+            tag = "OK " if ok else "ERR"
+            print(f"{tag} [{it['sheet']} img#{it['idx']}] {it['data_iso']} | {it['criador']}  ->  '{match['nome']}'")
+
+        print(f"\nDone — {len(used_ids)} registros com capa atualizada.")
+    finally:
+        try:
+            os.unlink(xlsx_path)
+        except OSError:
+            pass
+
+
+if __name__ == "__main__":
+    sys.exit(main() or 0)
