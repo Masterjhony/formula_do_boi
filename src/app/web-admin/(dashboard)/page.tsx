@@ -123,10 +123,14 @@ export default async function AdminDashboard() {
     const maxChartVal = Math.max(...monthly6.map(m => Math.max(m.income, m.expense)), 1);
 
     // ── Leilões ──────────────────────────────────────────────────────────────
+    // "Próximo" = data futura E não concluído. Concluídos contam como passados
+    // mesmo se a data ainda é futura (cadastro antecipado de resultado).
     const allLeiloes = leiloes ?? [];
     const todayStr = now.toISOString().split('T')[0];
-    const upcomingLeiloes = allLeiloes.filter(l => (l.data ?? '') >= todayStr);
-    const pastLeiloes = allLeiloes.filter(l => (l.data ?? '') < todayStr);
+    const upcomingLeiloes = allLeiloes
+        .filter(l => (l.data ?? '') >= todayStr && l.status !== 'concluido')
+        .sort((a, b) => (a.data ?? '').localeCompare(b.data ?? ''));
+    const pastLeiloes = allLeiloes.filter(l => (l.data ?? '') < todayStr || l.status === 'concluido');
 
     const leilaoByStatus = { confirmado: 0, negociacao: 0, prospecto: 0, concluido: 0 };
     for (const l of allLeiloes) {
