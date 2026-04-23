@@ -35,6 +35,8 @@ const perolas = {
   compradores_unicos: 5,
   estados_alcancados: 0,     // cidades/UF não preenchidas na planilha
   comissao_assessoria: 11520,
+  receita_bula: 13400,       // 1% Bula Assessoria × VGV total do leilão (R$ 1,34 MM)
+  sobra_bruta: 1880,         // receita_bula − comissao_assessoria
   observacoes:
     'VGV total do leilão: R$ 1,43 MM (8% Bula Remates = R$ 114.720 faturamento leiloeira; 1% Bula Assessoria = R$ 13.400 receita). Participação Bula/FdB: 35,5% (8 lotes · 5 compradores, 1 recorrente). Maior lance: Douglas Bispo — Lote 01 (R$ 150.000). Bula Remates respondeu por 81,7% do share (R$ 415.500) e Fórmula do Boi por 18,3% (R$ 93.000). Cidade/UF dos compradores a preencher na próxima iteração.',
   por_assessor: [
@@ -84,6 +86,8 @@ const jmp = {
   compradores_unicos: 4,
   estados_alcancados: 4,
   comissao_assessoria: 10242,
+  receita_bula: 51872,       // 0,5% × VGV total do leilão (R$ 10,37 MM) — acordo especial
+  sobra_bruta: 41630,        // receita_bula − comissao_assessoria
   observacoes:
     'Leilão virtual (Canal Rural) — edição especial 2026, 160 bezerras Nelore P.O. 100% FIV · Top 0,1% PMGZ/ANCP/Embrapa/Gene Plus. VGV total do leilão: R$ 10,37 MM em 163,5 animais (m. R$ 63.451/animal · 70 compradores · 14 estados). Acordo especial Bula × JMP: 0,5% sobre o VGV total do leilão = R$ 51.872 receita Bula (sobra bruta R$ 41.630 após comissões de R$ 10.242). Share Bula/FdB: 7 lotes / R$ 410.400 (4,0% do VGV) para 4 clientes (PA/MT/GO/BA). Douglas Bispo R$ 207k (50,4%) · Fábio Omena R$ 203,4k (49,6%, inclui lote #6 em co-assessoria com Leandro Moura).',
   por_assessor: [
@@ -132,6 +136,8 @@ const ipb = {
   compradores_unicos: 2,
   estados_alcancados: 0,
   comissao_assessoria: 3645,
+  receita_bula: 13060.80,    // 1% × VGV total do leilão (R$ 1,31 MM)
+  sobra_bruta: 9415.80,      // receita_bula − comissao_assessoria
   observacoes:
     'VGV total do leilão: R$ 1,31 MM (42 lotes · 76 animais · média R$ 17.185/animal). Participação Bula/FdB: 13,4% (7 lotes · R$ 175.200 · 14 animais). Receita Bula Assessoria: R$ 13.060,80 (1% do faturamento) — sobra bruta R$ 9.416 após comissões de R$ 3.645 (Fábio Omena opera com 3%, demais com 2%). Maior lance: Lote 22 (Leonardo Serafim · R$ 69.000). Detalhamento lote-a-lote dos 4 lotes adicionais de Leonardo (R$ 44,1k) e 1 de Fábio (R$ 14,1k) pendente — completar via CRM Bula.',
   por_assessor: [

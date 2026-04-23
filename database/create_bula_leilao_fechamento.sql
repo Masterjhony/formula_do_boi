@@ -22,12 +22,15 @@ CREATE TABLE IF NOT EXISTS public.bula_leilao_fechamento (
   lances              JSONB DEFAULT '[]'::jsonb,
   perfil_genetico     JSONB DEFAULT NULL,
   comissao_assessoria NUMERIC(12,2) DEFAULT 0,
+  receita_bula        NUMERIC(12,2) DEFAULT 0,
+  sobra_bruta         NUMERIC(12,2) DEFAULT 0,
   observacoes         TEXT DEFAULT '',
   created_at          TIMESTAMPTZ DEFAULT NOW(),
   updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE public.bula_leilao_fechamento ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "bula_fechamento_all" ON public.bula_leilao_fechamento;
 CREATE POLICY "bula_fechamento_all"
   ON public.bula_leilao_fechamento
   FOR ALL TO authenticated
