@@ -715,33 +715,65 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
 
 // ── Form Modal ─────────────────────────────────────────────────────────────────
 
-type FormData = Omit<Fechamento, 'id' | 'created_at' | 'por_assessor' | 'por_estado' | 'compradores' | 'lances' | 'perfil_genetico'> & {
-  por_assessor_json: string
-  por_estado_json: string
-  compradores_json: string
-  lances_json: string
-  perfil_genetico_json: string
-}
+type FormData = Omit<Fechamento, 'id' | 'created_at'>
 
 function toFormData(f: Fechamento | null): FormData {
-  if (!f) return {
-    ...emptyForm(),
-    por_assessor_json: '[]', por_estado_json: '[]',
-    compradores_json: '[]', lances_json: '[]', perfil_genetico_json: '',
-  }
+  if (!f) return emptyForm()
   return {
     nome: f.nome, data: f.data, local: f.local,
     lotes_ofertados: f.lotes_ofertados, lotes_vendidos: f.lotes_vendidos,
     animais_vendidos: f.animais_vendidos, vgv_total: f.vgv_total,
     ticket_medio: f.ticket_medio, maior_lance: f.maior_lance,
     compradores_unicos: f.compradores_unicos, estados_alcancados: f.estados_alcancados,
+    por_assessor: f.por_assessor ?? [], por_estado: f.por_estado ?? [],
+    compradores: f.compradores ?? [], lances: f.lances ?? [],
+    perfil_genetico: f.perfil_genetico ?? null,
+    lotes_catalogo: f.lotes_catalogo,
+    distribuicao_empresa: f.distribuicao_empresa,
     comissao_assessoria: f.comissao_assessoria, observacoes: f.observacoes,
-    por_assessor_json: JSON.stringify(f.por_assessor, null, 2),
-    por_estado_json: JSON.stringify(f.por_estado, null, 2),
-    compradores_json: JSON.stringify(f.compradores, null, 2),
-    lances_json: JSON.stringify(f.lances, null, 2),
-    perfil_genetico_json: f.perfil_genetico ? JSON.stringify(f.perfil_genetico, null, 2) : '',
   }
+}
+
+type FormTab = 'basico' | 'assessores' | 'compradores' | 'lances' | 'estados' | 'genetica'
+
+function FormField({ label, required, children, className }: {
+  label: string; required?: boolean; children: React.ReactNode; className?: string
+}) {
+  return (
+    <div className={className}>
+      <label className="block text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
+      </label>
+      {children}
+    </div>
+  )
+}
+
+function RowCard({ title, onRemove, children }: { title: string; onRemove: () => void; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#151515] p-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 truncate">{title}</span>
+        <button onClick={onRemove} className="p-1 rounded text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 flex-shrink-0" title="Remover">
+          <Trash2 size={12} />
+        </button>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function AddRowButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick}
+      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#B8860B]/10 hover:bg-[#B8860B]/20 text-[#B8860B] text-[10px] font-bold uppercase tracking-wide transition-colors">
+      <Plus size={12} /> {label}
+    </button>
+  )
+}
+
+function EmptyRows({ label }: { label: string }) {
+  return <p className="text-center text-gray-400 text-xs py-6 border border-dashed border-gray-200 dark:border-[#2A2A2A] rounded-xl">{label}</p>
 }
 
 function FechamentoFormModal({ initial, onClose, onSaved }: {
@@ -751,22 +783,22 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
   const [form, setForm] = useState<FormData>(() => toFormData(initial))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [formTab, setFormTab] = useState<'basico' | 'assessores' | 'compradores' | 'lances' | 'estados' | 'genetica'>('basico')
+  const [formTab, setFormTab] = useState<FormTab>('basico')
 
   const set = <K extends keyof FormData>(k: K, v: FormData[K]) => setForm(p => ({ ...p, [k]: v }))
+
+  type RowKey = 'por_assessor' | 'por_estado' | 'compradores' | 'lances'
+  const addRow = <K extends RowKey>(k: K, item: FormData[K][number]) =>
+    setForm(p => ({ ...p, [k]: [...p[k], item] as FormData[K] }))
+  const updateRow = <K extends RowKey>(k: K, i: number, patch: Partial<FormData[K][number]>) =>
+    setForm(p => ({ ...p, [k]: p[k].map((r, j) => j === i ? { ...r, ...patch } : r) as FormData[K] }))
+  const removeRow = <K extends RowKey>(k: K, i: number) =>
+    setForm(p => ({ ...p, [k]: p[k].filter((_, j) => j !== i) as FormData[K] }))
 
   const handleSubmit = async () => {
     if (!form.nome.trim() || !form.data) { setError('Preencha nome e data'); return }
     setSaving(true); setError(null)
     try {
-      let por_assessor, por_estado, compradores, lances, perfil_genetico = null
-      try { por_assessor = JSON.parse(form.por_assessor_json || '[]') } catch { throw new Error('JSON inválido em Assessores') }
-      try { por_estado = JSON.parse(form.por_estado_json || '[]') } catch { throw new Error('JSON inválido em Estados') }
-      try { compradores = JSON.parse(form.compradores_json || '[]') } catch { throw new Error('JSON inválido em Compradores') }
-      try { lances = JSON.parse(form.lances_json || '[]') } catch { throw new Error('JSON inválido em Lances') }
-      if (form.perfil_genetico_json.trim()) {
-        try { perfil_genetico = JSON.parse(form.perfil_genetico_json) } catch { throw new Error('JSON inválido em Perfil Genético') }
-      }
       const payload = {
         nome: form.nome, data: form.data, local: form.local,
         lotes_ofertados: form.lotes_ofertados, lotes_vendidos: form.lotes_vendidos,
@@ -774,7 +806,9 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
         ticket_medio: form.ticket_medio, maior_lance: form.maior_lance,
         compradores_unicos: form.compradores_unicos, estados_alcancados: form.estados_alcancados,
         comissao_assessoria: form.comissao_assessoria, observacoes: form.observacoes,
-        por_assessor, por_estado, compradores, lances, perfil_genetico,
+        por_assessor: form.por_assessor, por_estado: form.por_estado,
+        compradores: form.compradores, lances: form.lances,
+        perfil_genetico: form.perfil_genetico,
       }
       const url = isEdit ? `/api/bula/fechamento/${initial!.id}` : '/api/bula/fechamento'
       const res = await fetch(url, { method: isEdit ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -784,40 +818,21 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
     finally { setSaving(false) }
   }
 
-  const Field = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
-    <div>
-      <label className="block text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
-        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
-      </label>
-      {children}
-    </div>
-  )
-
-  const JsonEditor = ({ label, field }: { label: string; field: keyof FormData }) => (
-    <Field label={label}>
-      <textarea
-        className={`${inputCls} font-mono text-[11px] h-48 resize-none`}
-        value={form[field] as string}
-        onChange={e => set(field, e.target.value as FormData[typeof field])}
-        placeholder="[]"
-        spellCheck={false}
-      />
-    </Field>
-  )
-
-  const FORM_TABS = [
+  const FORM_TABS: { key: FormTab; label: string }[] = [
     { key: 'basico', label: 'Básico' },
-    { key: 'assessores', label: 'Assessores' },
-    { key: 'compradores', label: 'Compradores' },
-    { key: 'lances', label: 'Lances' },
-    { key: 'estados', label: 'Estados' },
+    { key: 'assessores', label: `Assessores (${form.por_assessor.length})` },
+    { key: 'compradores', label: `Compradores (${form.compradores.length})` },
+    { key: 'lances', label: `Lances (${form.lances.length})` },
+    { key: 'estados', label: `Estados (${form.por_estado.length})` },
     { key: 'genetica', label: 'Genética' },
-  ] as const
+  ]
+
+  const pg = form.perfil_genetico
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      <div className="relative w-full max-w-2xl bg-white dark:bg-[#111111] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-3xl bg-white dark:bg-[#111111] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         {/* Modal header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#1E1E1E]">
           <h2 className="font-bold text-gray-900 dark:text-white text-lg">{isEdit ? 'Editar Fechamento' : 'Novo Fechamento'}</h2>
@@ -839,60 +854,194 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
           {formTab === 'basico' && (
             <>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Nome do Leilão" required><input className={inputCls} value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: Nelore MRA 50 Anos" /></Field>
-                <Field label="Data" required><input type="date" className={inputCls} value={form.data} onChange={e => set('data', e.target.value)} /></Field>
+                <FormField label="Nome do Leilão" required><input className={inputCls} value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: Nelore MRA 50 Anos" /></FormField>
+                <FormField label="Data" required><input type="date" className={inputCls} value={form.data} onChange={e => set('data', e.target.value)} /></FormField>
               </div>
-              <Field label="Local"><input className={inputCls} value={form.local} onChange={e => set('local', e.target.value)} placeholder="Ex: Fazenda Paraíso – Terenos, MS" /></Field>
+              <FormField label="Local"><input className={inputCls} value={form.local} onChange={e => set('local', e.target.value)} placeholder="Ex: Fazenda Paraíso – Terenos, MS" /></FormField>
               <div className="grid grid-cols-3 gap-3">
-                <Field label="Lotes Ofertados"><input type="number" className={inputCls} value={form.lotes_ofertados || ''} onChange={e => set('lotes_ofertados', Number(e.target.value))} min={0} /></Field>
-                <Field label="Lotes Vendidos"><input type="number" className={inputCls} value={form.lotes_vendidos || ''} onChange={e => set('lotes_vendidos', Number(e.target.value))} min={0} /></Field>
-                <Field label="Animais Vendidos"><input type="number" className={inputCls} value={form.animais_vendidos || ''} onChange={e => set('animais_vendidos', Number(e.target.value))} min={0} /></Field>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <Field label="VGV Total (R$)"><input type="number" className={inputCls} value={form.vgv_total || ''} onChange={e => set('vgv_total', Number(e.target.value))} min={0} /></Field>
-                <Field label="Ticket Médio (R$)"><input type="number" className={inputCls} value={form.ticket_medio || ''} onChange={e => set('ticket_medio', Number(e.target.value))} min={0} /></Field>
-                <Field label="Maior Lance (R$/parc.)"><input type="number" className={inputCls} value={form.maior_lance || ''} onChange={e => set('maior_lance', Number(e.target.value))} min={0} /></Field>
+                <FormField label="Lotes Ofertados"><input type="number" className={inputCls} value={form.lotes_ofertados || ''} onChange={e => set('lotes_ofertados', Number(e.target.value))} min={0} /></FormField>
+                <FormField label="Lotes Vendidos"><input type="number" className={inputCls} value={form.lotes_vendidos || ''} onChange={e => set('lotes_vendidos', Number(e.target.value))} min={0} /></FormField>
+                <FormField label="Animais Vendidos"><input type="number" className={inputCls} value={form.animais_vendidos || ''} onChange={e => set('animais_vendidos', Number(e.target.value))} min={0} /></FormField>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <Field label="Compradores Únicos"><input type="number" className={inputCls} value={form.compradores_unicos || ''} onChange={e => set('compradores_unicos', Number(e.target.value))} min={0} /></Field>
-                <Field label="Estados Alcançados"><input type="number" className={inputCls} value={form.estados_alcancados || ''} onChange={e => set('estados_alcancados', Number(e.target.value))} min={0} /></Field>
-                <Field label="Comissão Assessoria (R$)"><input type="number" className={inputCls} value={form.comissao_assessoria || ''} onChange={e => set('comissao_assessoria', Number(e.target.value))} min={0} /></Field>
+                <FormField label="VGV Total (R$)"><input type="number" className={inputCls} value={form.vgv_total || ''} onChange={e => set('vgv_total', Number(e.target.value))} min={0} /></FormField>
+                <FormField label="Ticket Médio (R$)"><input type="number" className={inputCls} value={form.ticket_medio || ''} onChange={e => set('ticket_medio', Number(e.target.value))} min={0} /></FormField>
+                <FormField label="Maior Lance (R$/parc.)"><input type="number" className={inputCls} value={form.maior_lance || ''} onChange={e => set('maior_lance', Number(e.target.value))} min={0} /></FormField>
               </div>
-              <Field label="Observações">
+              <div className="grid grid-cols-3 gap-3">
+                <FormField label="Compradores Únicos"><input type="number" className={inputCls} value={form.compradores_unicos || ''} onChange={e => set('compradores_unicos', Number(e.target.value))} min={0} /></FormField>
+                <FormField label="Estados Alcançados"><input type="number" className={inputCls} value={form.estados_alcancados || ''} onChange={e => set('estados_alcancados', Number(e.target.value))} min={0} /></FormField>
+                <FormField label="Comissão Assessoria (R$)"><input type="number" className={inputCls} value={form.comissao_assessoria || ''} onChange={e => set('comissao_assessoria', Number(e.target.value))} min={0} /></FormField>
+              </div>
+              <FormField label="Observações">
                 <textarea className={`${inputCls} h-24 resize-none`} value={form.observacoes} onChange={e => set('observacoes', e.target.value)} placeholder="Notas sobre o fechamento..." />
-              </Field>
+              </FormField>
             </>
           )}
+
           {formTab === 'assessores' && (
-            <div className="space-y-2">
-              <p className="text-[10px] text-gray-400">Formato esperado: array de objetos com campos <code className="text-[#B8860B]">posicao, nome, empresa, transacoes, animais, vgv, ticket_medio, pct_total</code></p>
-              <JsonEditor label="Por Assessor (JSON)" field="por_assessor_json" />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">Assessores e suas métricas no leilão.</p>
+                <AddRowButton label="Adicionar assessor" onClick={() => addRow('por_assessor', {
+                  posicao: form.por_assessor.length + 1, nome: '', empresa: '',
+                  transacoes: 0, animais: 0, vgv: 0, ticket_medio: 0, pct_total: 0,
+                })} />
+              </div>
+              {form.por_assessor.length === 0 && <EmptyRows label="Nenhum assessor adicionado" />}
+              {form.por_assessor.map((a, i) => (
+                <RowCard key={i} title={`#${a.posicao || i + 1} — ${a.nome || 'Novo assessor'}`} onRemove={() => removeRow('por_assessor', i)}>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <FormField label="Posição"><input type="number" className={inputCls} value={a.posicao || ''} onChange={e => updateRow('por_assessor', i, { posicao: Number(e.target.value) })} min={1} /></FormField>
+                    <FormField label="Nome" className="md:col-span-2"><input className={inputCls} value={a.nome} onChange={e => updateRow('por_assessor', i, { nome: e.target.value })} placeholder="Nome do assessor" /></FormField>
+                    <FormField label="Empresa"><input className={inputCls} value={a.empresa} onChange={e => updateRow('por_assessor', i, { empresa: e.target.value })} placeholder="Ex: Bula Remates" /></FormField>
+                    <FormField label="Transações"><input type="number" className={inputCls} value={a.transacoes || ''} onChange={e => updateRow('por_assessor', i, { transacoes: Number(e.target.value) })} min={0} /></FormField>
+                    <FormField label="Animais"><input type="number" className={inputCls} value={a.animais || ''} onChange={e => updateRow('por_assessor', i, { animais: Number(e.target.value) })} min={0} /></FormField>
+                    <FormField label="VGV (R$)"><input type="number" className={inputCls} value={a.vgv || ''} onChange={e => updateRow('por_assessor', i, { vgv: Number(e.target.value) })} min={0} /></FormField>
+                    <FormField label="Ticket Médio (R$)"><input type="number" className={inputCls} value={a.ticket_medio || ''} onChange={e => updateRow('por_assessor', i, { ticket_medio: Number(e.target.value) })} min={0} /></FormField>
+                    <FormField label="% Total (0–1)" className="md:col-span-4"><input type="number" step="0.01" className={inputCls} value={a.pct_total || ''} onChange={e => updateRow('por_assessor', i, { pct_total: Number(e.target.value) })} min={0} max={1} placeholder="Ex: 0.35 para 35%" /></FormField>
+                  </div>
+                </RowCard>
+              ))}
             </div>
           )}
+
           {formTab === 'compradores' && (
-            <div className="space-y-2">
-              <p className="text-[10px] text-gray-400">Campos: <code className="text-[#B8860B]">rank, fazenda, comprador, cidade, uf, lotes, animais, vgv</code></p>
-              <JsonEditor label="Compradores (JSON)" field="compradores_json" />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">Ranking dos compradores.</p>
+                <AddRowButton label="Adicionar comprador" onClick={() => addRow('compradores', {
+                  rank: form.compradores.length + 1, fazenda: '', comprador: '', cidade: '', uf: '',
+                  lotes: 0, animais: 0, vgv: 0,
+                })} />
+              </div>
+              {form.compradores.length === 0 && <EmptyRows label="Nenhum comprador adicionado" />}
+              {form.compradores.map((c, i) => (
+                <RowCard key={i} title={`#${c.rank || i + 1} — ${c.fazenda || 'Novo comprador'}`} onRemove={() => removeRow('compradores', i)}>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <FormField label="Rank"><input type="number" className={inputCls} value={c.rank || ''} onChange={e => updateRow('compradores', i, { rank: Number(e.target.value) })} min={1} /></FormField>
+                    <FormField label="Fazenda" className="md:col-span-3"><input className={inputCls} value={c.fazenda} onChange={e => updateRow('compradores', i, { fazenda: e.target.value })} placeholder="Ex: Fazenda Paraíso" /></FormField>
+                    <FormField label="Comprador" className="md:col-span-2"><input className={inputCls} value={c.comprador} onChange={e => updateRow('compradores', i, { comprador: e.target.value })} placeholder="Nome do comprador" /></FormField>
+                    <FormField label="Cidade"><input className={inputCls} value={c.cidade} onChange={e => updateRow('compradores', i, { cidade: e.target.value })} placeholder="Cidade" /></FormField>
+                    <FormField label="UF"><input className={inputCls} value={c.uf} onChange={e => updateRow('compradores', i, { uf: e.target.value.toUpperCase() })} maxLength={2} placeholder="MS" /></FormField>
+                    <FormField label="Lotes"><input type="number" className={inputCls} value={c.lotes || ''} onChange={e => updateRow('compradores', i, { lotes: Number(e.target.value) })} min={0} /></FormField>
+                    <FormField label="Animais"><input type="number" className={inputCls} value={c.animais || ''} onChange={e => updateRow('compradores', i, { animais: Number(e.target.value) })} min={0} /></FormField>
+                    <FormField label="VGV (R$)" className="md:col-span-2"><input type="number" className={inputCls} value={c.vgv || ''} onChange={e => updateRow('compradores', i, { vgv: Number(e.target.value) })} min={0} /></FormField>
+                  </div>
+                </RowCard>
+              ))}
             </div>
           )}
+
           {formTab === 'lances' && (
-            <div className="space-y-2">
-              <p className="text-[10px] text-gray-400">Campos: <code className="text-[#B8860B]">lote, fazenda, comprador, uf, assessor, empresa, animais, parcela, vgv</code></p>
-              <JsonEditor label="Lances (JSON)" field="lances_json" />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">Cada lance corresponde a um lote vendido.</p>
+                <AddRowButton label="Adicionar lance" onClick={() => addRow('lances', {
+                  lote: '', fazenda: '', comprador: '', uf: '', assessor: '', empresa: '',
+                  animais: 0, parcela: 0, vgv: 0,
+                })} />
+              </div>
+              {form.lances.length === 0 && <EmptyRows label="Nenhum lance adicionado" />}
+              {form.lances.map((l, i) => (
+                <RowCard key={i} title={`Lote ${l.lote || (i + 1)} — ${l.fazenda || '—'}`} onRemove={() => removeRow('lances', i)}>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <FormField label="Lote"><input className={inputCls} value={l.lote} onChange={e => updateRow('lances', i, { lote: e.target.value })} placeholder="Ex: 1" /></FormField>
+                    <FormField label="UF"><input className={inputCls} value={l.uf} onChange={e => updateRow('lances', i, { uf: e.target.value.toUpperCase() })} maxLength={2} placeholder="MS" /></FormField>
+                    <FormField label="Animais"><input type="number" className={inputCls} value={l.animais || ''} onChange={e => updateRow('lances', i, { animais: Number(e.target.value) })} min={0} /></FormField>
+                    <FormField label="Parcela (R$)"><input type="number" className={inputCls} value={l.parcela || ''} onChange={e => updateRow('lances', i, { parcela: Number(e.target.value) })} min={0} /></FormField>
+                    <FormField label="Fazenda" className="md:col-span-2"><input className={inputCls} value={l.fazenda} onChange={e => updateRow('lances', i, { fazenda: e.target.value })} placeholder="Nome da fazenda" /></FormField>
+                    <FormField label="Comprador" className="md:col-span-2"><input className={inputCls} value={l.comprador} onChange={e => updateRow('lances', i, { comprador: e.target.value })} placeholder="Nome do comprador" /></FormField>
+                    <FormField label="Assessor" className="md:col-span-2"><input className={inputCls} value={l.assessor} onChange={e => updateRow('lances', i, { assessor: e.target.value })} placeholder="Nome do assessor" /></FormField>
+                    <FormField label="Empresa"><input className={inputCls} value={l.empresa} onChange={e => updateRow('lances', i, { empresa: e.target.value })} placeholder="Ex: Bula Remates" /></FormField>
+                    <FormField label="VGV (R$)"><input type="number" className={inputCls} value={l.vgv || ''} onChange={e => updateRow('lances', i, { vgv: Number(e.target.value) })} min={0} /></FormField>
+                  </div>
+                </RowCard>
+              ))}
             </div>
           )}
+
           {formTab === 'estados' && (
-            <div className="space-y-2">
-              <p className="text-[10px] text-gray-400">Campos: <code className="text-[#B8860B]">uf, estado, lotes, animais, vgv, pct_total</code></p>
-              <JsonEditor label="Por Estado (JSON)" field="por_estado_json" />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">Distribuição do VGV por estado.</p>
+                <AddRowButton label="Adicionar estado" onClick={() => addRow('por_estado', {
+                  uf: '', estado: '', lotes: 0, animais: 0, vgv: 0, pct_total: 0,
+                })} />
+              </div>
+              {form.por_estado.length === 0 && <EmptyRows label="Nenhum estado adicionado" />}
+              {form.por_estado.map((e, i) => (
+                <RowCard key={i} title={`${e.uf || '—'}${e.estado ? ` — ${e.estado}` : ''}`} onRemove={() => removeRow('por_estado', i)}>
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                    <FormField label="UF"><input className={inputCls} value={e.uf} onChange={ev => updateRow('por_estado', i, { uf: ev.target.value.toUpperCase() })} maxLength={2} placeholder="MS" /></FormField>
+                    <FormField label="Estado" className="md:col-span-3"><input className={inputCls} value={e.estado} onChange={ev => updateRow('por_estado', i, { estado: ev.target.value })} placeholder="Mato Grosso do Sul" /></FormField>
+                    <FormField label="Lotes"><input type="number" className={inputCls} value={e.lotes || ''} onChange={ev => updateRow('por_estado', i, { lotes: Number(ev.target.value) })} min={0} /></FormField>
+                    <FormField label="Animais"><input type="number" className={inputCls} value={e.animais || ''} onChange={ev => updateRow('por_estado', i, { animais: Number(ev.target.value) })} min={0} /></FormField>
+                    <FormField label="VGV (R$)" className="md:col-span-3"><input type="number" className={inputCls} value={e.vgv || ''} onChange={ev => updateRow('por_estado', i, { vgv: Number(ev.target.value) })} min={0} /></FormField>
+                    <FormField label="% Total (0–1)" className="md:col-span-3"><input type="number" step="0.01" className={inputCls} value={e.pct_total || ''} onChange={ev => updateRow('por_estado', i, { pct_total: Number(ev.target.value) })} min={0} max={1} placeholder="Ex: 0.25 para 25%" /></FormField>
+                  </div>
+                </RowCard>
+              ))}
             </div>
           )}
+
           {formTab === 'genetica' && (
-            <div className="space-y-2">
-              <p className="text-[10px] text-gray-400">Objeto com campos <code className="text-[#B8860B]">indices</code> (array) e <code className="text-[#B8860B]">crias_sexo</code> (array). Deixe vazio se não houver.</p>
-              <JsonEditor label="Perfil Genético (JSON)" field="perfil_genetico_json" />
+            <div className="space-y-4">
+              <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                <input type="checkbox" checked={!!pg}
+                  onChange={e => set('perfil_genetico', e.target.checked ? { indices: [], crias_sexo: [] } : null)} />
+                Registrar perfil genético
+              </label>
+
+              {pg && (
+                <>
+                  {/* Índices */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">Índices Genéticos ({pg.indices.length})</p>
+                      <AddRowButton label="Adicionar índice" onClick={() => set('perfil_genetico', {
+                        ...pg, indices: [...pg.indices, { fonte: '', media_vendida: 0, media_catalogo: 0, diferenca: '', classificacao: '' }]
+                      })} />
+                    </div>
+                    {pg.indices.length === 0 && <EmptyRows label="Nenhum índice adicionado" />}
+                    {pg.indices.map((idx, i) => (
+                      <RowCard key={i} title={idx.fonte || `Índice #${i + 1}`} onRemove={() => set('perfil_genetico', { ...pg, indices: pg.indices.filter((_, j) => j !== i) })}>
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                          <FormField label="Fonte"><input className={inputCls} value={idx.fonte} onChange={e => set('perfil_genetico', { ...pg, indices: pg.indices.map((x, j) => j === i ? { ...x, fonte: e.target.value } : x) })} placeholder="Ex: iABCZ" /></FormField>
+                          <FormField label="Média Vendida"><input type="number" step="0.01" className={inputCls} value={idx.media_vendida || ''} onChange={e => set('perfil_genetico', { ...pg, indices: pg.indices.map((x, j) => j === i ? { ...x, media_vendida: Number(e.target.value) } : x) })} /></FormField>
+                          <FormField label="Média Catálogo"><input type="number" step="0.01" className={inputCls} value={idx.media_catalogo || ''} onChange={e => set('perfil_genetico', { ...pg, indices: pg.indices.map((x, j) => j === i ? { ...x, media_catalogo: Number(e.target.value) } : x) })} /></FormField>
+                          <FormField label="Diferença"><input className={inputCls} value={idx.diferenca} onChange={e => set('perfil_genetico', { ...pg, indices: pg.indices.map((x, j) => j === i ? { ...x, diferenca: e.target.value } : x) })} placeholder="Ex: +12.5%" /></FormField>
+                          <FormField label="Classificação"><input className={inputCls} value={idx.classificacao} onChange={e => set('perfil_genetico', { ...pg, indices: pg.indices.map((x, j) => j === i ? { ...x, classificacao: e.target.value } : x) })} placeholder="Ex: Elite" /></FormField>
+                        </div>
+                      </RowCard>
+                    ))}
+                  </div>
+
+                  {/* Crias por sexo */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">Sexo das Crias ({pg.crias_sexo.length})</p>
+                      <AddRowButton label="Adicionar" onClick={() => set('perfil_genetico', {
+                        ...pg, crias_sexo: [...pg.crias_sexo, { sexo: '', quantidade: 0, pct: 0, observacao: '' }]
+                      })} />
+                    </div>
+                    {pg.crias_sexo.length === 0 && <EmptyRows label="Nenhuma cria adicionada" />}
+                    {pg.crias_sexo.map((s, i) => (
+                      <RowCard key={i} title={s.sexo || `Cria #${i + 1}`} onRemove={() => set('perfil_genetico', { ...pg, crias_sexo: pg.crias_sexo.filter((_, j) => j !== i) })}>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          <FormField label="Sexo"><input className={inputCls} value={s.sexo} onChange={e => set('perfil_genetico', { ...pg, crias_sexo: pg.crias_sexo.map((x, j) => j === i ? { ...x, sexo: e.target.value } : x) })} placeholder="Macho / Fêmea" /></FormField>
+                          <FormField label="Quantidade"><input type="number" className={inputCls} value={s.quantidade || ''} onChange={e => set('perfil_genetico', { ...pg, crias_sexo: pg.crias_sexo.map((x, j) => j === i ? { ...x, quantidade: Number(e.target.value) } : x) })} min={0} /></FormField>
+                          <FormField label="% (0–1)"><input type="number" step="0.01" className={inputCls} value={s.pct || ''} onChange={e => set('perfil_genetico', { ...pg, crias_sexo: pg.crias_sexo.map((x, j) => j === i ? { ...x, pct: Number(e.target.value) } : x) })} min={0} max={1} /></FormField>
+                          <FormField label="Observação"><input className={inputCls} value={s.observacao} onChange={e => set('perfil_genetico', { ...pg, crias_sexo: pg.crias_sexo.map((x, j) => j === i ? { ...x, observacao: e.target.value } : x) })} placeholder="Ex: padrão" /></FormField>
+                        </div>
+                      </RowCard>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
+
           {error && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm">
               <AlertCircle size={15} /> {error}
