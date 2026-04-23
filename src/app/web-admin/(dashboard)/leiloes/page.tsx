@@ -444,7 +444,7 @@ function FormModal({ initial, onClose, onSaved }: {
   )
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div className="relative w-full max-w-2xl bg-white dark:bg-[#111111] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#1E1E1E]">
@@ -517,6 +517,12 @@ function FormModal({ initial, onClose, onSaved }: {
             <Field label="Frete grátis"><input className={iCls} value={form.frete_gratis} onChange={e => set('frete_gratis', e.target.value)} placeholder="Ex: Brasil inteiro" /></Field>
             <Field label="Comissão"><input className={iCls} value={form.acordo_comissao} onChange={e => set('acordo_comissao', e.target.value)} placeholder="Ex: 8% comprador" /></Field>
           </div>
+          {isEdit && initial && (
+            <div className="pt-1 border-t border-gray-100 dark:border-[#1E1E1E]">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">Checklist Operacional</p>
+              <ChecklistPanel leilao={initial} onUpdate={() => {}} />
+            </div>
+          )}
           {error && <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm"><AlertCircle size={15} /> {error}</div>}
         </form>
         <div className="px-6 py-4 border-t border-gray-100 dark:border-[#1E1E1E] flex justify-end gap-3">
@@ -561,7 +567,7 @@ function CronogramaFormModal({ initial, onClose, onSaved }: { initial: DbLeilao 
   )
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div className="relative w-full max-w-3xl bg-white dark:bg-[#111111] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#1E1E1E]">
