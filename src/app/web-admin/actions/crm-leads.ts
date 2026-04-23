@@ -19,6 +19,10 @@ export interface CRMLead {
     created_at: string;
     updated_at: string;
     position: number;
+    // Funil de vendas
+    funnel_id?: string | null;
+    valor_estimado?: number | null;
+    probabilidade?: number | null;
     // Campos da integração Google Sheets
     instagram?: string | null;
     estado?: string | null;
@@ -33,13 +37,19 @@ export interface CRMLead {
     extra_data?: Record<string, any> | null;
 }
 
-export async function getLeads(): Promise<CRMLead[]> {
+export async function getLeads(funnelId?: string): Promise<CRMLead[]> {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
+    let query = supabase
         .from('crm_leads')
         .select('*')
         .order('position', { ascending: true });
+
+    if (funnelId) {
+        query = query.eq('funnel_id', funnelId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
         console.error('Error fetching CRM leads:', error);
@@ -70,6 +80,7 @@ export async function createLead(data: Partial<CRMLead>): Promise<CRMLead> {
     }
 
     revalidatePath('/web-admin/crm');
+    revalidatePath('/web-admin/funil-vendas');
     return newLead as CRMLead;
 }
 
@@ -88,6 +99,7 @@ export async function updateLead(id: string, data: Partial<CRMLead>): Promise<CR
     }
 
     revalidatePath('/web-admin/crm');
+    revalidatePath('/web-admin/funil-vendas');
     return updatedLead as CRMLead;
 }
 
@@ -104,6 +116,7 @@ export async function deleteLead(id: string): Promise<void> {
     }
 
     revalidatePath('/web-admin/crm');
+    revalidatePath('/web-admin/funil-vendas');
 }
 
 export async function moveLead(id: string, newStatus: string, newPosition: number): Promise<void> {
@@ -122,4 +135,24 @@ export async function moveLead(id: string, newStatus: string, newPosition: numbe
     }
 
     revalidatePath('/web-admin/crm');
+    revalidatePath('/web-admin/funil-vendas');
+}
+
+export async function moveLeadToFunnel(id: string, funnelId: string, newStatus: string): Promise<void> {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+        .from('crm_leads')
+        .update({
+            funnel_id: funnelId,
+            status: newStatus,
+        })
+        .eq('id', id);
+
+    if (error) {
+        throw new Error(`Error moving lead to funnel: ${error.message}`);
+    }
+
+    revalidatePath('/web-admin/crm');
+    revalidatePath('/web-admin/funil-vendas');
 }

@@ -9,9 +9,10 @@ import { CRMChart } from './CRMChart';
 import { CRMTable } from './CRMTable';
 import { CRMLeadsView } from './CRMLeadsView';
 import { CRMSettingsView } from './CRMSettingsView';
+import { CRMFunnelView } from '@/components/admin/funil-vendas/CRMFunnelView';
 import {
     BarChart2, LayoutGrid, List, AlertCircle, DollarSign,
-    Plus, Maximize2, Minimize2, Users, Settings,
+    Plus, Maximize2, Minimize2, Users, Settings, TrendingUp,
 } from 'lucide-react';
 
 interface CRMDashboardClientProps {
@@ -19,7 +20,7 @@ interface CRMDashboardClientProps {
     crmConfig: CRMConfig;
 }
 
-type ViewType = 'grafico' | 'kanban' | 'todos' | 'prioridade_alta' | 'valor_alto' | 'leads' | 'configuracoes';
+type ViewType = 'grafico' | 'kanban' | 'todos' | 'prioridade_alta' | 'valor_alto' | 'funil' | 'leads' | 'configuracoes';
 
 export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: CRMDashboardClientProps) {
     const [leads, setLeads] = useState<CRMLead[]>(initialLeads);
@@ -76,6 +77,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
         { id: 'todos', label: 'Todos', icon: List },
         { id: 'prioridade_alta', label: 'Prioridade alta', icon: AlertCircle },
         { id: 'valor_alto', label: 'Valor > R$ 1000', icon: DollarSign },
+        { id: 'funil', label: 'Funil de Vendas', icon: TrendingUp },
         { id: 'leads', label: 'Leads', icon: Users },
         { id: 'configuracoes', label: 'Configurações', icon: Settings },
     ] as const;
@@ -88,6 +90,8 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
     }
 
     const isSettingsOrLeads = activeView === 'leads' || activeView === 'configuracoes';
+    const isFunnel = activeView === 'funil';
+    const isScrollable = isSettingsOrLeads || isFunnel;
 
     return (
         <div className={
@@ -119,7 +123,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                                         isActive
                                             ? 'border-[#B8860B] text-gray-900 dark:text-white bg-gray-50 dark:bg-[#1A1A1A]'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
-                                    } ${isSpecial && !isActive ? 'ml-1' : ''}`}
+                                    } ${(isSpecial || view.id === 'funil') && !isActive ? 'ml-1' : ''}`}
                                 >
                                     <Icon size={15} />
                                     {view.label}
@@ -152,7 +156,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
             </div>
 
             {/* Content */}
-            <div className={`flex-1 overflow-auto p-6 ${isSettingsOrLeads ? 'bg-gray-50/50 dark:bg-[#0A0A0A]' : 'overflow-hidden bg-gray-50/50 dark:bg-[#0A0A0A]'}`}>
+            <div className={`flex-1 overflow-auto p-6 ${isScrollable ? 'bg-gray-50/50 dark:bg-[#0A0A0A]' : 'overflow-hidden bg-gray-50/50 dark:bg-[#0A0A0A]'}`}>
                 {activeView === 'grafico' && <CRMChart leads={leads} stages={stages} />}
 
                 {activeView === 'kanban' && (
@@ -167,6 +171,14 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
 
                 {(activeView === 'todos' || activeView === 'prioridade_alta' || activeView === 'valor_alto') && (
                     <CRMTable leads={displayLeads} onEditLead={handleEditLead} />
+                )}
+
+                {activeView === 'funil' && (
+                    <CRMFunnelView
+                        leads={leads}
+                        crmConfig={crmConfig}
+                        onConfigSaved={(config) => setCrmConfig(config)}
+                    />
                 )}
 
                 {activeView === 'leads' && (
@@ -194,6 +206,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                 stages={stages}
                 customFields={crmConfig.custom_fields}
                 responsaveis={crmConfig.responsaveis}
+                funnels={crmConfig.funnels}
                 onSave={handleSaveLead}
                 onDelete={editingLead ? () => handleDeleteLead(editingLead.id) : undefined}
             />

@@ -4,25 +4,30 @@ import { useState, useEffect } from 'react';
 import { X, Save, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { CRMLead, deleteLead } from '@/app/web-admin/actions/crm-leads';
 import { CRM_COLUMNS } from './CRMKanbanBoard';
-import type { CRMCustomField, CRMResponsavel } from '@/lib/crm-types';
+import type { CRMCustomField, CRMFunnel, CRMResponsavel } from '@/lib/crm-types';
 
 interface CRMModalProps {
     isOpen: boolean;
     onClose: () => void;
     lead?: CRMLead;
     defaultStatus: string;
+    defaultFunnelId?: string;
     stages?: string[];
     customFields?: CRMCustomField[];
     responsaveis?: CRMResponsavel[];
+    funnels?: CRMFunnel[];
     onSave: (data: any) => Promise<void>;
     onDelete?: () => void;
 }
 
-export function CRMModal({ isOpen, onClose, lead, defaultStatus, stages, customFields = [], responsaveis = [], onSave, onDelete }: CRMModalProps) {
+export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId, stages, customFields = [], responsaveis = [], funnels = [], onSave, onDelete }: CRMModalProps) {
     const activeStages = stages && stages.length > 0 ? stages : CRM_COLUMNS;
     const [formData, setFormData] = useState<Partial<CRMLead>>({
         nome: '',
         status: defaultStatus,
+        funnel_id: defaultFunnelId || 'default',
+        valor_estimado: null,
+        probabilidade: null,
         prioridade: '',
         interesse: '',
         empresa: '',
@@ -50,6 +55,9 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, stages, customF
             setFormData({
                 nome: '',
                 status: defaultStatus,
+                funnel_id: defaultFunnelId || 'default',
+                valor_estimado: null,
+                probabilidade: null,
                 prioridade: '',
                 interesse: '',
                 empresa: '',
@@ -64,7 +72,7 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, stages, customF
             });
             setShowOrigemSection(false);
         }
-    }, [lead, defaultStatus, isOpen]);
+    }, [lead, defaultStatus, defaultFunnelId, isOpen]);
 
     if (!isOpen) return null;
 
@@ -137,6 +145,21 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, stages, customF
                             />
                         </div>
 
+                        {funnels.length > 1 && (
+                            <div>
+                                <label className={labelClass}>Funil</label>
+                                <select
+                                    value={formData.funnel_id || 'default'}
+                                    onChange={e => setFormData({ ...formData, funnel_id: e.target.value })}
+                                    className={`${inputClass} appearance-none`}
+                                >
+                                    {funnels.map(f => (
+                                        <option key={f.id} value={f.id}>{f.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className={labelClass}>Status</label>
@@ -161,6 +184,54 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, stages, customF
                                     <option value="Alta">Alta</option>
                                     <option value="Baixa">Baixa</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className={labelClass}>Valor estimado (R$)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={formData.valor_estimado ?? ''}
+                                    onChange={e => setFormData({ ...formData, valor_estimado: e.target.value === '' ? null : Number(e.target.value) })}
+                                    className={inputClass}
+                                    placeholder="Ex: 25000"
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Probabilidade (%)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={formData.probabilidade ?? ''}
+                                    onChange={e => setFormData({ ...formData, probabilidade: e.target.value === '' ? null : Number(e.target.value) })}
+                                    className={inputClass}
+                                    placeholder="Herda do estágio se vazio"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className={labelClass}>Data estimada fechamento</label>
+                                <input
+                                    type="date"
+                                    value={formData.data_estimada_fechamento ? formData.data_estimada_fechamento.slice(0, 10) : ''}
+                                    onChange={e => setFormData({ ...formData, data_estimada_fechamento: e.target.value || null })}
+                                    className={inputClass}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Último contato</label>
+                                <input
+                                    type="date"
+                                    value={formData.ultimo_contato ? formData.ultimo_contato.slice(0, 10) : ''}
+                                    onChange={e => setFormData({ ...formData, ultimo_contato: e.target.value || null })}
+                                    className={inputClass}
+                                />
                             </div>
                         </div>
 
