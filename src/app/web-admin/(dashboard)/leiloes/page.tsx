@@ -5,9 +5,10 @@ import {
   Plus, Edit2, Trash2, X, ExternalLink, CalendarDays, Users, Tv, Tag,
   Check, Link2, Loader2, BookOpen, Clock, MapPin, ChevronDown, ChevronUp,
   AlertCircle, CheckCircle2, Circle, FileText, ChevronRight,
-  Save, ImageIcon, Upload, LayoutGrid, Table2, DollarSign,
+  Save, ImageIcon, Upload, LayoutGrid, Table2, DollarSign, BarChart3,
 } from 'lucide-react'
 import type { BulaLeilao, LeilaoGrupo, LeilaoTask, LeilaoSubtask } from '@/lib/bula/types'
+import FechamentoView from './FechamentoView'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -848,6 +849,7 @@ function TableView({ rows, onEdit, onDelete }: { rows: MergedLeilao[]; onEdit: (
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function LeiloesPage() {
+  const [mainTab, setMainTab] = useState<'leiloes' | 'fechamento'>('leiloes')
   const [bulaLeiloes, setBulaLeiloes] = useState<(BulaLeilao & { catalogo_url?: string })[]>([])
   const [cronoLeiloes, setCronoLeiloes] = useState<DbLeilao[]>([])
   const [loading, setLoading] = useState(true)
@@ -950,15 +952,39 @@ export default function LeiloesPage() {
           <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Leilões</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{merged.length} leilões na agenda 2026</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => { setEditCrono(null); setShowCronoForm(true) }} className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-[#2A2A2A] text-gray-600 dark:text-gray-300 rounded-xl font-semibold text-sm transition-colors hover:border-[#B8860B]/40 hover:text-[#B8860B]">
-            <Plus size={15} /> Cronograma
-          </button>
-          <button onClick={() => { setEditBula(null); setShowBulaForm(true) }} className="flex items-center gap-2 px-5 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#B8860B]/20">
-            <Plus size={16} /> Novo Leilão
-          </button>
-        </div>
+        {mainTab === 'leiloes' && (
+          <div className="flex items-center gap-2">
+            <button onClick={() => { setEditCrono(null); setShowCronoForm(true) }} className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-[#2A2A2A] text-gray-600 dark:text-gray-300 rounded-xl font-semibold text-sm transition-colors hover:border-[#B8860B]/40 hover:text-[#B8860B]">
+              <Plus size={15} /> Cronograma
+            </button>
+            <button onClick={() => { setEditBula(null); setShowBulaForm(true) }} className="flex items-center gap-2 px-5 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#B8860B]/20">
+              <Plus size={16} /> Novo Leilão
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Main Tab Selector */}
+      <div className="flex gap-1 p-1 rounded-2xl bg-gray-100 dark:bg-[#151515] w-fit">
+        <button
+          onClick={() => setMainTab('leiloes')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${mainTab === 'leiloes' ? 'bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+        >
+          <CalendarDays size={14} /> Leilões
+        </button>
+        <button
+          onClick={() => setMainTab('fechamento')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${mainTab === 'fechamento' ? 'bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+        >
+          <BarChart3 size={14} /> Fechamento
+        </button>
+      </div>
+
+      {/* Fechamento tab */}
+      {mainTab === 'fechamento' && <FechamentoView />}
+
+      {/* Leilões tab content */}
+      {mainTab === 'leiloes' && <>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1066,6 +1092,8 @@ export default function LeiloesPage() {
           onSaved={() => { fetchAll() }}
         />
       )}
+
+      </> /* end mainTab === 'leiloes' */}
     </div>
   )
 }
