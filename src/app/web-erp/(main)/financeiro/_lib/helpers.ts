@@ -1,0 +1,302 @@
+import type { Transaction, BulaLeilao, FechamentoLite, UnifiedItem } from './types';
+
+export const fmt = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+export const fmtDate = (d: string) => {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+};
+
+export const today = () => new Date().toISOString().split('T')[0];
+
+export const parseMoneyText = (raw: unknown): number => {
+    if (raw == null) return 0;
+    if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
+    const s = String(raw).trim();
+    if (!s) return 0;
+    const clean = s.replace(/[^\d,.\-]/g, '').replace(/\./g, '').replace(',', '.');
+    const v = parseFloat(clean);
+    return isNaN(v) ? 0 : v;
+};
+
+// Dias de atraso (negativo = futuro). Usa UTC para evitar fuso.
+export const daysOverdue = (dueDate: string): number => {
+    if (!dueDate) return 0;
+    const due = new Date(dueDate + 'T00:00:00Z').getTime();
+    const now = new Date(today() + 'T00:00:00Z').getTime();
+    return Math.round((now - due) / 86400000);
+};
+
+export type AgingBucket = 'overdue' | 'today' | 'd7' | 'd30' | 'd90' | 'future';
+
+export const bucketOf = (dueDate: string): AgingBucket => {
+    const d = daysOverdue(dueDate);
+    if (d > 0) return 'overdue';
+    if (d === 0) return 'today';
+    if (d >= -7) return 'd7';
+    if (d >= -30) return 'd30';
+    if (d >= -90) return 'd90';
+    return 'future';
+};
+
+export const BUCKET_LABELS: Record<AgingBucket, string> = {
+    overdue: 'Vencidas',
+    today: 'Vence hoje',
+    d7: 'Próx. 7 dias',
+    d30: 'Próx. 30 dias',
+    d90: 'Próx. 90 dias',
+    future: 'Futuro',
+};
+
+export const BUCKET_COLORS: Record<AgingBucket, string> = {
+    overdue: 'bg-rose-500/10 text-rose-500 border-rose-500/30',
+    today: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
+    d7: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    d30: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    d90: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    future: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+};
+
+// ─── Extrai tag [X:Y] da observação de uma transação ─────────────────────
+export const extractSourceTag = (obs: string | null | undefined): string | null => {
+    if (!obs) return null;
+    const m = obs.match(/\[([A-Z]+:[^\]]+)\]/);
+    return m ? m[1] : null;
+};
+
+// ─── Constrói lista unificada: A RECEBER ─────────────────────────────────
+// Combina:
+//   • transactions ERP (type=income)
+//   • leilões (comissao_receber − recebido) — se não houver transação linkada
+//   • fechamentos (receita_bula) — se não houver transação linkada
+export function buildReceivables(
+    transactions: Transaction[],
+    leiloes: BulaLeilao[],
+    fechamentos: FechamentoLite[],
+): UnifiedItem[] {
+    const out: UnifiedItem[] = [];
+    const linkedTags = new Set<string>();
+
+    for (const tx of transactions) {
+        if (tx.type !== 'income') continue;
+        if (tx.status === 'cancelled') continue;
+        const tag = extractSourceTag(tx.observacao);
+        if (tag) linkedTags.add(tag);
+
+        out.push({
+            key: `tx:${tx.id}`,
+            sourceTag: tag,
+            source: 'erp',
+            txId: tx.id,
+            status: tx.status as 'pending' | 'completed' | 'cancelled',
+            type: 'income',
+            title: tx.description,
+            subtitle: tx.category?.name || '— Sem categoria',
+            party: tx.category?.name || '',
+            dueDate: tx.transaction_date,
+            amount: Number(tx.amount) || 0,
+            paid: tx.status === 'completed' ? Number(tx.amount) || 0 : 0,
+            balance: tx.status === 'completed' ? 0 : Number(tx.amount) || 0,
+            accountId: tx.account_id,
+            accountName: tx.account?.name || null,
+            categoryId: tx.category_id || null,
+            categoryName: tx.category?.name || null,
+            observacao: tx.observacao || null,
+            refId: null,
+        });
+    }
+
+    for (const l of leiloes) {
+        const total = parseMoneyText(l.comissao_receber);
+        const rec = parseMoneyText(l.recebido);
+        const saldo = total - rec;
+        if (saldo <= 0) continue;
+        const tag = `LEILAO:${l.id}`;
+        if (linkedTags.has(tag)) continue;
+        out.push({
+            key: `leilao:${l.id}`,
+            sourceTag: tag,
+            source: 'leilao',
+            txId: null,
+            status: 'virtual',
+            type: 'income',
+            title: `Comissão — ${l.nome}`,
+            subtitle: `Leilão · ${l.criador || '—'}`,
+            party: l.criador || '—',
+            dueDate: l.data || today(),
+            amount: total,
+            paid: rec,
+            balance: saldo,
+            accountId: null,
+            accountName: null,
+            categoryId: null,
+            categoryName: null,
+            observacao: null,
+            refId: l.id,
+        });
+    }
+
+    for (const f of fechamentos) {
+        const receita = Number(f.receita_bula) || 0;
+        if (receita <= 0) continue;
+        const tag = `FECHAMENTO:${f.id}:RECEITA`;
+        if (linkedTags.has(tag)) continue;
+        out.push({
+            key: `fech:${f.id}`,
+            sourceTag: tag,
+            source: 'fechamento',
+            txId: null,
+            status: 'virtual',
+            type: 'income',
+            title: `Receita Bula — ${f.nome}`,
+            subtitle: `Fechamento de leilão`,
+            party: 'Bula Assessoria',
+            dueDate: f.data || today(),
+            amount: receita,
+            paid: 0,
+            balance: receita,
+            accountId: null,
+            accountName: null,
+            categoryId: null,
+            categoryName: null,
+            observacao: null,
+            refId: f.id,
+        });
+    }
+
+    return out.sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+}
+
+// ─── Constrói lista unificada: A PAGAR ───────────────────────────────────
+export function buildPayables(
+    transactions: Transaction[],
+    fechamentos: FechamentoLite[],
+): UnifiedItem[] {
+    const out: UnifiedItem[] = [];
+    const linkedTags = new Set<string>();
+
+    for (const tx of transactions) {
+        if (tx.type !== 'expense') continue;
+        if (tx.status === 'cancelled') continue;
+        const tag = extractSourceTag(tx.observacao);
+        if (tag) linkedTags.add(tag);
+
+        out.push({
+            key: `tx:${tx.id}`,
+            sourceTag: tag,
+            source: 'erp',
+            txId: tx.id,
+            status: tx.status as 'pending' | 'completed' | 'cancelled',
+            type: 'expense',
+            title: tx.description,
+            subtitle: tx.category?.name || '— Sem categoria',
+            party: tx.category?.name || '',
+            dueDate: tx.transaction_date,
+            amount: Number(tx.amount) || 0,
+            paid: tx.status === 'completed' ? Number(tx.amount) || 0 : 0,
+            balance: tx.status === 'completed' ? 0 : Number(tx.amount) || 0,
+            accountId: tx.account_id,
+            accountName: tx.account?.name || null,
+            categoryId: tx.category_id || null,
+            categoryName: tx.category?.name || null,
+            observacao: tx.observacao || null,
+            refId: null,
+        });
+    }
+
+    for (const f of fechamentos) {
+        const comissaoTotal = Number(f.comissao_assessoria) || 0;
+        if (comissaoTotal <= 0) continue;
+        const assessores = (f.por_assessor ?? []).filter(a => a?.nome);
+        const totalVgv = assessores.reduce((s, a) => s + (Number(a.vgv) || 0), 0);
+
+        if (assessores.length > 0 && totalVgv > 0) {
+            for (const a of assessores) {
+                const share = (Number(a.vgv) || 0) / totalVgv;
+                const valor = comissaoTotal * share;
+                if (valor < 0.01) continue;
+                const key = (a.nome || '').toUpperCase().replace(/\s+/g, '_').slice(0, 40);
+                const tag = `FECHAMENTO:${f.id}:ASSESSOR:${key}`;
+                if (linkedTags.has(tag)) continue;
+                out.push({
+                    key: `fech-asses:${f.id}:${key}`,
+                    sourceTag: tag,
+                    source: 'fechamento',
+                    txId: null,
+                    status: 'virtual',
+                    type: 'expense',
+                    title: `Comissão ${a.nome} — ${f.nome}`,
+                    subtitle: a.empresa ? `${a.empresa}` : 'Assessoria',
+                    party: a.nome || '—',
+                    dueDate: f.data || today(),
+                    amount: valor,
+                    paid: 0,
+                    balance: valor,
+                    accountId: null,
+                    accountName: null,
+                    categoryId: null,
+                    categoryName: null,
+                    observacao: null,
+                    refId: f.id,
+                });
+            }
+        } else {
+            const tag = `FECHAMENTO:${f.id}:COMISSAO`;
+            if (linkedTags.has(tag)) continue;
+            out.push({
+                key: `fech-comissao:${f.id}`,
+                sourceTag: tag,
+                source: 'fechamento',
+                txId: null,
+                status: 'virtual',
+                type: 'expense',
+                title: `Comissão assessoria — ${f.nome}`,
+                subtitle: 'Equipe de assessoria',
+                party: 'Equipe de assessoria',
+                dueDate: f.data || today(),
+                amount: comissaoTotal,
+                paid: 0,
+                balance: comissaoTotal,
+                accountId: null,
+                accountName: null,
+                categoryId: null,
+                categoryName: null,
+                observacao: null,
+                refId: f.id,
+            });
+        }
+    }
+
+    return out.sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+}
+
+// ─── Export CSV ─────────────────────────────────────────────────────────
+export function toCSV(items: UnifiedItem[], title: string): string {
+    const rows = [
+        ['Vencimento', 'Parte', 'Descrição', 'Categoria', 'Conta', 'Valor', 'Pago', 'Saldo', 'Status', 'Origem'],
+        ...items.map(i => [
+            i.dueDate,
+            i.party,
+            i.title,
+            i.categoryName || '',
+            i.accountName || '',
+            i.amount.toFixed(2).replace('.', ','),
+            i.paid.toFixed(2).replace('.', ','),
+            i.balance.toFixed(2).replace('.', ','),
+            i.status,
+            i.source,
+        ]),
+    ];
+    return `# ${title}\n` + rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
+}
+
+export function downloadCSV(filename: string, csv: string) {
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}

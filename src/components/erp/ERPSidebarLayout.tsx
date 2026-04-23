@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Wallet, Package, Calculator, LogOut, Menu, X, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Wallet, Package, Calculator, LogOut, Menu, X, Settings, ChevronLeft, ChevronRight, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -54,6 +54,8 @@ export default function ERPSidebarLayout({
     const navItems = [
         { href: '/', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/financeiro', label: 'Financeiro', icon: Wallet },
+        { href: '/financeiro/a-receber', label: 'A Receber', icon: ArrowDownToLine, indent: true },
+        { href: '/financeiro/a-pagar', label: 'A Pagar', icon: ArrowUpFromLine, indent: true },
         { href: '/estoque', label: 'Estoque', icon: Package },
         { href: '/contabil', label: 'Contábil Base', icon: Calculator },
         { href: '/configuracoes', label: 'Configurações', icon: Settings },
@@ -121,17 +123,20 @@ export default function ERPSidebarLayout({
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
+                        const indent = (item as any).indent;
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
                                 title={isCollapsed ? item.label : undefined}
-                                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${isActive
+                                className={`flex items-center gap-3 rounded-xl transition-all duration-200 group ${
+                                    indent ? 'py-2 pl-9 pr-4 text-sm' : 'px-4 py-3.5'
+                                } ${isActive
                                     ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-bold shadow-lg shadow-[#B8860B]/20'
                                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:text-gray-900 dark:hover:text-white'
-                                    } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                                    } ${isCollapsed ? 'justify-center px-0 py-3.5' : ''}`}
                             >
-                                <Icon size={20} className={`${isActive ? 'text-black' : 'text-gray-400 dark:text-gray-500 group-hover:text-[#B8860B]'} transition-colors shrink-0`} />
+                                <Icon size={indent ? 16 : 20} className={`${isActive ? 'text-black' : 'text-gray-400 dark:text-gray-500 group-hover:text-[#B8860B]'} transition-colors shrink-0`} />
                                 {!isCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
                                 {isActive && !isCollapsed && <div className="ml-auto shrink-0 w-1.5 h-1.5 rounded-full bg-black/40" />}
                             </Link>
