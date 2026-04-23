@@ -1,11 +1,11 @@
 import { createClient } from '@/utils/supabase/server';
 import {
-    Package, DollarSign, TrendingUp, TrendingDown,
+    Package, DollarSign, TrendingUp,
     ExternalLink, PhoneCall, CheckCircle2, Clock, AlertTriangle,
     ArrowRight, BarChart3, Target, Flame, ListTodo, Activity,
-    Gavel, Wallet, Calendar, FileText, MessageSquare, UserCheck,
+    Gavel, Wallet, Calendar, FileText, MessageSquare,
     Award, Trophy, MapPin, Users, ShoppingCart, Sparkles,
-    ChevronRight, Crown, Hash, Timer,
+    ChevronRight, Crown, Hash, Timer, Medal, Briefcase,
 } from 'lucide-react';
 import Link from 'next/link';
 import AnalyticsDashboardCard from '@/components/admin/AnalyticsDashboardCard';
@@ -20,13 +20,6 @@ const fmtBRLCompact = (v: number) => {
     if (v >= 1_000) return `R$ ${(v / 1_000).toFixed(0)}k`;
     return fmtBRL(v);
 };
-
-function parsePrice(raw: unknown): number {
-    if (!raw) return 0;
-    const clean = raw.toString().replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '');
-    const v = parseFloat(clean);
-    return isNaN(v) ? 0 : v;
-}
 
 function daysFromNow(dateStr: string | null | undefined): number | null {
     if (!dateStr) return null;
@@ -50,19 +43,14 @@ export default async function AdminDashboard() {
     const supabase = await createClient();
 
     const [
-        { data: products },
-        { count: breedersCount },
         { data: leads },
         { data: tasks },
         { data: leiloes },
         { data: fechamentos },
         { data: completedTx },
-        { data: pendingExpenses },
         { data: finAccounts },
         { data: whatsappStats },
     ] = await Promise.all([
-        supabase.from('products').select('id, price, category, location, active, sold, details'),
-        supabase.from('breeders').select('*', { count: 'exact', head: true }),
         supabase.from('crm_leads')
             .select('id, nome, status, prioridade, data_estimada_fechamento, created_at')
             .order('created_at', { ascending: false }),
@@ -73,16 +61,12 @@ export default async function AdminDashboard() {
             .select('id, nome, data, tipo, animais, expectativa, meta_bula, realizado_bula, status, horario, modelo, leiloeira, img, local, transmissao')
             .order('data', { ascending: true }),
         supabase.from('bula_leilao_fechamento')
-            .select('id, nome, data, local, lotes_ofertados, lotes_vendidos, animais_vendidos, vgv_total, ticket_medio, maior_lance, compradores_unicos, estados_alcancados')
+            .select('id, nome, data, local, lotes_ofertados, lotes_vendidos, animais_vendidos, vgv_total, ticket_medio, maior_lance, compradores_unicos, estados_alcancados, por_assessor, por_estado, compradores, lances')
             .order('data', { ascending: false })
             .limit(20),
         supabase.from('erp_finance_transactions')
             .select('amount, type, transaction_date')
             .eq('status', 'completed'),
-        supabase.from('erp_finance_transactions')
-            .select('amount')
-            .eq('type', 'expense')
-            .eq('status', 'pending'),
         supabase.from('erp_finance_accounts')
             .select('initial_balance'),
         supabase.from('whatsapp_messages')
@@ -91,7 +75,7 @@ export default async function AdminDashboard() {
             .limit(200),
     ]);
 
-    // ── Financeiro ──────────────────────────────────────────────────────────
+    // ── Saldo ERP (apenas para KPI strip) ───────────────────────────────────
     const totalInitial = (finAccounts ?? []).reduce((s, a) => s + (Number(a.initial_balance) || 0), 0);
     const txAll = completedTx ?? [];
     const saldoAtual = txAll.reduce((s, t) =>
@@ -103,24 +87,6 @@ export default async function AdminDashboard() {
     const receitasMes = txThisMonth.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
     const despesasMes = txThisMonth.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
     const resultadoMes = receitasMes - despesasMes;
-
-    const aPagar = (pendingExpenses ?? []).reduce((s, t) => s + (Number(t.amount) || 0), 0);
-    const pendingCount = (pendingExpenses ?? []).length;
-
-    const months6 = Array.from({ length: 6 }, (_, i) => {
-        const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-        return { year: d.getFullYear(), month: d.getMonth(), label: MONTH_ABBR[d.getMonth()] };
-    });
-    const monthly6 = months6.map(m => {
-        const txs = txAll.filter(t => {
-            const d = new Date(t.transaction_date);
-            return d.getFullYear() === m.year && d.getMonth() === m.month;
-        });
-        const income = txs.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-        const expense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-        return { ...m, income, expense, net: income - expense };
-    });
-    const maxChartVal = Math.max(...monthly6.map(m => Math.max(m.income, m.expense)), 1);
 
     // ── Leilões ──────────────────────────────────────────────────────────────
     // "Próximo" = data futura E não concluído. Concluídos contam como passados
@@ -164,23 +130,69 @@ export default async function AdminDashboard() {
         ? allFechamentos.reduce((s, f) => s + (f.lotes_ofertados > 0 ? (f.lotes_vendidos / f.lotes_ofertados) : 0), 0) / allFechamentos.length * 100
         : 0;
 
-    // ── Animais / Catálogo ───────────────────────────────────────────────────
-    const allProducts = products ?? [];
-    const totalAnimals = allProducts.length;
-    let available = 0, sold = 0;
-    const categoryStats: Record<string, number> = {};
+    // ── Rankings agregados (a partir dos fechamentos) ────────────────────────
+    type AssessorAgg = { nome: string; empresa: string; vgv: number; animais: number; transacoes: number; leiloes: number };
+    type CompradorAgg = { fazenda: string; comprador: string; uf: string; vgv: number; lotes: number; animais: number };
+    type LanceTop = { lote: string; fazenda: string; comprador: string; uf: string; vgv: number; animais: number; leilao: string; data: string };
+    type UFAgg = { uf: string; estado: string; lotes: number; animais: number; vgv: number };
 
-    for (const p of allProducts) {
-        categoryStats[p.category || 'Outros'] = (categoryStats[p.category || 'Outros'] || 0) + 1;
-        const detStatus = (p.details as Record<string, string> | null)?.status;
-        const VALID = new Set(['Disponível', 'Vendido', 'Reservado', 'Inativo']);
-        const status = (detStatus && VALID.has(detStatus)) ? detStatus : p.sold ? 'Vendido' : !p.active ? 'Inativo' : 'Disponível';
-        if (status === 'Disponível') available++;
-        else if (status === 'Vendido') sold++;
+    const assessorMap = new Map<string, AssessorAgg>();
+    const compradorMap = new Map<string, CompradorAgg>();
+    const ufMap = new Map<string, UFAgg>();
+    const allLances: LanceTop[] = [];
+
+    for (const f of allFechamentos) {
+        for (const a of ((f.por_assessor ?? []) as Array<{ nome?: string; empresa?: string; vgv?: number; animais?: number; transacoes?: number }>)) {
+            const key = (a.nome || '').trim().toUpperCase();
+            if (!key) continue;
+            const cur = assessorMap.get(key) ?? { nome: a.nome || '', empresa: a.empresa || '', vgv: 0, animais: 0, transacoes: 0, leiloes: 0 };
+            cur.vgv += Number(a.vgv) || 0;
+            cur.animais += Number(a.animais) || 0;
+            cur.transacoes += Number(a.transacoes) || 0;
+            cur.leiloes += 1;
+            if (!cur.empresa && a.empresa) cur.empresa = a.empresa;
+            assessorMap.set(key, cur);
+        }
+        for (const c of ((f.compradores ?? []) as Array<{ fazenda?: string; comprador?: string; uf?: string; vgv?: number; lotes?: number; animais?: number }>)) {
+            const key = (c.fazenda || c.comprador || '').trim().toUpperCase();
+            if (!key) continue;
+            const cur = compradorMap.get(key) ?? { fazenda: c.fazenda || '', comprador: c.comprador || '', uf: c.uf || '', vgv: 0, lotes: 0, animais: 0 };
+            cur.vgv += Number(c.vgv) || 0;
+            cur.lotes += Number(c.lotes) || 0;
+            cur.animais += Number(c.animais) || 0;
+            if (!cur.uf && c.uf) cur.uf = c.uf;
+            compradorMap.set(key, cur);
+        }
+        for (const u of ((f.por_estado ?? []) as Array<{ uf?: string; estado?: string; lotes?: number; animais?: number; vgv?: number }>)) {
+            const key = (u.uf || '').trim().toUpperCase();
+            if (!key) continue;
+            const cur = ufMap.get(key) ?? { uf: u.uf || '', estado: u.estado || '', lotes: 0, animais: 0, vgv: 0 };
+            cur.lotes += Number(u.lotes) || 0;
+            cur.animais += Number(u.animais) || 0;
+            cur.vgv += Number(u.vgv) || 0;
+            ufMap.set(key, cur);
+        }
+        for (const l of ((f.lances ?? []) as Array<{ lote?: string; fazenda?: string; comprador?: string; uf?: string; vgv?: number; animais?: number }>)) {
+            if (!l.vgv) continue;
+            allLances.push({
+                lote: l.lote || '—',
+                fazenda: l.fazenda || l.comprador || '—',
+                comprador: l.comprador || '',
+                uf: l.uf || '',
+                vgv: Number(l.vgv) || 0,
+                animais: Number(l.animais) || 0,
+                leilao: f.nome,
+                data: f.data,
+            });
+        }
     }
-    const sortedCategories = Object.entries(categoryStats).sort(([, a], [, b]) => b - a).slice(0, 5);
-    const totalValue = allProducts.reduce((s, p) => s + parsePrice(p.price), 0);
-    const avgValue = totalAnimals > 0 ? totalValue / totalAnimals : 0;
+
+    const topAssessores = [...assessorMap.values()].sort((a, b) => b.vgv - a.vgv).slice(0, 5);
+    const topCompradores = [...compradorMap.values()].sort((a, b) => b.vgv - a.vgv).slice(0, 5);
+    const topUFs = [...ufMap.values()].sort((a, b) => b.vgv - a.vgv).slice(0, 5);
+    const topLances = allLances.sort((a, b) => b.vgv - a.vgv).slice(0, 5);
+    const totalVgvAssessores = [...assessorMap.values()].reduce((s, a) => s + a.vgv, 0);
+    const totalVgvUFs = [...ufMap.values()].reduce((s, u) => s + u.vgv, 0);
 
     // ── CRM ──────────────────────────────────────────────────────────────────
     const allLeads = leads ?? [];
@@ -674,98 +686,98 @@ export default async function AdminDashboard() {
                 </div>
             </div>
 
-            {/* ── Financeiro + CRM ─────────────────────────────────────────── */}
+            {/* ── Top Assessores + CRM ─────────────────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {/* Financeiro */}
-                <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-sm overflow-hidden flex flex-col">
-                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
+                {/* Top Assessores */}
+                <div className="relative bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-sm overflow-hidden flex flex-col">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-[#B8860B]/5 rounded-full blur-3xl pointer-events-none" />
+                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between relative">
                         <div className="flex items-center gap-2">
-                            <div className="p-2 bg-[#B8860B]/10 rounded-xl">
-                                <Wallet className="w-4 h-4 text-[#B8860B]" />
+                            <div className="p-2 bg-gradient-to-br from-[#B8860B]/25 to-amber-500/10 rounded-xl">
+                                <Medal className="w-4 h-4 text-[#B8860B]" />
                             </div>
-                            <h3 className="font-bold text-gray-900 dark:text-white">Financeiro</h3>
+                            <div>
+                                <h3 className="font-bold text-gray-900 dark:text-white">Top Assessores</h3>
+                                <p className="text-[10px] text-gray-500 mt-0.5">Ranking por VGV — histórico consolidado</p>
+                            </div>
                         </div>
-                        <a href="https://erp.formuladoboi.com" target="_blank" rel="noreferrer"
-                            className="text-xs text-gray-400 hover:text-[#B8860B] transition-colors flex items-center gap-1">
-                            ERP <ExternalLink size={11} />
-                        </a>
+                        <Link href="/leiloes/fechamento" className="text-xs text-gray-400 hover:text-[#B8860B] transition-colors flex items-center gap-1">
+                            Detalhes <ArrowRight size={12} />
+                        </Link>
                     </div>
 
-                    <div className="p-5 flex-1 flex flex-col gap-4">
-                        <div className="p-4 rounded-xl bg-[#B8860B]/5 border border-[#B8860B]/20">
-                            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1">Saldo atual (ERP)</p>
-                            <p className="text-2xl font-black text-gray-900 dark:text-white">{fmtBRL(saldoAtual)}</p>
-                            {pendingCount > 0 && (
-                                <p className="text-[10px] text-rose-400 mt-1 flex items-center gap-1">
-                                    <Clock size={10} /> {fmtBRL(aPagar)} a pagar ({pendingCount} título{pendingCount !== 1 ? 's' : ''})
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="rounded-xl p-3 bg-emerald-500/5 border border-emerald-500/20">
-                                <div className="flex items-center gap-1 mb-1.5">
-                                    <TrendingUp className="w-3 h-3 text-emerald-500" />
-                                    <span className="text-[9px] text-gray-500 uppercase tracking-wide font-medium">Receitas</span>
-                                </div>
-                                <p className="text-base font-bold text-emerald-500">{fmtBRL(receitasMes)}</p>
-                                <p className="text-[9px] text-gray-500 mt-0.5">este mês</p>
+                    <div className="p-5 flex-1 flex flex-col gap-3 relative">
+                        {topAssessores.length === 0 ? (
+                            <div className="flex-1 flex flex-col items-center justify-center py-8 text-gray-400">
+                                <Medal className="w-10 h-10 mb-2 opacity-30" />
+                                <p className="text-sm">Sem fechamentos com assessores registrados.</p>
                             </div>
-                            <div className="rounded-xl p-3 bg-rose-500/5 border border-rose-500/20">
-                                <div className="flex items-center gap-1 mb-1.5">
-                                    <TrendingDown className="w-3 h-3 text-rose-400" />
-                                    <span className="text-[9px] text-gray-500 uppercase tracking-wide font-medium">Despesas</span>
-                                </div>
-                                <p className="text-base font-bold text-rose-400">{fmtBRL(despesasMes)}</p>
-                                <p className="text-[9px] text-gray-500 mt-0.5">este mês</p>
-                            </div>
-                        </div>
-
-                        <div className={`rounded-xl px-4 py-3 ${resultadoMes >= 0 ? 'bg-emerald-500/5 border border-emerald-500/20' : 'bg-rose-500/5 border border-rose-500/20'}`}>
-                            <p className="text-[9px] text-gray-500 uppercase tracking-wide font-medium">Resultado do mês</p>
-                            <p className={`text-xl font-black mt-1 ${resultadoMes >= 0 ? 'text-emerald-500' : 'text-rose-400'}`}>
-                                {resultadoMes >= 0 ? '+' : ''}{fmtBRL(resultadoMes)}
-                            </p>
-                        </div>
-
-                        <div className="flex-1">
-                            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-3">Fluxo — últimos 6 meses</p>
-                            <div className="flex items-end justify-between gap-1" style={{ height: '80px' }}>
-                                {monthly6.map((m, i) => {
-                                    const isNow = i === 5;
-                                    const incH = Math.max(2, Math.round((m.income / maxChartVal) * 72));
-                                    const expH = Math.max(2, Math.round((m.expense / maxChartVal) * 72));
+                        ) : (
+                            <>
+                                {topAssessores.map((a, i) => {
+                                    const pct = totalVgvAssessores > 0 ? (a.vgv / totalVgvAssessores) * 100 : 0;
+                                    const isPodium = i < 3;
+                                    const podiumColors = [
+                                        { bg: 'from-amber-400 to-[#B8860B]', text: 'text-white', border: 'border-amber-400/60', ring: 'shadow-amber-500/20' },
+                                        { bg: 'from-gray-300 to-gray-400', text: 'text-white', border: 'border-gray-400/60', ring: 'shadow-gray-500/20' },
+                                        { bg: 'from-orange-400 to-orange-600', text: 'text-white', border: 'border-orange-500/60', ring: 'shadow-orange-500/20' },
+                                    ];
+                                    const style = podiumColors[i] ?? { bg: 'from-gray-200 to-gray-300 dark:from-[#222] dark:to-[#1A1A1A]', text: 'text-gray-700 dark:text-gray-300', border: 'border-gray-200 dark:border-[#222]', ring: '' };
                                     return (
-                                        <div key={m.label} className="flex-1 flex flex-col items-center gap-0.5">
-                                            <div className="w-full flex items-end justify-center gap-[1px]" style={{ height: '72px' }}>
-                                                <div
-                                                    title={`Receitas: ${fmtBRL(m.income)}`}
-                                                    className={`flex-1 rounded-t-sm transition-all ${isNow ? 'bg-emerald-500' : 'bg-emerald-500/35'}`}
-                                                    style={{ height: `${incH}px` }}
-                                                />
-                                                <div
-                                                    title={`Despesas: ${fmtBRL(m.expense)}`}
-                                                    className={`flex-1 rounded-t-sm transition-all ${isNow ? 'bg-rose-400' : 'bg-rose-400/35'}`}
-                                                    style={{ height: `${expH}px` }}
-                                                />
+                                        <div key={a.nome} className={`group flex items-center gap-3 p-3 rounded-xl border transition-all ${isPodium
+                                            ? `bg-gradient-to-r from-[#B8860B]/5 to-transparent ${style.border} hover:shadow-md ${style.ring}`
+                                            : 'bg-gray-50 dark:bg-[#1A1A1A] border-gray-100 dark:border-[#1E1E1E]'}`}>
+                                            <div className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${style.bg} ${style.text} flex items-center justify-center font-black shadow-sm`}>
+                                                {isPodium ? <Trophy className="w-4 h-4" /> : <span className="text-sm">{i + 1}</span>}
                                             </div>
-                                            <span className={`text-[8px] ${isNow ? 'text-[#B8860B] font-bold' : 'text-gray-500'}`}>{m.label}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-1.5">
+                                                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{a.nome}</p>
+                                                    {isPodium && <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-[#B8860B]/10 text-[#B8860B]`}>#{i + 1}</span>}
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    {a.empresa && (
+                                                        <span className="text-[10px] text-gray-500 inline-flex items-center gap-1 truncate max-w-[140px]">
+                                                            <Briefcase size={9} /> {a.empresa}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[10px] text-gray-500 inline-flex items-center gap-1">
+                                                        <Hash size={9} /> {a.transacoes} {a.transacoes === 1 ? 'lote' : 'lotes'}
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-500 inline-flex items-center gap-1">
+                                                        <Gavel size={9} /> {a.leiloes}
+                                                    </span>
+                                                </div>
+                                                <div className="w-full h-1 rounded-full bg-gray-100 dark:bg-[#222] overflow-hidden mt-1.5">
+                                                    <div className={`h-full rounded-full bg-gradient-to-r ${isPodium ? style.bg : 'from-gray-400 to-gray-500'}`}
+                                                        style={{ width: `${pct}%` }} />
+                                                </div>
+                                            </div>
+                                            <div className="shrink-0 text-right">
+                                                <p className="text-sm font-black text-[#B8860B]">{fmtBRLCompact(a.vgv)}</p>
+                                                <p className="text-[9px] text-gray-500">{pct.toFixed(1)}% do total</p>
+                                            </div>
                                         </div>
                                     );
                                 })}
-                            </div>
-                            <div className="flex items-center gap-4 mt-2">
-                                <div className="flex items-center gap-1.5">
-                                    <div className="w-2.5 h-2.5 rounded-sm bg-emerald-500/60" />
-                                    <span className="text-[9px] text-gray-500">Receitas</span>
+
+                                <div className="mt-auto pt-3 border-t border-gray-100 dark:border-[#1E1E1E] grid grid-cols-3 gap-2">
+                                    <div className="text-center p-2 rounded-xl bg-[#B8860B]/5 border border-[#B8860B]/20">
+                                        <p className="text-base font-black text-[#B8860B] leading-tight">{assessorMap.size}</p>
+                                        <p className="text-[9px] text-gray-500 uppercase tracking-wide mt-0.5">Assessores</p>
+                                    </div>
+                                    <div className="text-center p-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                                        <p className="text-base font-black text-emerald-500 leading-tight">{fmtBRLCompact(totalVgvAssessores)}</p>
+                                        <p className="text-[9px] text-gray-500 uppercase tracking-wide mt-0.5">VGV ranking</p>
+                                    </div>
+                                    <div className="text-center p-2 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                                        <p className="text-base font-black text-blue-500 leading-tight">{topAssessores[0] ? fmtBRLCompact(topAssessores[0].vgv) : '—'}</p>
+                                        <p className="text-[9px] text-gray-500 uppercase tracking-wide mt-0.5">Líder</p>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-1.5">
-                                    <div className="w-2.5 h-2.5 rounded-sm bg-rose-400/60" />
-                                    <span className="text-[9px] text-gray-500">Despesas</span>
-                                </div>
-                            </div>
-                        </div>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -834,67 +846,100 @@ export default async function AdminDashboard() {
                 </div>
             </div>
 
-            {/* ── Catálogo + Projetos + Atalhos ───────────────────────────── */}
+            {/* ── Compradores / Destaques + Projetos + Atalhos ────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Catálogo */}
-                <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-sm overflow-hidden flex flex-col">
-                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
+                {/* Top Compradores + Maior Lance + Cobertura UF */}
+                <div className="relative bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-sm overflow-hidden flex flex-col">
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between relative">
                         <div className="flex items-center gap-2">
-                            <div className="p-2 bg-teal-500/10 rounded-xl">
-                                <Package className="w-4 h-4 text-teal-500" />
+                            <div className="p-2 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-xl">
+                                <Crown className="w-4 h-4 text-emerald-500" />
                             </div>
-                            <h3 className="font-bold text-gray-900 dark:text-white">Catálogo</h3>
+                            <div>
+                                <h3 className="font-bold text-gray-900 dark:text-white">Destaques do Martelo</h3>
+                                <p className="text-[10px] text-gray-500 mt-0.5">Compradores e recordes</p>
+                            </div>
                         </div>
-                        <Link href="/products" className="text-xs text-gray-400 hover:text-teal-500 transition-colors flex items-center gap-1">
-                            Ver tudo <ArrowRight size={12} />
+                        <Link href="/leiloes/fechamento" className="text-xs text-gray-400 hover:text-emerald-500 transition-colors flex items-center gap-1">
+                            Ver <ArrowRight size={12} />
                         </Link>
                     </div>
-                    <div className="p-5 flex-1 space-y-4">
-                        <div className="grid grid-cols-3 gap-2 text-center">
-                            <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-xl p-2.5">
-                                <p className="text-teal-500 font-bold text-xl">{totalAnimals}</p>
-                                <p className="text-gray-500 text-[10px]">Total</p>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-xl p-2.5">
-                                <p className="text-green-500 font-bold text-xl">{available}</p>
-                                <p className="text-gray-500 text-[10px]">Disponíveis</p>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-xl p-2.5">
-                                <p className="text-gray-400 font-bold text-xl">{sold}</p>
-                                <p className="text-gray-500 text-[10px]">Vendidos</p>
-                            </div>
-                        </div>
 
-                        {avgValue > 0 && (
-                            <div className="text-center p-2.5 bg-[#B8860B]/5 border border-[#B8860B]/20 rounded-xl">
-                                <p className="text-[#B8860B] font-bold text-base">{fmtBRL(avgValue)}</p>
-                                <p className="text-[9px] text-gray-500 uppercase tracking-wider">Valor médio por animal</p>
+                    <div className="p-5 flex-1 space-y-4 relative">
+                        {/* Recorde de lance */}
+                        {topLances[0] && (
+                            <div className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-[#B8860B]/10 via-amber-500/5 to-transparent border border-[#B8860B]/25">
+                                <div className="absolute top-2 right-2">
+                                    <Crown className="w-5 h-5 text-[#B8860B]/40" />
+                                </div>
+                                <div className="flex items-center gap-1.5 mb-1">
+                                    <Sparkles className="w-3 h-3 text-[#B8860B]" />
+                                    <span className="text-[9px] uppercase tracking-wider font-bold text-[#B8860B]">Maior Lance</span>
+                                </div>
+                                <p className="text-2xl font-black text-[#B8860B] leading-tight">{fmtBRLCompact(topLances[0].vgv)}</p>
+                                <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-1 font-semibold truncate">{topLances[0].fazenda}</p>
+                                <p className="text-[9px] text-gray-500 truncate">Lote {topLances[0].lote} · {topLances[0].leilao}</p>
                             </div>
                         )}
 
-                        <div className="space-y-2 pt-1 border-t border-gray-100 dark:border-[#1E1E1E]">
-                            <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Por categoria</p>
-                            {sortedCategories.map(([cat, count]) => {
-                                const pct = totalAnimals > 0 ? ((count / totalAnimals) * 100).toFixed(0) : '0';
-                                return (
-                                    <div key={cat}>
-                                        <div className="flex justify-between text-xs mb-0.5">
-                                            <span className="text-gray-700 dark:text-gray-300 font-medium truncate max-w-[140px]">{cat}</span>
-                                            <span className="text-gray-500 shrink-0 ml-2">{count}</span>
-                                        </div>
-                                        <div className="w-full bg-gray-100 dark:bg-[#222] rounded-full h-1.5 overflow-hidden">
-                                            <div className="bg-teal-500 h-full rounded-full" style={{ width: `${pct}%` }} />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            {sortedCategories.length === 0 && <p className="text-gray-400 text-xs italic">Sem dados.</p>}
+                        {/* Ranking de compradores */}
+                        <div>
+                            <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-2 flex items-center gap-1">
+                                <Users size={10} /> Top Compradores
+                            </p>
+                            {topCompradores.length === 0 ? (
+                                <p className="text-gray-400 text-xs italic">Sem dados de compradores.</p>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    {topCompradores.slice(0, 4).map((c, i) => {
+                                        const podium = ['text-amber-500', 'text-gray-400', 'text-orange-500'];
+                                        return (
+                                            <div key={c.fazenda + i} className="flex items-center gap-2 group">
+                                                <span className={`text-[10px] font-black w-4 text-center ${podium[i] ?? 'text-gray-400'}`}>#{i + 1}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 truncate">{c.fazenda}</p>
+                                                    <p className="text-[9px] text-gray-500 truncate">
+                                                        {[c.uf, `${c.lotes} lote${c.lotes !== 1 ? 's' : ''}`].filter(Boolean).join(' · ')}
+                                                    </p>
+                                                </div>
+                                                <span className="text-[11px] font-black text-emerald-500 shrink-0">{fmtBRLCompact(c.vgv)}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
-                        <div className="flex items-center gap-2 pt-1 border-t border-gray-100 dark:border-[#1E1E1E]">
-                            <UserCheck className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                            <span className="text-xs text-gray-500">{breedersCount ?? 0} criadores cadastrados</span>
+                        {/* Cobertura por UF */}
+                        <div className="pt-3 border-t border-gray-100 dark:border-[#1E1E1E]">
+                            <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-2 flex items-center gap-1">
+                                <MapPin size={10} /> Cobertura por Estado
+                            </p>
+                            {topUFs.length === 0 ? (
+                                <p className="text-gray-400 text-xs italic">Sem dados por UF.</p>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    {topUFs.slice(0, 4).map(u => {
+                                        const pct = totalVgvUFs > 0 ? (u.vgv / totalVgvUFs) * 100 : 0;
+                                        return (
+                                            <div key={u.uf}>
+                                                <div className="flex justify-between items-center text-xs mb-0.5">
+                                                    <span className="font-bold text-gray-700 dark:text-gray-300 inline-flex items-center gap-1.5">
+                                                        <span className="inline-block px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 text-[9px] font-black">{u.uf}</span>
+                                                        <span className="text-[10px] text-gray-500 truncate max-w-[90px]">{u.estado}</span>
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-500 shrink-0">{fmtBRLCompact(u.vgv)}</span>
+                                                </div>
+                                                <div className="w-full bg-gray-100 dark:bg-[#222] rounded-full h-1 overflow-hidden">
+                                                    <div className="bg-gradient-to-r from-blue-400 to-emerald-500 h-full rounded-full" style={{ width: `${pct}%` }} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
