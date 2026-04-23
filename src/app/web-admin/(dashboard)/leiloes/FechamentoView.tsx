@@ -305,10 +305,10 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
   const hasPerfil = !!f.perfil_genetico?.indices?.length
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-2xl bg-white dark:bg-[#111111] h-full overflow-hidden shadow-2xl flex flex-col"
+        className="relative w-full max-w-2xl bg-white dark:bg-[#111111] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
