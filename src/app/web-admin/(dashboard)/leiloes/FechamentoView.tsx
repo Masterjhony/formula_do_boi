@@ -34,6 +34,36 @@ type Lance = {
 type PerfilGenetico = {
   indices: Array<{ fonte: string; media_vendida: number; media_catalogo: number; diferenca: string; classificacao: string }>
   crias_sexo: Array<{ sexo: string; quantidade: number; pct: number; observacao: string }>
+  medias_catalogo?: {
+    matrizes: Array<{ fonte: string; media: number; deca: number }>
+    ventres: Array<{ fonte: string; media: number; deca: number }>
+    crias: Array<{ fonte: string; media: number; deca: number }>
+  }
+}
+
+type AnimalCatalogo = {
+  rg: string | null; nome: string | null; nascimento: string | null
+  meses: number | null; peso_kg: number | null
+  iabcz: number | null; iqg: number | null; mgte: number | null
+  pai: string | null; mae_rg: string | null; mae_nome: string | null
+  avo_materno: string | null; situacao: string | null
+  touro_cobertura: string | null; prev_parto: string | null
+  iqg_ventre: number | null; mgte_ventre: number | null
+}
+
+type Cria = {
+  nasc: string | null; meses: number | null; sexo: string | null
+  peso_kg: number | null; pai: string | null
+}
+
+type LoteCatalogo = {
+  lote: number; vendido: boolean; animais: AnimalCatalogo[]; cria?: Cria
+  fazenda?: string; comprador?: string; uf?: string; assessor?: string; empresa?: string
+}
+
+type EmpresaDistribuicao = {
+  empresa: string; transacoes: number; animais: number
+  vgv: number; pct_total: number; ticket_medio: number
 }
 
 export type Fechamento = {
@@ -44,6 +74,8 @@ export type Fechamento = {
   por_assessor: Assessor[]; por_estado: Estado[]
   compradores: Comprador[]; lances: Lance[]
   perfil_genetico: PerfilGenetico | null
+  lotes_catalogo?: LoteCatalogo[]
+  distribuicao_empresa?: EmpresaDistribuicao[]
   comissao_assessoria: number; observacoes: string; created_at: string
 }
 
@@ -165,7 +197,7 @@ function FechamentoCard({ f, selected, onClick }: { f: Fechamento; selected: boo
 
 // ── Drawer Tabs ────────────────────────────────────────────────────────────────
 
-type DrawerTab = 'resumo' | 'assessores' | 'compradores' | 'lances' | 'estados' | 'genetica'
+type DrawerTab = 'resumo' | 'assessores' | 'compradores' | 'lances' | 'estados' | 'genetica' | 'catalogo'
 
 function DrawerTabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -176,6 +208,81 @@ function DrawerTabBtn({ active, onClick, children }: { active: boolean; onClick:
     >
       {children}
     </button>
+  )
+}
+
+// ── Catálogo Tab ───────────────────────────────────────────────────────────────
+
+function CatalogoTab({ lots }: { lots: LoteCatalogo[] }) {
+  const [filtro, setFiltro] = useState<'todos' | 'vendidos' | 'nao_vendidos'>('todos')
+  const totalVendidos = lots.filter(l => l.vendido).length
+  const filtered = lots.filter(l =>
+    filtro === 'todos' ? true : filtro === 'vendidos' ? l.vendido : !l.vendido
+  )
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {([
+          { key: 'todos' as const, label: `Todos (${lots.length})` },
+          { key: 'vendidos' as const, label: `Vendidos (${totalVendidos})` },
+          { key: 'nao_vendidos' as const, label: `Não vendidos (${lots.length - totalVendidos})` },
+        ]).map(({ key, label }) => (
+          <button key={key} onClick={() => setFiltro(key)}
+            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all
+              ${filtro === key ? 'bg-[#B8860B] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400 hover:text-[#B8860B]'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="space-y-2">
+        {filtered.map(lot => (
+          <div key={lot.lote}
+            className={`rounded-xl border p-3 ${lot.vendido
+              ? 'border-[#B8860B]/30 bg-[#B8860B]/4 dark:bg-[#B8860B]/6'
+              : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'}`}>
+            <div className="flex items-start gap-3">
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0
+                ${lot.vendido ? 'bg-[#B8860B] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400'}`}>
+                {lot.lote}
+              </div>
+              <div className="flex-1 min-w-0 space-y-1.5">
+                {lot.animais.map((a, ai) => (
+                  <div key={ai}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-gray-900 dark:text-white">{a.nome}</span>
+                      {a.rg && <span className="text-[9px] text-gray-400 font-mono">{a.rg}</span>}
+                      {a.meses && <span className="text-[9px] text-gray-400">{a.meses}m</span>}
+                      {a.peso_kg && <span className="text-[9px] text-gray-400">{a.peso_kg}kg</span>}
+                    </div>
+                    <div className="flex gap-1.5 flex-wrap mt-0.5">
+                      {a.iabcz != null && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 font-semibold">iABCZ {a.iabcz}</span>}
+                      {a.iqg != null && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 font-semibold">IQG {a.iqg}</span>}
+                      {a.mgte != null && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 font-semibold">MGTe {a.mgte}</span>}
+                      {a.situacao && a.situacao !== '-' && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold">{a.situacao}</span>
+                      )}
+                    </div>
+                    {a.pai && <p className="text-[9px] text-gray-400 mt-0.5 truncate">Pai: {a.pai}</p>}
+                  </div>
+                ))}
+                {lot.cria && (
+                  <span className="inline-flex items-center text-[9px] px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400 font-bold">
+                    Cria {lot.cria.sexo} · {lot.cria.peso_kg}kg · {lot.cria.meses}m
+                  </span>
+                )}
+              </div>
+              {lot.vendido && lot.fazenda && (
+                <div className="flex-shrink-0 text-right">
+                  <p className="text-[9px] font-bold text-[#B8860B] truncate max-w-[90px]">{lot.fazenda}</p>
+                  {lot.uf && <span className="text-[9px] px-1 py-0.5 rounded bg-[#B8860B]/10 text-[#B8860B] font-bold">{lot.uf}</span>}
+                  {lot.assessor && <p className="text-[9px] text-gray-400 mt-0.5">{lot.assessor.split(' ')[0]}</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -233,6 +340,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
           <DrawerTabBtn active={tab === 'lances'} onClick={() => setTab('lances')}>Lances</DrawerTabBtn>
           <DrawerTabBtn active={tab === 'estados'} onClick={() => setTab('estados')}>Estados</DrawerTabBtn>
           {hasPerfil && <DrawerTabBtn active={tab === 'genetica'} onClick={() => setTab('genetica')}>Genética</DrawerTabBtn>}
+          {!!f.lotes_catalogo?.length && <DrawerTabBtn active={tab === 'catalogo'} onClick={() => setTab('catalogo')}>Catálogo</DrawerTabBtn>}
         </div>
 
         {/* Body */}
@@ -264,30 +372,49 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
               </div>
 
               {/* VGV por empresa */}
-              {f.por_assessor.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">VGV por Empresa</p>
-                  {(() => {
-                    const byEmpresa: Record<string, number> = {}
-                    for (const a of f.por_assessor) {
-                      byEmpresa[a.empresa] = (byEmpresa[a.empresa] || 0) + a.vgv
-                    }
-                    const total = Object.values(byEmpresa).reduce((s, v) => s + v, 0)
-                    return Object.entries(byEmpresa).map(([empresa, vgv]) => (
-                      <div key={empresa} className="mb-2">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="font-semibold text-gray-700 dark:text-gray-300">{empresa}</span>
-                          <span className="text-gray-500">{R(vgv)} · {((vgv / total) * 100).toFixed(1)}%</span>
+              {(f.distribuicao_empresa?.length ? f.distribuicao_empresa : (() => {
+                const byEmpresa: Record<string, number> = {}
+                for (const a of f.por_assessor) byEmpresa[a.empresa] = (byEmpresa[a.empresa] || 0) + a.vgv
+                const total = Object.values(byEmpresa).reduce((s, v) => s + v, 0)
+                return Object.entries(byEmpresa).map(([empresa, vgv]) => ({
+                  empresa, vgv, pct_total: vgv / total, transacoes: 0, animais: 0, ticket_medio: 0,
+                }))
+              })()).length > 0 && (() => {
+                const empresas = f.distribuicao_empresa?.length ? f.distribuicao_empresa : (() => {
+                  const byEmpresa: Record<string, number> = {}
+                  for (const a of f.por_assessor) byEmpresa[a.empresa] = (byEmpresa[a.empresa] || 0) + a.vgv
+                  const total = Object.values(byEmpresa).reduce((s, v) => s + v, 0)
+                  return Object.entries(byEmpresa).map(([empresa, vgv]) => ({
+                    empresa, vgv, pct_total: vgv / total, transacoes: 0, animais: 0, ticket_medio: 0,
+                  }))
+                })()
+                const maxVgvE = Math.max(...empresas.map(e => e.vgv))
+                return (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Distribuição por Empresa</p>
+                    <div className="space-y-2">
+                      {empresas.map(e => (
+                        <div key={e.empresa} className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#151515] p-3">
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{e.empresa}</span>
+                            <span className="text-xs font-black text-[#B8860B]">{R(e.vgv)}</span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-gray-200 dark:bg-[#1A1A1A] mb-1.5 overflow-hidden">
+                            <div className="h-full rounded-full transition-all"
+                              style={{ width: `${(e.vgv / maxVgvE) * 100}%`, background: EMPRESA_COLORS[e.empresa] ?? '#B8860B' }} />
+                          </div>
+                          <div className="flex gap-3 text-[9px] text-gray-400">
+                            <span>{PCT(e.pct_total)} do total</span>
+                            {e.transacoes > 0 && <span>{e.transacoes} transações</span>}
+                            {e.animais > 0 && <span>{e.animais} animais</span>}
+                            {e.ticket_medio > 0 && <span>Ticket: {R(e.ticket_medio)}</span>}
+                          </div>
                         </div>
-                        <div className="h-2 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
-                          <div className="h-full rounded-full transition-all"
-                            style={{ width: `${(vgv / total) * 100}%`, background: EMPRESA_COLORS[empresa] ?? '#B8860B' }} />
-                        </div>
-                      </div>
-                    ))
-                  })()}
-                </div>
-              )}
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {f.observacoes && (
                 <div className="bg-gray-50 dark:bg-[#151515] rounded-xl p-4">
@@ -459,6 +586,46 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
           {/* ── PERFIL GENÉTICO ── */}
           {tab === 'genetica' && hasPerfil && (
             <div className="space-y-5">
+
+              {/* Médias Catálogo */}
+              {f.perfil_genetico!.medias_catalogo && (() => {
+                const mc = f.perfil_genetico!.medias_catalogo!
+                const groups = [
+                  { label: 'Médias — Matrizes', data: mc.matrizes },
+                  { label: 'Médias — Ventres', data: mc.ventres },
+                  { label: 'Médias — Crias', data: mc.crias },
+                ]
+                return (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">Médias Gerais do Catálogo</p>
+                    <div className="space-y-3">
+                      {groups.map(g => (
+                        <div key={g.label} className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] overflow-hidden">
+                          <div className="px-4 py-2 bg-gray-50 dark:bg-[#151515] border-b border-gray-100 dark:border-[#1E1E1E]">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{g.label}</span>
+                          </div>
+                          <div className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
+                            {g.data.map(item => (
+                              <div key={item.fonte} className="flex items-center justify-between px-4 py-2.5">
+                                <span className="text-xs text-gray-600 dark:text-gray-400">{item.fonte}</span>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs font-black text-gray-900 dark:text-white">{item.media}</span>
+                                  {item.deca !== null && (
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold">
+                                      DECA {item.deca}%
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
+
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">Índices Genéticos — Ventres Vendidos</p>
                 <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-[#1E1E1E]">
@@ -523,6 +690,11 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                 </div>
               )}
             </div>
+          )}
+
+          {/* ── CATÁLOGO ── */}
+          {tab === 'catalogo' && !!f.lotes_catalogo?.length && (
+            <CatalogoTab lots={f.lotes_catalogo!} />
           )}
 
         </div>

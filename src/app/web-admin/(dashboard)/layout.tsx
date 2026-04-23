@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar,
     MessageCircle, FileText, Sparkles, Gavel, Dna, Award,
-    ImageIcon, Shield, ExternalLink, ChevronDown, BarChart2, Target,
+    ImageIcon, Shield, ExternalLink, ChevronDown, BarChart2, Target, BarChart3,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,13 @@ function isGroup(e: NavEntry): e is NavGroup {
 const navConfig: NavEntry[] = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/crm', label: 'CRM', icon: Users },
-    { href: '/leiloes', label: 'Leilões', icon: Gavel },
+    {
+        label: 'Leilões', icon: Gavel,
+        items: [
+            { href: '/leiloes', label: 'Leilões', icon: Gavel },
+            { href: '/leiloes/fechamento', label: 'Fechamento de Leilões', icon: BarChart3 },
+        ],
+    },
     {
         label: 'Animais', icon: Dna,
         items: [
@@ -192,7 +198,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                 </div>
                                                 {entry.items.map((item) => {
                                                     const ItemIcon = item.icon;
-                                                    const itemActive = isActive(item.href);
+                                                    const hasMoreSpecific = entry.items.some(o => o.href !== item.href && pathname.startsWith(o.href));
+                                                    const itemActive = hasMoreSpecific ? pathname === item.href : isActive(item.href);
                                                     return (
                                                         <Link
                                                             key={item.href}
@@ -334,7 +341,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             <div className="ml-6 mt-0.5 mb-1 space-y-0.5">
                                                 {entry.items.map((item) => {
                                                     const ItemIcon = item.icon;
-                                                    const itemActive = isActive(item.href);
+                                                    const hasMoreSpecific = entry.items.some(o => o.href !== item.href && pathname.startsWith(o.href));
+                                                    const itemActive = hasMoreSpecific ? pathname === item.href : isActive(item.href);
                                                     return (
                                                         <Link
                                                             key={item.href}
