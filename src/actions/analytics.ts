@@ -2,6 +2,17 @@
 
 import { analyticsDataClient, PROPERTY_ID } from '@/utils/google-analytics/client';
 
+const GA4_TIMEOUT_MS = 15_000;
+
+function withTimeout<T>(promise: Promise<T>, ms = GA4_TIMEOUT_MS): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+            setTimeout(() => reject(new Error(`GA4 request timed out after ${ms}ms`)), ms),
+        ),
+    ]);
+}
+
 export interface AnalyticsMetrics {
     activeUsers: number;
     totalUsers: number;
@@ -11,7 +22,7 @@ export interface AnalyticsMetrics {
 
 export async function getDashboardMetrics(): Promise<AnalyticsMetrics | null> {
     try {
-        const [response] = await analyticsDataClient.runReport({
+        const [response] = await withTimeout(analyticsDataClient.runReport({
             property: `properties/${PROPERTY_ID}`,
             dateRanges: [
                 {
@@ -25,7 +36,7 @@ export async function getDashboardMetrics(): Promise<AnalyticsMetrics | null> {
                 { name: 'sessions' },
                 { name: 'averageSessionDuration' },
             ],
-        });
+        }));
 
         if (!response.rows || response.rows.length === 0) {
             return {
@@ -57,7 +68,7 @@ export interface DetailedAnalyticsReport {
 
 export async function getDetailedReport(): Promise<DetailedAnalyticsReport[]> {
     try {
-        const [response] = await analyticsDataClient.runReport({
+        const [response] = await withTimeout(analyticsDataClient.runReport({
             property: `properties/${PROPERTY_ID}`,
             dateRanges: [
                 {
@@ -80,7 +91,7 @@ export async function getDetailedReport(): Promise<DetailedAnalyticsReport[]> {
                     },
                 },
             ],
-        });
+        }));
 
         if (!response.rows) {
             return [];
@@ -105,7 +116,7 @@ export interface PageViewsReport {
 
 export async function getPageViews(): Promise<PageViewsReport[]> {
     try {
-        const [response] = await analyticsDataClient.runReport({
+        const [response] = await withTimeout(analyticsDataClient.runReport({
             property: `properties/${PROPERTY_ID}`,
             dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
             dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
@@ -117,7 +128,7 @@ export async function getPageViews(): Promise<PageViewsReport[]> {
                 },
             ],
             limit: 10,
-        });
+        }));
 
         if (!response.rows) return [];
 
@@ -139,7 +150,7 @@ export interface SessionChannelsReport {
 
 export async function getSessionChannels(): Promise<SessionChannelsReport[]> {
     try {
-        const [response] = await analyticsDataClient.runReport({
+        const [response] = await withTimeout(analyticsDataClient.runReport({
             property: `properties/${PROPERTY_ID}`,
             dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
             dimensions: [{ name: 'sessionDefaultChannelGroup' }],
@@ -151,7 +162,7 @@ export async function getSessionChannels(): Promise<SessionChannelsReport[]> {
                 },
             ],
             limit: 10,
-        });
+        }));
 
         if (!response.rows) return [];
 
@@ -172,7 +183,7 @@ export interface AverageTimeReport {
 
 export async function getAverageTimeReport(): Promise<AverageTimeReport[]> {
     try {
-        const [response] = await analyticsDataClient.runReport({
+        const [response] = await withTimeout(analyticsDataClient.runReport({
             property: `properties/${PROPERTY_ID}`,
             dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
             dimensions: [{ name: 'date' }],
@@ -185,7 +196,7 @@ export async function getAverageTimeReport(): Promise<AverageTimeReport[]> {
                     },
                 },
             ],
-        });
+        }));
 
         if (!response.rows) return [];
 
