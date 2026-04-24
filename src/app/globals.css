@@ -1,48 +1,123 @@
 @import "tailwindcss";
 @variant dark (&:where(.dark, .dark *));
 
+/* ══════════════════════════════════════════════════════════
+   FÓRMULA DO BOI — Brand tokens (source: Brandbook)
+   Primária: bronze. Neutros: ink. Acentos tech opcionais.
+══════════════════════════════════════════════════════════ */
 :root {
+  /* Primary — bronze */
+  --bronze:        #A0792E;
+  --bronze-light:  #D4A85C;
+  --bronze-pale:   #E8CB85;
+  --bronze-deep:   #6B4F1E;
+
+  /* Neutrals — ink */
+  --ink:           #0A0A0A;
+  --ink-2:         #141414;
+  --ink-3:         #1E1E1E;
+  --ink-4:         #2A2A2A;
+  --black:         #000000;
+  --white:         #FFFFFF;
+  --gray-100:      #E8E8E8;
+  --gray-200:      #C8C8C8;
+  --gray-400:      #8A8A8A;
+  --gray-600:      #4A4A4A;
+
+  /* Hairlines */
+  --line:          rgba(232, 203, 133, 0.14);
+  --line-strong:   rgba(232, 203, 133, 0.28);
+
+  /* Tech accents (uso pontual) */
+  --tech-green:      #7FD4A0;
+  --tech-green-deep: #2E6B47;
+  --tech-blue:       #4A7FB8;
+  --tech-blue-deep:  #1E3A5F;
+
+  /* Semantic */
+  --bg:         var(--ink);
+  --bg-alt:     var(--ink-2);
+  --fg:         #F5F0E4;
+  --fg-muted:   #9A928A;
+  --accent:     var(--bronze);
+
+  /* Gradients */
+  --grad-gold:        linear-gradient(135deg, #E8CB85 0%, #D4A85C 40%, #A0792E 80%, #6B4F1E 100%);
+  --grad-gold-soft:   linear-gradient(135deg, rgba(232,203,133,0.25) 0%, rgba(160,121,46,0.05) 100%);
+  --grad-ink:         linear-gradient(180deg, #0A0A0A 0%, #141414 100%);
+  --grad-radial-gold: radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.22) 0%, rgba(10,10,10,0) 60%);
+
+  /* Light-mode shell (mantido p/ páginas claras) */
   --background: #ffffff;
   --foreground: #171717;
-  --brand-gold: #C5A059;
-  --brand-black: #0a0a0a;
+
+  /* Aliases retrocompatíveis (código antigo) */
+  --brand-gold:  var(--bronze);
+  --brand-black: var(--ink);
   --brand-light: #f5f5f5;
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #ededed;
-  --brand-gold: #C5A059;
-  --brand-black: #0a0a0a;
-  --brand-light: #1a1a1a;
+  --background: var(--ink);
+  --foreground: var(--fg);
+  --brand-gold:  var(--bronze);
+  --brand-black: var(--ink);
+  --brand-light: var(--ink-3);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-brand-gold: var(--brand-gold);
+
+  /* Bronze scale */
+  --color-bronze:       var(--bronze);
+  --color-bronze-light: var(--bronze-light);
+  --color-bronze-pale:  var(--bronze-pale);
+  --color-bronze-deep:  var(--bronze-deep);
+
+  /* Ink scale */
+  --color-ink:   var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+
+  /* Semantic */
+  --color-fg:        var(--fg);
+  --color-fg-muted:  var(--fg-muted);
+  --color-accent:    var(--accent);
+  --color-line:         var(--line);
+  --color-line-strong:  var(--line-strong);
+
+  /* Aliases retrocompatíveis */
+  --color-brand-gold:  var(--brand-gold);
   --color-brand-black: var(--brand-black);
   --color-brand-light: var(--brand-light);
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --font-mono: var(--font-mono), ui-monospace, "JetBrains Mono", monospace;
+
+  /* Fontes — Space Grotesk é a família oficial (display + body).
+     Mantemos Fraunces/Manrope como aliases para não quebrar páginas antigas. */
+  --font-sans:    var(--font-space-grotesk), var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-mono:    var(--font-mono), ui-monospace, "JetBrains Mono", monospace;
 }
 
-/* ── Tipografia de Autoridade e Legado ── */
+/* ── Base ── */
 body {
   font-family: var(--font-sans);
-  font-feature-settings: "kern" 1, "liga" 1;
+  font-feature-settings: "kern" 1, "liga" 1, "ss01" 1, "cv11" 1;
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3,
 .font-display {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 500;
   font-feature-settings: "kern" 1, "liga" 1, "lnum" 1, "tnum" 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
 }
 
-/* Números em contextos de peso (kg) e valor (R$): alinhamento tabular perfeito */
 .tabular-nums,
 [data-unit="kg"],
 [data-unit="rs"] {
@@ -52,39 +127,129 @@ h1, h2, h3,
   letter-spacing: 0;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+/* ══════════════════════════════════════════════════════════
+   Brandbook primitives — tipografia
+══════════════════════════════════════════════════════════ */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  font-weight: 500;
+}
+.eyebrow-mute { color: var(--fg-muted); }
+
+.h-display { font-family: var(--font-display); font-weight: 500; font-size: clamp(72px, 9vw, 148px); line-height: 0.92; letter-spacing: -0.035em; text-wrap: balance; }
+.h-hero    { font-family: var(--font-display); font-weight: 500; font-size: clamp(56px, 7vw, 112px); line-height: 0.94; letter-spacing: -0.03em;  text-wrap: balance; }
+.h-1       { font-family: var(--font-display); font-weight: 500; font-size: clamp(40px, 5vw, 80px);  line-height: 0.98; letter-spacing: -0.025em; text-wrap: balance; }
+.h-2       { font-family: var(--font-display); font-weight: 500; font-size: clamp(32px, 4vw, 56px);  line-height: 1.02; letter-spacing: -0.02em;  text-wrap: balance; }
+.h-3       { font-family: var(--font-display); font-weight: 500; font-size: clamp(24px, 3vw, 40px);  line-height: 1.1;  letter-spacing: -0.015em; }
+.h-4       { font-family: var(--font-display); font-weight: 500; font-size: clamp(20px, 2vw, 28px);  line-height: 1.2;  letter-spacing: -0.01em; }
+
+.body-lg  { font-family: var(--font-sans); font-size: 20px; line-height: 1.45; font-weight: 400; letter-spacing: -0.005em; }
+.body     { font-family: var(--font-sans); font-size: 16px; line-height: 1.55; font-weight: 400; }
+.body-sm  { font-family: var(--font-sans); font-size: 14px; line-height: 1.55; font-weight: 400; color: var(--fg-muted); }
+.mono     { font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.02em; }
+.mono-sm  { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.mono-lg  { font-family: var(--font-mono); font-size: 18px; letter-spacing: 0.02em; }
+
+/* ══════════════════════════════════════════════════════════
+   Brandbook primitives — cor / fundo
+══════════════════════════════════════════════════════════ */
+.text-bronze        { color: var(--bronze); }
+.text-bronze-light  { color: var(--bronze-light); }
+.text-bronze-pale   { color: var(--bronze-pale); }
+.text-mute          { color: var(--fg-muted); }
+.text-fg            { color: var(--fg); }
+
+.bg-ink        { background: var(--ink); }
+.bg-ink-2      { background: var(--ink-2); }
+.bg-grad-gold  { background: var(--grad-gold); color: var(--ink); }
+.bg-bronze     { background: var(--bronze); color: var(--ink); }
+.tint-radial   { background: var(--grad-radial-gold), var(--ink); }
+
+/* Grid / dot overlays */
+.bg-grid {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+.bg-grid-fine {
+  background-image:
+    linear-gradient(rgba(232,203,133,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,203,133,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.bg-dots {
+  background-image: radial-gradient(circle at 1px 1px, rgba(232,203,133,0.18) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 
-/* ── Textura de marca: grão orgânico + trama diagonal fina ── */
+/* Glow + hairlines */
+.glow-gold        { box-shadow: 0 0 0 1px var(--line-strong),        0 0 80px rgba(212,168,92,0.12); }
+.glow-gold-strong { box-shadow: 0 0 0 1px rgba(212,168,92,0.45),     0 0 120px rgba(212,168,92,0.22); }
+.hr               { height: 1px; background: var(--line-strong); width: 100%; }
+.hr-bronze        { height: 1px; background: var(--bronze); width: 100%; }
+
+/* Card genérico do brandbook */
+.card-brand     { background: var(--ink-2); border: 1px solid var(--line); border-radius: 4px; }
+.card-brand-lg  { padding: 40px; }
+.card-brand-md  { padding: 28px; }
+
+/* Tag / pip */
+.tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--line-strong); border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--bronze);
+}
+.tag .pip { width: 6px; height: 6px; background: var(--bronze); border-radius: 50%; }
+
+/* Brackets decorativos */
+.brackets { position: relative; }
+.brackets::before, .brackets::after,
+.brackets > .bl::before, .brackets > .bl::after {
+  content: ''; position: absolute; width: 18px; height: 18px;
+  border-color: var(--bronze); border-style: solid; border-width: 0;
+}
+.brackets::before { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; }
+.brackets::after  { top: 0; right: 0; border-top-width: 1px; border-right-width: 1px; }
+.brackets > .bl::before { bottom: 0; left: 0; border-bottom-width: 1px; border-left-width: 1px; }
+.brackets > .bl::after  { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; }
+
+/* ══════════════════════════════════════════════════════════
+   Legado — mantido para não quebrar estilos existentes
+══════════════════════════════════════════════════════════ */
+
+/* Textura de marca: grão orgânico + trama diagonal fina */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9997;
-
-  /* Grão orgânico — evoca couro bruto / terra batida */
   background-image:
     url('/texture-grain.svg'),
     repeating-linear-gradient(
       45deg,
       transparent 0px,
       transparent 4px,
-      rgba(197, 160, 89, 0.022) 4px,
-      rgba(197, 160, 89, 0.022) 5px
+      rgba(232, 203, 133, 0.022) 4px,
+      rgba(232, 203, 133, 0.022) 5px
     ),
     repeating-linear-gradient(
       -45deg,
       transparent 0px,
       transparent 4px,
-      rgba(197, 160, 89, 0.022) 4px,
-      rgba(197, 160, 89, 0.022) 5px
+      rgba(232, 203, 133, 0.022) 4px,
+      rgba(232, 203, 133, 0.022) 5px
     );
   background-size: 256px 256px, 5px 5px, 5px 5px;
   background-repeat: repeat;
-
   opacity: 0.12;
   mix-blend-mode: screen;
 }
@@ -92,60 +257,40 @@ body::after {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
-/* ══════════════════════════════════════════════════════════
-   COSTURA DIGITAL — Separador de seção estilo selaria
-   Duas fileiras de pontos ouro ligeiramente offset,
-   evocando costura dupla de máquina em couro.
-══════════════════════════════════════════════════════════ */
-.stitch-divider {
-  position: relative;
-}
+/* Costura digital — separador estilo selaria */
+.stitch-divider { position: relative; }
 .stitch-divider::before,
 .stitch-divider::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-  z-index: 1;
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  pointer-events: none; z-index: 1;
 }
-/* Fileira superior — pontos cheios, ouro médio */
 .stitch-divider::before {
-  height: 1px;
-  top: 1px;
+  height: 1px; top: 1px;
   background: repeating-linear-gradient(
     90deg,
-    rgba(197, 160, 89, 0.30) 0px,
-    rgba(197, 160, 89, 0.30) 7px,
+    rgba(232, 203, 133, 0.30) 0px,
+    rgba(232, 203, 133, 0.30) 7px,
     transparent                7px,
     transparent               14px
   );
 }
-/* Fileira inferior — pontos deslocados em 7px, mais tênues */
 .stitch-divider::after {
-  height: 1px;
-  top: 5px;
+  height: 1px; top: 5px;
   background: repeating-linear-gradient(
     90deg,
     transparent                0px,
     transparent                7px,
-    rgba(197, 160, 89, 0.14)   7px,
-    rgba(197, 160, 89, 0.14)  14px
+    rgba(232, 203, 133, 0.14)  7px,
+    rgba(232, 203, 133, 0.14) 14px
   );
 }
 
-/* ══════════════════════════════════════════════════════════
-   INNER SHADOW — Campo "gravado no couro"
-   Sombra interna escura no topo (profundidade) +
-   reflexo dourado leve embaixo (brilho do couro polido).
-   Evoca estampagem a ferro quente ou relevo em negativo.
-══════════════════════════════════════════════════════════ */
+/* Campo gravado no couro */
 .card-engraved {
   box-shadow:
     inset 0 2px 8px  rgba(0,   0,   0,   0.55),
     inset 0 1px 3px  rgba(0,   0,   0,   0.40),
-    inset 0 -1px 0px rgba(197, 160, 89,  0.08),
+    inset 0 -1px 0px rgba(232, 203, 133, 0.08),
           0 1px 0px  rgba(255, 255, 255, 0.025);
 }
 

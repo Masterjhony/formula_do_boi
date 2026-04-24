@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Fraunces, Manrope, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Manrope, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -25,6 +25,12 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600"],
 });
 
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://app.formuladoboi.com'),
   title: "Fórmula do Boi | Comercialização de Nelore PO",
@@ -46,7 +52,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#F4B400",
+  themeColor: "#A0792E",
 };
 
 
@@ -62,7 +68,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </head>
       <body
-        className={`${fraunces.variable} ${manrope.variable} ${jetbrainsMono.variable} antialiased`}
+        className={`${fraunces.variable} ${manrope.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
