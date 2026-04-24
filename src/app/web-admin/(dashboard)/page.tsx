@@ -82,8 +82,6 @@ export default async function AdminDashboard() {
         { data: tasks },
         { data: leiloes },
         { data: fechamentos },
-        { data: completedTx },
-        { data: finAccounts },
     ] = await Promise.all([
         supabase.from('crm_leads')
             .select('id, nome, status, prioridade, data_estimada_fechamento, created_at')
@@ -98,42 +96,9 @@ export default async function AdminDashboard() {
             .select('id, nome, data, local, lotes_ofertados, lotes_vendidos, animais_vendidos, vgv_total, ticket_medio, maior_lance, compradores_unicos, estados_alcancados, por_assessor, por_estado, compradores, lances')
             .order('data', { ascending: false })
             .limit(30),
-        supabase.from('erp_finance_transactions')
-            .select('amount, type, transaction_date')
-            .eq('status', 'completed'),
-        supabase.from('erp_finance_accounts')
-            .select('initial_balance'),
     ]);
 
-    // ── Finance ─────────────────────────────────────────────────────────────
-    const totalInitial = (finAccounts ?? []).reduce((s, a) => s + (Number(a.initial_balance) || 0), 0);
-    const txAll = completedTx ?? [];
-    const saldoAtual = txAll.reduce((s, t) =>
-        s + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), totalInitial);
-
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const txThisMonth = txAll.filter(t => t.transaction_date >= startOfMonth);
-    const receitasMes = txThisMonth.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-    const despesasMes = txThisMonth.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
-    const resultadoMes = receitasMes - despesasMes;
-
-    // Saldo sparkline: last 10 months running balance
-    const saldoSpark: number[] = (() => {
-        const out: number[] = [];
-        const sorted = [...txAll].sort((a, b) => (a.transaction_date || '').localeCompare(b.transaction_date || ''));
-        let running = totalInitial;
-        const byMonth = new Map<string, number>();
-        for (const t of sorted) {
-            const key = (t.transaction_date || '').slice(0, 7);
-            const delta = (t.type === 'income' ? 1 : -1) * Number(t.amount);
-            running += delta;
-            byMonth.set(key, running);
-        }
-        const entries = [...byMonth.entries()].slice(-10);
-        for (const [, v] of entries) out.push(v);
-        return out.length ? out : [totalInitial];
-    })();
 
     // ── Leilões ─────────────────────────────────────────────────────────────
     const allLeiloes = leiloes ?? [];
@@ -394,8 +359,6 @@ export default async function AdminDashboard() {
             totalAnimaisUpcoming,
             totalVgvFechado,
             totalFechamentos: allFechamentos.length,
-            saldoAtual,
-            resultadoMes,
             activeLeads,
             hotLeads,
             totalLeads,
@@ -405,7 +368,6 @@ export default async function AdminDashboard() {
             vgvSpark,
             metaSpark,
             leadsSpark,
-            saldoSpark,
         },
         vgv: vgvSeries,
         funnel,

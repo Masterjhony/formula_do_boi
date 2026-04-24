@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-    Gavel, Target, Trophy, Wallet, PhoneCall, ListTodo,
+    Gavel, Target, Trophy, PhoneCall, ListTodo,
     Filter, ArrowRight, Download, MoreHorizontal,
     Sparkles, CheckCircle2, Clock, MapPin,
     TrendingUp, TrendingDown, Plus, Users, MessageSquare,
@@ -79,8 +79,6 @@ export type DashboardProps = {
         totalAnimaisUpcoming: number;
         totalVgvFechado: number;
         totalFechamentos: number;
-        saldoAtual: number;
-        resultadoMes: number;
         activeLeads: number;
         hotLeads: number;
         totalLeads: number;
@@ -90,7 +88,6 @@ export type DashboardProps = {
         vgvSpark: number[];
         metaSpark: number[];
         leadsSpark: number[];
-        saldoSpark: number[];
     };
     vgv: VgvPoint[];
     funnel: FunnelStep[];
@@ -233,7 +230,6 @@ function KPIs({ k }: { k: DashboardProps['kpi'] }) {
         { label: 'Próx. leilões', val: String(k.upcomingCount), unit: '', delta: `${k.confirmedCount} confirmado${k.confirmedCount === 1 ? '' : 's'}`, dir: 'up' as const, icon: <Gavel size={12} />, spark: k.metaSpark, color: GOLD, tone: 'gold', href: '/leiloes' },
         { label: 'Meta confirmada', val: fmtBRLCompact(k.totalMetaBula), unit: '', delta: `${fmtNum(k.totalAnimaisUpcoming)} animais`, dir: 'up' as const, icon: <Target size={12} />, spark: k.metaSpark, color: GREEN, tone: 'green', href: '/leiloes' },
         { label: 'VGV fechado', val: fmtBRLCompact(k.totalVgvFechado), unit: '', delta: `${k.totalFechamentos} fechamentos`, dir: 'up' as const, icon: <Trophy size={12} />, spark: k.vgvSpark, color: GOLD, tone: 'gold', href: '/leiloes/fechamento' },
-        { label: 'Saldo caixa', val: fmtBRLCompact(k.saldoAtual), unit: '', delta: `${k.resultadoMes >= 0 ? '+' : ''}${fmtBRLCompact(k.resultadoMes)} no mês`, dir: k.resultadoMes >= 0 ? 'up' as const : 'dn' as const, icon: <Wallet size={12} />, spark: k.saldoSpark, color: k.resultadoMes >= 0 ? GREEN : RED, tone: k.resultadoMes >= 0 ? 'green' : 'red', href: 'https://erp.formuladoboi.com', external: true },
         { label: 'Leads ativos', val: fmtNum(k.activeLeads), unit: '', delta: `${k.hotLeads} quente${k.hotLeads === 1 ? '' : 's'}`, dir: 'up' as const, icon: <PhoneCall size={12} />, spark: k.leadsSpark, color: BLUE, tone: 'blue', href: '/leads' },
         { label: 'Tarefas', val: String(k.pendingTasks), unit: '', delta: k.overdueTasks > 0 ? `${k.overdueTasks} em atraso` : `${k.completionRate}% concluído`, dir: k.overdueTasks > 0 ? 'dn' as const : 'up' as const, icon: <ListTodo size={12} />, spark: k.leadsSpark, color: k.overdueTasks > 0 ? RED : VIOLET, tone: k.overdueTasks > 0 ? 'red' : 'violet', href: '/tactical-plan' },
     ];
