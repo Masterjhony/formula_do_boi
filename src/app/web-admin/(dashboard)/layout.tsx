@@ -114,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-100 dark:bg-[#0A0A0A] flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#B8860B]" />
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A0792E]" />
             </div>
         );
     }
@@ -140,13 +140,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* ─── Top Navbar ─── */}
-            <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#111111]/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-[#1E1E1E] shadow-sm shadow-black/5">
+            <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-[rgba(212,168,92,0.14)] shadow-sm shadow-black/5">
                 <div className="px-4 lg:px-6">
-                    <div className="flex items-center h-[60px] gap-3">
+                    <div className="flex items-center h-[68px] gap-3">
 
                         {/* Logo */}
                         <Link href="/" className="shrink-0 flex items-center">
-                            <div className="relative h-10 w-40">
+                            <div className="relative h-12 w-52">
                                 <Image
                                     src="/logo_complete.svg"
                                     alt="Fórmula do Boi"
@@ -159,7 +159,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </Link>
 
                         {/* Separator */}
-                        <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-[#2A2A2A] mx-1" />
+                        <div className="hidden lg:block h-8 w-px bg-[rgba(212,168,92,0.25)] mx-1" />
 
                         {/* Desktop Nav */}
                         <nav ref={navRef} className="hidden lg:flex items-center gap-0.5 flex-1">
@@ -171,10 +171,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                         <Link
                                             key={entry.href}
                                             href={entry.href}
-                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${active
-                                                ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black shadow-md shadow-[#B8860B]/25'
-                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:text-gray-900 dark:hover:text-white'
+                                            className={`flex items-center gap-2 px-3.5 py-2 text-sm font-medium transition-all duration-150 ${active
+                                                ? 'bg-[#A0792E] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(212,168,92,0.35),0_0_24px_rgba(160,121,46,0.25)]'
+                                                : 'text-gray-600 dark:text-[#F5F0E4]/70 hover:bg-gray-100 dark:hover:bg-[rgba(212,168,92,0.08)] hover:text-gray-900 dark:hover:text-[#D4A85C]'
                                                 }`}
+                                            style={{ borderRadius: 3, letterSpacing: '-0.005em' }}
                                         >
                                             <Icon size={15} />
                                             <span>{entry.label}</span>
@@ -190,10 +191,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     <div key={entry.label} className="relative">
                                         <button
                                             onClick={() => setOpenDropdown(open ? null : entry.label)}
-                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${active
-                                                ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black shadow-md shadow-[#B8860B]/25'
-                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:text-gray-900 dark:hover:text-white'
+                                            className={`flex items-center gap-2 px-3.5 py-2 text-sm font-medium transition-all duration-150 ${active
+                                                ? 'bg-[#A0792E] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(212,168,92,0.35),0_0_24px_rgba(160,121,46,0.25)]'
+                                                : 'text-gray-600 dark:text-[#F5F0E4]/70 hover:bg-gray-100 dark:hover:bg-[rgba(212,168,92,0.08)] hover:text-gray-900 dark:hover:text-[#D4A85C]'
                                                 }`}
+                                            style={{ borderRadius: 3, letterSpacing: '-0.005em' }}
                                         >
                                             <Icon size={15} />
                                             <span>{entry.label}</span>
@@ -201,9 +203,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                         </button>
 
                                         {open && (
-                                            <div className="absolute top-[calc(100%+8px)] left-0 w-56 bg-white dark:bg-[#181818] border border-gray-100 dark:border-[#2A2A2A] rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/50 overflow-hidden py-1.5">
-                                                <div className="px-3 pt-1 pb-2">
-                                                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-600">{entry.label}</p>
+                                            <div
+                                                className="absolute top-[calc(100%+8px)] left-0 w-60 bg-white dark:bg-[#0f0f0f] border border-gray-100 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 overflow-hidden py-2"
+                                                style={{ borderRadius: 4 }}
+                                            >
+                                                {/* Hairline tick brandbook */}
+                                                <span aria-hidden className="absolute top-0 left-0 block" style={{ width: 32, height: 1, background: '#A0792E' }} />
+                                                <div className="px-4 pt-1 pb-2.5">
+                                                    <p
+                                                        style={{
+                                                            fontFamily: 'var(--font-mono), ui-monospace, monospace',
+                                                            fontSize: 10,
+                                                            fontWeight: 500,
+                                                            letterSpacing: '0.24em',
+                                                            textTransform: 'uppercase',
+                                                            color: '#D4A85C',
+                                                        }}
+                                                    >
+                                                        {entry.label}
+                                                    </p>
                                                 </div>
                                                 {entry.items.map((item) => {
                                                     const ItemIcon = item.icon;
@@ -214,14 +232,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                             key={item.href}
                                                             href={item.href}
                                                             onClick={() => setOpenDropdown(null)}
-                                                            className={`flex items-center gap-3 mx-1.5 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${itemActive
-                                                                ? 'bg-[#B8860B]/10 text-[#B8860B] font-semibold'
-                                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#242424] hover:text-gray-900 dark:hover:text-white'
+                                                            className={`flex items-center gap-3 mx-1.5 px-3 py-2.5 text-sm transition-all duration-150 ${itemActive
+                                                                ? 'bg-[rgba(160,121,46,0.14)] text-[#D4A85C] font-semibold'
+                                                                : 'text-gray-700 dark:text-[#F5F0E4]/80 hover:bg-gray-50 dark:hover:bg-[rgba(212,168,92,0.06)] hover:text-gray-900 dark:hover:text-[#D4A85C]'
                                                                 }`}
+                                                            style={{ borderRadius: 3 }}
                                                         >
-                                                            <ItemIcon size={15} className={itemActive ? 'text-[#B8860B]' : 'text-gray-400'} />
+                                                            <ItemIcon size={15} className={itemActive ? 'text-[#D4A85C]' : 'text-gray-400 dark:text-[#F5F0E4]/40'} />
                                                             <span>{item.label}</span>
-                                                            {itemActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#B8860B]" />}
+                                                            {itemActive && <div className="ml-auto w-1 h-1 rounded-none bg-[#D4A85C]" />}
                                                         </Link>
                                                     );
                                                 })}
@@ -239,9 +258,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 href="https://erp.formuladoboi.com"
                                 target="_blank"
                                 rel="noreferrer"
-                                className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#B8860B]/30 bg-[#B8860B]/5 text-[#B8860B] hover:bg-[#B8860B]/10 hover:border-[#B8860B]/50 text-sm font-semibold transition-all"
+                                className="hidden lg:flex items-center gap-1.5 px-3.5 py-2 border border-[rgba(212,168,92,0.35)] bg-[rgba(160,121,46,0.06)] text-[#D4A85C] hover:bg-[rgba(160,121,46,0.12)] hover:border-[#D4A85C] transition-all"
+                                style={{
+                                    borderRadius: 3,
+                                    fontFamily: 'var(--font-mono), ui-monospace, monospace',
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                    letterSpacing: '0.18em',
+                                    textTransform: 'uppercase',
+                                }}
                             >
-                                <ExternalLink size={14} />
+                                <ExternalLink size={13} />
                                 <span>ERP</span>
                             </a>
 
@@ -253,21 +280,61 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                                     className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-black font-bold text-sm shadow-md shadow-[#B8860B]/20">
+                                    <div
+                                        className="flex items-center justify-center text-[#0A0A0A] font-bold text-sm shadow-md shadow-[#A0792E]/25"
+                                        style={{
+                                            width: 32,
+                                            height: 32,
+                                            background: 'linear-gradient(135deg, #D4A85C 0%, #A0792E 100%)',
+                                            borderRadius: 3,
+                                            fontFamily: 'var(--font-space-grotesk), system-ui',
+                                            letterSpacing: '-0.02em',
+                                        }}
+                                    >
                                         A
                                     </div>
-                                    <span className="hidden lg:block text-sm font-medium text-gray-700 dark:text-gray-300">Admin</span>
+                                    <span
+                                        className="hidden lg:block text-gray-700 dark:text-[#F5F0E4]"
+                                        style={{
+                                            fontFamily: 'var(--font-mono), ui-monospace, monospace',
+                                            fontSize: 11,
+                                            fontWeight: 500,
+                                            letterSpacing: '0.18em',
+                                            textTransform: 'uppercase',
+                                        }}
+                                    >Admin</span>
                                     <ChevronDown size={13} className={`hidden lg:block text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
                                 </button>
 
                                 {userMenuOpen && (
-                                    <div className="absolute top-[calc(100%+8px)] right-0 w-52 bg-white dark:bg-[#181818] border border-gray-100 dark:border-[#2A2A2A] rounded-2xl shadow-2xl shadow-black/10 dark:shadow-black/50 overflow-hidden py-1.5">
-                                        <div className="px-4 py-3 border-b border-gray-100 dark:border-[#2A2A2A]">
+                                    <div
+                                        className="absolute top-[calc(100%+8px)] right-0 w-56 bg-white dark:bg-[#0f0f0f] border border-gray-100 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 overflow-hidden py-2"
+                                        style={{ borderRadius: 4 }}
+                                    >
+                                        <span aria-hidden className="absolute top-0 right-0 block" style={{ width: 32, height: 1, background: '#A0792E' }} />
+                                        <div className="px-4 py-3 border-b border-gray-100 dark:border-[rgba(212,168,92,0.14)]">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-black font-bold text-sm">A</div>
+                                                <div
+                                                    className="flex items-center justify-center text-[#0A0A0A] font-bold text-sm"
+                                                    style={{
+                                                        width: 36,
+                                                        height: 36,
+                                                        background: 'linear-gradient(135deg, #D4A85C 0%, #A0792E 100%)',
+                                                        borderRadius: 3,
+                                                    }}
+                                                >A</div>
                                                 <div>
-                                                    <p className="text-sm font-bold text-gray-900 dark:text-white">Administrador</p>
-                                                    <p className="text-xs text-gray-500">Gestão Global</p>
+                                                    <p className="text-sm font-bold text-gray-900 dark:text-[#F5F0E4]" style={{ letterSpacing: '-0.01em' }}>Administrador</p>
+                                                    <p
+                                                        style={{
+                                                            fontFamily: 'var(--font-mono), ui-monospace, monospace',
+                                                            fontSize: 10,
+                                                            color: '#D4A85C',
+                                                            letterSpacing: '0.2em',
+                                                            textTransform: 'uppercase',
+                                                            marginTop: 2,
+                                                        }}
+                                                    >Gestão Global</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -275,7 +342,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             href="https://erp.formuladoboi.com"
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="flex items-center gap-3 mx-1.5 px-3 py-2.5 mt-1 rounded-xl text-sm text-[#B8860B] hover:bg-[#B8860B]/10 transition-all lg:hidden"
+                                            className="flex items-center gap-3 mx-1.5 px-3 py-2.5 mt-1 rounded-xl text-sm text-[#A0792E] hover:bg-[#A0792E]/10 transition-all lg:hidden"
                                         >
                                             <ExternalLink size={15} />
                                             Abrir ERP
@@ -288,8 +355,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             <LogOut size={15} />
                                             Sair do Painel
                                         </button>
-                                        <p className="text-center text-[10px] text-gray-400 dark:text-gray-700 uppercase tracking-widest mt-2 mb-1.5">
-                                            Fórmula do Boi v1.0
+                                        <p
+                                            className="text-center mt-3 mb-1.5"
+                                            style={{
+                                                fontFamily: 'var(--font-mono), ui-monospace, monospace',
+                                                fontSize: 9,
+                                                color: 'rgba(245,240,228,0.35)',
+                                                letterSpacing: '0.24em',
+                                                textTransform: 'uppercase',
+                                            }}
+                                        >
+                                            Fórmula do Boi · v1.0
                                         </p>
                                     </div>
                                 )}
@@ -308,7 +384,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 {/* Mobile Menu */}
                 {mobileOpen && (
-                    <div className="lg:hidden border-t border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] max-h-[calc(100svh-60px)] overflow-y-auto">
+                    <div className="lg:hidden border-t border-gray-200 dark:border-[rgba(212,168,92,0.14)] bg-white dark:bg-[#0A0A0A] max-h-[calc(100svh-60px)] overflow-y-auto">
                         <div className="px-4 py-3 space-y-0.5">
                             {navConfig.map((entry) => {
                                 if (!isGroup(entry)) {
@@ -318,10 +394,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                         <Link
                                             key={entry.href}
                                             href={entry.href}
-                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${active
-                                                ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black'
-                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
+                                            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all ${active
+                                                ? 'bg-[#A0792E] text-[#0A0A0A]'
+                                                : 'text-gray-700 dark:text-[#F5F0E4]/80 hover:bg-gray-50 dark:hover:bg-[rgba(212,168,92,0.06)] hover:text-[#D4A85C]'
                                                 }`}
+                                            style={{ borderRadius: 3 }}
                                         >
                                             <Icon size={18} />
                                             {entry.label}
@@ -338,7 +415,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                         <button
                                             onClick={() => setOpenDropdown(open ? null : entry.label)}
                                             className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all ${active
-                                                ? 'text-[#B8860B] bg-[#B8860B]/5'
+                                                ? 'text-[#A0792E] bg-[#A0792E]/5'
                                                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
                                                 }`}
                                         >
@@ -357,7 +434,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                             key={item.href}
                                                             href={item.href}
                                                             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all ${itemActive
-                                                                ? 'bg-[#B8860B]/10 text-[#B8860B] font-semibold'
+                                                                ? 'bg-[#A0792E]/10 text-[#A0792E] font-semibold'
                                                                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
                                                                 }`}
                                                         >
@@ -377,7 +454,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     href="https://erp.formuladoboi.com"
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#B8860B]/30 bg-[#B8860B]/5 text-[#B8860B] text-sm font-semibold transition-all"
+                                    className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#A0792E]/30 bg-[#A0792E]/5 text-[#A0792E] text-sm font-semibold transition-all"
                                 >
                                     <ExternalLink size={17} />
                                     Abrir ERP
@@ -409,8 +486,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
                 )}
                 <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] overflow-hidden">
-                    <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#B8860B]/5 rounded-full blur-[120px]" />
-                    <div className="absolute bottom-[-10%] left-[10%] w-[400px] h-[400px] bg-[#B8860B]/5 rounded-full blur-[100px]" />
+                    <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#A0792E]/5 rounded-full blur-[120px]" />
+                    <div className="absolute bottom-[-10%] left-[10%] w-[400px] h-[400px] bg-[#A0792E]/5 rounded-full blur-[100px]" />
                 </div>
             </main>
         </div>

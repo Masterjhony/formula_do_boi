@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { LEILOES, type Leilao } from "@/data/leiloes";
 
+// Brandbook tokens
+const BRONZE = "#A0792E";
+const BRONZE_LIGHT = "#D4A85C";
+const BRONZE_PALE = "#E8CB85";
+const INK = "#0A0A0A";
+const FG = "#F5F0E4";
+
 const leatherTexture: React.CSSProperties = {
     backgroundImage: [
         "repeating-linear-gradient(62deg, transparent 0px, transparent 3px, rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 4px)",
@@ -25,37 +32,78 @@ export default function LeiloesSection() {
         <section
             id="leiloes"
             className="stitch-divider relative overflow-hidden scroll-mt-20"
-            style={{ background: "#0A0A0A", color: "#F6F2EA", padding: "80px 20px" }}
+            style={{ background: INK, color: FG, padding: "96px 20px", borderTop: "1px solid rgba(212,168,92,0.12)" }}
         >
             {/* Textura de couro */}
             <div className="absolute inset-0 pointer-events-none" style={leatherTexture} />
 
+            {/* Dot grid */}
+            <div
+                className="absolute inset-0 pointer-events-none opacity-30"
+                style={{
+                    backgroundImage: "radial-gradient(circle at 1px 1px, rgba(232,203,133,0.08) 1px, transparent 0)",
+                    backgroundSize: "28px 28px",
+                }}
+            />
+
             <div className="relative z-10" style={{ maxWidth: 1200, margin: "0 auto" }}>
 
-                {/* Kicker */}
+                {/* Eyebrow brandbook */}
                 <div
-                    className="font-bold uppercase tracking-widest mb-3.5"
-                    style={{ fontSize: 11, color: "#C9A961", letterSpacing: "0.22em" }}
+                    className="inline-flex items-center gap-3 mb-5"
+                    style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 12,
+                        letterSpacing: "0.24em",
+                        textTransform: "uppercase",
+                        color: BRONZE_LIGHT,
+                        fontWeight: 500,
+                    }}
                 >
+                    <span style={{ width: 32, height: 1, background: BRONZE, display: "inline-block" }} />
                     Agenda · Temporada 2026
                 </div>
 
                 {/* Título */}
                 <h2
                     className="font-display"
-                    style={{ fontSize: "clamp(28px, 6vw, 50px)", fontWeight: 400, lineHeight: 1.05, letterSpacing: "-0.02em", color: "#F6F2EA", marginBottom: 14 }}
+                    style={{
+                        fontSize: "clamp(32px, 6.2vw, 60px)",
+                        fontWeight: 500,
+                        lineHeight: 1.0,
+                        letterSpacing: "-0.03em",
+                        color: FG,
+                        marginBottom: 18,
+                        maxWidth: "18ch",
+                    }}
                 >
                     Próximos leilões com{" "}
-                    <em style={{ fontStyle: "italic", color: "#C9A961" }}>curadoria Bula.</em>
+                    <span style={{ color: BRONZE_LIGHT }}>curadoria Bula.</span>
                 </h2>
 
-                <p style={{ fontSize: 17, color: "rgba(246,242,234,0.70)", lineHeight: 1.6, maxWidth: "58ch", marginBottom: 8 }}>
-                    Toda pista passa pelo nosso olho antes de ir pro criador. Filmagem dos lotes,
+                <p style={{
+                    fontSize: 18,
+                    color: "rgba(245,240,228,0.72)",
+                    lineHeight: 1.55,
+                    maxWidth: "60ch",
+                    marginBottom: 16,
+                    letterSpacing: "-0.005em",
+                }}>
+                    Toda pista passa pelo nosso olho antes de chegar ao criador. Filmagem dos lotes,
                     transmissão, crédito e logística — infraestrutura montada.
                 </p>
 
                 {/* Lista de leilões */}
-                <div style={{ borderTop: "1px solid rgba(246,242,234,0.12)", marginTop: 8, marginBottom: 32 }}>
+                <div style={{
+                    borderTop: "1px solid rgba(212,168,92,0.22)",
+                    marginTop: 32,
+                    marginBottom: 36,
+                    position: "relative",
+                }}>
+                    <span aria-hidden style={{
+                        position: "absolute", top: -1, left: 0,
+                        width: 48, height: 1, background: BRONZE,
+                    }} />
                     {proximos.map((ev, i) => (
                         <AgendaItem key={i} ev={ev} />
                     ))}
@@ -65,11 +113,29 @@ export default function LeiloesSection() {
                 <div className="flex flex-col sm:flex-row gap-3">
                     <Link
                         href="/agenda"
-                        className="inline-flex items-center justify-center gap-2.5 transition-all hover:-translate-y-0.5 active:scale-95"
-                        style={{ background: "#A0802A", color: "#0A0A0A", padding: "18px 28px", borderRadius: 999, fontWeight: 700, fontSize: 15 }}
+                        className="group inline-flex items-center justify-center gap-2.5 transition-all hover:-translate-y-0.5 active:scale-95"
+                        style={{
+                            background: BRONZE,
+                            color: INK,
+                            padding: "16px 28px",
+                            borderRadius: 2,
+                            fontWeight: 600,
+                            fontSize: 14,
+                            letterSpacing: "0.02em",
+                            boxShadow: "0 0 0 1px rgba(212,168,92,0.35), 0 0 60px rgba(212,168,92,0.18)",
+                        }}
                     >
-                        Ver agenda completa ({LEILOES.length} leilões)
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        Ver agenda completa
+                        <span style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: 11,
+                            letterSpacing: "0.1em",
+                            opacity: 0.75,
+                            marginLeft: 4,
+                        }}>
+                            ({LEILOES.length} leilões)
+                        </span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition-transform group-hover:translate-x-0.5">
                             <path d="M5 12h14M13 6l6 6-6 6"/>
                         </svg>
                     </Link>
@@ -78,7 +144,16 @@ export default function LeiloesSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-2.5"
-                        style={{ background: "transparent", color: "#F6F2EA", padding: "18px 28px", borderRadius: 999, fontWeight: 600, fontSize: 15, border: "1.5px solid rgba(246,242,234,0.35)" }}
+                        style={{
+                            background: "transparent",
+                            color: FG,
+                            padding: "16px 28px",
+                            borderRadius: 2,
+                            fontWeight: 500,
+                            fontSize: 14,
+                            letterSpacing: "0.02em",
+                            border: "1px solid rgba(245,240,228,0.22)",
+                        }}
                     >
                         Receber agenda no WhatsApp
                     </a>
@@ -91,21 +166,35 @@ export default function LeiloesSection() {
 function AgendaItem({ ev }: { ev: Leilao }) {
     return (
         <div
-            className="flex items-center gap-4 md:gap-6 transition-all hover:pl-2"
-            style={{ padding: "22px 0", borderBottom: "1px solid rgba(246,242,234,0.12)" }}
+            className="flex items-center gap-4 md:gap-6 transition-all hover:pl-2 group"
+            style={{ padding: "24px 0", borderBottom: "1px solid rgba(212,168,92,0.14)" }}
         >
             {/* Data */}
             <div
                 className="flex-shrink-0 text-center"
-                style={{ width: 64, borderRight: "1px solid rgba(160,128,42,0.35)", paddingRight: 18 }}
+                style={{ width: 72, borderRight: `1px solid ${BRONZE}40`, paddingRight: 20 }}
             >
                 <div
                     className="font-display"
-                    style={{ fontSize: 36, fontWeight: 500, color: "#C9A961", lineHeight: 1, letterSpacing: "-0.02em" }}
+                    style={{
+                        fontSize: 40,
+                        fontWeight: 500,
+                        color: BRONZE_LIGHT,
+                        lineHeight: 1,
+                        letterSpacing: "-0.025em",
+                    }}
                 >
                     {ev.dia}
                 </div>
-                <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(246,242,234,0.70)", fontWeight: 600, marginTop: 6 }}>
+                <div style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10.5,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.22em",
+                    color: "rgba(245,240,228,0.62)",
+                    fontWeight: 500,
+                    marginTop: 8,
+                }}>
                     {ev.mes.slice(0, 3)}
                 </div>
             </div>
@@ -114,13 +203,25 @@ function AgendaItem({ ev }: { ev: Leilao }) {
             <div className="flex-1 min-w-0">
                 <div
                     className="font-display"
-                    style={{ fontSize: 18, fontWeight: 500, color: "#F6F2EA", marginBottom: 4, lineHeight: 1.2 }}
+                    style={{
+                        fontSize: 20,
+                        fontWeight: 500,
+                        color: FG,
+                        marginBottom: 6,
+                        lineHeight: 1.2,
+                        letterSpacing: "-0.015em",
+                    }}
                 >
                     {ev.criador}
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(246,242,234,0.65)", letterSpacing: "0.02em" }}>
-                    {ev.quantidade} animais &middot; {ev.diaSemana}
-                    {ev.horario !== "—" ? `, ${ev.horario}` : ""} &middot; {ev.modelo}
+                <div style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11.5,
+                    color: "rgba(245,240,228,0.58)",
+                    letterSpacing: "0.04em",
+                }}>
+                    {ev.quantidade} animais · {ev.diaSemana}
+                    {ev.horario !== "—" ? ` · ${ev.horario}` : ""} · {ev.modelo}
                 </div>
             </div>
 
@@ -128,9 +229,14 @@ function AgendaItem({ ev }: { ev: Leilao }) {
             <div
                 className="flex-shrink-0 hidden sm:block"
                 style={{
-                    fontSize: 10, textTransform: "uppercase", letterSpacing: "0.15em",
-                    color: "#C9A961", fontWeight: 700,
-                    padding: "5px 10px", border: "1px solid rgba(160,128,42,0.4)", borderRadius: 999,
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10.5,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.18em",
+                    color: BRONZE_LIGHT,
+                    fontWeight: 500,
+                    padding: "6px 10px",
+                    border: "1px solid rgba(212,168,92,0.35)",
                 }}
             >
                 {ev.categoria}

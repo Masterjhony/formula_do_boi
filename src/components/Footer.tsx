@@ -25,7 +25,7 @@ export default function Footer() {
 
     return (
         <>
-        <footer className="relative bg-[#080808] text-white pt-10 pb-6 md:pt-16 md:pb-8 border-t border-yellow-900/40 overflow-hidden">
+        <footer className="relative bg-[#0A0A0A] text-[#F5F0E4] pt-12 pb-6 md:pt-20 md:pb-10 overflow-hidden" style={{ borderTop: "1px solid rgba(212,168,92,0.22)" }}>
 
             {/* Deep Relief / Intaglio Watermark
                 Luz vem do topo-esquerda. Cada traço é um sulco cavado:
@@ -117,59 +117,93 @@ export default function Footer() {
                                 />
                             </div>
                         </div>
-                        <p className="text-gray-400 text-sm leading-relaxed">
-                            Ecossistema completo de genética Nelore P.O. — touros, sêmen, doadoras, embriões e leilões com curadoria especializada.
+                        <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,228,0.62)", maxWidth: "36ch" }}>
+                            Curadoria de Nelore PO — sêmen top 0.1%, doadoras consagradas, embriões FIV selecionados e leilões com curadoria especializada.
                         </p>
-                        <div className="flex gap-4">
-                            <a href="https://www.instagram.com/formuladoboi/" target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-800 rounded-full hover:bg-brand-gold hover:text-brand-black transition-colors">
-                                <Instagram className="w-5 h-5" />
+                        <div className="flex gap-3">
+                            <a
+                                href="https://www.instagram.com/formuladoboi/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center transition-colors hover:bg-[#A0792E] hover:text-[#0A0A0A]"
+                                style={{
+                                    width: 38, height: 38,
+                                    border: "1px solid rgba(212,168,92,0.35)",
+                                    color: "#D4A85C",
+                                    borderRadius: 2,
+                                }}
+                            >
+                                <Instagram className="w-4 h-4" />
                             </a>
                         </div>
                     </div>
 
                     {/* Links Column */}
                     <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                        <h3 className="text-lg font-bold mb-3 md:mb-6 text-brand-gold uppercase tracking-wider">Navegação</h3>
-                        <ul className="space-y-2 md:space-y-4 text-sm text-gray-400">
-                            <li><Link href="/" className="hover:text-white transition-colors">Início</Link></li>
+                        <h3 className="mb-4 md:mb-6" style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: 11,
+                            letterSpacing: "0.24em",
+                            textTransform: "uppercase",
+                            color: "#D4A85C",
+                            fontWeight: 500,
+                        }}>Navegação</h3>
+                        <ul className="space-y-2.5 md:space-y-3 text-sm" style={{ color: "rgba(245,240,228,0.62)" }}>
+                            <li><Link href="/" className="hover:text-[#D4A85C] transition-colors">Início</Link></li>
                             {showTouros && (
-                                <li><Link href="/touros" className="hover:text-white transition-colors">Touros</Link></li>
+                                <li><Link href="/touros" className="hover:text-[#D4A85C] transition-colors">Touros</Link></li>
                             )}
                             {showSemen && (
-                                <li><Link href="/semen" className="hover:text-white transition-colors">Sêmen</Link></li>
+                                <li><Link href="/semen" className="hover:text-[#D4A85C] transition-colors">Sêmen</Link></li>
                             )}
-                            <li><Link href="/embrioes" className="hover:text-white transition-colors">Doadoras & Embriões</Link></li>
+                            <li><Link href="/embrioes" className="hover:text-[#D4A85C] transition-colors">Doadoras & Embriões</Link></li>
                             {showTopBreeders && (
-                                <li><Link href="/top-criadores" className="hover:text-white transition-colors">Top Criadores</Link></li>
+                                <li><Link href="/top-criadores" className="hover:text-[#D4A85C] transition-colors">Top Criadores</Link></li>
                             )}
-                            <li><Link href="/quem-somos" className="hover:text-white transition-colors">Quem Somos</Link></li>
-                            <li><Link href="/venda-conosco" className="hover:text-white transition-colors">Venda Conosco</Link></li>
+                            <li><Link href="/quem-somos" className="hover:text-[#D4A85C] transition-colors">Quem Somos</Link></li>
+                            <li><Link href="/venda-conosco" className="hover:text-[#D4A85C] transition-colors">Venda Conosco</Link></li>
                         </ul>
                     </div>
 
                     {/* Contact Column */}
                     <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                        <h3 className="text-lg font-bold mb-3 md:mb-6 text-brand-gold uppercase tracking-wider">Contato</h3>
-                        <ul className="space-y-2 md:space-y-4 text-sm text-gray-400">
+                        <h3 className="mb-4 md:mb-6" style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: 11,
+                            letterSpacing: "0.24em",
+                            textTransform: "uppercase",
+                            color: "#D4A85C",
+                            fontWeight: 500,
+                        }}>Contato</h3>
+                        <ul className="space-y-3 md:space-y-4 text-sm" style={{ color: "rgba(245,240,228,0.70)" }}>
                             <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
-                                <Phone className="w-5 h-5 mt-0.5 text-brand-gold" />
+                                <Phone className="w-4 h-4 mt-0.5" style={{ color: "#A0792E" }} />
                                 <span>(31) 9414-9161<br />(31) 7565-9900</span>
                             </li>
                             <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
-                                <Mail className="w-5 h-5 mt-0.5 text-brand-gold" />
+                                <Mail className="w-4 h-4 mt-0.5" style={{ color: "#A0792E" }} />
                                 <span>formuladoboi@gmail.com</span>
                             </li>
                             <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
-                                <MapPin className="w-5 h-5 mt-0.5 text-brand-gold" />
-                                <span>Belo Horizonte - MG</span>
+                                <MapPin className="w-4 h-4 mt-0.5" style={{ color: "#A0792E" }} />
+                                <span>Belo Horizonte · MG</span>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="pt-6 md:pt-8 border-t border-yellow-900/30 text-center text-xs text-gray-500 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p>&copy; 2026 Fórmula do Boi. Todos os direitos reservados.</p>
-                    <p>Desenvolvido com tecnologia de ponta.</p>
+                <div
+                    className="pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-4"
+                    style={{
+                        borderTop: "1px solid rgba(212,168,92,0.14)",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 11,
+                        letterSpacing: "0.1em",
+                        color: "rgba(245,240,228,0.42)",
+                    }}
+                >
+                    <p>© 2026 FÓRMULA DO BOI · CONFIDENCIAL · USO INTERNO</p>
+                    <p>GENÉTICA DE ELITE · PRECISÃO DE DADOS</p>
                 </div>
             </div>
         </footer>

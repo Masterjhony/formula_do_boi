@@ -33,20 +33,20 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://app.formuladoboi.com'),
-  title: "Fórmula do Boi | Comercialização de Nelore PO",
-  description: "Plataforma especializada na compra e venda de genética Nelore PO: matrizes, touros, sêmen e embriões.",
+  title: "Fórmula do Boi | Curadoria de Nelore PO",
+  description: "Genética de elite. Precisão de dados. Curadoria de Nelore PO de alto padrão, sêmen top 0.1% e embriões FIV selecionados.",
   manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "Fórmula do Boi | Comercialização de Nelore PO",
-    description: "Plataforma especializada na compra e venda de genética Nelore PO: matrizes, touros, sêmen e embriões.",
+    title: "Fórmula do Boi | Curadoria de Nelore PO",
+    description: "Genética de elite. Precisão de dados. Curadoria de Nelore PO de alto padrão, sêmen top 0.1% e embriões FIV selecionados.",
     type: "website",
     locale: "pt_BR",
     images: ['/FORMULA DO BOI_LOGO-01.png'],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fórmula do Boi | Comercialização de Nelore PO",
-    description: "Plataforma especializada na compra e venda de genética Nelore PO: matrizes, touros, sêmen e embriões.",
+    title: "Fórmula do Boi | Curadoria de Nelore PO",
+    description: "Genética de elite. Precisão de dados. Curadoria de Nelore PO de alto padrão, sêmen top 0.1% e embriões FIV selecionados.",
     images: ['/FORMULA DO BOI_LOGO-01.png'],
   },
 };

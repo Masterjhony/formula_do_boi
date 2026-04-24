@@ -1,5 +1,13 @@
 import Link from "next/link";
 
+// Brandbook tokens
+const BRONZE = "#A0792E";
+const BRONZE_LIGHT = "#D4A85C";
+const BRONZE_PALE = "#E8CB85";
+const INK = "#0A0A0A";
+const INK_2 = "#141414";
+const FG = "#F5F0E4";
+
 const leatherTexture: React.CSSProperties = {
     backgroundImage: [
         "repeating-linear-gradient(62deg, transparent 0px, transparent 3px, rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 4px)",
@@ -22,7 +30,12 @@ export default function VendaConoscoSection() {
     return (
         <section
             className="stitch-divider relative overflow-hidden"
-            style={{ background: "linear-gradient(180deg, #0A0A0A 0%, #1A1609 100%)", color: "#F6F2EA", padding: "90px 20px" }}
+            style={{
+                background: `linear-gradient(180deg, ${INK_2} 0%, #1A1609 100%)`,
+                color: FG,
+                padding: "96px 20px",
+                borderTop: "1px solid rgba(212,168,92,0.12)",
+            }}
         >
             {/* Textura de couro */}
             <div className="absolute inset-0 pointer-events-none" style={leatherTexture} />
@@ -30,74 +43,151 @@ export default function VendaConoscoSection() {
             {/* Glow radial */}
             <div
                 className="absolute pointer-events-none"
-                style={{ bottom: -100, left: -100, width: 400, height: 400, background: "radial-gradient(circle, rgba(201,169,97,0.12) 0%, transparent 70%)" }}
+                style={{ bottom: -100, left: -100, width: 500, height: 500, background: "radial-gradient(circle, rgba(212,168,92,0.14) 0%, transparent 70%)" }}
+            />
+
+            {/* Dot grid */}
+            <div
+                className="absolute inset-0 pointer-events-none opacity-30"
+                style={{
+                    backgroundImage: "radial-gradient(circle at 1px 1px, rgba(232,203,133,0.08) 1px, transparent 0)",
+                    backgroundSize: "28px 28px",
+                }}
             />
 
             <div className="relative z-10" style={{ maxWidth: 1200, margin: "0 auto" }}>
 
-                {/* Kicker */}
+                {/* Eyebrow brandbook */}
                 <div
-                    className="mb-3.5"
-                    style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.22em", color: "#C9A961", fontWeight: 700 }}
+                    className="inline-flex items-center gap-3 mb-5"
+                    style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 12,
+                        letterSpacing: "0.24em",
+                        textTransform: "uppercase",
+                        color: BRONZE_LIGHT,
+                        fontWeight: 500,
+                    }}
                 >
-                    Pra quem produz
+                    <span style={{ width: 32, height: 1, background: BRONZE, display: "inline-block" }} />
+                    Para quem produz
                 </div>
 
                 {/* Título */}
                 <h2
                     className="font-display"
-                    style={{ fontSize: "clamp(28px, 6vw, 48px)", fontWeight: 400, lineHeight: 1.05, letterSpacing: "-0.02em", marginBottom: 16 }}
+                    style={{
+                        fontSize: "clamp(32px, 6.2vw, 56px)",
+                        fontWeight: 500,
+                        lineHeight: 1.02,
+                        letterSpacing: "-0.03em",
+                        marginBottom: 18,
+                        maxWidth: "20ch",
+                        color: FG,
+                    }}
                 >
                     É criador? Coloque sua genética{" "}
-                    <em style={{ fontStyle: "italic", color: "#C9A961" }}>na FdB.</em>
+                    <span style={{ color: BRONZE_LIGHT }}>na FdB.</span>
                 </h2>
 
-                <p style={{ color: "rgba(246,242,234,0.75)", fontSize: 16, lineHeight: 1.6, maxWidth: "54ch", marginBottom: 32 }}>
-                    Você foca no gado. A gente no mercado. Infraestrutura comercial pronta —
+                <p style={{
+                    color: "rgba(245,240,228,0.75)",
+                    fontSize: 18,
+                    lineHeight: 1.55,
+                    maxWidth: "58ch",
+                    marginBottom: 40,
+                    letterSpacing: "-0.005em",
+                }}>
+                    Você foca no gado. Nós no mercado. Infraestrutura comercial pronta —
                     time, tráfego, marketplace, leilão com a Bula. Sem exclusividade.
                 </p>
 
                 {/* Caminhos */}
-                <div className="grid sm:grid-cols-2 gap-3.5 mb-8">
+                <div className="grid sm:grid-cols-2 gap-4 mb-10">
                     {PATHS.map(({ title, desc }) => (
                         <div
                             key={title}
-                            className="rounded-xl"
-                            style={{ padding: 22, background: "rgba(246,242,234,0.04)", border: "1px solid rgba(160,128,42,0.20)" }}
+                            style={{
+                                padding: 26,
+                                background: "rgba(245,240,228,0.03)",
+                                border: "1px solid rgba(212,168,92,0.22)",
+                                borderRadius: 4,
+                                position: "relative",
+                            }}
                         >
+                            {/* Brackets brandbook top */}
+                            <span aria-hidden style={{
+                                position: "absolute", top: 0, left: 0,
+                                width: 12, height: 12,
+                                borderTop: `1px solid ${BRONZE}`,
+                                borderLeft: `1px solid ${BRONZE}`,
+                            }} />
+                            <span aria-hidden style={{
+                                position: "absolute", bottom: 0, right: 0,
+                                width: 12, height: 12,
+                                borderBottom: `1px solid ${BRONZE}`,
+                                borderRight: `1px solid ${BRONZE}`,
+                            }} />
+
                             <div
                                 className="font-display"
-                                style={{ fontSize: 19, fontWeight: 500, color: "#C9A961", marginBottom: 6 }}
+                                style={{
+                                    fontSize: 22,
+                                    fontWeight: 500,
+                                    color: BRONZE_LIGHT,
+                                    marginBottom: 10,
+                                    letterSpacing: "-0.015em",
+                                    lineHeight: 1.15,
+                                }}
                             >
                                 {title}
                             </div>
-                            <div style={{ fontSize: 13, color: "rgba(246,242,234,0.70)", lineHeight: 1.55 }}>
+                            <div style={{
+                                fontSize: 14,
+                                color: "rgba(245,240,228,0.70)",
+                                lineHeight: 1.55,
+                            }}>
                                 {desc}
                             </div>
                         </div>
                     ))}
                 </div>
 
-                {/* CTA principal */}
+                {/* CTA principal — brandbook sem adorno */}
                 <a
                     href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20sou%20criador%20e%20quero%20comercializar%20minha%20gen%C3%A9tica%20com%20a%20FdB"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2.5 transition-all hover:-translate-y-0.5 active:scale-95"
-                    style={{ background: "#A0802A", color: "#0A0A0A", padding: "18px 32px", borderRadius: 999, fontWeight: 700, fontSize: 15 }}
+                    className="group inline-flex items-center gap-2.5 transition-all hover:-translate-y-0.5 active:scale-95"
+                    style={{
+                        background: BRONZE,
+                        color: INK,
+                        padding: "16px 28px",
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        fontSize: 14,
+                        letterSpacing: "0.02em",
+                        boxShadow: "0 0 0 1px rgba(212,168,92,0.35), 0 0 60px rgba(212,168,92,0.18)",
+                    }}
                 >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                    Solicitar proposta
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition-transform group-hover:translate-x-0.5">
+                        <path d="M5 12h14M13 6l6 6-6 6"/>
                     </svg>
-                    Falar com o time comercial
                 </a>
 
                 {/* Link secundário */}
-                <div className="mt-4">
+                <div className="mt-5">
                     <Link
                         href="/venda-conosco"
-                        className="transition-colors hover:text-[#C9A961]"
-                        style={{ color: "rgba(246,242,234,0.45)", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}
+                        className="transition-colors hover:text-[#D4A85C]"
+                        style={{
+                            color: "rgba(245,240,228,0.50)",
+                            fontSize: 11.5,
+                            fontFamily: "var(--font-mono)",
+                            letterSpacing: "0.18em",
+                            textTransform: "uppercase",
+                        }}
                     >
                         Como funciona →
                     </Link>

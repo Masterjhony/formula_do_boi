@@ -10,6 +10,13 @@ const SRC_WEBM = `${CLD}/f_webm,w_960,q_auto:low,vc_vp9,br_400k/${VID}.webm`;
 
 const WA_LINK = "https://wa.me/5531984143874?text=Ol%C3%A1%2C%20quero%20entrar%20no%20grupo%20Selo%20Ouro";
 
+// Brandbook tokens
+const BRONZE = "#A0792E";
+const BRONZE_LIGHT = "#D4A85C";
+const BRONZE_PALE = "#E8CB85";
+const INK = "#0A0A0A";
+const FG = "#F5F0E4";
+
 export default function Hero() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [videoReady, setVideoReady] = useState(false);
@@ -33,7 +40,7 @@ export default function Hero() {
     return (
         <section
             className="relative flex items-end overflow-hidden"
-            style={{ minHeight: "92vh", padding: "120px 20px 48px", color: "#F6F2EA", background: "#0A0A0A" }}
+            style={{ minHeight: "92vh", padding: "120px 20px 56px", color: FG, background: INK }}
         >
             {/* Poster */}
             <img
@@ -58,18 +65,34 @@ export default function Hero() {
                 </video>
             )}
 
-            {/* Gradient overlay */}
+            {/* Gradient overlay — deep ink */}
             <div
                 className="absolute inset-0 pointer-events-none"
-                style={{ background: "linear-gradient(180deg, rgba(10,10,10,0.35) 0%, rgba(10,10,10,0.72) 60%, rgba(10,10,10,0.96) 100%)" }}
+                style={{ background: "linear-gradient(180deg, rgba(10,10,10,0.45) 0%, rgba(10,10,10,0.78) 55%, rgba(10,10,10,0.98) 100%)" }}
+            />
+
+            {/* Radial bronze glow (brandbook tint-radial) */}
+            <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.18) 0%, rgba(10,10,10,0) 60%)" }}
+            />
+
+            {/* Dot grid brandbook pattern */}
+            <div
+                className="absolute inset-0 pointer-events-none opacity-40"
+                style={{
+                    backgroundImage: "radial-gradient(circle at 1px 1px, rgba(232,203,133,0.14) 1px, transparent 0)",
+                    backgroundSize: "28px 28px",
+                    maskImage: "linear-gradient(180deg, transparent 0%, black 40%, black 85%, transparent 100%)",
+                }}
             />
 
             {/* Leather grain */}
             <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                    backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.8 0 0 0 0 0.7 0 0 0 0 0.3 0 0 0 0.12 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-                    opacity: 0.35,
+                    backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.8 0 0 0 0 0.7 0 0 0 0 0.3 0 0 0 0.10 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+                    opacity: 0.30,
                     mixBlendMode: "overlay",
                 }}
             />
@@ -77,74 +100,177 @@ export default function Hero() {
             {/* Conteúdo */}
             <div className="relative z-10 w-full" style={{ maxWidth: 1200, margin: "0 auto" }}>
 
-                {/* Kicker */}
+                {/* Eyebrow brandbook — mono uppercase tracking 0.24em */}
                 <div
-                    className="inline-flex items-center gap-2.5 mb-5"
-                    style={{ fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#C9A961", fontWeight: 600 }}
+                    className="inline-flex items-center gap-3 mb-6"
+                    style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 12,
+                        letterSpacing: "0.24em",
+                        textTransform: "uppercase",
+                        color: BRONZE_LIGHT,
+                        fontWeight: 500,
+                    }}
                 >
-                    <span style={{ width: 28, height: 1, background: "#C9A961", display: "inline-block", flexShrink: 0 }} />
-                    De criador, pra criador
+                    <span style={{ width: 32, height: 1, background: BRONZE, display: "inline-block", flexShrink: 0 }} />
+                    <span style={{ width: 6, height: 6, background: BRONZE, borderRadius: "50%" }} />
+                    Curadoria · Nelore PO
                 </div>
 
-                {/* Título */}
+                {/* Título — hierarquia brandbook H1 display */}
                 <h1
                     className="font-display"
-                    style={{ fontWeight: 400, fontSize: "clamp(38px, 9vw, 84px)", lineHeight: 1.02, letterSpacing: "-0.025em", marginBottom: 22, maxWidth: "14ch" }}
+                    style={{
+                        fontWeight: 500,
+                        fontSize: "clamp(42px, 9.2vw, 96px)",
+                        lineHeight: 0.96,
+                        letterSpacing: "-0.03em",
+                        marginBottom: 20,
+                        maxWidth: "16ch",
+                        color: FG,
+                    }}
                 >
-                    Genética Nelore P.O. sem{" "}
-                    <em style={{ fontStyle: "italic", color: "#C9A961", fontWeight: 400 }}>intermediário caro.</em>
+                    Genética de elite.<br/>
+                    <span style={{ color: BRONZE_LIGHT }}>Precisão de dados.</span>
                 </h1>
 
-                {/* Subtítulo */}
-                <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.55, color: "rgba(246,242,234,0.80)", marginBottom: 32, maxWidth: "52ch" }}>
-                    Sêmen dos 11 melhores reprodutores da safra, embriões de doadoras consagradas e
-                    leilões com curadoria Bula Remates. Direto no WhatsApp. Sem ruído de vitrine.
+                {/* Subtítulo — body-lg brandbook */}
+                <p
+                    style={{
+                        fontSize: "clamp(16px, 2.1vw, 20px)",
+                        lineHeight: 1.5,
+                        color: "rgba(245,240,228,0.82)",
+                        marginBottom: 28,
+                        maxWidth: "54ch",
+                        letterSpacing: "-0.005em",
+                    }}
+                >
+                    Curadoria de Nelore PO de alto padrão, sêmen top 0.1% e embriões FIV
+                    selecionados. O filtro de confiança entre o topo do ranking e o pecuarista seletor.
                 </p>
 
-                {/* CTAs */}
-                <div className="flex flex-wrap gap-3 mb-10">
+                {/* Mono data chips — brandbook signature */}
+                <div
+                    className="flex flex-wrap items-center gap-3 mb-9"
+                    style={{ fontFamily: "var(--font-mono)" }}
+                >
+                    {[
+                        { k: "MGTe", v: "156.8" },
+                        { k: "DEP.P365", v: "+18.2" },
+                        { k: "TOP", v: "0.1%" },
+                    ].map(({ k, v }) => (
+                        <span
+                            key={k}
+                            className="inline-flex items-center gap-2"
+                            style={{
+                                padding: "6px 10px",
+                                border: "1px solid rgba(212,168,92,0.28)",
+                                borderRadius: 2,
+                                fontSize: 11,
+                                letterSpacing: "0.12em",
+                                textTransform: "uppercase",
+                                color: BRONZE_LIGHT,
+                                background: "rgba(10,10,10,0.35)",
+                            }}
+                        >
+                            <span style={{ color: "rgba(245,240,228,0.55)" }}>{k}</span>
+                            <span style={{ color: BRONZE_PALE, fontWeight: 500 }}>{v}</span>
+                        </span>
+                    ))}
+                </div>
+
+                {/* CTAs — sem adorno, brandbook style */}
+                <div className="flex flex-wrap gap-3 mb-12">
                     <a
                         href={WA_LINK}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2.5 transition-all hover:-translate-y-0.5 active:scale-95"
-                        style={{ background: "#A0802A", color: "#0A0A0A", padding: "18px 28px", borderRadius: 999, fontWeight: 700, fontSize: 15, border: "2px solid #A0802A" }}
+                        className="group inline-flex items-center justify-center gap-2.5 transition-all hover:-translate-y-0.5 active:scale-95"
+                        style={{
+                            background: BRONZE,
+                            color: INK,
+                            padding: "16px 26px",
+                            borderRadius: 2,
+                            fontWeight: 600,
+                            fontSize: 14,
+                            letterSpacing: "0.02em",
+                            border: `1px solid ${BRONZE}`,
+                            boxShadow: "0 0 0 1px rgba(212,168,92,0.35), 0 0 60px rgba(212,168,92,0.18)",
+                        }}
                     >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                        Acessar Grupo Selo Ouro
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition-transform group-hover:translate-x-0.5">
+                            <path d="M5 12h14M13 6l6 6-6 6"/>
                         </svg>
-                        Entrar no Grupo Selo Ouro
                     </a>
                     <a
                         href="#semen"
-                        className="inline-flex items-center justify-center gap-2.5 transition-all hover:border-opacity-80"
-                        style={{ background: "transparent", color: "#F6F2EA", padding: "18px 28px", borderRadius: 999, fontWeight: 600, fontSize: 15, border: "1.5px solid rgba(246,242,234,0.35)" }}
+                        className="group inline-flex items-center justify-center gap-2.5 transition-all"
+                        style={{
+                            background: "transparent",
+                            color: FG,
+                            padding: "16px 26px",
+                            borderRadius: 2,
+                            fontWeight: 500,
+                            fontSize: 14,
+                            letterSpacing: "0.02em",
+                            border: "1px solid rgba(245,240,228,0.22)",
+                        }}
                     >
-                        Ver a escalação
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        Ver catálogo
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition-transform group-hover:translate-x-0.5">
                             <path d="M5 12h14M13 6l6 6-6 6"/>
                         </svg>
                     </a>
                 </div>
 
-                {/* Trust row */}
+                {/* Trust row — brandbook hairline divider */}
                 <div
-                    className="flex flex-wrap gap-x-8 gap-y-4"
-                    style={{ paddingTop: 28, borderTop: "1px solid rgba(246,242,234,0.12)" }}
+                    className="flex flex-wrap gap-x-10 gap-y-5 items-start"
+                    style={{
+                        paddingTop: 28,
+                        borderTop: "1px solid rgba(212,168,92,0.22)",
+                        position: "relative",
+                    }}
                 >
+                    {/* Hairline decoration — bronze tick */}
+                    <span
+                        aria-hidden
+                        style={{
+                            position: "absolute",
+                            top: -1, left: 0,
+                            width: 48, height: 1,
+                            background: BRONZE,
+                        }}
+                    />
                     {[
-                        { value: "+10",     label: "anos no P.O." },
+                        { value: "+10",     label: "anos no PO" },
                         { value: "R$ 300M", label: "em gado assessorado" },
                         { value: "18",      label: "leilões em 2026" },
                     ].map(({ value, label }) => (
-                        <div key={label} className="flex flex-col gap-0.5">
+                        <div key={label} className="flex flex-col gap-1">
                             <b
                                 className="font-display"
-                                style={{ fontSize: 22, fontWeight: 500, color: "#C9A961", letterSpacing: "-0.01em" }}
+                                style={{
+                                    fontSize: 24,
+                                    fontWeight: 500,
+                                    color: BRONZE_LIGHT,
+                                    letterSpacing: "-0.015em",
+                                    lineHeight: 1,
+                                }}
                             >
                                 {value}
                             </b>
-                            <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(246,242,234,0.70)", fontWeight: 500 }}>
+                            <span
+                                style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: 10.5,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.2em",
+                                    color: "rgba(245,240,228,0.65)",
+                                    fontWeight: 500,
+                                }}
+                            >
                                 {label}
                             </span>
                         </div>

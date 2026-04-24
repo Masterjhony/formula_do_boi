@@ -57,7 +57,7 @@ export default function Header() {
         <>
         <header className="sticky top-0 z-50">
             {/* Top Bar */}
-            <div className="bg-[#0a0a0a] border-b border-white/10">
+            <div className="bg-[#0A0A0A]" style={{ borderBottom: "1px solid rgba(212,168,92,0.14)" }}>
                 <div className="container mx-auto px-4 h-20 flex items-center justify-between relative">
 
                     {/* ── MOBILE: hamburger à esquerda ── */}
@@ -111,14 +111,28 @@ export default function Header() {
             </div>
 
             {/* Navigation Bar — desktop */}
-            <nav className="hidden lg:block bg-brand-black border-y border-white/5 shadow-lg">
+            <nav
+                className="hidden lg:block"
+                style={{
+                    background: "#0A0A0A",
+                    borderBottom: "1px solid rgba(212,168,92,0.14)",
+                }}
+            >
                 <div className="container mx-auto px-4">
                     <ul className="flex items-center justify-center gap-1">
                         {navItems.map((item) => (
                             <li key={item.href}>
                                 <Link
                                     href={item.href}
-                                    className="block px-4 py-3 text-sm font-medium text-white hover:bg-white/10 transition-colors uppercase tracking-wide"
+                                    className="block px-5 py-3.5 transition-colors hover:text-[#D4A85C]"
+                                    style={{
+                                        fontFamily: "var(--font-mono)",
+                                        fontSize: 11,
+                                        letterSpacing: "0.22em",
+                                        textTransform: "uppercase",
+                                        fontWeight: 500,
+                                        color: "#F5F0E4",
+                                    }}
                                 >
                                     {item.label}
                                 </Link>
@@ -154,10 +168,20 @@ export default function Header() {
                         {/* Mobile CTA */}
                         <Link
                             href="/venda-conosco"
-                            className="mt-2 text-center py-3 bg-brand-gold text-[#0a0a0a] font-bold rounded-lg"
+                            className="mt-2 text-center py-3.5"
+                            style={{
+                                background: "#A0792E",
+                                color: "#0A0A0A",
+                                fontFamily: "var(--font-mono)",
+                                fontSize: 12,
+                                letterSpacing: "0.16em",
+                                textTransform: "uppercase",
+                                fontWeight: 600,
+                                borderRadius: 2,
+                            }}
                             onClick={() => setIsMenuOpen(false)}
                         >
-                            Fale Conosco
+                            Solicitar proposta →
                         </Link>
                     </div>
                 </div>
