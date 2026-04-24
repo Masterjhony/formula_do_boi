@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
-    Calculator, FileText, BookOpen, Download, Receipt, Scale, LayoutGrid,
+    Calculator, FileText, BookOpen, Download, Receipt, Scale,
     TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Wallet,
     Building2, CircleDollarSign, FileSpreadsheet, ChevronRight, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
@@ -36,8 +37,22 @@ export default function ContabilClient({
     transactions: Transaction[];
     categories: Category[];
 }) {
-    const [activeTab, setActiveTab] = useState<TabKey>('overview');
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const tabFromUrl = (searchParams.get('tab') as TabKey) || 'overview';
+    const [activeTab, setActiveTab] = useState<TabKey>(tabFromUrl);
     const [year, setYear] = useState<number>(new Date().getFullYear());
+
+    useEffect(() => {
+        const t = (searchParams.get('tab') as TabKey) || 'overview';
+        setActiveTab(t);
+    }, [searchParams]);
+
+    const handleTabChange = (tab: TabKey) => {
+        setActiveTab(tab);
+        const url = tab === 'overview' ? '/contabil' : `/contabil?tab=${tab}`;
+        router.push(url, { scroll: false });
+    };
 
     // ── Computed ─────────────────────────────────────────────────────────────
     const yearsAvailable = useMemo(() => {
@@ -106,14 +121,14 @@ export default function ContabilClient({
         return { caixaBancos, aReceber, aPagar, ativoCirculante, passivoCirculante, patrimonioLiquido };
     }, [accounts, transactions]);
 
-    const tabs: Array<{ key: TabKey; label: string; icon: any }> = [
-        { key: 'overview', label: 'Visão Geral', icon: LayoutGrid },
-        { key: 'dre', label: 'DRE', icon: TrendingUp },
-        { key: 'balanco', label: 'Balanço Patrimonial', icon: Scale },
-        { key: 'plano', label: 'Plano de Contas', icon: FileText },
-        { key: 'nfe', label: 'Notas Fiscais', icon: Receipt },
-        { key: 'razao', label: 'Livro Razão', icon: BookOpen },
-    ];
+    const TAB_LABELS: Record<TabKey, string> = {
+        overview: 'Visão Geral',
+        dre: 'DRE',
+        balanco: 'Balanço Patrimonial',
+        plano: 'Plano de Contas',
+        nfe: 'Notas Fiscais',
+        razao: 'Livro Razão',
+    };
 
     const maxMonth = Math.max(1, ...dre.byMonth.map(m => Math.max(m.receita, m.despesa)));
 
@@ -126,7 +141,7 @@ export default function ContabilClient({
                         Contábil
                     </h2>
                     <p className="mt-2 text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
-                        DRE, Balanço, Plano de Contas, Notas Fiscais e Livro Razão
+                        {TAB_LABELS[activeTab]}
                     </p>
                 </div>
                 <div className="flex gap-3 items-center">
@@ -141,19 +156,6 @@ export default function ContabilClient({
                         <Download className="w-4 h-4 text-indigo-500" /> Exportar
                     </button>
                 </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex flex-wrap items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-[#111] p-1.5 rounded-2xl w-fit">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.key}
-                        onClick={() => setActiveTab(tab.key)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.key ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                    >
-                        <tab.icon className="w-4 h-4" /> {tab.label}
-                    </button>
-                ))}
             </div>
 
             {/* ═══ VISÃO GERAL ═══ */}

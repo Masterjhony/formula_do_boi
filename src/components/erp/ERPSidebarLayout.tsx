@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Wallet, Calculator, LogOut, Menu, X, Settings, ChevronLeft, ChevronRight, ArrowDownToLine, ArrowUpFromLine, BarChart3, Gavel, CheckCircle2 } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { LayoutDashboard, Wallet, Calculator, LogOut, Menu, X, Settings, ChevronLeft, ChevronRight, ChevronDown, ArrowDownToLine, ArrowUpFromLine, BarChart3, Gavel, CheckCircle2, TrendingUp, Scale, BookOpen, Receipt, FileSpreadsheet } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -16,7 +16,10 @@ export default function ERPSidebarLayout({
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [financeiroOpen, setFinanceiroOpen] = useState(false);
+    const [contabilOpen, setContabilOpen] = useState(false);
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const router = useRouter();
     const supabase = createClient();
     
@@ -27,7 +30,6 @@ export default function ERPSidebarLayout({
                 if (!user) {
                     return router.push('/login');
                 }
-                // Optional: Check if user has explicit ERP access
             } catch (error) {
                 console.error('Error checking user:', error);
             } finally {
@@ -36,6 +38,11 @@ export default function ERPSidebarLayout({
         };
         checkUser();
     }, [router, supabase]);
+
+    useEffect(() => {
+        if (pathname.startsWith('/financeiro')) setFinanceiroOpen(true);
+        if (pathname.startsWith('/contabil')) setContabilOpen(true);
+    }, [pathname]);
 
     if (isLoading) {
         return (
@@ -51,17 +58,12 @@ export default function ERPSidebarLayout({
         router.refresh();
     };
 
-    const navItems = [
-        { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/financeiro', label: 'Financeiro', icon: Wallet },
-        { href: '/financeiro/a-receber', label: 'A Receber', icon: ArrowDownToLine, indent: true },
-        { href: '/financeiro/a-pagar', label: 'A Pagar', icon: ArrowUpFromLine, indent: true },
-        { href: '/financeiro/fluxo-caixa', label: 'Fluxo de Caixa', icon: BarChart3, indent: true },
-        { href: '/financeiro/conciliacao', label: 'Conciliação', icon: CheckCircle2, indent: true },
-        { href: '/leiloes', label: 'Leilões', icon: Gavel },
-        { href: '/contabil', label: 'Contábil', icon: Calculator },
-        { href: '/configuracoes', label: 'Configurações', icon: Settings },
-    ];
+    const isContabilSubActive = pathname === '/contabil' && !!searchParams.get('tab');
+    const isFinanceiroSubActive = pathname.startsWith('/financeiro/');
+
+    const activeItemStyle = 'bg-[#A0792E] text-[#0A0A0A] font-bold shadow-[0_0_0_1px_rgba(212,168,92,0.35),0_0_24px_rgba(160,121,46,0.25)]';
+    const inactiveItemStyle = 'text-gray-600 dark:text-[#F5F0E4]/70 hover:bg-gray-100 dark:hover:bg-[rgba(212,168,92,0.06)] hover:text-gray-900 dark:hover:text-[#D4A85C]';
+    const sectionActiveStyle = 'text-[#D4A85C] border-l-2 border-[#A0792E] pl-[14px]';
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -161,29 +163,132 @@ export default function ERPSidebarLayout({
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1 overflow-y-auto overflow-x-hidden">
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-                        const indent = (item as any).indent;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                title={isCollapsed ? item.label : undefined}
-                                className={`flex items-center gap-3 transition-all duration-200 group ${
-                                    indent ? 'py-2 pl-9 pr-4 text-sm' : 'px-4 py-3'
-                                } ${isActive
-                                    ? 'bg-[#A0792E] text-[#0A0A0A] font-bold shadow-[0_0_0_1px_rgba(212,168,92,0.35),0_0_24px_rgba(160,121,46,0.25)]'
-                                    : 'text-gray-600 dark:text-[#F5F0E4]/70 hover:bg-gray-100 dark:hover:bg-[rgba(212,168,92,0.06)] hover:text-gray-900 dark:hover:text-[#D4A85C]'
-                                    } ${isCollapsed ? 'justify-center px-0 py-3' : ''}`}
-                                style={{ borderRadius: 3, letterSpacing: '-0.005em' }}
-                            >
-                                <Icon size={indent ? 16 : 19} className={`${isActive ? 'text-[#0A0A0A]' : 'text-gray-400 dark:text-[#F5F0E4]/45 group-hover:text-[#D4A85C]'} transition-colors shrink-0`} />
-                                {!isCollapsed && <span className="whitespace-nowrap text-sm font-medium">{item.label}</span>}
-                                {isActive && !isCollapsed && <div className="ml-auto shrink-0 w-1 h-1 bg-[#0A0A0A]" />}
-                            </Link>
-                        );
-                    })}
+                    {/* Dashboard */}
+                    <Link
+                        href="/"
+                        title={isCollapsed ? 'Dashboard' : undefined}
+                        className={`flex items-center gap-3 px-4 py-3 transition-all duration-200 group ${pathname === '/' ? activeItemStyle : inactiveItemStyle} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                        style={{ borderRadius: 3 }}
+                    >
+                        <LayoutDashboard size={19} className={`${pathname === '/' ? 'text-[#0A0A0A]' : 'text-gray-400 dark:text-[#F5F0E4]/45 group-hover:text-[#D4A85C]'} shrink-0 transition-colors`} />
+                        {!isCollapsed && <span className="whitespace-nowrap text-sm font-medium">Dashboard</span>}
+                        {pathname === '/' && !isCollapsed && <div className="ml-auto shrink-0 w-1 h-1 bg-[#0A0A0A]" />}
+                    </Link>
+
+                    {/* ── Financeiro ── */}
+                    <div>
+                        <button
+                            onClick={() => { router.push('/financeiro'); setFinanceiroOpen(v => !v); }}
+                            title={isCollapsed ? 'Financeiro' : undefined}
+                            className={`flex items-center gap-3 w-full px-4 py-3 transition-all duration-200 group ${
+                                pathname === '/financeiro'
+                                    ? activeItemStyle
+                                    : isFinanceiroSubActive
+                                        ? `${sectionActiveStyle} hover:bg-gray-100 dark:hover:bg-[rgba(212,168,92,0.06)]`
+                                        : inactiveItemStyle
+                            } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                            style={{ borderRadius: 3 }}
+                        >
+                            <Wallet size={19} className={`${pathname === '/financeiro' ? 'text-[#0A0A0A]' : isFinanceiroSubActive ? 'text-[#D4A85C]' : 'text-gray-400 dark:text-[#F5F0E4]/45 group-hover:text-[#D4A85C]'} shrink-0 transition-colors`} />
+                            {!isCollapsed && <span className="whitespace-nowrap text-sm font-medium">Financeiro</span>}
+                            {!isCollapsed && (
+                                <ChevronDown size={14} className={`ml-auto shrink-0 transition-transform duration-200 ${financeiroOpen ? 'rotate-180' : ''} ${pathname === '/financeiro' ? 'text-[#0A0A0A]' : 'text-gray-400 dark:text-[#F5F0E4]/30'}`} onClick={e => { e.stopPropagation(); setFinanceiroOpen(v => !v); }} />
+                            )}
+                        </button>
+                        <div className={`grid transition-all duration-200 ease-in-out ${financeiroOpen && !isCollapsed ? 'grid-rows-[1fr] mt-0.5' : 'grid-rows-[0fr]'}`}>
+                            <div className="overflow-hidden space-y-0.5">
+                                {[
+                                    { href: '/financeiro/a-receber', label: 'A Receber', icon: ArrowDownToLine },
+                                    { href: '/financeiro/a-pagar', label: 'A Pagar', icon: ArrowUpFromLine },
+                                    { href: '/financeiro/fluxo-caixa', label: 'Fluxo de Caixa', icon: BarChart3 },
+                                    { href: '/financeiro/conciliacao', label: 'Conciliação', icon: CheckCircle2 },
+                                ].map(sub => {
+                                    const isActive = pathname === sub.href;
+                                    const SubIcon = sub.icon;
+                                    return (
+                                        <Link key={sub.href} href={sub.href}
+                                            className={`flex items-center gap-3 py-2 pl-9 pr-4 text-sm transition-all duration-200 group ${isActive ? activeItemStyle : inactiveItemStyle}`}
+                                            style={{ borderRadius: 3 }}
+                                        >
+                                            <SubIcon size={15} className={`${isActive ? 'text-[#0A0A0A]' : 'text-gray-400 dark:text-[#F5F0E4]/45 group-hover:text-[#D4A85C]'} shrink-0 transition-colors`} />
+                                            <span className="whitespace-nowrap font-medium">{sub.label}</span>
+                                            {isActive && <div className="ml-auto shrink-0 w-1 h-1 bg-[#0A0A0A]" />}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Leilões */}
+                    <Link
+                        href="/leiloes"
+                        title={isCollapsed ? 'Leilões' : undefined}
+                        className={`flex items-center gap-3 px-4 py-3 transition-all duration-200 group ${pathname === '/leiloes' ? activeItemStyle : inactiveItemStyle} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                        style={{ borderRadius: 3 }}
+                    >
+                        <Gavel size={19} className={`${pathname === '/leiloes' ? 'text-[#0A0A0A]' : 'text-gray-400 dark:text-[#F5F0E4]/45 group-hover:text-[#D4A85C]'} shrink-0 transition-colors`} />
+                        {!isCollapsed && <span className="whitespace-nowrap text-sm font-medium">Leilões</span>}
+                        {pathname === '/leiloes' && !isCollapsed && <div className="ml-auto shrink-0 w-1 h-1 bg-[#0A0A0A]" />}
+                    </Link>
+
+                    {/* ── Contábil ── */}
+                    <div>
+                        <button
+                            onClick={() => { router.push('/contabil'); setContabilOpen(v => !v); }}
+                            title={isCollapsed ? 'Contábil' : undefined}
+                            className={`flex items-center gap-3 w-full px-4 py-3 transition-all duration-200 group ${
+                                pathname === '/contabil' && !searchParams.get('tab')
+                                    ? activeItemStyle
+                                    : isContabilSubActive
+                                        ? `${sectionActiveStyle} hover:bg-gray-100 dark:hover:bg-[rgba(212,168,92,0.06)]`
+                                        : inactiveItemStyle
+                            } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                            style={{ borderRadius: 3 }}
+                        >
+                            <Calculator size={19} className={`${pathname === '/contabil' && !searchParams.get('tab') ? 'text-[#0A0A0A]' : isContabilSubActive ? 'text-[#D4A85C]' : 'text-gray-400 dark:text-[#F5F0E4]/45 group-hover:text-[#D4A85C]'} shrink-0 transition-colors`} />
+                            {!isCollapsed && <span className="whitespace-nowrap text-sm font-medium">Contábil</span>}
+                            {!isCollapsed && (
+                                <ChevronDown size={14} className={`ml-auto shrink-0 transition-transform duration-200 ${contabilOpen ? 'rotate-180' : ''} ${pathname === '/contabil' && !searchParams.get('tab') ? 'text-[#0A0A0A]' : 'text-gray-400 dark:text-[#F5F0E4]/30'}`} onClick={e => { e.stopPropagation(); setContabilOpen(v => !v); }} />
+                            )}
+                        </button>
+                        <div className={`grid transition-all duration-200 ease-in-out ${contabilOpen && !isCollapsed ? 'grid-rows-[1fr] mt-0.5' : 'grid-rows-[0fr]'}`}>
+                            <div className="overflow-hidden space-y-0.5">
+                                {[
+                                    { href: '/contabil?tab=dre', label: 'DRE', icon: TrendingUp, tab: 'dre' },
+                                    { href: '/contabil?tab=balanco', label: 'Balanço Patrimonial', icon: Scale, tab: 'balanco' },
+                                    { href: '/contabil?tab=plano', label: 'Plano de Contas', icon: BookOpen, tab: 'plano' },
+                                    { href: '/contabil?tab=nfe', label: 'Notas Fiscais', icon: Receipt, tab: 'nfe' },
+                                    { href: '/contabil?tab=razao', label: 'Livro Razão', icon: FileSpreadsheet, tab: 'razao' },
+                                ].map(sub => {
+                                    const isActive = pathname === '/contabil' && searchParams.get('tab') === sub.tab;
+                                    const SubIcon = sub.icon;
+                                    return (
+                                        <Link key={sub.href} href={sub.href}
+                                            className={`flex items-center gap-3 py-2 pl-9 pr-4 text-sm transition-all duration-200 group ${isActive ? activeItemStyle : inactiveItemStyle}`}
+                                            style={{ borderRadius: 3 }}
+                                        >
+                                            <SubIcon size={15} className={`${isActive ? 'text-[#0A0A0A]' : 'text-gray-400 dark:text-[#F5F0E4]/45 group-hover:text-[#D4A85C]'} shrink-0 transition-colors`} />
+                                            <span className="whitespace-nowrap font-medium">{sub.label}</span>
+                                            {isActive && <div className="ml-auto shrink-0 w-1 h-1 bg-[#0A0A0A]" />}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Configurações */}
+                    <Link
+                        href="/configuracoes"
+                        title={isCollapsed ? 'Configurações' : undefined}
+                        className={`flex items-center gap-3 px-4 py-3 transition-all duration-200 group ${pathname === '/configuracoes' ? activeItemStyle : inactiveItemStyle} ${isCollapsed ? 'justify-center px-0' : ''}`}
+                        style={{ borderRadius: 3 }}
+                    >
+                        <Settings size={19} className={`${pathname === '/configuracoes' ? 'text-[#0A0A0A]' : 'text-gray-400 dark:text-[#F5F0E4]/45 group-hover:text-[#D4A85C]'} shrink-0 transition-colors`} />
+                        {!isCollapsed && <span className="whitespace-nowrap text-sm font-medium">Configurações</span>}
+                        {pathname === '/configuracoes' && !isCollapsed && <div className="ml-auto shrink-0 w-1 h-1 bg-[#0A0A0A]" />}
+                    </Link>
                 </nav>
 
                 <div className={`p-5 border-t border-gray-200 dark:border-[rgba(212,168,92,0.14)] space-y-3 transition-all duration-300 ${isCollapsed ? 'px-3 flex flex-col items-center' : ''}`}>
