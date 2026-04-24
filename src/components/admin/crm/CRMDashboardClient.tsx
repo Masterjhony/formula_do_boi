@@ -7,12 +7,11 @@ import { CRMKanbanBoard } from './CRMKanbanBoard';
 import { CRMModal } from './CRMModal';
 import { CRMChart } from './CRMChart';
 import { CRMTable } from './CRMTable';
-import { CRMLeadsView } from './CRMLeadsView';
 import { CRMSettingsView } from './CRMSettingsView';
 import { CRMFunnelView } from '@/components/admin/funil-vendas/CRMFunnelView';
 import {
     BarChart2, LayoutGrid, List, AlertCircle, DollarSign,
-    Plus, Maximize2, Minimize2, Users, Settings, TrendingUp,
+    Plus, Maximize2, Minimize2, Settings, TrendingUp,
 } from 'lucide-react';
 
 interface CRMDashboardClientProps {
@@ -20,7 +19,7 @@ interface CRMDashboardClientProps {
     crmConfig: CRMConfig;
 }
 
-type ViewType = 'grafico' | 'kanban' | 'todos' | 'prioridade_alta' | 'valor_alto' | 'funil' | 'leads' | 'configuracoes';
+type ViewType = 'grafico' | 'kanban' | 'todos' | 'prioridade_alta' | 'valor_alto' | 'funil' | 'configuracoes';
 
 export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: CRMDashboardClientProps) {
     const [leads, setLeads] = useState<CRMLead[]>(initialLeads);
@@ -78,7 +77,6 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
         { id: 'prioridade_alta', label: 'Prioridade alta', icon: AlertCircle },
         { id: 'valor_alto', label: 'Valor > R$ 1000', icon: DollarSign },
         { id: 'funil', label: 'Funil de Vendas', icon: TrendingUp },
-        { id: 'leads', label: 'Leads', icon: Users },
         { id: 'configuracoes', label: 'Configurações', icon: Settings },
     ] as const;
 
@@ -89,9 +87,9 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
         displayLeads = leads.filter(l => l.interesse?.includes('R$') || l.interesse?.toLowerCase().includes('touro'));
     }
 
-    const isSettingsOrLeads = activeView === 'leads' || activeView === 'configuracoes';
+    const isSettings = activeView === 'configuracoes';
     const isFunnel = activeView === 'funil';
-    const isScrollable = isSettingsOrLeads || isFunnel;
+    const isScrollable = isSettings || isFunnel;
 
     return (
         <div className={
@@ -114,7 +112,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                         {views.map((view) => {
                             const Icon = view.icon;
                             const isActive = activeView === view.id;
-                            const isSpecial = view.id === 'leads' || view.id === 'configuracoes';
+                            const isSpecial = view.id === 'configuracoes';
                             return (
                                 <button
                                     key={view.id}
@@ -143,7 +141,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                         >
                             {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
                         </button>
-                        {!isSettingsOrLeads && (
+                        {!isSettings && (
                             <button
                                 onClick={() => handleOpenNewLead()}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 shadow-sm"
@@ -178,15 +176,6 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                         leads={leads}
                         crmConfig={crmConfig}
                         onConfigSaved={(config) => setCrmConfig(config)}
-                    />
-                )}
-
-                {activeView === 'leads' && (
-                    <CRMLeadsView
-                        leads={leads}
-                        stages={stages}
-                        onEditLead={handleEditLead}
-                        onAddLead={() => handleOpenNewLead()}
                     />
                 )}
 
