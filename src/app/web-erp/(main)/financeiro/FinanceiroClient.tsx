@@ -7,12 +7,13 @@ import {
     Building2, CheckCircle2, Tag, X, Trash2,
     Loader2, Pencil, AlertTriangle, PiggyBank, Banknote,
     CreditCard, Gavel, Trophy, CheckCheck, ChevronRight, Users, Sparkles,
+    Filter, Clock, Percent,
 } from 'lucide-react';
 import {
     saveTransaction, updateTransactionStatus, deleteTransaction,
     conciliarMultiplos, updateTransactionCategory,
     saveCategory, deleteCategory, saveObservacao,
-    registrarLeiloesLote,
+    registrarLeiloesLote, saveAccount, deleteAccount,
 } from './actions';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -112,7 +113,8 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
     // ── State ────────────────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState(mode === 'conciliacao' ? 'conciliacao' : 'dashboard');
     const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
-    const [accounts] = useState<Account[]>(initialAccounts);
+    const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
+    useEffect(() => { setAccounts(initialAccounts); }, [initialAccounts]);
     const [categories, setCategories] = useState<Category[]>(initialCategories);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -134,6 +136,14 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
     const [deleteCatConfirm, setDeleteCatConfirm] = useState<string | null>(null);
     const [deletingCat, setDeletingCat] = useState(false);
 
+    // Account modal
+    const [showAccModal, setShowAccModal] = useState(false);
+    const [editingAcc, setEditingAcc] = useState<Account | null>(null);
+    const [accForm, setAccForm] = useState({ name: '', type: 'bank', initial_balance: '' });
+    const [savingAcc, setSavingAcc] = useState(false);
+    const [deleteAccConfirm, setDeleteAccConfirm] = useState<string | null>(null);
+    const [deletingAcc, setDeletingAcc] = useState(false);
+
     // Form
     const [form, setForm] = useState({
         description: '',
@@ -148,6 +158,12 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
     // Inline observation editing
     const [editingObsId, setEditingObsId] = useState<string | null>(null);
     const [obsValue, setObsValue] = useState('');
+
+    // Conciliação filters & bulk selection
+    const [concStatusFilter, setConcStatusFilter] = useState<'all' | 'pending' | 'completed'>('all');
+    const [concTypeFilter, setConcTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
+    const [concAccountFilter, setConcAccountFilter] = useState<string>('');
+    const [selectedTxIds, setSelectedTxIds] = useState<Set<string>>(new Set());
 
     // Sync props → state after router.refresh()
     useEffect(() => { setTransactions(initialTransactions); }, [initialTransactions]);
@@ -201,15 +217,49 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
         [transactions],
     );
 
+    // Conciliação-specific metrics
+    const concStats = useMemo(() => {
+        let pendingIncome = 0, pendingExpense = 0;
+        let completedIncome = 0, completedExpense = 0;
+        let completedCount = 0;
+        for (const t of transactions) {
+            const amt = Number(t.amount);
+            if (t.status === 'pending') {
+                if (t.type === 'income') pendingIncome += amt;
+                else if (t.type === 'expense') pendingExpense += amt;
+            } else if (t.status === 'completed') {
+                completedCount++;
+                if (t.type === 'income') completedIncome += amt;
+                else if (t.type === 'expense') completedExpense += amt;
+            }
+        }
+        const total = transactions.length;
+        const pct = total > 0 ? (completedCount / total) * 100 : 0;
+        return {
+            pendingIncome, pendingExpense,
+            pendingNet: pendingIncome - pendingExpense,
+            completedIncome, completedExpense,
+            completedCount,
+            total,
+            pct,
+        };
+    }, [transactions]);
+
     const filtered = useMemo(() => {
-        if (!searchTerm.trim()) return transactions;
+        let list = transactions;
+        if (mode === 'conciliacao') {
+            if (concStatusFilter !== 'all') list = list.filter(tx => tx.status === concStatusFilter);
+            if (concTypeFilter !== 'all') list = list.filter(tx => tx.type === concTypeFilter);
+            if (concAccountFilter) list = list.filter(tx => tx.account_id === concAccountFilter);
+        }
+        if (!searchTerm.trim()) return list;
         const q = searchTerm.toLowerCase();
-        return transactions.filter(tx =>
+        return list.filter(tx =>
             tx.description?.toLowerCase().includes(q) ||
             tx.account?.name?.toLowerCase().includes(q) ||
             tx.category?.name?.toLowerCase().includes(q),
         );
-    }, [transactions, searchTerm]);
+    }, [transactions, searchTerm, mode, concStatusFilter, concTypeFilter, concAccountFilter]);
 
     const incomeCategories = useMemo(() => categories.filter(c => c.type === 'income'), [categories]);
     const expenseCategories = useMemo(() => categories.filter(c => c.type === 'expense'), [categories]);
@@ -299,6 +349,42 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
         if (!res.success) router.refresh();
     };
 
+    const handleConciliarSelecionados = async () => {
+        const ids = Array.from(selectedTxIds).filter(id => {
+            const tx = transactions.find(t => t.id === id);
+            return tx && tx.status === 'pending';
+        });
+        if (!ids.length) return;
+        setTransactions(prev => prev.map(tx => ids.includes(tx.id) ? { ...tx, status: 'completed' } : tx));
+        setSelectedTxIds(new Set());
+        const res = await conciliarMultiplos(ids);
+        if (!res.success) router.refresh();
+    };
+
+    const toggleSelectTx = (id: string) => {
+        setSelectedTxIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAllVisible = () => {
+        const visiblePending = filtered.filter(t => t.status === 'pending').map(t => t.id);
+        setSelectedTxIds(prev => {
+            const allSelected = visiblePending.every(id => prev.has(id));
+            if (allSelected) {
+                const next = new Set(prev);
+                visiblePending.forEach(id => next.delete(id));
+                return next;
+            }
+            const next = new Set(prev);
+            visiblePending.forEach(id => next.add(id));
+            return next;
+        });
+    };
+
     const handleCatChange = async (txId: string, catId: string) => {
         const cat = categories.find(c => c.id === catId);
         setTransactions(prev => prev.map(tx =>
@@ -342,6 +428,36 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
         const res = await deleteCategory(id);
         if (res.success) { setDeleteCatConfirm(null); setDeletingCat(false); closeCatModal(); router.refresh(); }
         else { alert('Erro ao excluir: ' + res.error); setDeletingCat(false); }
+    };
+
+    const openNewAcc = () => {
+        setEditingAcc(null);
+        setAccForm({ name: '', type: 'bank', initial_balance: '' });
+        setShowAccModal(true);
+    };
+    const openEditAcc = (acc: Account) => {
+        setEditingAcc(acc);
+        setAccForm({ name: acc.name, type: acc.type || 'bank', initial_balance: String(acc.initial_balance ?? 0) });
+        setShowAccModal(true);
+    };
+    const closeAccModal = () => { setShowAccModal(false); setEditingAcc(null); setSavingAcc(false); };
+    const handleSaveAcc = async () => {
+        if (!accForm.name.trim()) return;
+        setSavingAcc(true);
+        const res = await saveAccount({
+            id: editingAcc?.id,
+            name: accForm.name.trim(),
+            type: accForm.type,
+            initial_balance: parseFloat(accForm.initial_balance || '0') || 0,
+        });
+        if (res.success) { closeAccModal(); router.refresh(); }
+        else { alert('Erro ao salvar conta: ' + res.error); setSavingAcc(false); }
+    };
+    const handleDeleteAcc = async (id: string) => {
+        setDeletingAcc(true);
+        const res = await deleteAccount(id);
+        if (res.success) { setDeleteAccConfirm(null); setDeletingAcc(false); closeAccModal(); router.refresh(); }
+        else { alert(res.error || 'Erro ao excluir conta'); setDeletingAcc(false); setDeleteAccConfirm(null); }
     };
 
     // ── Shared sub-renders ───────────────────────────────────────────────────
@@ -413,6 +529,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     <div className="flex flex-wrap items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-[#111] p-1.5 rounded-2xl w-fit">
                         {([
                             { key: 'conciliacao', icon: CheckCircle2, label: 'Movimentações' },
+                            { key: 'contas', icon: Banknote, label: 'Contas' },
                             { key: 'categorias', icon: Tag, label: 'Categorias' },
                         ] as const).map(tab => (
                             <button
@@ -668,35 +785,144 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                ═══════════════════════════════════════════════════════════════════ */}
             {activeTab === 'conciliacao' && (
                 <div className="animate-in fade-in duration-500 space-y-6">
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-6 shadow-xl relative overflow-hidden h-32 flex flex-col justify-center">
-                            <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Saldo Consolidado</p>
-                            <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white mt-1 tracking-tight">{fmt(totalBalance)}</h3>
+                    {/* KPI Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-5 shadow-xl relative overflow-hidden">
                             <div className="absolute right-[-10%] bottom-[-20%] opacity-5 text-[#D4AF37]">
-                                <Building2 className="w-40 h-40" />
+                                <Building2 className="w-32 h-32" />
                             </div>
+                            <p className="text-[10px] font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Saldo Consolidado</p>
+                            <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white mt-1 tracking-tight">{fmt(totalBalance)}</h3>
+                            <p className="text-[10px] text-gray-400 dark:text-[#666] mt-1 uppercase tracking-widest">{accounts.length} conta{accounts.length !== 1 ? 's' : ''}</p>
                         </div>
-                        <div className="bg-white dark:bg-[#111111] border border-emerald-500/20 rounded-2xl p-6 shadow-xl relative overflow-hidden h-32 flex flex-col justify-center">
-                            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Conciliados</p>
-                            <h3 className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 tracking-tight">
-                                {transactions.filter(tx => tx.status === 'completed').length}
-                            </h3>
-                            <p className="text-xs text-gray-400 dark:text-[#666] mt-1">de {transactions.length} lançamentos</p>
+                        <div className="bg-white dark:bg-[#111111] border border-emerald-500/20 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Entradas Pendentes</p>
+                            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 tracking-tight">{fmt(concStats.pendingIncome)}</h3>
+                            <p className="text-[10px] text-gray-400 dark:text-[#666] mt-1 uppercase tracking-widest">
+                                {transactions.filter(t => t.status === 'pending' && t.type === 'income').length} lançamento{transactions.filter(t => t.status === 'pending' && t.type === 'income').length !== 1 ? 's' : ''}
+                            </p>
                         </div>
-                        <div
-                            onClick={handleConciliarTodos}
-                            className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10 transition-all rounded-2xl p-6 shadow-xl relative overflow-hidden h-32 flex flex-col justify-center items-center group cursor-pointer"
-                        >
-                            <div className="flex flex-col items-center gap-2 text-gray-400 dark:text-[#555] group-hover:text-emerald-500 transition-colors">
-                                <CheckCircle2 className="w-8 h-8" />
-                                <span className="font-bold text-sm tracking-wide uppercase text-center">
-                                    {pendingCount} Pendente{pendingCount !== 1 ? 's' : ''}<br />
-                                    <span className="text-[10px]">Conciliar Todos</span>
-                                </span>
+                        <div className="bg-white dark:bg-[#111111] border border-rose-500/20 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                            <p className="text-[10px] font-bold text-rose-600 dark:text-rose-500 uppercase tracking-widest">Saídas Pendentes</p>
+                            <h3 className="text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-1 tracking-tight">{fmt(concStats.pendingExpense)}</h3>
+                            <p className="text-[10px] text-gray-400 dark:text-[#666] mt-1 uppercase tracking-widest">
+                                {transactions.filter(t => t.status === 'pending' && t.type === 'expense').length} lançamento{transactions.filter(t => t.status === 'pending' && t.type === 'expense').length !== 1 ? 's' : ''}
+                            </p>
+                        </div>
+                        <div className="bg-white dark:bg-[#111111] border border-[#D4AF37]/30 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                            <p className="text-[10px] font-bold text-[#B8860B] uppercase tracking-widest">% Conciliado</p>
+                            <h3 className="text-2xl font-extrabold text-[#D4AF37] mt-1 tracking-tight">{concStats.pct.toFixed(1)}%</h3>
+                            <p className="text-[10px] text-gray-400 dark:text-[#666] mt-1 uppercase tracking-widest">{concStats.completedCount} de {concStats.total}</p>
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100 dark:bg-[#1A1A1A]">
+                                <div className="h-full bg-gradient-to-r from-[#B8860B] to-[#D4AF37] transition-all" style={{ width: `${concStats.pct}%` }} />
                             </div>
                         </div>
                     </div>
+
+                    {/* Progress + Quick actions */}
+                    <div className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl p-5 shadow-xl">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest flex items-center gap-2">
+                                        <Percent className="w-3.5 h-3.5" /> Progresso de Conciliação
+                                    </p>
+                                    <span className="text-xs font-mono text-gray-700 dark:text-gray-300">{concStats.completedCount} / {concStats.total}</span>
+                                </div>
+                                <div className="h-3 bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden">
+                                    <div className="h-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-[#D4AF37] transition-all" style={{ width: `${concStats.pct}%` }} />
+                                </div>
+                                <div className="flex items-center gap-6 mt-3 text-[11px]">
+                                    <span className="flex items-center gap-1.5 text-amber-500 font-semibold">
+                                        <Clock className="w-3.5 h-3.5" /> {pendingCount} pendente{pendingCount !== 1 ? 's' : ''}
+                                    </span>
+                                    <span className="flex items-center gap-1.5 text-emerald-500 font-semibold">
+                                        <CheckCircle2 className="w-3.5 h-3.5" /> {concStats.completedCount} efetivado{concStats.completedCount !== 1 ? 's' : ''}
+                                    </span>
+                                    <span className="flex items-center gap-1.5 text-gray-500 font-semibold">
+                                        Saldo pendente: <span className={`font-mono ${concStats.pendingNet >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{fmt(concStats.pendingNet)}</span>
+                                    </span>
+                                </div>
+                            </div>
+                            {pendingCount > 0 && (
+                                <button
+                                    onClick={handleConciliarTodos}
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-widest rounded-xl transition-all whitespace-nowrap"
+                                >
+                                    <CheckCheck className="w-4 h-4" /> Conciliar Todos
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Filter bar */}
+                    <div className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+                        <Filter className="w-4 h-4 text-gray-400 dark:text-[#555]" />
+                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-[#0A0A0A] p-1 rounded-xl">
+                            {([
+                                { key: 'all' as const, label: 'Todos' },
+                                { key: 'pending' as const, label: 'Pendentes' },
+                                { key: 'completed' as const, label: 'Efetivados' },
+                            ]).map(opt => (
+                                <button
+                                    key={opt.key}
+                                    onClick={() => setConcStatusFilter(opt.key)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${concStatusFilter === opt.key ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-[#0A0A0A] p-1 rounded-xl">
+                            {([
+                                { key: 'all' as const, label: 'Todos' },
+                                { key: 'income' as const, label: 'Receitas' },
+                                { key: 'expense' as const, label: 'Despesas' },
+                            ]).map(opt => (
+                                <button
+                                    key={opt.key}
+                                    onClick={() => setConcTypeFilter(opt.key)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${concTypeFilter === opt.key ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+                        <select
+                            value={concAccountFilter}
+                            onChange={e => setConcAccountFilter(e.target.value)}
+                            className="px-3 py-2 text-xs font-semibold bg-gray-100 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] text-gray-700 dark:text-gray-300 rounded-xl focus:outline-none focus:border-[#D4AF37]/50"
+                        >
+                            <option value="">Todas as contas</option>
+                            {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                        <span className="text-xs text-gray-400 dark:text-[#666] ml-auto font-mono">
+                            {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
+                        </span>
+                    </div>
+
+                    {/* Bulk action bar */}
+                    {selectedTxIds.size > 0 && (
+                        <div className="bg-gradient-to-r from-[#B8860B]/10 to-[#D4AF37]/5 border border-[#D4AF37]/30 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xl">
+                            <p className="text-sm font-bold text-[#B8860B] dark:text-[#D4AF37]">
+                                {selectedTxIds.size} selecionado{selectedTxIds.size !== 1 ? 's' : ''}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setSelectedTxIds(new Set())}
+                                    className="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors uppercase tracking-widest"
+                                >
+                                    Limpar
+                                </button>
+                                <button
+                                    onClick={handleConciliarSelecionados}
+                                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all"
+                                >
+                                    <CheckCheck className="w-4 h-4" /> Conciliar Selecionados
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Transactions Table */}
                     <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
@@ -725,8 +951,18 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                             <table className="w-full text-sm text-left">
                                 <thead className="text-[10px] text-gray-500 dark:text-[#888] bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#222] uppercase tracking-widest sticky top-0 z-10">
                                     <tr>
+                                        <th className="px-4 py-4 font-bold w-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={filtered.filter(t => t.status === 'pending').length > 0 && filtered.filter(t => t.status === 'pending').every(t => selectedTxIds.has(t.id))}
+                                                onChange={toggleSelectAllVisible}
+                                                className="w-4 h-4 rounded border-gray-300 dark:border-[#333] bg-white dark:bg-[#111] text-[#D4AF37] focus:ring-[#D4AF37]/50 cursor-pointer"
+                                                title="Selecionar todos pendentes visíveis"
+                                            />
+                                        </th>
                                         <th className="px-6 py-4 font-bold">Data</th>
                                         <th className="px-6 py-4 font-bold">Descrição</th>
+                                        <th className="px-6 py-4 font-bold">Conta</th>
                                         <th className="px-6 py-4 font-bold">Categoria</th>
                                         <th className="px-6 py-4 font-bold">Observação</th>
                                         <th className="px-6 py-4 font-bold text-right">Valor</th>
@@ -736,7 +972,17 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 </thead>
                                 <tbody>
                                     {filtered.length > 0 ? filtered.map(tx => (
-                                        <tr key={tx.id} className={`border-b border-gray-100 dark:border-[#1A1A1A] transition-colors group ${tx.status === 'completed' ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'hover:bg-gray-50 dark:hover:bg-[#141414]'}`}>
+                                        <tr key={tx.id} className={`border-b border-gray-100 dark:border-[#1A1A1A] transition-colors group ${selectedTxIds.has(tx.id) ? 'bg-[#D4AF37]/5' : tx.status === 'completed' ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'hover:bg-gray-50 dark:hover:bg-[#141414]'}`}>
+                                            <td className="px-4 py-4">
+                                                {tx.status === 'pending' ? (
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedTxIds.has(tx.id)}
+                                                        onChange={() => toggleSelectTx(tx.id)}
+                                                        className="w-4 h-4 rounded border-gray-300 dark:border-[#333] bg-white dark:bg-[#111] text-[#D4AF37] focus:ring-[#D4AF37]/50 cursor-pointer"
+                                                    />
+                                                ) : null}
+                                            </td>
                                             <td className="px-6 py-4 text-gray-500 dark:text-[#888] font-mono text-xs">{fmtDate(tx.transaction_date)}</td>
                                             <td
                                                 className="px-6 py-4 font-bold text-gray-900 dark:text-white max-w-[250px] truncate cursor-pointer hover:text-[#D4AF37] transition-colors"
@@ -745,6 +991,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                             >
                                                 {tx.description}
                                             </td>
+                                            <td className="px-6 py-4 text-xs text-gray-500 dark:text-[#888] max-w-[140px] truncate" title={tx.account?.name || ''}>{tx.account?.name || '—'}</td>
                                             <td className="px-6 py-4">
                                                 {categories.length > 0 ? (
                                                     <div className="relative">
@@ -823,8 +1070,8 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-16 text-center text-gray-400 dark:text-[#555] font-bold uppercase tracking-widest text-xs">
-                                                {searchTerm ? 'Nenhum resultado encontrado.' : 'Nenhuma movimentação registrada.'}
+                                            <td colSpan={9} className="px-6 py-16 text-center text-gray-400 dark:text-[#555] font-bold uppercase tracking-widest text-xs">
+                                                {searchTerm || concStatusFilter !== 'all' || concTypeFilter !== 'all' || concAccountFilter ? 'Nenhum resultado encontrado para os filtros aplicados.' : 'Nenhuma movimentação registrada.'}
                                             </td>
                                         </tr>
                                     )}
@@ -834,6 +1081,123 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     </div>
                 </div>
             )}
+            {/* ═══════════════════════════════════════════════════════════════════
+                CONTAS TAB
+               ═══════════════════════════════════════════════════════════════════ */}
+            {activeTab === 'contas' && (
+                <div className="animate-in fade-in duration-500 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-5 shadow-xl">
+                            <p className="text-[10px] font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Total de Contas</p>
+                            <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white mt-1">{accounts.length}</h3>
+                        </div>
+                        <div className="bg-white dark:bg-[#111111] border border-emerald-500/20 rounded-2xl p-5 shadow-xl">
+                            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Saldo Consolidado</p>
+                            <h3 className="text-2xl font-extrabold text-emerald-500 mt-1">{fmt(totalBalance)}</h3>
+                        </div>
+                        <div className="bg-white dark:bg-[#111111] border border-[#D4AF37]/30 rounded-2xl p-5 shadow-xl">
+                            <p className="text-[10px] font-bold text-[#B8860B] uppercase tracking-widest">Saldo Inicial Cumulativo</p>
+                            <h3 className="text-2xl font-extrabold text-[#D4AF37] mt-1">{fmt(accounts.reduce((s, a) => s + Number(a.initial_balance || 0), 0))}</h3>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
+                        <div className="p-5 border-b border-gray-100 dark:border-[#222] flex items-center justify-between bg-gray-50 dark:bg-[#141414]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
+                                    <Banknote className="w-5 h-5 text-[#D4AF37]" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white tracking-widest text-sm uppercase">Contas Bancárias & Caixa</h3>
+                                    <p className="text-[10px] text-gray-500 dark:text-[#888] font-mono tracking-widest mt-0.5">GESTÃO DE CONTAS • {accounts.length} ATIVA{accounts.length !== 1 ? 'S' : ''}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={openNewAcc}
+                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg hover:scale-105 transition-all"
+                            >
+                                <Plus className="w-4 h-4" /> Nova Conta
+                            </button>
+                        </div>
+
+                        {accounts.length > 0 ? (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="text-[10px] uppercase tracking-widest text-gray-500 dark:text-[#888] bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#222]">
+                                        <tr>
+                                            <th className="px-5 py-3 text-left font-bold">Nome</th>
+                                            <th className="px-5 py-3 text-left font-bold">Tipo</th>
+                                            <th className="px-5 py-3 text-right font-bold">Saldo Inicial</th>
+                                            <th className="px-5 py-3 text-right font-bold">Saldo Atual</th>
+                                            <th className="px-5 py-3 text-center font-bold">Lançamentos</th>
+                                            <th className="px-5 py-3 text-center font-bold">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {accounts.map(a => {
+                                            const txs = transactions.filter(t => t.account_id === a.id);
+                                            const net = txs.filter(t => t.status === 'completed')
+                                                .reduce((s, t) => s + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+                                            const saldo = Number(a.initial_balance || 0) + net;
+                                            return (
+                                                <tr key={a.id} className="border-b border-gray-100 dark:border-[#1A1A1A] hover:bg-gray-50 dark:hover:bg-[#141414] transition-colors group">
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#B8860B]/20 to-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
+                                                                {a.type === 'cash' ? <Wallet className="w-4 h-4 text-[#D4AF37]" /> : a.type === 'credit' ? <CreditCard className="w-4 h-4 text-[#D4AF37]" /> : <Building2 className="w-4 h-4 text-[#D4AF37]" />}
+                                                            </div>
+                                                            <span className="font-bold text-gray-900 dark:text-white">{a.name}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-4">
+                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-[#333]">
+                                                            {a.type === 'bank' ? 'Banco' : a.type === 'cash' ? 'Caixa' : a.type === 'credit' ? 'Cartão' : a.type === 'investment' ? 'Investimento' : a.type}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-4 text-right font-mono text-gray-500 dark:text-[#888]">{fmt(Number(a.initial_balance || 0))}</td>
+                                                    <td className={`px-5 py-4 text-right font-mono font-extrabold ${saldo >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{fmt(saldo)}</td>
+                                                    <td className="px-5 py-4 text-center text-xs text-gray-500 dark:text-[#888] font-mono">{txs.length}</td>
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <button
+                                                                onClick={() => openEditAcc(a)}
+                                                                className="p-2 rounded-full text-gray-400 dark:text-[#555] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all"
+                                                                title="Editar"
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setDeleteAccConfirm(a.id)}
+                                                                className="p-2 rounded-full text-gray-400 dark:text-[#555] hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                                                                title="Excluir"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="p-12 text-center">
+                                <Banknote className="w-12 h-12 text-gray-300 dark:text-[#333] mx-auto mb-4" />
+                                <p className="text-sm font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-2">Nenhuma conta cadastrada</p>
+                                <p className="text-xs text-gray-400 dark:text-[#666] mb-6">Cadastre sua primeira conta bancária ou caixa para começar a registrar movimentações.</p>
+                                <button
+                                    onClick={openNewAcc}
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg hover:scale-105 transition-all"
+                                >
+                                    <Plus className="w-4 h-4" /> Cadastrar Primeira Conta
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* ═══════════════════════════════════════════════════════════════════
                 CATEGORIAS TAB
                ═══════════════════════════════════════════════════════════════════ */}
@@ -1029,6 +1393,134 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                             >
                                 {deletingCat && <Loader2 className="w-4 h-4 animate-spin" />}
                                 {deletingCat ? 'Excluindo...' : 'Excluir'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════════════
+                ACCOUNT MODAL
+               ═══════════════════════════════════════════════════════════════════ */}
+            {showAccModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeAccModal} />
+                    <div className="relative bg-white dark:bg-[#111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 fade-in duration-200">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-[#222]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center">
+                                    <Banknote className="w-5 h-5 text-[#D4AF37]" />
+                                </div>
+                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                                    {editingAcc ? 'Editar Conta' : 'Nova Conta'}
+                                </h3>
+                            </div>
+                            <button onClick={closeAccModal} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#222] transition-colors">
+                                <X className="w-5 h-5 text-gray-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-5">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-2">Nome da Conta</label>
+                                <input
+                                    type="text"
+                                    value={accForm.name}
+                                    onChange={e => setAccForm(f => ({ ...f, name: e.target.value }))}
+                                    placeholder="Ex: Banco Inter - C/C, Caixa Interno..."
+                                    autoFocus
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-2">Tipo</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {([
+                                        { key: 'bank', label: 'Banco', icon: Building2 },
+                                        { key: 'cash', label: 'Caixa', icon: Wallet },
+                                        { key: 'credit', label: 'Cartão', icon: CreditCard },
+                                        { key: 'investment', label: 'Investimento', icon: PiggyBank },
+                                    ] as const).map(opt => (
+                                        <button
+                                            key={opt.key}
+                                            type="button"
+                                            onClick={() => setAccForm(f => ({ ...f, type: opt.key }))}
+                                            className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all border ${accForm.type === opt.key ? 'bg-[#D4AF37]/10 border-[#D4AF37]/40 text-[#D4AF37]' : 'bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#222] text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                        >
+                                            <opt.icon className="w-4 h-4" /> {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-2">Saldo Inicial (R$)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={accForm.initial_balance}
+                                    onChange={e => setAccForm(f => ({ ...f, initial_balance: e.target.value }))}
+                                    placeholder="0,00"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all font-mono"
+                                />
+                                <p className="text-[10px] text-gray-400 dark:text-[#666] mt-2 uppercase tracking-widest">Saldo antes das movimentações do ERP</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between p-6 border-t border-gray-100 dark:border-[#222]">
+                            <div>
+                                {editingAcc && (
+                                    <button
+                                        onClick={() => setDeleteAccConfirm(editingAcc.id)}
+                                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                                    >
+                                        <Trash2 className="w-4 h-4" /> Excluir
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex gap-3">
+                                <button onClick={closeAccModal} className="px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleSaveAcc}
+                                    disabled={savingAcc || !accForm.name.trim()}
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#B8860B]/20 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                                >
+                                    {savingAcc && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    {savingAcc ? 'Salvando...' : 'Salvar'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Account delete confirmation */}
+            {deleteAccConfirm && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteAccConfirm(null)} />
+                    <div className="relative bg-white dark:bg-[#111] border border-rose-500/20 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center animate-in zoom-in-95 fade-in duration-200">
+                        <div className="w-16 h-16 rounded-full bg-rose-500/10 flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle className="w-8 h-8 text-rose-500" />
+                        </div>
+                        <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2">Excluir Conta?</h3>
+                        <p className="text-sm text-gray-500 dark:text-[#888] mb-6">A conta só pode ser excluída se não houver lançamentos vinculados.</p>
+                        <div className="flex gap-3 justify-center">
+                            <button
+                                onClick={() => setDeleteAccConfirm(null)}
+                                className="px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-[#1A1A1A] rounded-xl transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => handleDeleteAcc(deleteAccConfirm)}
+                                disabled={deletingAcc}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-rose-500 text-white rounded-xl text-sm font-bold hover:bg-rose-600 transition-all disabled:opacity-50"
+                            >
+                                {deletingAcc && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {deletingAcc ? 'Excluindo...' : 'Excluir'}
                             </button>
                         </div>
                     </div>

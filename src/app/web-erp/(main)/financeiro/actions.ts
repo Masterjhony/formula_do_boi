@@ -403,6 +403,52 @@ export async function saveCategory(data: { id?: string; name: string; type: stri
     }
 }
 
+export async function saveAccount(data: { id?: string; name: string; type: string; initial_balance: number }) {
+    const supabase = await createClient();
+    try {
+        if (data.id) {
+            const { error } = await supabase
+                .from('erp_finance_accounts')
+                .update({ name: data.name, type: data.type, initial_balance: data.initial_balance })
+                .eq('id', data.id);
+            if (error) throw error;
+        } else {
+            const { error } = await supabase
+                .from('erp_finance_accounts')
+                .insert([{ name: data.name, type: data.type, initial_balance: data.initial_balance, current_balance: data.initial_balance }]);
+            if (error) throw error;
+        }
+        revalidatePath(PATH);
+        revalidatePath('/web-erp/financeiro/conciliacao');
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function deleteAccount(id: string) {
+    const supabase = await createClient();
+    try {
+        const { count } = await supabase
+            .from('erp_finance_transactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('account_id', id);
+        if ((count ?? 0) > 0) {
+            return { success: false, error: `Esta conta possui ${count} lançamento(s). Remova-os antes de excluir.` };
+        }
+        const { error } = await supabase
+            .from('erp_finance_accounts')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+        revalidatePath(PATH);
+        revalidatePath('/web-erp/financeiro/conciliacao');
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
 export async function deleteCategory(id: string) {
     const supabase = await createClient();
     try {

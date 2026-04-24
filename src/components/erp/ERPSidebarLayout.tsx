@@ -59,7 +59,7 @@ export default function ERPSidebarLayout({
         { href: '/financeiro/fluxo-caixa', label: 'Fluxo de Caixa', icon: BarChart3, indent: true },
         { href: '/financeiro/conciliacao', label: 'Conciliação', icon: CheckCircle2, indent: true },
         { href: '/leiloes', label: 'Leilões', icon: Gavel },
-        { href: '/contabil', label: 'Contábil Base', icon: Calculator },
+        { href: '/contabil', label: 'Contábil', icon: Calculator },
         { href: '/configuracoes', label: 'Configurações', icon: Settings },
     ];
 
