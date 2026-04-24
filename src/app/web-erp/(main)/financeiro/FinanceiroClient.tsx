@@ -3,9 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    Wallet, ArrowUpRight, ArrowDownRight, TrendingUp, Search, Plus,
-    Building2, LayoutDashboard, CheckCircle2, Tag, X, Trash2,
-    Loader2, BarChart3, Pencil, AlertTriangle, PiggyBank, Banknote,
+    Wallet, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, Search, Plus,
+    Building2, CheckCircle2, Tag, X, Trash2,
+    Loader2, Pencil, AlertTriangle, PiggyBank, Banknote,
     CreditCard, Gavel, Trophy, CheckCheck, ChevronRight, Users, Sparkles,
 } from 'lucide-react';
 import {
@@ -76,6 +76,7 @@ interface Props {
     initialCategories: Category[];
     initialLeiloes?: BulaLeilao[];
     initialFechamentos?: FechamentoLite[];
+    mode?: 'financeiro' | 'conciliacao';
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -84,11 +85,6 @@ const fmt = (v: number) =>
 
 const fmtDate = (d: string) =>
     new Date(d).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-
-const fmtMonth = (key: string) => {
-    const [y, m] = key.split('-');
-    return new Date(Number(y), Number(m) - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-};
 
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -110,11 +106,11 @@ const parseMoneyText = (raw: unknown): number => {
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
-export default function FinanceiroClient({ initialAccounts, initialTransactions, initialCategories, initialLeiloes = [], initialFechamentos = [] }: Props) {
+export default function FinanceiroClient({ initialAccounts, initialTransactions, initialCategories, initialLeiloes = [], initialFechamentos = [], mode = 'financeiro' }: Props) {
     const router = useRouter();
 
     // ── State ────────────────────────────────────────────────────────────────
-    const [activeTab, setActiveTab] = useState('dashboard');
+    const [activeTab, setActiveTab] = useState(mode === 'conciliacao' ? 'conciliacao' : 'dashboard');
     const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
     const [accounts] = useState<Account[]>(initialAccounts);
     const [categories, setCategories] = useState<Category[]>(initialCategories);
@@ -137,10 +133,6 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
     const [savingCat, setSavingCat] = useState(false);
     const [deleteCatConfirm, setDeleteCatConfirm] = useState<string | null>(null);
     const [deletingCat, setDeletingCat] = useState(false);
-
-    // Cash flow filters
-    const [cfYear, setCfYear] = useState<string>('all');
-    const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
     // Form
     const [form, setForm] = useState({
@@ -171,16 +163,38 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
     }, [accounts, transactions]);
 
     const currentMonth = new Date().toISOString().substring(0, 7);
+    const previousMonth = useMemo(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        return d.toISOString().substring(0, 7);
+    }, []);
 
     const monthlyStats = useMemo(() => {
         let income = 0, expense = 0;
+        let prevIncome = 0, prevExpense = 0;
         for (const tx of transactions) {
-            if (tx.transaction_date?.substring(0, 7) !== currentMonth) continue;
-            if (tx.type === 'income') income += Number(tx.amount);
-            else if (tx.type === 'expense') expense += Number(tx.amount);
+            const m = tx.transaction_date?.substring(0, 7);
+            const amt = Number(tx.amount);
+            if (m === currentMonth) {
+                if (tx.type === 'income') income += amt;
+                else if (tx.type === 'expense') expense += amt;
+            } else if (m === previousMonth) {
+                if (tx.type === 'income') prevIncome += amt;
+                else if (tx.type === 'expense') prevExpense += amt;
+            }
         }
-        return { income, expense };
-    }, [transactions, currentMonth]);
+        const pct = (cur: number, prev: number) => {
+            if (prev === 0) return cur === 0 ? 0 : 100;
+            return ((cur - prev) / Math.abs(prev)) * 100;
+        };
+        return {
+            income, expense,
+            prevIncome, prevExpense,
+            incomeDelta: pct(income, prevIncome),
+            expenseDelta: pct(expense, prevExpense),
+            netDelta: pct(income - expense, prevIncome - prevExpense),
+        };
+    }, [transactions, currentMonth, previousMonth]);
 
     const pendingCount = useMemo(
         () => transactions.filter(t => t.status === 'pending').length,
@@ -220,95 +234,6 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
         porLeilao.sort((a, b) => (b.data || '').localeCompare(a.data || ''));
         return { receita, comissao, sobra: receita - comissao, vgv, porLeilao };
     }, [initialFechamentos]);
-
-    // Cash-flow year index
-    const cfYears = useMemo(() => {
-        const years = new Set<string>();
-        for (const tx of transactions) {
-            const y = tx.transaction_date?.substring(0, 4);
-            if (y) years.add(y);
-        }
-        return Array.from(years).sort().reverse();
-    }, [transactions]);
-
-    const txForCF = useMemo(() =>
-        cfYear === 'all' ? transactions : transactions.filter(tx => tx.transaction_date?.startsWith(cfYear)),
-        [transactions, cfYear],
-    );
-
-    // Cash-flow data grouped by month (with per-month category breakdown)
-    const cashFlow = useMemo(() => {
-        const map = new Map<string, { income: number; expense: number; catExpenses: Map<string, number>; catIncome: Map<string, number> }>();
-        for (const tx of txForCF) {
-            const m = tx.transaction_date?.substring(0, 7);
-            if (!m) continue;
-            const cur = map.get(m) || { income: 0, expense: 0, catExpenses: new Map(), catIncome: new Map() };
-            if (tx.type === 'income') {
-                cur.income += Number(tx.amount);
-                const k = tx.category?.name || '— Sem categoria';
-                cur.catIncome.set(k, (cur.catIncome.get(k) || 0) + Number(tx.amount));
-            } else if (tx.type === 'expense') {
-                cur.expense += Number(tx.amount);
-                const k = tx.category?.name || '— Sem categoria';
-                cur.catExpenses.set(k, (cur.catExpenses.get(k) || 0) + Number(tx.amount));
-            }
-            map.set(m, cur);
-        }
-        const entries = Array.from(map.entries())
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([month, d]) => ({
-                month, label: fmtMonth(month),
-                income: d.income, expense: d.expense,
-                net: d.income - d.expense,
-                catExpensesSorted: Array.from(d.catExpenses.entries()).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total),
-                catIncomeSorted: Array.from(d.catIncome.entries()).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total),
-            }));
-        const totalNet = entries.reduce((s, e) => s + e.net, 0);
-        let bal = totalBalance - totalNet;
-        return entries.map(e => { bal += e.net; return { ...e, balance: bal }; });
-    }, [txForCF, totalBalance]);
-
-    const cashFlowTotals = useMemo(
-        () => cashFlow.reduce((a, m) => ({ income: a.income + m.income, expense: a.expense + m.expense }), { income: 0, expense: 0 }),
-        [cashFlow],
-    );
-
-    const maxCF = useMemo(
-        () => Math.max(...cashFlow.map(m => Math.max(m.income, m.expense)), 1),
-        [cashFlow],
-    );
-
-    // Category breakdowns across the filtered period
-    const categoryExpenseBreakdown = useMemo(() => {
-        const map = new Map<string, number>();
-        for (const tx of txForCF) {
-            if (tx.type !== 'expense') continue;
-            const k = tx.category?.name || '— Sem categoria';
-            map.set(k, (map.get(k) || 0) + Number(tx.amount));
-        }
-        const total = Array.from(map.values()).reduce((s, v) => s + v, 0);
-        return Array.from(map.entries())
-            .map(([name, amt]) => ({ name, total: amt, pct: total > 0 ? (amt / total) * 100 : 0 }))
-            .sort((a, b) => b.total - a.total);
-    }, [txForCF]);
-
-    const categoryIncomeBreakdown = useMemo(() => {
-        const map = new Map<string, number>();
-        for (const tx of txForCF) {
-            if (tx.type !== 'income') continue;
-            const k = tx.category?.name || '— Sem categoria';
-            map.set(k, (map.get(k) || 0) + Number(tx.amount));
-        }
-        const total = Array.from(map.values()).reduce((s, v) => s + v, 0);
-        return Array.from(map.entries())
-            .map(([name, amt]) => ({ name, total: amt, pct: total > 0 ? (amt / total) * 100 : 0 }))
-            .sort((a, b) => b.total - a.total);
-    }, [txForCF]);
-
-    const noCategoryCount = useMemo(() =>
-        txForCF.filter(tx => !tx.category_id && tx.status !== 'cancelled').length,
-        [txForCF],
-    );
 
     // ── Handlers ─────────────────────────────────────────────────────────────
     const openNew = (type: 'income' | 'expense') => {
@@ -461,10 +386,10 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                 <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
                     <div>
                         <h2 className="text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#D4AF37] text-transparent bg-clip-text">
-                            Financeiro
+                            {mode === 'conciliacao' ? 'Conciliação' : 'Financeiro'}
                         </h2>
                         <p className="mt-2 flex items-center gap-2 text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
-                            Gestão de contas, receitas e despesas
+                            {mode === 'conciliacao' ? 'Movimentações, conciliação e categorias' : 'Gestão de contas, receitas e despesas'}
                         </p>
                     </div>
                     <div className="flex gap-3">
@@ -484,23 +409,22 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                 </div>
 
                 {/* Tabs */}
-                <div className="flex flex-wrap items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-[#111] p-1.5 rounded-2xl w-fit">
-                    {([
-                        { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                        { key: 'leiloes', icon: Gavel, label: 'Leilões' },
-                        { key: 'conciliacao', icon: CheckCircle2, label: 'Conciliação' },
-                        { key: 'fluxo', icon: BarChart3, label: 'Fluxo de Caixa' },
-                        { key: 'categorias', icon: Tag, label: 'Categorias' },
-                    ] as const).map(tab => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.key ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                        >
-                            <tab.icon className="w-4 h-4" /> {tab.label}
-                        </button>
-                    ))}
-                </div>
+                {mode === 'conciliacao' && (
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-[#111] p-1.5 rounded-2xl w-fit">
+                        {([
+                            { key: 'conciliacao', icon: CheckCircle2, label: 'Movimentações' },
+                            { key: 'categorias', icon: Tag, label: 'Categorias' },
+                        ] as const).map(tab => (
+                            <button
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key)}
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.key ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                            >
+                                <tab.icon className="w-4 h-4" /> {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* ═══════════════════════════════════════════════════════════════════
@@ -532,8 +456,14 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                             <div className="relative z-10">
                                 <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Receitas (Mês)</p>
                                 <h3 className="text-4xl font-extrabold text-emerald-500 mt-2 tracking-tight">{fmt(monthlyStats.income)}</h3>
-                                <div className="mt-4 text-xs font-semibold text-gray-400 dark:text-[#666] uppercase tracking-widest">
-                                    {transactions.filter(tx => tx.type === 'income' && tx.transaction_date?.substring(0, 7) === currentMonth).length} lançamento(s)
+                                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                                    <span className={`inline-flex items-center text-[10px] font-bold px-2 py-1 rounded-md ${monthlyStats.incomeDelta >= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                                        {monthlyStats.incomeDelta >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
+                                        {monthlyStats.incomeDelta >= 0 ? '+' : ''}{monthlyStats.incomeDelta.toFixed(1)}% vs mês ant.
+                                    </span>
+                                    <span className="text-[10px] font-semibold text-gray-400 dark:text-[#666] uppercase tracking-widest">
+                                        {transactions.filter(tx => tx.type === 'income' && tx.transaction_date?.substring(0, 7) === currentMonth).length} lanç.
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -545,8 +475,14 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                             <div className="relative z-10">
                                 <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Despesas (Mês)</p>
                                 <h3 className="text-4xl font-extrabold text-rose-500 mt-2 tracking-tight">{fmt(monthlyStats.expense)}</h3>
-                                <div className="mt-4 text-xs font-semibold text-gray-400 dark:text-[#666] uppercase tracking-widest">
-                                    {transactions.filter(tx => tx.type === 'expense' && tx.transaction_date?.substring(0, 7) === currentMonth).length} conta(s) a pagar
+                                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                                    <span className={`inline-flex items-center text-[10px] font-bold px-2 py-1 rounded-md ${monthlyStats.expenseDelta <= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                                        {monthlyStats.expenseDelta <= 0 ? <TrendingDown className="w-3 h-3 mr-1" /> : <TrendingUp className="w-3 h-3 mr-1" />}
+                                        {monthlyStats.expenseDelta >= 0 ? '+' : ''}{monthlyStats.expenseDelta.toFixed(1)}% vs mês ant.
+                                    </span>
+                                    <span className="text-[10px] font-semibold text-gray-400 dark:text-[#666] uppercase tracking-widest">
+                                        {transactions.filter(tx => tx.type === 'expense' && tx.transaction_date?.substring(0, 7) === currentMonth).length} conta(s)
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -568,7 +504,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => setActiveTab('leiloes')}
+                                    onClick={() => router.push('/leiloes')}
                                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#B8860B]/10 text-[#B8860B] border border-[#B8860B]/30 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#B8860B] hover:text-black transition-all"
                                 >
                                     Gerenciar lançamentos
@@ -725,20 +661,6 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                         </div>
                     </div>
                 </div>
-            )}
-
-            {/* ═══════════════════════════════════════════════════════════════════
-                LEILÕES TAB — A Receber / A Pagar vinculados aos leilões
-               ═══════════════════════════════════════════════════════════════════ */}
-            {activeTab === 'leiloes' && (
-                <LeiloesIntegracao
-                    accounts={accounts}
-                    categories={categories}
-                    transactions={transactions}
-                    leiloes={initialLeiloes}
-                    fechamentos={initialFechamentos}
-                    onDone={() => router.refresh()}
-                />
             )}
 
             {/* ═══════════════════════════════════════════════════════════════════
@@ -912,293 +834,6 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     </div>
                 </div>
             )}
-
-            {/* ═══════════════════════════════════════════════════════════════════
-                FLUXO DE CAIXA TAB
-               ═══════════════════════════════════════════════════════════════════ */}
-            {activeTab === 'fluxo' && (
-                <div className="animate-in fade-in duration-500 space-y-6">
-
-                    {/* Year filter */}
-                    {cfYears.length > 0 && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-bold text-gray-400 dark:text-[#666] uppercase tracking-widest mr-1">Período:</span>
-                            {(['all', ...cfYears] as string[]).map(y => (
-                                <button
-                                    key={y}
-                                    onClick={() => { setCfYear(y); setExpandedMonth(null); }}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                        cfYear === y
-                                            ? 'bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/30'
-                                            : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#888] hover:bg-gray-200 dark:hover:bg-[#252525] border border-gray-200 dark:border-[#2A2A2A]'
-                                    }`}
-                                >
-                                    {y === 'all' ? 'Todos os anos' : y}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* KPI Cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white dark:bg-[#111111] border border-emerald-500/20 rounded-2xl p-5 shadow-xl">
-                            <div className="flex items-center gap-2 mb-2">
-                                <ArrowUpRight className="w-4 h-4 text-emerald-500" />
-                                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Total Receitas</p>
-                            </div>
-                            <h3 className="text-2xl font-extrabold text-emerald-500">{fmt(cashFlowTotals.income)}</h3>
-                            <p className="text-[10px] text-gray-400 dark:text-[#666] mt-1">{txForCF.filter(t => t.type === 'income').length} lançamentos</p>
-                        </div>
-                        <div className="bg-white dark:bg-[#111111] border border-rose-500/20 rounded-2xl p-5 shadow-xl">
-                            <div className="flex items-center gap-2 mb-2">
-                                <ArrowDownRight className="w-4 h-4 text-rose-500" />
-                                <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Total Despesas</p>
-                            </div>
-                            <h3 className="text-2xl font-extrabold text-rose-500">{fmt(cashFlowTotals.expense)}</h3>
-                            <p className="text-[10px] text-gray-400 dark:text-[#666] mt-1">{txForCF.filter(t => t.type === 'expense').length} lançamentos</p>
-                        </div>
-                        <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-5 shadow-xl">
-                            <div className="flex items-center gap-2 mb-2">
-                                <TrendingUp className="w-4 h-4 text-[#D4AF37]" />
-                                <p className="text-[10px] font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Resultado</p>
-                            </div>
-                            <h3 className={`text-2xl font-extrabold ${cashFlowTotals.income - cashFlowTotals.expense >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                {cashFlowTotals.income - cashFlowTotals.expense >= 0 ? '+' : ''}{fmt(cashFlowTotals.income - cashFlowTotals.expense)}
-                            </h3>
-                            <p className="text-[10px] text-gray-400 dark:text-[#666] mt-1">
-                                {cashFlowTotals.income > 0 ? `${((cashFlowTotals.income - cashFlowTotals.expense) / cashFlowTotals.income * 100).toFixed(1)}% margem` : '—'}
-                            </p>
-                        </div>
-                        <div className={`bg-white dark:bg-[#111111] border rounded-2xl p-5 shadow-xl ${noCategoryCount > 0 ? 'border-amber-500/30' : 'border-gray-200 dark:border-[#2A2A2A]'}`}>
-                            <div className="flex items-center gap-2 mb-2">
-                                <Tag className={`w-4 h-4 ${noCategoryCount > 0 ? 'text-amber-500' : 'text-gray-400 dark:text-[#666]'}`} />
-                                <p className={`text-[10px] font-bold uppercase tracking-widest ${noCategoryCount > 0 ? 'text-amber-500' : 'text-gray-400 dark:text-[#666]'}`}>Sem Categoria</p>
-                            </div>
-                            <h3 className={`text-2xl font-extrabold ${noCategoryCount > 0 ? 'text-amber-500' : 'text-gray-500 dark:text-[#666]'}`}>{noCategoryCount}</h3>
-                            <p className="text-[10px] text-gray-400 dark:text-[#666] mt-1">lançamentos não categorizados</p>
-                        </div>
-                    </div>
-
-                    {/* Main: Monthly Flow + Category Sidebar */}
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-
-                        {/* Monthly Flow (3/5) */}
-                        <div className="lg:col-span-3 bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
-                            <div className="p-5 border-b border-gray-100 dark:border-[#222] bg-gray-50 dark:bg-[#141414]">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
-                                        <BarChart3 className="w-5 h-5 text-[#D4AF37]" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 dark:text-white tracking-widest text-sm uppercase">Fluxo Mensal</h3>
-                                        <p className="text-[10px] text-gray-500 dark:text-[#888] font-mono tracking-widest mt-0.5">CLIQUE NO MÊS PARA VER CATEGORIAS</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {cashFlow.length > 0 ? (
-                                <div className="divide-y divide-gray-100 dark:divide-[#1A1A1A]">
-                                    {cashFlow.map(m => (
-                                        <div key={m.month}>
-                                            <button
-                                                className="w-full text-left p-5 hover:bg-gray-50 dark:hover:bg-[#141414] transition-colors"
-                                                onClick={() => setExpandedMonth(expandedMonth === m.month ? null : m.month)}
-                                            >
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <h4 className="font-bold text-gray-900 dark:text-white capitalize text-sm">{m.label}</h4>
-                                                        <span className="text-[9px] text-gray-400 dark:text-[#555]">{expandedMonth === m.month ? '▲' : '▼'}</span>
-                                                    </div>
-                                                    <span className={`text-sm font-extrabold ${m.net >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                                        {m.net >= 0 ? '+' : ''}{fmt(m.net)}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-3 mb-1.5">
-                                                    <span className="text-[9px] font-bold text-gray-400 dark:text-[#666] uppercase tracking-widest w-16 shrink-0">Receitas</span>
-                                                    <div className="flex-1 bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-4 overflow-hidden">
-                                                        <div
-                                                            className="bg-emerald-500/80 h-full rounded-full transition-all duration-700 flex items-center justify-end pr-2"
-                                                            style={{ width: `${Math.max((m.income / maxCF) * 100, 0)}%`, minWidth: m.income > 0 ? '72px' : '0' }}
-                                                        >
-                                                            {m.income > 0 && <span className="text-[9px] font-bold text-white whitespace-nowrap">{fmt(m.income)}</span>}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-3 mb-1.5">
-                                                    <span className="text-[9px] font-bold text-gray-400 dark:text-[#666] uppercase tracking-widest w-16 shrink-0">Despesas</span>
-                                                    <div className="flex-1 bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-4 overflow-hidden">
-                                                        <div
-                                                            className="bg-rose-500/80 h-full rounded-full transition-all duration-700 flex items-center justify-end pr-2"
-                                                            style={{ width: `${Math.max((m.expense / maxCF) * 100, 0)}%`, minWidth: m.expense > 0 ? '72px' : '0' }}
-                                                        >
-                                                            {m.expense > 0 && <span className="text-[9px] font-bold text-white whitespace-nowrap">{fmt(m.expense)}</span>}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 dark:border-[#222]">
-                                                    <span className="text-[9px] font-bold text-gray-400 dark:text-[#666] uppercase tracking-widest">Saldo Acumulado</span>
-                                                    <span className={`text-xs font-extrabold ${m.balance >= 0 ? 'text-[#D4AF37]' : 'text-rose-500'}`}>{fmt(m.balance)}</span>
-                                                </div>
-                                            </button>
-
-                                            {/* Expanded: category drill-down */}
-                                            {expandedMonth === m.month && (
-                                                <div className="px-5 pb-5 bg-gray-50 dark:bg-[#0A0A0A] border-t border-gray-100 dark:border-[#1A1A1A]">
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4">
-                                                        {m.catExpensesSorted.length > 0 && (
-                                                            <div>
-                                                                <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest mb-2.5">Despesas — detalhado</p>
-                                                                <div className="space-y-2">
-                                                                    {m.catExpensesSorted.map((cat, i) => {
-                                                                        const pct = m.expense > 0 ? (cat.total / m.expense) * 100 : 0;
-                                                                        return (
-                                                                            <div key={i}>
-                                                                                <div className="flex items-center justify-between mb-1">
-                                                                                    <div className="flex items-center gap-1.5 min-w-0">
-                                                                                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }} />
-                                                                                        <span className="text-[10px] text-gray-700 dark:text-[#AAA] truncate">{cat.name}</span>
-                                                                                    </div>
-                                                                                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                                                                                        <span className="text-[10px] font-bold text-rose-500 whitespace-nowrap">{fmt(cat.total)}</span>
-                                                                                        <span className="text-[9px] text-gray-400 dark:text-[#555]">{pct.toFixed(0)}%</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="bg-gray-200 dark:bg-[#1A1A1A] rounded-full h-1.5 overflow-hidden">
-                                                                                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }} />
-                                                                                </div>
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        {m.catIncomeSorted.length > 0 && (
-                                                            <div>
-                                                                <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mb-2.5">Receitas — detalhado</p>
-                                                                <div className="space-y-2">
-                                                                    {m.catIncomeSorted.map((cat, i) => {
-                                                                        const pct = m.income > 0 ? (cat.total / m.income) * 100 : 0;
-                                                                        return (
-                                                                            <div key={i}>
-                                                                                <div className="flex items-center justify-between mb-1">
-                                                                                    <div className="flex items-center gap-1.5 min-w-0">
-                                                                                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }} />
-                                                                                        <span className="text-[10px] text-gray-700 dark:text-[#AAA] truncate">{cat.name}</span>
-                                                                                    </div>
-                                                                                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                                                                                        <span className="text-[10px] font-bold text-emerald-500 whitespace-nowrap">{fmt(cat.total)}</span>
-                                                                                        <span className="text-[9px] text-gray-400 dark:text-[#555]">{pct.toFixed(0)}%</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="bg-gray-200 dark:bg-[#1A1A1A] rounded-full h-1.5 overflow-hidden">
-                                                                                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }} />
-                                                                                </div>
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="p-16 text-center">
-                                    <BarChart3 className="w-12 h-12 text-gray-300 dark:text-[#333] mx-auto mb-4" />
-                                    <p className="text-gray-400 dark:text-[#555] font-bold uppercase tracking-widest text-xs">
-                                        Nenhuma movimentação para exibir.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Category Sidebar (2/5) */}
-                        <div className="lg:col-span-2 space-y-5">
-                            {/* Despesas por Categoria */}
-                            <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
-                                <div className="p-4 border-b border-gray-100 dark:border-[#222] bg-gray-50 dark:bg-[#141414]">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
-                                            <ArrowDownRight className="w-4 h-4 text-rose-500" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white tracking-widest text-xs uppercase">Despesas por Categoria</h3>
-                                            <p className="text-[9px] text-gray-400 dark:text-[#666] font-mono mt-0.5">{fmt(cashFlowTotals.expense)} total</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="p-4 space-y-3">
-                                    {categoryExpenseBreakdown.length > 0 ? categoryExpenseBreakdown.map((cat, i) => (
-                                        <div key={cat.name}>
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }} />
-                                                    <span className="text-xs text-gray-700 dark:text-[#CCC] truncate font-medium">{cat.name}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 shrink-0 ml-2">
-                                                    <span className="text-[10px] font-bold text-rose-500 whitespace-nowrap">{fmt(cat.total)}</span>
-                                                    <span className="text-[9px] text-gray-400 dark:text-[#666] w-8 text-right">{cat.pct.toFixed(1)}%</span>
-                                                </div>
-                                            </div>
-                                            <div className="bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-2 overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full transition-all duration-700"
-                                                    style={{ width: `${cat.pct}%`, backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )) : (
-                                        <p className="text-xs text-gray-400 dark:text-[#555] text-center py-6 font-bold uppercase tracking-widest">Nenhuma despesa</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Receitas por Categoria */}
-                            <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
-                                <div className="p-4 border-b border-gray-100 dark:border-[#222] bg-gray-50 dark:bg-[#141414]">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                                            <ArrowUpRight className="w-4 h-4 text-emerald-500" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white tracking-widest text-xs uppercase">Receitas por Categoria</h3>
-                                            <p className="text-[9px] text-gray-400 dark:text-[#666] font-mono mt-0.5">{fmt(cashFlowTotals.income)} total</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="p-4 space-y-3">
-                                    {categoryIncomeBreakdown.length > 0 ? categoryIncomeBreakdown.map((cat, i) => (
-                                        <div key={cat.name}>
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }} />
-                                                    <span className="text-xs text-gray-700 dark:text-[#CCC] truncate font-medium">{cat.name}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 shrink-0 ml-2">
-                                                    <span className="text-[10px] font-bold text-emerald-500 whitespace-nowrap">{fmt(cat.total)}</span>
-                                                    <span className="text-[9px] text-gray-400 dark:text-[#666] w-8 text-right">{cat.pct.toFixed(1)}%</span>
-                                                </div>
-                                            </div>
-                                            <div className="bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-2 overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full transition-all duration-700"
-                                                    style={{ width: `${cat.pct}%`, backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )) : (
-                                        <p className="text-xs text-gray-400 dark:text-[#555] text-center py-6 font-bold uppercase tracking-widest">Nenhuma receita</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {/* ═══════════════════════════════════════════════════════════════════
                 CATEGORIAS TAB
                ═══════════════════════════════════════════════════════════════════ */}
@@ -1614,7 +1249,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
 // Conecta bula_leiloes.comissao_receber → A Receber (income pending)
 // Conecta bula_leilao_fechamento.comissao_assessoria → A Pagar (expense pending)
 // ═════════════════════════════════════════════════════════════════════════════
-function LeiloesIntegracao({
+export function LeiloesIntegracao({
     accounts, categories, transactions, leiloes, fechamentos, onDone,
 }: {
     accounts: Account[];

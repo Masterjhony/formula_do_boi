@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Wallet, Package, Calculator, LogOut, Menu, X, Settings, ChevronLeft, ChevronRight, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { LayoutDashboard, Wallet, Calculator, LogOut, Menu, X, Settings, ChevronLeft, ChevronRight, ArrowDownToLine, ArrowUpFromLine, BarChart3, Gavel, CheckCircle2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -56,7 +56,9 @@ export default function ERPSidebarLayout({
         { href: '/financeiro', label: 'Financeiro', icon: Wallet },
         { href: '/financeiro/a-receber', label: 'A Receber', icon: ArrowDownToLine, indent: true },
         { href: '/financeiro/a-pagar', label: 'A Pagar', icon: ArrowUpFromLine, indent: true },
-        { href: '/estoque', label: 'Estoque', icon: Package },
+        { href: '/financeiro/fluxo-caixa', label: 'Fluxo de Caixa', icon: BarChart3, indent: true },
+        { href: '/financeiro/conciliacao', label: 'Conciliação', icon: CheckCircle2, indent: true },
+        { href: '/leiloes', label: 'Leilões', icon: Gavel },
         { href: '/contabil', label: 'Contábil Base', icon: Calculator },
         { href: '/configuracoes', label: 'Configurações', icon: Settings },
     ];
