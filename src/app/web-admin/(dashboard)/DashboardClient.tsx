@@ -252,9 +252,6 @@ function KPIs({ k }: { k: DashboardProps['kpi'] }) {
                         {it.spark?.length > 0 && <Sparkline data={it.spark} color={it.color} />}
                     </>
                 );
-                if (it.external) return (
-                    <a key={it.label} href={it.href} target="_blank" rel="noreferrer" className="dcl-kpi dcl-k-gold">{Body}</a>
-                );
                 return <Link key={it.label} href={it.href} className="dcl-kpi dcl-k-gold">{Body}</Link>;
             })}
         </div>
