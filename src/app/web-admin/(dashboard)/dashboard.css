@@ -260,3 +260,76 @@
 
 /* ========= Utility ========= */
 .dcl-divider { height: 1px; background: var(--dcl-line-soft); margin: 14px 0; }
+
+/* =================================================================
+   Light mode — next-themes adiciona a classe `light` no <html>.
+   Mantemos os tokens semânticos e apenas trocamos a paleta.
+   ================================================================= */
+:where(html:not(.dark)) .dcl-root {
+  --dcl-bg: #f6f6f8;
+  --dcl-bg-elev: #ffffff;
+  --dcl-bg-card: #ffffff;
+  --dcl-bg-card-2: #f1f1f4;
+  --dcl-line: #e4e4ea;
+  --dcl-line-soft: #eeeef2;
+  --dcl-ink: #18181c;
+  --dcl-ink-2: #48484f;
+  --dcl-ink-3: #7a7a86;
+  --dcl-ink-4: #b8b8c2;
+  --dcl-gold: #A0792E;
+  --dcl-gold-2: #8a661e;
+  --dcl-gold-soft: #c69546;
+  --dcl-gold-bg: rgba(160, 121, 46, 0.08);
+  --dcl-gold-line: rgba(160, 121, 46, 0.28);
+}
+:where(html:not(.dark)) .dcl-root .dcl-card {
+  box-shadow: 0 1px 2px rgba(15, 15, 20, 0.04), 0 1px 3px rgba(15, 15, 20, 0.03);
+}
+:where(html:not(.dark)) .dcl-hero {
+  background:
+    radial-gradient(900px 320px at 88% 50%, rgba(212, 168, 92, 0.22), transparent 60%),
+    radial-gradient(400px 260px at 10% 120%, rgba(160, 121, 46, 0.10), transparent 70%),
+    linear-gradient(180deg, #fbf6e8 0%, #faf2dc 100%);
+  box-shadow: 0 1px 2px rgba(160, 121, 46, 0.10), 0 14px 30px -18px rgba(160, 121, 46, 0.30);
+}
+:where(html:not(.dark)) .dcl-hero:hover {
+  box-shadow: 0 0 0 1px rgba(160, 121, 46, 0.25), 0 18px 38px -18px rgba(160, 121, 46, 0.40);
+}
+:where(html:not(.dark)) .dcl-hero::before {
+  background-image:
+    linear-gradient(rgba(160, 121, 46, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(160, 121, 46, 0.07) 1px, transparent 1px);
+}
+:where(html:not(.dark)) .dcl-hero-title { color: #1a1208; }
+:where(html:not(.dark)) .dcl-hero-meta { color: #5a4626; }
+:where(html:not(.dark)) .dcl-hero-title .dcl-sub { color: #7a5e34; }
+:where(html:not(.dark)) .dcl-cd-cell {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(160, 121, 46, 0.22);
+}
+:where(html:not(.dark)) .dcl-cd-cell .dcl-n { color: #1a1208; }
+:where(html:not(.dark)) .dcl-cd-cell .dcl-l { color: #7a5e34; }
+:where(html:not(.dark)) .dcl-ai-card {
+  background:
+    radial-gradient(600px 200px at 100% 0%, rgba(212, 168, 92, 0.16), transparent 60%),
+    linear-gradient(180deg, #fdf8ea, #ffffff);
+}
+:where(html:not(.dark)) .dcl-ai-chip {
+  background: rgba(0, 0, 0, 0.02);
+}
+:where(html:not(.dark)) .dcl-pill.dcl-dim {
+  background: rgba(0, 0, 0, 0.04);
+}
+:where(html:not(.dark)) .dcl-timeframe button.dcl-on {
+  background: #ffffff;
+}
+:where(html:not(.dark)) .dcl-status-pill {
+  background: rgba(46, 142, 86, 0.10);
+  border-color: rgba(46, 142, 86, 0.28);
+  color: #2e8e56;
+}
+:where(html:not(.dark)) .dcl-pill.dcl-ok   { color: #2e8e56; }
+:where(html:not(.dark)) .dcl-pill.dcl-warn { color: #8a661e; }
+:where(html:not(.dark)) .dcl-pill.dcl-pend { color: #6a559a; }
+:where(html:not(.dark)) .dcl-feed-text b { color: var(--dcl-ink); }
+:where(html:not(.dark)) .dcl-spark { opacity: 0.55; }

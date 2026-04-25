@@ -340,11 +340,11 @@ function VGVChart({ data, totalMeta, totalVgv, projection }: { data: VgvPoint[];
                 </defs>
                 {yTicks.map(t => (
                     <g key={t}>
-                        <line x1={pad.l} x2={w - pad.r} y1={yFor(t)} y2={yFor(t)} stroke="#1f1f26" strokeDasharray="2 4" />
-                        <text x={pad.l - 10} y={yFor(t) + 3} fontSize="10" fill="#6b6b78" textAnchor="end" fontFamily="var(--font-mono), ui-monospace, monospace">{t >= 1 ? t.toFixed(1) + 'M' : (t * 1000).toFixed(0) + 'k'}</text>
+                        <line x1={pad.l} x2={w - pad.r} y1={yFor(t)} y2={yFor(t)} style={{ stroke: 'var(--dcl-line)' }} strokeDasharray="2 4" />
+                        <text x={pad.l - 10} y={yFor(t) + 3} fontSize="10" textAnchor="end" fontFamily="var(--font-mono), ui-monospace, monospace" style={{ fill: 'var(--dcl-ink-3)' }}>{t >= 1 ? t.toFixed(1) + 'M' : (t * 1000).toFixed(0) + 'k'}</text>
                     </g>
                 ))}
-                <path d={mkLine(prev)} fill="none" stroke="#43434d" strokeWidth="1.3" strokeDasharray="4 4" />
+                <path d={mkLine(prev)} fill="none" style={{ stroke: 'var(--dcl-ink-4)' }} strokeWidth="1.3" strokeDasharray="4 4" />
                 <path d={mkArea(vgv)} fill="url(#dclGVgv)" />
                 <path d={mkLine(vgv)} fill="none" stroke="#6a8fd4" strokeWidth="2" />
                 <path d={mkArea(meta)} fill="url(#dclGMeta)" />
@@ -356,20 +356,20 @@ function VGVChart({ data, totalMeta, totalVgv, projection }: { data: VgvPoint[];
                     </g>
                 ))}
                 {safe.map((p, i) => (
-                    <text key={p.label + i} x={xFor(i)} y={h - 10} fontSize="11" fill="#6b6b78" textAnchor="middle" fontFamily="var(--font-mono), ui-monospace, monospace">{p.label}</text>
+                    <text key={p.label + i} x={xFor(i)} y={h - 10} fontSize="11" textAnchor="middle" fontFamily="var(--font-mono), ui-monospace, monospace" style={{ fill: 'var(--dcl-ink-3)' }}>{p.label}</text>
                 ))}
                 {hover !== null && (
                     <g>
                         <line x1={xFor(hover)} x2={xFor(hover)} y1={pad.t} y2={pad.t + innerH} stroke="#D4A85C" strokeOpacity="0.35" strokeDasharray="2 3" />
                         <g transform={`translate(${Math.min(xFor(hover) + 12, w - 170)}, ${pad.t + 8})`}>
-                            <rect width="156" height="68" rx="8" fill="#0d0d10" stroke="#1f1f26" />
-                            <text x="12" y="20" fontSize="10.5" fill="#6b6b78" style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}>{safe[hover].label}</text>
+                            <rect width="156" height="68" rx="8" style={{ fill: 'var(--dcl-bg-card)', stroke: 'var(--dcl-line)' }} />
+                            <text x="12" y="20" fontSize="10.5" style={{ fill: 'var(--dcl-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{safe[hover].label}</text>
                             <circle cx="14" cy="37" r="3" fill="#D4A85C" />
-                            <text x="24" y="40" fontSize="11" fill="#a8a8b3">Meta</text>
-                            <text x="145" y="40" fontSize="11.5" fill="#eeeef1" textAnchor="end" fontFamily="var(--font-mono), ui-monospace, monospace">{fmtBRLCompact(safe[hover].meta * 1_000_000)}</text>
+                            <text x="24" y="40" fontSize="11" style={{ fill: 'var(--dcl-ink-2)' }}>Meta</text>
+                            <text x="145" y="40" fontSize="11.5" textAnchor="end" fontFamily="var(--font-mono), ui-monospace, monospace" style={{ fill: 'var(--dcl-ink)' }}>{fmtBRLCompact(safe[hover].meta * 1_000_000)}</text>
                             <circle cx="14" cy="55" r="3" fill="#6a8fd4" />
-                            <text x="24" y="58" fontSize="11" fill="#a8a8b3">VGV</text>
-                            <text x="145" y="58" fontSize="11.5" fill="#eeeef1" textAnchor="end" fontFamily="var(--font-mono), ui-monospace, monospace">{fmtBRLCompact(safe[hover].vgv * 1_000_000)}</text>
+                            <text x="24" y="58" fontSize="11" style={{ fill: 'var(--dcl-ink-2)' }}>VGV</text>
+                            <text x="145" y="58" fontSize="11.5" textAnchor="end" fontFamily="var(--font-mono), ui-monospace, monospace" style={{ fill: 'var(--dcl-ink)' }}>{fmtBRLCompact(safe[hover].vgv * 1_000_000)}</text>
                         </g>
                     </g>
                 )}
