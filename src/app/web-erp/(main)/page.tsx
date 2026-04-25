@@ -5,6 +5,8 @@ import {
     Trophy,
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
+import { buildReceivables, buildPayables } from './financeiro/_lib/helpers'
+import type { Transaction, BulaLeilao, FechamentoLite, UnifiedItem } from './financeiro/_lib/types'
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -32,21 +34,43 @@ export default async function ERPDashboard() {
     const in30d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30).toISOString().split('T')[0]
 
     // ─── Core Finance ────────────────────────────────────────────────────────
+    // Fetch in the same shape used by /financeiro/a-pagar e /financeiro/a-receber,
+    // para que o dashboard mostre exatamente o que essas páginas mostram.
     const [
         { data: accounts },
-        { data: allTx },
-        { data: fechamentos },
+        { data: allTxFull },
+        { data: leiloes },
+        { data: fechamentosFull },
     ] = await Promise.all([
         supabase.from('erp_finance_accounts').select('initial_balance'),
         supabase.from('erp_finance_transactions')
-            .select('amount, type, status, transaction_date, description')
+            .select(`
+                id, amount, type, description, observacao, transaction_date, status, account_id, category_id,
+                account:erp_finance_accounts(id, name, type),
+                category:erp_finance_categories(id, name, type)
+            `)
             .order('transaction_date', { ascending: false })
             .limit(5000),
+        supabase.from('bula_leiloes')
+            .select('id, nome, data, criador, status, comissao, comissao_receber, recebido, faturamento_realizado, venda_bula, realizado_bula')
+            .order('data', { ascending: false }),
         supabase.from('bula_leilao_fechamento')
-            .select('id, nome, data, vgv_total, comissao_assessoria, receita_bula, sobra_bruta')
-            .order('data', { ascending: false })
-            .limit(6),
+            .select('id, nome, data, vgv_total, comissao_assessoria, receita_bula, sobra_bruta, por_assessor, lances')
+            .order('data', { ascending: false }),
     ])
+
+    const txsAll = (allTxFull as unknown as Transaction[]) ?? []
+    const leiloesList = (leiloes as unknown as BulaLeilao[]) ?? []
+    const fechamentosList = (fechamentosFull as unknown as FechamentoLite[]) ?? []
+    // KPIs simples ainda usam shape compacto
+    const allTx = txsAll.map(t => ({
+        amount: t.amount,
+        type: t.type,
+        status: t.status,
+        transaction_date: t.transaction_date,
+        description: t.description,
+    }))
+    const fechamentos = fechamentosList.slice(0, 6)
 
     const totalInitial = (accounts ?? []).reduce((s, a) => s + (Number(a.initial_balance) || 0), 0)
     const txs = allTx ?? []
@@ -87,25 +111,47 @@ export default async function ERPDashboard() {
     const lastMonthBalance = saldoAtual - thisMonthNet
     const saldoDelta = pct(saldoAtual, lastMonthBalance)
 
-    // A Receber × A Pagar (pending)
-    const pendentes = txs.filter(t => t.status === 'pending')
-    const aReceber = sumBy(pendentes, 'income')
-    const aPagar = sumBy(pendentes, 'expense')
+    // A Receber × A Pagar — usa os MESMOS builders das páginas reais
+    // (transações ERP + virtuais de fechamento/leilão) para ficar sincronizado.
+    const receivables = buildReceivables(txsAll, leiloesList, fechamentosList)
+    const payables = buildPayables(txsAll, fechamentosList)
 
-    // Vencendo em 30d
-    const vencendo30d = pendentes.filter(t => t.transaction_date >= today && t.transaction_date <= in30d)
-    const venc30dReceber = sumBy(vencendo30d, 'income')
-    const venc30dPagar = sumBy(vencendo30d, 'expense')
+    // Apenas o saldo em aberto (pendente / virtual). 'completed' já entrou no Saldo Atual.
+    const isOpen = (i: UnifiedItem) => i.status !== 'completed' && i.status !== 'cancelled'
+    const openReceivables = receivables.filter(isOpen)
+    const openPayables = payables.filter(isOpen)
 
-    // Vencidos (pending antes de hoje)
-    const vencidos = pendentes.filter(t => t.transaction_date < today)
-    const vencidosReceber = sumBy(vencidos, 'income')
-    const vencidosPagar = sumBy(vencidos, 'expense')
+    const sumBalance = (list: UnifiedItem[]) => list.reduce((s, i) => s + (Number(i.balance) || 0), 0)
 
-    // Próximos vencimentos (top 6 pending ordenados por data crescente)
-    const proximosVenc = [...pendentes]
-        .sort((a, b) => a.transaction_date.localeCompare(b.transaction_date))
+    const aReceber = sumBalance(openReceivables)
+    const aPagar = sumBalance(openPayables)
+
+    // Vencendo em 30d (≥ hoje e ≤ hoje+30d)
+    const inWindow = (d: string) => d && d >= today && d <= in30d
+    const venc30dReceber = sumBalance(openReceivables.filter(i => inWindow(i.dueDate)))
+    const venc30dPagar = sumBalance(openPayables.filter(i => inWindow(i.dueDate)))
+
+    // Vencidos (dueDate < hoje)
+    const vencidosReceber = sumBalance(openReceivables.filter(i => i.dueDate && i.dueDate < today))
+    const vencidosPagar = sumBalance(openPayables.filter(i => i.dueDate && i.dueDate < today))
+
+    // Próximos vencimentos (top 6, mesclado a pagar + a receber)
+    const proximosVenc: Array<{
+        description: string
+        transaction_date: string
+        amount: number
+        type: 'income' | 'expense'
+        source: 'erp' | 'leilao' | 'fechamento'
+    }> = [...openReceivables, ...openPayables]
+        .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''))
         .slice(0, 6)
+        .map(i => ({
+            description: i.title,
+            transaction_date: i.dueDate,
+            amount: i.balance,
+            type: i.type,
+            source: i.source,
+        }))
 
     // Últimos 6 meses (entradas × saídas) — somando todas transações independente de status
     const last6 = Array.from({ length: 6 }, (_, i) => {
@@ -115,13 +161,65 @@ export default async function ERPDashboard() {
     })
     const series = last6.map(({ key, label }) => {
         const monthTx = txs.filter(t => t.transaction_date?.substring(0, 7) === key)
-        return {
-            key, label,
-            income: sumBy(monthTx, 'income'),
-            expense: sumBy(monthTx, 'expense'),
-        }
+        const income = sumBy(monthTx, 'income')
+        const expense = sumBy(monthTx, 'expense')
+        return { key, label, income, expense, net: income - expense }
     })
-    const maxBar = Math.max(...series.map(s => Math.max(s.income, s.expense)), 1)
+
+    // ─── Geometria do gráfico SVG (área + linha) ─────────────────────────────
+    const VB_W = 600
+    const VB_H = 240
+    const PAD_L = 52
+    const PAD_R = 16
+    const PAD_T = 18
+    const PAD_B = 36
+    const innerW = VB_W - PAD_L - PAD_R
+    const innerH = VB_H - PAD_T - PAD_B
+
+    const rawMax = Math.max(...series.map(s => Math.max(s.income, s.expense)), 1)
+    // Arredonda para um valor "redondo" superior (1, 2, 5 × 10^n)
+    const niceCeil = (v: number) => {
+        if (v <= 0) return 1
+        const exp = Math.pow(10, Math.floor(Math.log10(v)))
+        const n = v / exp
+        const m = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10
+        return m * exp
+    }
+    const niceMax = niceCeil(rawMax)
+
+    const N = series.length
+    const ptX = (i: number) => PAD_L + (N <= 1 ? innerW / 2 : (i / (N - 1)) * innerW)
+    const ptY = (v: number) => PAD_T + (1 - v / niceMax) * innerH
+    const baseY = PAD_T + innerH
+
+    const incomePts = series.map((s, i) => ({ x: ptX(i), y: ptY(s.income) }))
+    const expensePts = series.map((s, i) => ({ x: ptX(i), y: ptY(s.expense) }))
+
+    const buildPath = (pts: { x: number; y: number }[]) => {
+        if (pts.length === 0) return ''
+        let d = `M ${pts[0].x},${pts[0].y}`
+        for (let i = 1; i < pts.length; i++) {
+            const cx = (pts[i - 1].x + pts[i].x) / 2
+            d += ` C ${cx},${pts[i - 1].y} ${cx},${pts[i].y} ${pts[i].x},${pts[i].y}`
+        }
+        return d
+    }
+    const buildArea = (pts: { x: number; y: number }[]) => {
+        const line = buildPath(pts)
+        if (!line) return ''
+        const first = pts[0]
+        const last = pts[pts.length - 1]
+        return `${line} L ${last.x},${baseY} L ${first.x},${baseY} Z`
+    }
+    const incomePath = buildPath(incomePts)
+    const incomeArea = buildArea(incomePts)
+    const expensePath = buildPath(expensePts)
+    const expenseArea = buildArea(expensePts)
+
+    const gridSteps = [0, 0.25, 0.5, 0.75, 1]
+    const totalEntradas6m = series.reduce((s, m) => s + m.income, 0)
+    const totalSaidas6m = series.reduce((s, m) => s + m.expense, 0)
+    const resultado6m = totalEntradas6m - totalSaidas6m
 
     // Leilões (top fechamentos)
     const fechs = fechamentos ?? []
@@ -336,56 +434,123 @@ export default async function ERPDashboard() {
 
             {/* ─── Chart + Próximos Vencimentos ─────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                {/* Bar chart — 6 meses */}
-                <div className="lg:col-span-3 bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl p-6 shadow-xl">
-                    <div className="flex items-center justify-between mb-6">
+                {/* Area chart — 6 meses */}
+                <div className="lg:col-span-3 bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl p-6 shadow-xl flex flex-col">
+                    <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-5 bg-gradient-to-b from-[#B8860B] to-[#D4AF37] rounded-full" />
                             <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
-                                Entradas × Saídas — últimos 6 meses
+                                Fluxo de Caixa — últimos 6 meses
                             </h3>
                         </div>
                         <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
                             <span className="flex items-center gap-1.5 text-emerald-500">
-                                <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /> Entradas
+                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Entradas
                             </span>
                             <span className="flex items-center gap-1.5 text-rose-500">
-                                <span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /> Saídas
+                                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Saídas
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-end justify-between gap-3 h-48 px-1">
-                        {series.map(s => {
-                            const hIn = (s.income / maxBar) * 100
-                            const hOut = (s.expense / maxBar) * 100
-                            return (
-                                <div key={s.key} className="flex-1 flex flex-col items-center gap-2 group">
-                                    <div className="w-full flex items-end justify-center gap-1 h-full">
-                                        <div
-                                            className="w-1/2 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t-md transition-all group-hover:opacity-80 relative"
-                                            style={{ height: `${hIn}%` }}
-                                            title={`Entradas: ${formatCurrency(s.income)}`}
+
+                    {/* SVG Area Chart */}
+                    <div className="w-full">
+                        <svg
+                            viewBox={`0 0 ${VB_W} ${VB_H}`}
+                            className="w-full h-auto"
+                            preserveAspectRatio="xMidYMid meet"
+                            role="img"
+                            aria-label="Gráfico de fluxo de caixa últimos 6 meses"
+                        >
+                            <defs>
+                                <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.45" />
+                                    <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                                </linearGradient>
+                                <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.4" />
+                                    <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
+                                </linearGradient>
+                            </defs>
+
+                            {/* Grid horizontal + labels Y */}
+                            {gridSteps.map((t, i) => {
+                                const y = PAD_T + t * innerH
+                                const v = niceMax * (1 - t)
+                                return (
+                                    <g key={i}>
+                                        <line
+                                            x1={PAD_L} x2={VB_W - PAD_R}
+                                            y1={y} y2={y}
+                                            className="stroke-gray-200 dark:stroke-[#1f1f1f]"
+                                            strokeWidth="1"
+                                            strokeDasharray={t === 1 ? '0' : '3 5'}
                                         />
-                                        <div
-                                            className="w-1/2 bg-gradient-to-t from-rose-600 to-rose-400 rounded-t-md transition-all group-hover:opacity-80"
-                                            style={{ height: `${hOut}%` }}
-                                            title={`Saídas: ${formatCurrency(s.expense)}`}
-                                        />
-                                    </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-[#666]">
-                                        {s.label}
-                                    </span>
-                                </div>
-                            )
-                        })}
+                                        <text
+                                            x={PAD_L - 10} y={y + 3}
+                                            textAnchor="end"
+                                            className="fill-gray-400 dark:fill-[#666]"
+                                            style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em' }}
+                                        >
+                                            {formatShort(v)}
+                                        </text>
+                                    </g>
+                                )
+                            })}
+
+                            {/* Áreas */}
+                            <path d={incomeArea} fill="url(#incomeGrad)" />
+                            <path d={expenseArea} fill="url(#expenseGrad)" />
+
+                            {/* Linhas */}
+                            <path d={incomePath} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                            <path d={expensePath} fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+
+                            {/* Pontos */}
+                            {incomePts.map((p, i) => (
+                                <g key={`in-${i}`}>
+                                    <circle cx={p.x} cy={p.y} r="6" fill="#10b981" fillOpacity="0.15" />
+                                    <circle cx={p.x} cy={p.y} r="3.5" className="fill-white dark:fill-[#0F0F0F]" stroke="#10b981" strokeWidth="2" />
+                                </g>
+                            ))}
+                            {expensePts.map((p, i) => (
+                                <g key={`out-${i}`}>
+                                    <circle cx={p.x} cy={p.y} r="6" fill="#f43f5e" fillOpacity="0.15" />
+                                    <circle cx={p.x} cy={p.y} r="3.5" className="fill-white dark:fill-[#0F0F0F]" stroke="#f43f5e" strokeWidth="2" />
+                                </g>
+                            ))}
+
+                            {/* Labels eixo X */}
+                            {series.map((s, i) => (
+                                <text
+                                    key={s.key}
+                                    x={ptX(i)} y={VB_H - 12}
+                                    textAnchor="middle"
+                                    className="fill-gray-400 dark:fill-[#666]"
+                                    style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}
+                                >
+                                    {s.label.toUpperCase()}
+                                </text>
+                            ))}
+                        </svg>
                     </div>
-                    <div className="mt-4 grid grid-cols-6 gap-3 text-[10px]">
-                        {series.map(s => (
-                            <div key={s.key} className="text-center">
-                                <div className="text-emerald-500 font-bold">{formatShort(s.income)}</div>
-                                <div className="text-rose-500 font-bold">{formatShort(s.expense)}</div>
-                            </div>
-                        ))}
+
+                    {/* Sumário 6m */}
+                    <div className="mt-5 pt-5 border-t border-gray-100 dark:border-[#1A1A1A] grid grid-cols-3 gap-3">
+                        <div>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-[#666] mb-1">Entradas 6m</p>
+                            <p className="text-base font-extrabold text-emerald-500 tracking-tight">{formatCurrency(totalEntradas6m)}</p>
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-[#666] mb-1">Saídas 6m</p>
+                            <p className="text-base font-extrabold text-rose-500 tracking-tight">{formatCurrency(totalSaidas6m)}</p>
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-[#666] mb-1">Resultado 6m</p>
+                            <p className={`text-base font-extrabold tracking-tight ${resultado6m >= 0 ? 'text-[#D4AF37]' : 'text-rose-500'}`}>
+                                {formatCurrency(resultado6m)}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
