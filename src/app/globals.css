@@ -104,9 +104,13 @@
 body {
   font-family: var(--font-sans);
   font-feature-settings: "kern" 1, "liga" 1, "ss01" 1, "cv11" 1;
-  background: var(--background);
+  /* Light mode: cream pergaminho warm em vez de branco puro */
+  background: #FAF6EC;
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
+}
+.dark body {
+  background: var(--background);
 }
 
 h1, h2, h3,
@@ -225,8 +229,8 @@ h1, h2, h3,
    Legado — mantido para não quebrar estilos existentes
 ══════════════════════════════════════════════════════════ */
 
-/* Textura de marca: grão orgânico + trama diagonal fina */
-body::after {
+/* Textura de marca DARK — grão orgânico + trama diagonal fina (screen blend p/ iluminar o ink) */
+.dark body::after {
   content: '';
   position: fixed;
   inset: 0;
@@ -252,6 +256,49 @@ body::after {
   background-repeat: repeat;
   opacity: 0.12;
   mix-blend-mode: screen;
+}
+
+/* Textura de marca LIGHT — couro/pergaminho claro (multiply blend p/ aprofundar o cream) */
+html:not(.dark) body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  background-image:
+    /* Halo dourado suave no topo (warmth + foco) */
+    radial-gradient(
+      ellipse 120% 60% at 50% -10%,
+      rgba(212, 168, 92, 0.10) 0%,
+      transparent 55%
+    ),
+    /* Vinheta nos cantos (profundidade de couro encerado) */
+    radial-gradient(
+      ellipse at center,
+      transparent 55%,
+      rgba(107, 79, 30, 0.06) 100%
+    ),
+    /* Grão orgânico fractal — mesmo SVG do dark mode (cores warm bronze já embutidas) */
+    url('/texture-grain.svg'),
+    /* Trama diagonal cruzada — fios de couro em raspagem fina */
+    repeating-linear-gradient(
+      45deg,
+      transparent 0px,
+      transparent 6px,
+      rgba(160, 121, 46, 0.030) 6px,
+      rgba(160, 121, 46, 0.030) 7px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0px,
+      transparent 6px,
+      rgba(160, 121, 46, 0.030) 6px,
+      rgba(160, 121, 46, 0.030) 7px
+    );
+  background-size: 100% 100%, 100% 100%, 256px 256px, 7px 7px, 7px 7px;
+  background-repeat: no-repeat, no-repeat, repeat, repeat, repeat;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
 }
 
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

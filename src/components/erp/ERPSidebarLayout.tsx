@@ -66,7 +66,7 @@ export default function ERPSidebarLayout({
     const sectionActiveStyle = 'text-[#D4A85C] border-l-2 border-[#A0792E] pl-[14px]';
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+        <div className="min-h-screen bg-[#FAF6EC] dark:bg-[#0A0A0A] flex font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* Sidebar */}
             <aside
                 className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-[#0A0A0A] border-r border-gray-200 dark:border-[rgba(212,168,92,0.14)] transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -381,7 +381,7 @@ export default function ERPSidebarLayout({
                     <ThemeToggle />
                 </header>
 
-                <main className="flex-1 overflow-auto bg-gray-50 dark:bg-[#0A0A0A] p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
+                <main className="flex-1 overflow-auto bg-[#FAF6EC] dark:bg-[#0A0A0A] p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
                     <div className="max-w-7xl mx-auto space-y-8">
                         {children}
                     </div>

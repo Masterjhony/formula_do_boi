@@ -138,7 +138,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const isFullWidth = isCRM || isLeads || isTactical || isOKR || isContratos;
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0A0A0A] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+        <div className="min-h-screen bg-[#FAF6EC] dark:bg-[#0A0A0A] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* ─── Top Navbar ─── */}
             <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-[rgba(212,168,92,0.14)] shadow-sm shadow-black/5">
                 <div className="px-4 lg:px-6">
@@ -472,7 +472,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </header>
 
             {/* Main Content */}
-            <main className={`flex-1 bg-gray-50 dark:bg-[#0A0A0A] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent ${
+            <main className={`flex-1 bg-[#FAF6EC] dark:bg-[#0A0A0A] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent ${
                 (isCRM || isLeads || isOKR || isContratos)
                     ? 'overflow-hidden flex flex-col p-4'
                     : isTactical
