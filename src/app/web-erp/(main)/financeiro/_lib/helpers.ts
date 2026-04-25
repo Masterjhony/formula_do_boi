@@ -65,6 +65,23 @@ export const extractSourceTag = (obs: string | null | undefined): string | null 
     return m ? m[1] : null;
 };
 
+// ─── Quem paga a Receita Bula em cada leilão ─────────────────────────────
+// Bula Assessoria emite a receita CONTRA o organizador/leiloeira do evento.
+// Para leilões onde a Bula Remates é a leiloeira, ela é a pagadora.
+// Para leilões assessorados por Bula em casas de terceiros, o pagador é o criador/leiloeira contratante.
+const RECEITA_BULA_PAGADOR: Array<{ match: RegExp; pagador: string }> = [
+    { match: /JMP/i,                              pagador: 'JMP' },
+    { match: /Terra\s*Brava/i,                    pagador: 'Terra Brava' },
+    { match: /IPB/i,                              pagador: 'Bula Remates' },
+    { match: /Cachoeir/i,                         pagador: 'Bula Remates' },
+    { match: /MRA/i,                              pagador: 'Bula Remates' },
+    { match: /Vanguard/i,                         pagador: 'Bula Remates' },
+];
+const pagadorDoLeilao = (nomeLeilao: string): string => {
+    for (const r of RECEITA_BULA_PAGADOR) if (r.match.test(nomeLeilao)) return r.pagador;
+    return 'Bula Remates';
+};
+
 // ─── Constrói lista unificada: A RECEBER ─────────────────────────────────
 // Combina:
 //   • transactions ERP (type=income)
@@ -151,7 +168,7 @@ export function buildReceivables(
             type: 'income',
             title: `Receita Bula — ${f.nome}`,
             subtitle: `Fechamento de leilão`,
-            party: 'Bula Assessoria',
+            party: pagadorDoLeilao(f.nome),
             dueDate: f.data || today(),
             amount: receita,
             paid: 0,
