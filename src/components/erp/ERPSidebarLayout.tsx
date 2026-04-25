@@ -109,33 +109,29 @@ export default function ERPSidebarLayout({
                     </button>
                 </div>
 
-                <div className={`px-6 py-5 transition-all duration-300 ${isCollapsed ? 'px-3' : ''}`}>
-                    <div
-                        className={`relative flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-[rgba(245,240,228,0.02)] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] ${isCollapsed ? 'p-2 justify-center' : ''}`}
-                        style={{ borderRadius: 4 }}
-                    >
-                        {/* Brackets brandbook */}
-                        {!isCollapsed && (
-                            <>
-                                <span aria-hidden style={{ position: 'absolute', top: 0, left: 0, width: 8, height: 8, borderTop: '1px solid #A0792E', borderLeft: '1px solid #A0792E' }} />
-                                <span aria-hidden style={{ position: 'absolute', bottom: 0, right: 0, width: 8, height: 8, borderBottom: '1px solid #A0792E', borderRight: '1px solid #A0792E' }} />
-                            </>
-                        )}
+                {!isCollapsed ? (
+                    <div className="px-6 py-5 transition-all duration-300">
                         <div
-                            className="shrink-0 flex items-center justify-center text-[#0A0A0A] font-bold shadow-lg shadow-[#A0792E]/20"
-                            style={{
-                                width: 40,
-                                height: 40,
-                                background: 'linear-gradient(135deg, #D4A85C 0%, #A0792E 100%)',
-                                borderRadius: 3,
-                                fontFamily: 'var(--font-mono), ui-monospace, monospace',
-                                fontSize: 12,
-                                letterSpacing: '0.14em',
-                            }}
+                            className="relative flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-[rgba(245,240,228,0.02)] border border-gray-200 dark:border-[rgba(212,168,92,0.22)]"
+                            style={{ borderRadius: 4 }}
                         >
-                            ERP
-                        </div>
-                        {!isCollapsed && (
+                            {/* Brackets brandbook */}
+                            <span aria-hidden style={{ position: 'absolute', top: 0, left: 0, width: 8, height: 8, borderTop: '1px solid #A0792E', borderLeft: '1px solid #A0792E' }} />
+                            <span aria-hidden style={{ position: 'absolute', bottom: 0, right: 0, width: 8, height: 8, borderBottom: '1px solid #A0792E', borderRight: '1px solid #A0792E' }} />
+                            <div
+                                className="shrink-0 flex items-center justify-center text-[#0A0A0A] font-bold shadow-lg shadow-[#A0792E]/20"
+                                style={{
+                                    width: 40,
+                                    height: 40,
+                                    background: 'linear-gradient(135deg, #D4A85C 0%, #A0792E 100%)',
+                                    borderRadius: 3,
+                                    fontFamily: 'var(--font-mono), ui-monospace, monospace',
+                                    fontSize: 12,
+                                    letterSpacing: '0.14em',
+                                }}
+                            >
+                                ERP
+                            </div>
                             <div className="flex-1 overflow-hidden">
                                 <h3
                                     className="text-gray-900 dark:text-[#F5F0E4] truncate"
@@ -158,9 +154,38 @@ export default function ERPSidebarLayout({
                                     }}
                                 >Fórmula do Boi</p>
                             </div>
-                        )}
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="px-3 py-4 flex flex-col items-center gap-1.5 transition-all duration-300">
+                        <div
+                            className="flex items-center justify-center text-[#0A0A0A] font-bold shadow-lg shadow-[#A0792E]/30"
+                            style={{
+                                width: 36,
+                                height: 36,
+                                background: 'linear-gradient(135deg, #D4A85C 0%, #A0792E 100%)',
+                                borderRadius: 3,
+                                fontFamily: 'var(--font-mono), ui-monospace, monospace',
+                                fontSize: 11,
+                                letterSpacing: '0.14em',
+                            }}
+                            title="Gestão ERP · Fórmula do Boi"
+                        >
+                            ERP
+                        </div>
+                        <span
+                            aria-hidden
+                            style={{
+                                fontFamily: 'var(--font-mono), ui-monospace, monospace',
+                                fontSize: 7.5,
+                                color: '#D4A85C',
+                                letterSpacing: '0.32em',
+                                textTransform: 'uppercase',
+                                opacity: 0.55,
+                            }}
+                        >v1</span>
+                    </div>
+                )}
 
                 <nav className="flex-1 px-4 space-y-1 overflow-y-auto overflow-x-hidden">
                     {/* Dashboard */}
