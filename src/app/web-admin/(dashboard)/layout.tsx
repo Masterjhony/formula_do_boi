@@ -146,13 +146,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                         {/* Logo */}
                         <Link href="/" className="shrink-0 flex items-center">
-                            <div className="relative h-12 w-52">
+                            <div className="relative h-12 w-12">
                                 <Image
-                                    src="/logo_complete.svg"
+                                    src="/icon.svg"
                                     alt="Fórmula do Boi"
                                     fill
                                     className="object-contain"
-                                    style={{ filter: 'brightness(0) saturate(100%) invert(62%) sepia(34%) saturate(762%) hue-rotate(2deg) brightness(89%) contrast(85%)' }}
                                     priority
                                 />
                             </div>
@@ -162,7 +161,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="hidden lg:block h-8 w-px bg-[rgba(212,168,92,0.25)] mx-1" />
 
                         {/* Desktop Nav */}
-                        <nav ref={navRef} className="hidden lg:flex items-center gap-0.5 flex-1">
+                        <nav ref={navRef} className="hidden lg:flex items-center justify-center gap-0.5 flex-1">
                             {navConfig.map((entry) => {
                                 if (!isGroup(entry)) {
                                     const Icon = entry.icon;
