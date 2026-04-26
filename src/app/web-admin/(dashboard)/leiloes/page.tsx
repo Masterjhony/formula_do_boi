@@ -1,11 +1,13 @@
 'use client'
 
+import '../dashboard.css'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Plus, Edit2, Trash2, X, ExternalLink, CalendarDays, Users, Tv, Tag,
   Check, Link2, Loader2, BookOpen, Clock, MapPin, ChevronDown, ChevronUp,
   AlertCircle, CheckCircle2, Circle, FileText, ChevronRight,
   Save, ImageIcon, Upload, LayoutGrid, Table2, DollarSign,
+  Search, SlidersHorizontal,
 } from 'lucide-react'
 import type { BulaLeilao, LeilaoGrupo, LeilaoTask, LeilaoSubtask } from '@/lib/bula/types'
 
@@ -164,16 +166,78 @@ const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 dark:border
 
 // ── ChecklistPanel ────────────────────────────────────────────────────────────
 
+const GROUP_COLORS = ['#4A8FBF', '#C8A96E', '#6B8F5C', '#B8860B', '#A864AE', '#D4707A']
+
 function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t: LeilaoGrupo[]) => void }) {
-  const [groups, setGroups] = useState<LeilaoGrupo[]>(leilao.tasks ?? DEFAULT_TASKS)
+  const [groups, setGroups] = useState<LeilaoGrupo[]>(leilao.tasks ?? [])
   const [saving, setSaving] = useState(false)
   const [expanded, setExpanded] = useState<Set<string>>(new Set(groups.map(g => g.nome)))
+  const [addingSubAt, setAddingSubAt] = useState<{ gi: number; ti: number } | null>(null)
+  const [newSubLbl, setNewSubLbl] = useState('')
+  const [addingTaskAt, setAddingTaskAt] = useState<number | null>(null)
+  const [newTaskNome, setNewTaskNome] = useState('')
+  const [addingGroup, setAddingGroup] = useState(false)
+  const [newGroupNome, setNewGroupNome] = useState('')
 
-  const toggle = async (gi: number, ti: number, si: number) => {
-    const next = groups.map((g, gIdx) => ({ ...g, tasks: g.tasks.map((t, tIdx) => ({ ...t, subs: t.subs.map((s, sIdx) => gIdx === gi && tIdx === ti && sIdx === si ? { ...s, done: !s.done } : s) })) }))
+  const persist = async (next: LeilaoGrupo[]) => {
     setGroups(next); setSaving(true)
-    try { await fetch(`/api/bula/leiloes/${leilao.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tasks: next }) }); onUpdate(next) }
-    finally { setSaving(false) }
+    try {
+      await fetch(`/api/bula/leiloes/${leilao.id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasks: next }),
+      })
+      onUpdate(next)
+    } finally { setSaving(false) }
+  }
+
+  const toggle = (gi: number, ti: number, si: number) => persist(
+    groups.map((g, gIdx) => ({ ...g, tasks: g.tasks.map((t, tIdx) => ({ ...t, subs: t.subs.map((s, sIdx) => gIdx === gi && tIdx === ti && sIdx === si ? { ...s, done: !s.done } : s) })) }))
+  )
+
+  const removeSub = (gi: number, ti: number, si: number) => persist(
+    groups.map((g, gIdx) => gIdx !== gi ? g : { ...g, tasks: g.tasks.map((t, tIdx) => tIdx !== ti ? t : { ...t, subs: t.subs.filter((_, sIdx) => sIdx !== si) }) })
+  )
+
+  const addSub = (gi: number, ti: number) => {
+    const lbl = newSubLbl.trim()
+    if (!lbl) { setAddingSubAt(null); return }
+    persist(
+      groups.map((g, gIdx) => gIdx !== gi ? g : { ...g, tasks: g.tasks.map((t, tIdx) => tIdx !== ti ? t : { ...t, subs: [...t.subs, { lbl, done: false }] }) })
+    )
+    setNewSubLbl(''); setAddingSubAt(null)
+  }
+
+  const removeTask = (gi: number, ti: number) => {
+    if (!confirm('Remover esta tarefa e todos os itens dela?')) return
+    persist(groups.map((g, gIdx) => gIdx !== gi ? g : { ...g, tasks: g.tasks.filter((_, tIdx) => tIdx !== ti) }))
+  }
+
+  const addTask = (gi: number) => {
+    const nome = newTaskNome.trim()
+    if (!nome) { setAddingTaskAt(null); return }
+    const newId = `t-${Date.now().toString(36)}`
+    persist(groups.map((g, gIdx) => gIdx !== gi ? g : { ...g, tasks: [...g.tasks, { id: newId, nome, ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [] }] }))
+    setNewTaskNome(''); setAddingTaskAt(null)
+  }
+
+  const addGroup = () => {
+    const nome = newGroupNome.trim()
+    if (!nome) { setAddingGroup(false); return }
+    const cor = GROUP_COLORS[groups.length % GROUP_COLORS.length]
+    const next = [...groups, { nome, cor, tasks: [] }]
+    persist(next)
+    setExpanded(prev => new Set([...prev, nome]))
+    setNewGroupNome(''); setAddingGroup(false)
+  }
+
+  const removeGroup = (gi: number) => {
+    if (!confirm(`Remover o grupo "${groups[gi].nome}" inteiro?`)) return
+    persist(groups.filter((_, gIdx) => gIdx !== gi))
+  }
+
+  const restoreDefaults = () => {
+    persist(DEFAULT_TASKS)
+    setExpanded(new Set(DEFAULT_TASKS.map(g => g.nome)))
   }
 
   const { done, total } = checklistProgress(groups)
@@ -192,35 +256,192 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
         const gDone = group.tasks.flatMap(t => t.subs).filter(s => s.done).length
         const gTotal = group.tasks.flatMap(t => t.subs).length
         return (
-          <div key={group.nome} className="rounded-xl border border-gray-100 dark:border-[#222222] overflow-hidden">
-            <button onClick={() => setExpanded(prev => { const n = new Set(prev); n.has(group.nome) ? n.delete(group.nome) : n.add(group.nome); return n })} className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-[#151515] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors">
-              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: group.cor }} />
-              <span className="flex-1 text-left text-sm font-semibold text-gray-800 dark:text-gray-200">{group.nome}</span>
-              <span className="text-xs text-gray-400">{gDone}/{gTotal}</span>
-              {isOpen ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
-            </button>
+          <div key={group.nome} className="rounded-xl border border-gray-100 dark:border-[#222222] overflow-hidden group/group">
+            <div className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-[#151515] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors">
+              <button type="button" onClick={() => setExpanded(prev => { const n = new Set(prev); n.has(group.nome) ? n.delete(group.nome) : n.add(group.nome); return n })} className="flex-1 flex items-center gap-3 text-left">
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: group.cor }} />
+                <span className="flex-1 text-sm font-semibold text-gray-800 dark:text-gray-200">{group.nome}</span>
+                <span className="text-xs text-gray-400">{gDone}/{gTotal}</span>
+                {isOpen ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => removeGroup(gi)}
+                className="opacity-0 group-hover/group:opacity-100 p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                title="Remover grupo"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
             {isOpen && (
               <div className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
-                {group.tasks.map((task, ti) => (
-                  <div key={task.id} className="px-4 py-3">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{task.nome}</p>
-                    <div className="space-y-2">
-                      {task.subs.map((sub, si) => (
-                        <button key={si} onClick={() => toggle(gi, ti, si)} className="flex items-center gap-2.5 w-full text-left group">
-                          <span className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border transition-all ${sub.done ? 'bg-[#B8860B] border-[#B8860B]' : 'border-gray-200 dark:border-[#333333] group-hover:border-[#B8860B]/50'}`}>
-                            {sub.done && <Check size={10} className="text-black" />}
-                          </span>
-                          <span className={`text-sm transition-colors ${sub.done ? 'line-through text-gray-400 dark:text-gray-600' : 'text-gray-700 dark:text-gray-300'}`}>{sub.lbl}</span>
+                {group.tasks.map((task, ti) => {
+                  const isAddingSub = addingSubAt?.gi === gi && addingSubAt?.ti === ti
+                  return (
+                    <div key={task.id} className="px-4 py-3 group/task">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{task.nome}</p>
+                        <button
+                          type="button"
+                          onClick={() => removeTask(gi, ti)}
+                          className="opacity-0 group-hover/task:opacity-100 p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                          title="Remover tarefa"
+                        >
+                          <Trash2 size={11} />
                         </button>
-                      ))}
+                      </div>
+                      <div className="space-y-2">
+                        {task.subs.map((sub, si) => (
+                          <div key={si} className="flex items-center gap-2.5 group/sub">
+                            <button type="button" onClick={() => toggle(gi, ti, si)} className="flex items-center gap-2.5 flex-1 text-left">
+                              <span className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border transition-all ${sub.done ? 'bg-[#B8860B] border-[#B8860B]' : 'border-gray-200 dark:border-[#333333] group-hover/sub:border-[#B8860B]/50'}`}>
+                                {sub.done && <Check size={10} className="text-black" />}
+                              </span>
+                              <span className={`text-sm transition-colors ${sub.done ? 'line-through text-gray-400 dark:text-gray-600' : 'text-gray-700 dark:text-gray-300'}`}>{sub.lbl}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeSub(gi, ti, si)}
+                              className="opacity-0 group-hover/sub:opacity-100 p-1 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all flex-shrink-0"
+                              title="Remover item"
+                            >
+                              <X size={11} />
+                            </button>
+                          </div>
+                        ))}
+
+                        {isAddingSub ? (
+                          <div className="flex items-center gap-2 pl-6">
+                            <input
+                              autoFocus
+                              type="text"
+                              value={newSubLbl}
+                              onChange={e => setNewSubLbl(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') { e.preventDefault(); addSub(gi, ti) }
+                                if (e.key === 'Escape') { setNewSubLbl(''); setAddingSubAt(null) }
+                              }}
+                              onBlur={() => { if (!newSubLbl.trim()) { setAddingSubAt(null) } }}
+                              placeholder="Novo item…"
+                              className="flex-1 px-2 py-1 rounded-md border border-[#B8860B]/40 bg-white dark:bg-[#0A0A0A] text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#B8860B]"
+                            />
+                            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => addSub(gi, ti)} className="p-1 rounded text-[#B8860B] hover:bg-[#B8860B]/10">
+                              <Check size={12} />
+                            </button>
+                            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => { setNewSubLbl(''); setAddingSubAt(null) }} className="p-1 rounded text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]">
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => { setNewSubLbl(''); setAddingSubAt({ gi, ti }) }}
+                            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#B8860B] transition-colors pl-6 pt-0.5"
+                          >
+                            <Plus size={11} /> Adicionar item
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
+
+                {/* Add new task */}
+                <div className="px-4 py-2.5 bg-gray-50/40 dark:bg-[#0F0F0F]/40">
+                  {addingTaskAt === gi ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        autoFocus
+                        type="text"
+                        value={newTaskNome}
+                        onChange={e => setNewTaskNome(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') { e.preventDefault(); addTask(gi) }
+                          if (e.key === 'Escape') { setNewTaskNome(''); setAddingTaskAt(null) }
+                        }}
+                        onBlur={() => { if (!newTaskNome.trim()) { setAddingTaskAt(null) } }}
+                        placeholder="Nome da tarefa…"
+                        className="flex-1 px-2.5 py-1.5 rounded-md border border-[#B8860B]/40 bg-white dark:bg-[#0A0A0A] text-sm font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#B8860B]"
+                      />
+                      <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => addTask(gi)} className="p-1.5 rounded text-[#B8860B] hover:bg-[#B8860B]/10">
+                        <Check size={13} />
+                      </button>
+                      <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => { setNewTaskNome(''); setAddingTaskAt(null) }} className="p-1.5 rounded text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { setNewTaskNome(''); setAddingTaskAt(gi) }}
+                      className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:text-[#B8860B] transition-colors"
+                    >
+                      <Plus size={12} /> Nova tarefa
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
         )
       })}
+
+      {/* Empty state */}
+      {groups.length === 0 && !addingGroup && (
+        <div className="rounded-xl border border-dashed border-gray-200 dark:border-[#2A2A2A] px-4 py-6 text-center space-y-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Nenhum grupo de checklist criado.</p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={restoreDefaults}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#B8860B] hover:bg-[#D4AF37] text-black text-xs font-bold uppercase tracking-wider transition-colors"
+            >
+              <Check size={12} /> Usar checklist padrão
+            </button>
+            <button
+              type="button"
+              onClick={() => { setNewGroupNome(''); setAddingGroup(true) }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B] text-xs font-bold uppercase tracking-wider transition-colors"
+            >
+              <Plus size={12} /> Criar grupo vazio
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add new group */}
+      {addingGroup ? (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-[#B8860B]/40 bg-[#B8860B]/5">
+          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: GROUP_COLORS[groups.length % GROUP_COLORS.length] }} />
+          <input
+            autoFocus
+            type="text"
+            value={newGroupNome}
+            onChange={e => setNewGroupNome(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') { e.preventDefault(); addGroup() }
+              if (e.key === 'Escape') { setNewGroupNome(''); setAddingGroup(false) }
+            }}
+            onBlur={() => { if (!newGroupNome.trim()) { setAddingGroup(false) } }}
+            placeholder="Nome do grupo (ex: Logística)…"
+            className="flex-1 px-2.5 py-1.5 rounded-md border border-[#B8860B]/40 bg-white dark:bg-[#0A0A0A] text-sm font-semibold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#B8860B]"
+          />
+          <button type="button" onMouseDown={e => e.preventDefault()} onClick={addGroup} className="p-1.5 rounded text-[#B8860B] hover:bg-[#B8860B]/10">
+            <Check size={13} />
+          </button>
+          <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => { setNewGroupNome(''); setAddingGroup(false) }} className="p-1.5 rounded text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]">
+            <X size={13} />
+          </button>
+        </div>
+      ) : groups.length > 0 ? (
+        <button
+          type="button"
+          onClick={() => { setNewGroupNome(''); setAddingGroup(true) }}
+          className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-gray-200 dark:border-[#2A2A2A] text-xs font-bold uppercase tracking-wider text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B] hover:bg-[#B8860B]/5 transition-colors"
+        >
+          <Plus size={12} /> Novo grupo
+        </button>
+      ) : null}
     </div>
   )
 }
@@ -241,9 +462,12 @@ function UnifiedDrawer({ leilao, onClose, onEdit, onDelete, onTasksUpdate }: {
   const bulaAsLeilao = leilao.bulaId ? { id: leilao.bulaId, nome: leilao.nome, data: leilao.data, tipo: leilao.tipo ?? '', local: leilao.local ?? '', animais: leilao.animais ?? 0, expectativa: leilao.expectativa ?? 0, meta_bula: leilao.meta_bula ?? 0, realizado_bula: leilao.realizado_bula ?? 0, status: leilao.status ?? 'confirmado', img: leilao.img ?? '', horario: leilao.hora, transmissao: leilao.transmissao, modelo: leilao.presencial, leiloeira: leilao.leiloeira, condicao: leilao.condicao, frete_gratis: leilao.frete_gratis, acordo_comissao: leilao.acordo_comissao, tasks: leilao.tasks ?? [], assessores: [] } as BulaLeilao : null
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      <div className="relative w-full max-w-xl bg-white dark:bg-[#111111] h-full overflow-y-auto shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 leilao-modal-overlay" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+      <div
+        className="relative w-full max-w-2xl bg-white dark:bg-[#111111] rounded-3xl shadow-[0_20px_70px_-15px_rgba(0,0,0,0.5)] ring-1 ring-black/5 dark:ring-white/5 max-h-[90vh] overflow-hidden flex flex-col leilao-modal-card"
+        onClick={e => e.stopPropagation()}
+      >
 
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white dark:bg-[#111111] border-b border-gray-100 dark:border-[#1E1E1E] px-6 py-4 flex items-start gap-4">
@@ -274,7 +498,7 @@ function UnifiedDrawer({ leilao, onClose, onEdit, onDelete, onTasksUpdate }: {
         </div>
 
         {/* Body */}
-        <div className="flex-1 px-6 py-5 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
 
           {/* Cover image */}
           {hasImage && (
@@ -365,7 +589,7 @@ function UnifiedDrawer({ leilao, onClose, onEdit, onDelete, onTasksUpdate }: {
           )}
 
           {/* Checklist */}
-          {bulaAsLeilao && leilao.tasks && leilao.tasks.length > 0 && (
+          {bulaAsLeilao && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Checklist operacional</p>
@@ -854,6 +1078,11 @@ export default function LeiloesPage() {
   const [view, setView] = useState<'cards' | 'tabela'>('cards')
   const [selected, setSelected] = useState<MergedLeilao | null>(null)
   const [mesFiltro, setMesFiltro] = useState('Todos')
+  const [busca, setBusca] = useState('')
+  const [modalidadeFiltro, setModalidadeFiltro] = useState('Todas')
+  const [leiloeiraFiltro, setLeiloeiraFiltro] = useState('Todas')
+  const [statusFiltro, setStatusFiltro] = useState('Todos')
+  const [showAdvFilters, setShowAdvFilters] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   // Form state
@@ -887,8 +1116,32 @@ export default function LeiloesPage() {
   }, [merged]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const meses = useMemo(() => ['Todos', ...Array.from(new Set(merged.map(l => parseDate(l.data).mesNome))).filter(Boolean)], [merged])
+  const leiloeirasOpts = useMemo(
+    () => ['Todas', ...Array.from(new Set(merged.map(l => l.leiloeira).filter(Boolean) as string[])).sort()],
+    [merged]
+  )
 
-  const filtered = mesFiltro === 'Todos' ? merged : merged.filter(l => parseDate(l.data).mesNome === mesFiltro)
+  const buscaNorm = normalize(busca)
+  const filtered = merged.filter(l => {
+    if (mesFiltro !== 'Todos' && parseDate(l.data).mesNome !== mesFiltro) return false
+    if (modalidadeFiltro !== 'Todas' && (l.presencial?.toUpperCase() ?? '') !== modalidadeFiltro) return false
+    if (leiloeiraFiltro !== 'Todas' && l.leiloeira !== leiloeiraFiltro) return false
+    if (statusFiltro !== 'Todos' && l.status !== statusFiltro) return false
+    if (buscaNorm) {
+      const hay = normalize(`${l.nome} ${l.criador ?? ''} ${l.tipo ?? ''} ${l.leiloeira ?? ''}`)
+      if (!hay.includes(buscaNorm)) return false
+    }
+    return true
+  })
+
+  const activeFiltersCount =
+    (modalidadeFiltro !== 'Todas' ? 1 : 0) +
+    (leiloeiraFiltro !== 'Todas' ? 1 : 0) +
+    (statusFiltro !== 'Todos' ? 1 : 0) +
+    (busca.trim() ? 1 : 0)
+  const clearFilters = () => {
+    setBusca(''); setModalidadeFiltro('Todas'); setLeiloeiraFiltro('Todas'); setStatusFiltro('Todos')
+  }
 
   const grupos: Record<string, MergedLeilao[]> = {}
   for (const l of filtered) {
@@ -977,22 +1230,92 @@ export default function LeiloesPage() {
         ))}
       </div>
 
-      {/* Filters + View toggle */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* Filters: search + advanced + view toggle */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[220px] max-w-md">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={busca}
+              onChange={e => setBusca(e.target.value)}
+              placeholder="Buscar por nome, criador, raça, leiloeira…"
+              className="w-full pl-9 pr-9 py-2 rounded-xl border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#B8860B] transition-colors"
+            />
+            {busca && (
+              <button onClick={() => setBusca('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]">
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={() => setShowAdvFilters(v => !v)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${showAdvFilters || activeFiltersCount > 0 ? 'border-[#B8860B] bg-[#B8860B]/10 text-[#B8860B]' : 'border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B]'}`}
+          >
+            <SlidersHorizontal size={13} /> Filtros
+            {activeFiltersCount > 0 && (
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#B8860B] text-black text-[10px] font-black">{activeFiltersCount}</span>
+            )}
+          </button>
+
+          {activeFiltersCount > 0 && (
+            <button onClick={clearFilters} className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors">
+              Limpar
+            </button>
+          )}
+
+          <div className="flex-1" />
+
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-100 dark:bg-[#151515]">
+            <button onClick={() => setView('cards')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'cards' ? 'bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+              <LayoutGrid size={13} /> Cards
+            </button>
+            <button onClick={() => setView('tabela')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'tabela' ? 'bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+              <Table2 size={13} /> Tabela
+            </button>
+          </div>
+        </div>
+
+        {/* Advanced filters panel */}
+        {showAdvFilters && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-gray-50/50 dark:bg-[#0F0F0F] leilao-filters-panel">
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Modalidade</label>
+              <select value={modalidadeFiltro} onChange={e => setModalidadeFiltro(e.target.value)} className={inputCls}>
+                <option value="Todas">Todas</option>
+                <option value="VIRTUAL">Virtual</option>
+                <option value="PRESENCIAL">Presencial</option>
+                <option value="EXPOGRANDE">ExpoGrande</option>
+                <option value="EXPOZEBU">ExpoZebu</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Leiloeira</label>
+              <select value={leiloeiraFiltro} onChange={e => setLeiloeiraFiltro(e.target.value)} className={inputCls}>
+                {leiloeirasOpts.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Status</label>
+              <select value={statusFiltro} onChange={e => setStatusFiltro(e.target.value)} className={inputCls}>
+                <option value="Todos">Todos</option>
+                <option value="confirmado">Confirmado</option>
+                <option value="negociacao">Em negociação</option>
+                <option value="prospecto">Prospecto</option>
+                <option value="concluido">Concluído</option>
+              </select>
+            </div>
+          </div>
+        )}
+
+        {/* Month chips */}
         <div className="flex gap-2 flex-wrap">
           {meses.map(mes => (
             <button key={mes} onClick={() => setMesFiltro(mes)} className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border transition-all ${mesFiltro === mes ? 'bg-[#B8860B] text-black border-[#B8860B]' : 'border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:border-[#B8860B]/40 hover:text-[#B8860B]'}`}>
               {mes}
             </button>
           ))}
-        </div>
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-100 dark:bg-[#151515]">
-          <button onClick={() => setView('cards')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'cards' ? 'bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-            <LayoutGrid size={13} /> Cards
-          </button>
-          <button onClick={() => setView('tabela')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'tabela' ? 'bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-            <Table2 size={13} /> Tabela
-          </button>
         </div>
       </div>
 
