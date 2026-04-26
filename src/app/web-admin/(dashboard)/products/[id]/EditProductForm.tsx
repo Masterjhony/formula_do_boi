@@ -19,6 +19,18 @@ export default function EditProductForm({ product }: { product: any }) {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [breeders, setBreeders] = useState<any[]>([]);
 
+    const backHref = (() => {
+        const cat = (product.category || '').toLowerCase();
+        const classif = (product.classificacao || '').toLowerCase();
+        if (cat.includes('doadora') || cat.includes('embri') || classif === 'embriao') {
+            return '/lotes-doadoras';
+        }
+        if (cat.includes('touro') || cat.includes('sêmen') || cat.includes('semen') || classif === 'touro' || classif === 'semen') {
+            return '/lotes-touros';
+        }
+        return '/products';
+    })();
+
     useEffect(() => {
         const fetchBreeders = async () => {
             const { data } = await supabase
@@ -210,7 +222,7 @@ export default function EditProductForm({ product }: { product: any }) {
 
             if (error) throw error;
 
-            router.push('/products');
+            router.push(backHref);
             router.refresh();
         } catch (error) {
             console.error('Error updating product:', error);
@@ -280,7 +292,7 @@ export default function EditProductForm({ product }: { product: any }) {
         try {
             const { error } = await supabase.from('products').delete().eq('id', product.id);
             if (error) throw error;
-            router.push('/products');
+            router.push(backHref);
             router.refresh();
         } catch (error) {
             console.error('Error deleting product:', error);
@@ -294,7 +306,7 @@ export default function EditProductForm({ product }: { product: any }) {
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Link href="/products" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <Link href={backHref} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                         <ArrowLeft size={20} className="text-gray-600" />
                     </Link>
                     <div>
@@ -695,7 +707,7 @@ export default function EditProductForm({ product }: { product: any }) {
                 </div>
 
                 <div className="flex justify-end gap-3 pt-6">
-                    <Link href="/products" className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                    <Link href={backHref} className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
                         Cancelar
                     </Link>
                     <button
