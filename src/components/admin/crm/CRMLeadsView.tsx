@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { CRMLead } from '@/app/web-admin/actions/crm-leads';
-import { Search, Phone, MapPin, Calendar, Instagram, TrendingUp, Users, Plus } from 'lucide-react';
+import { Search, Phone, MapPin, Calendar, Instagram, TrendingUp, Users, Plus, Download, SlidersHorizontal, X } from 'lucide-react';
 
 interface CRMLeadsViewProps {
     leads: CRMLead[];
@@ -43,10 +43,53 @@ const STAGE_COLORS: Record<string, string> = {
     'Sem Status': 'bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-300',
 };
 
+function csvEscape(v: unknown) {
+    const s = v == null ? '' : String(v);
+    return `"${s.replace(/"/g, '""')}"`;
+}
+
+function exportLeadsCSV(rows: CRMLead[]) {
+    const header = [
+        'Nome', 'Empresa', 'Status', 'Origem', 'Telefone', 'Celular', 'Instagram',
+        'Cidade', 'Estado', 'O que busca', 'Quantidade animais', 'Interesse',
+        'Valor estimado', 'Probabilidade', 'Prioridade', 'Responsável',
+        'Última interação', 'Data estimada fechamento', 'Data entrada', 'Criado em',
+        'Source page', 'Medium', 'Campanha',
+    ];
+    const lines = rows.map(l => [
+        l.nome, l.empresa || '', l.status || '', l.source || '',
+        l.telefone || '', l.celular || '', l.instagram || '',
+        l.cidade || '', l.estado || '', l.o_que_busca || '', l.quantidade_animais || '',
+        l.interesse || '', l.valor_estimado ?? '', l.probabilidade ?? '', l.prioridade || '',
+        l.responsavel || '',
+        l.ultimo_contato ? new Date(l.ultimo_contato).toLocaleDateString('pt-BR') : '',
+        l.data_estimada_fechamento ? new Date(l.data_estimada_fechamento).toLocaleDateString('pt-BR') : '',
+        l.data_entrada ? new Date(l.data_entrada).toLocaleDateString('pt-BR') : '',
+        l.created_at ? new Date(l.created_at).toLocaleDateString('pt-BR') : '',
+        l.source_page || '', l.medium || '', l.campaign || '',
+    ].map(csvEscape).join(';'));
+    const csv = '﻿' + [header.map(csvEscape).join(';'), ...lines].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `leads-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsViewProps) {
     const [search, setSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
     const [filterEstado, setFilterEstado] = useState('');
+    const [filterCidade, setFilterCidade] = useState('');
+    const [filterSource, setFilterSource] = useState('');
+    const [filterResponsavel, setFilterResponsavel] = useState('');
+    const [filterPrioridade, setFilterPrioridade] = useState('');
+    const [filterBusca, setFilterBusca] = useState('');
+    const [filterDataDe, setFilterDataDe] = useState('');
+    const [filterDataAte, setFilterDataAte] = useState('');
+    const [showAdvFilters, setShowAdvFilters] = useState(false);
     const [page, setPage] = useState(1);
     const PER_PAGE = 25;
 
@@ -69,9 +112,28 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
         () => [...new Set(leads.map(l => l.estado).filter(Boolean) as string[])].sort(),
         [leads]
     );
+    const cidades = useMemo(
+        () => [...new Set(leads.map(l => l.cidade).filter(Boolean) as string[])].sort(),
+        [leads]
+    );
+    const sources = useMemo(
+        () => [...new Set(leads.map(l => l.source).filter(Boolean) as string[])].sort(),
+        [leads]
+    );
+    const responsaveis = useMemo(
+        () => [...new Set(leads.map(l => l.responsavel).filter(Boolean) as string[])].sort(),
+        [leads]
+    );
+    const prioridades = useMemo(
+        () => [...new Set(leads.map(l => l.prioridade).filter(Boolean) as string[])].sort(),
+        [leads]
+    );
 
     const filtered = useMemo(() => {
         setPage(1);
+        const dataDe = filterDataDe ? new Date(filterDataDe + 'T00:00:00') : null;
+        const dataAte = filterDataAte ? new Date(filterDataAte + 'T23:59:59') : null;
+        const buscaQ = filterBusca.toLowerCase();
         return leads.filter(lead => {
             const q = search.toLowerCase();
             const matchSearch =
@@ -84,9 +146,32 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                 lead.instagram?.toLowerCase().includes(q);
             const matchStatus = !filterStatus || lead.status === filterStatus;
             const matchEstado = !filterEstado || lead.estado === filterEstado;
-            return matchSearch && matchStatus && matchEstado;
+            const matchCidade = !filterCidade || lead.cidade === filterCidade;
+            const matchSource = !filterSource || lead.source === filterSource;
+            const matchResp = !filterResponsavel || lead.responsavel === filterResponsavel;
+            const matchPrio = !filterPrioridade || lead.prioridade === filterPrioridade;
+            const matchBusca = !filterBusca ||
+                (lead.o_que_busca?.toLowerCase().includes(buscaQ)) ||
+                (lead.interesse?.toLowerCase().includes(buscaQ));
+            const dt = lead.data_entrada || lead.created_at;
+            const d = dt ? new Date(dt) : null;
+            const matchData = (!dataDe || (d && d >= dataDe)) && (!dataAte || (d && d <= dataAte));
+            return matchSearch && matchStatus && matchEstado && matchCidade
+                && matchSource && matchResp && matchPrio && matchBusca && matchData;
         });
-    }, [leads, search, filterStatus, filterEstado]);
+    }, [leads, search, filterStatus, filterEstado, filterCidade, filterSource,
+        filterResponsavel, filterPrioridade, filterBusca, filterDataDe, filterDataAte]);
+
+    const activeFiltersCount =
+        (filterStatus ? 1 : 0) + (filterEstado ? 1 : 0) + (filterCidade ? 1 : 0) +
+        (filterSource ? 1 : 0) + (filterResponsavel ? 1 : 0) + (filterPrioridade ? 1 : 0) +
+        (filterBusca ? 1 : 0) + (filterDataDe ? 1 : 0) + (filterDataAte ? 1 : 0);
+
+    const clearFilters = () => {
+        setFilterStatus(''); setFilterEstado(''); setFilterCidade('');
+        setFilterSource(''); setFilterResponsavel(''); setFilterPrioridade('');
+        setFilterBusca(''); setFilterDataDe(''); setFilterDataAte('');
+    };
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
     const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -125,41 +210,154 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
             </div>
 
             {/* Search + filters */}
-            <div className="flex gap-3 flex-wrap shrink-0">
-                <div className="relative flex-1 min-w-[200px]">
-                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nome, telefone, cidade, instagram..."
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none dark:text-white placeholder:text-gray-400"
-                    />
-                </div>
-                <select
-                    value={filterStatus}
-                    onChange={e => setFilterStatus(e.target.value)}
-                    className="px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none dark:text-white"
-                >
-                    <option value="">Todos os status</option>
-                    {stages.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                {estados.length > 0 && (
+            <div className="flex flex-col gap-3 shrink-0">
+                <div className="flex gap-3 flex-wrap">
+                    <div className="relative flex-1 min-w-[200px]">
+                        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por nome, telefone, cidade, instagram..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none dark:text-white placeholder:text-gray-400"
+                        />
+                    </div>
                     <select
-                        value={filterEstado}
-                        onChange={e => setFilterEstado(e.target.value)}
+                        value={filterStatus}
+                        onChange={e => setFilterStatus(e.target.value)}
                         className="px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none dark:text-white"
                     >
-                        <option value="">Todos os estados</option>
-                        {estados.map(e => <option key={e} value={e}>{e}</option>)}
+                        <option value="">Todos os status</option>
+                        {stages.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
+                    {estados.length > 0 && (
+                        <select
+                            value={filterEstado}
+                            onChange={e => setFilterEstado(e.target.value)}
+                            className="px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none dark:text-white"
+                        >
+                            <option value="">Todos os estados</option>
+                            {estados.map(e => <option key={e} value={e}>{e}</option>)}
+                        </select>
+                    )}
+                    <button
+                        onClick={() => setShowAdvFilters(v => !v)}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${showAdvFilters || activeFiltersCount > 0
+                            ? 'border-[#B8860B] bg-[#B8860B]/10 text-[#B8860B]'
+                            : 'border-gray-200 dark:border-[#333] text-gray-600 dark:text-gray-300 hover:border-[#B8860B]/40 hover:text-[#B8860B]'}`}
+                    >
+                        <SlidersHorizontal size={15} /> Filtros
+                        {activeFiltersCount > 0 && (
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#B8860B] text-white text-[10px] font-bold">
+                                {activeFiltersCount}
+                            </span>
+                        )}
+                    </button>
+                    <button
+                        onClick={() => exportLeadsCSV(filtered)}
+                        disabled={filtered.length === 0}
+                        title="Exportar leads filtrados em CSV"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-[#B8860B] hover:text-[#B8860B] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                        <Download size={15} /> Exportar
+                    </button>
+                    <button
+                        onClick={onAddLead}
+                        className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-colors shadow-sm"
+                    >
+                        <Plus size={15} /> Novo lead
+                    </button>
+                </div>
+
+                {/* Advanced filters panel */}
+                {showAdvFilters && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 rounded-2xl border border-gray-200 dark:border-[#222] bg-gray-50/50 dark:bg-[#0F0F0F]">
+                        <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Origem</label>
+                            <select
+                                value={filterSource}
+                                onChange={e => setFilterSource(e.target.value)}
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                            >
+                                <option value="">Todas</option>
+                                {sources.map(s => (
+                                    <option key={s} value={s}>{SOURCE_LABELS[s.toLowerCase()] || s}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Responsável</label>
+                            <select
+                                value={filterResponsavel}
+                                onChange={e => setFilterResponsavel(e.target.value)}
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                            >
+                                <option value="">Todos</option>
+                                {responsaveis.map(r => <option key={r} value={r}>{r}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Cidade</label>
+                            <select
+                                value={filterCidade}
+                                onChange={e => setFilterCidade(e.target.value)}
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                            >
+                                <option value="">Todas</option>
+                                {cidades.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Prioridade</label>
+                            <select
+                                value={filterPrioridade}
+                                onChange={e => setFilterPrioridade(e.target.value)}
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                            >
+                                <option value="">Todas</option>
+                                {prioridades.map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                        </div>
+                        <div className="lg:col-span-2">
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">O que busca / interesse</label>
+                            <input
+                                type="text"
+                                value={filterBusca}
+                                onChange={e => setFilterBusca(e.target.value)}
+                                placeholder="Touro, embrião, fêmea P.O., bezerra..."
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Entrada de</label>
+                            <input
+                                type="date"
+                                value={filterDataDe}
+                                onChange={e => setFilterDataDe(e.target.value)}
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Entrada até</label>
+                            <input
+                                type="date"
+                                value={filterDataAte}
+                                onChange={e => setFilterDataAte(e.target.value)}
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                            />
+                        </div>
+                        {activeFiltersCount > 0 && (
+                            <div className="lg:col-span-4 flex justify-end">
+                                <button
+                                    onClick={clearFilters}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-red-500 transition-colors"
+                                >
+                                    <X size={13} /> Limpar filtros
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 )}
-                <button
-                    onClick={onAddLead}
-                    className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-colors shadow-sm"
-                >
-                    <Plus size={15} /> Novo lead
-                </button>
             </div>
 
             {/* Table */}
@@ -274,7 +472,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
 
                     {filtered.length === 0 && (
                         <div className="p-12 text-center text-gray-400 text-sm">
-                            {search || filterStatus || filterEstado
+                            {search || activeFiltersCount > 0
                                 ? 'Nenhum lead encontrado com esses filtros.'
                                 : 'Nenhum lead cadastrado ainda.'}
                         </div>

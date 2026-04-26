@@ -7,7 +7,7 @@ import {
   Check, Link2, Loader2, BookOpen, Clock, MapPin, ChevronDown, ChevronUp,
   AlertCircle, CheckCircle2, Circle, FileText, ChevronRight,
   Save, ImageIcon, Upload, LayoutGrid, Table2, DollarSign,
-  Search, SlidersHorizontal,
+  Search, SlidersHorizontal, Download,
 } from 'lucide-react'
 import type { BulaLeilao, LeilaoGrupo, LeilaoTask, LeilaoSubtask } from '@/lib/bula/types'
 
@@ -38,6 +38,11 @@ function normalize(s: string) {
   return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')
 }
 
+function csvEscape(v: unknown) {
+  const s = v == null ? '' : String(v)
+  return `"${s.replace(/"/g, '""')}"`
+}
+
 const STATUS_STYLES: Record<string, string> = {
   confirmado: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
   negociacao: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
@@ -57,6 +62,32 @@ const MES_LABELS: Record<string, string> = {
   '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
   '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto',
   '09': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro',
+}
+
+function exportLeiloesCSV(rows: MergedLeilao[]) {
+  const header = [
+    'Data', 'Dia', 'Hora', 'Leilão', 'Criador', 'Modalidade', 'Leiloeira',
+    'Raça/Tipo', 'Qtd', 'Sexo', 'Comissão', 'Status',
+    'Fat. Previsto', 'Fat. Realizado', 'Venda Bula', 'Comissão a Receber', 'Recebido',
+    'Local', 'Transmissão', 'Catálogo',
+  ]
+  const lines = rows.map(l => [
+    l.data, l.dia_semana || '', l.hora || '', l.nome, l.criador || '',
+    l.presencial || '', l.leiloeira || '', l.tipo || '',
+    l.animais ?? '', l.sexo || '', l.comissao || '',
+    l.status ? (STATUS_LABELS[l.status] || l.status) : '',
+    l.faturamento_previsto ?? '', l.faturamento_realizado ?? '', l.venda_bula ?? '',
+    l.comissao_receber || '', l.recebido || '',
+    l.local || '', l.transmissao || '', l.catalogo_url || '',
+  ].map(csvEscape).join(';'))
+  const csv = '﻿' + [header.map(csvEscape).join(';'), ...lines].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `leiloes-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -1266,6 +1297,15 @@ export default function LeiloesPage() {
           )}
 
           <div className="flex-1" />
+
+          <button
+            onClick={() => exportLeiloesCSV(filtered)}
+            disabled={filtered.length === 0}
+            title="Exportar leilões filtrados em CSV"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border border-gray-200 dark:border-[#2A2A2A] text-gray-600 dark:text-gray-300 hover:border-[#B8860B] hover:text-[#B8860B] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          >
+            <Download size={13} /> Exportar
+          </button>
 
           <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-100 dark:bg-[#151515]">
             <button onClick={() => setView('cards')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'cards' ? 'bg-white dark:bg-[#1A1A1A] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
