@@ -391,55 +391,57 @@ export default function ContasClient({ mode, accounts, categories, transactions,
 
     // ─────────────────────────────────────────────────────────────────
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 print:pb-0">
+        <div className="space-y-5 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 print:pb-0">
             {/* ── Header ─────────────────────────────────────────────── */}
-            <div className="flex flex-col gap-6 print:hidden">
-                <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:gap-6 print:hidden">
+                <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-3 md:gap-4">
                     <div>
-                        <div className="flex items-center gap-3 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                        <div className="flex items-center gap-3 text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest">
                             <Link href="/web-erp/financeiro" className="hover:text-[#D4AF37] transition-colors">Financeiro</Link>
                             <ChevronRight className="w-3 h-3" />
                             <span className={accent.text}>{cfg.title}</span>
                         </div>
-                        <h2 className={`mt-2 text-3xl font-bold tracking-wide uppercase bg-gradient-to-r ${cfg.hero} text-transparent bg-clip-text`}>
+                        <h2 className={`mt-2 text-xl sm:text-3xl font-bold tracking-wide uppercase bg-gradient-to-r ${cfg.hero} text-transparent bg-clip-text`}>
                             {cfg.title}
                         </h2>
-                        <p className="mt-2 text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
-                            Gestão profissional de {cfg.actionSubject}s · aging · baixas · integração com leilões
+                        <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
+                            Gestão de {cfg.actionSubject}s · aging · baixas · leilões
                         </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 w-full md:w-auto">
                         <Link
                             href={cfg.routeOther}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/40 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-xl transition-all"
+                            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/40 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
                         >
                             <CircleDollarSign className="w-4 h-4" /> {cfg.routeOtherLabel}
                         </Link>
                         <button
                             onClick={handleExport}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/40 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-xl transition-all"
+                            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/40 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
                             title="Exportar lista filtrada para CSV"
                         >
                             <FileDown className="w-4 h-4" /> CSV
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/40 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-xl transition-all"
+                            className="hidden sm:flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/40 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
                         >
                             <Printer className="w-4 h-4" /> Imprimir
                         </button>
                         <button
                             onClick={openNew}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-all hover:scale-105 text-white bg-gradient-to-r ${cfg.hero}`}
+                            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-lg transition-all hover:scale-105 text-white bg-gradient-to-r ${cfg.hero}`}
                         >
-                            <Plus className="w-4 h-4" /> Nova Conta {cfg.short === 'Receber' ? 'a Receber' : 'a Pagar'}
+                            <Plus className="w-4 h-4" />
+                            <span className="hidden sm:inline">Nova Conta {cfg.short === 'Receber' ? 'a Receber' : 'a Pagar'}</span>
+                            <span className="sm:hidden">Nova Conta</span>
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* ── KPIs ───────────────────────────────────────────────── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                 <KPI
                     label={`Total em Aberto`}
                     value={fmt(kpis.totalAberto)}
@@ -472,15 +474,15 @@ export default function ContasClient({ mode, accounts, categories, transactions,
             </div>
 
             {/* ── Aging chart ─────────────────────────────────────────── */}
-            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-2xl p-6 shadow-xl print:border-gray-300">
-                <div className="flex items-center justify-between gap-4 mb-5">
-                    <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${accent.soft} ${accent.text}`}>
+            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-2xl p-4 sm:p-6 shadow-xl print:border-gray-300">
+                <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shadow-lg shrink-0 ${accent.soft} ${accent.text}`}>
                             <TrendingUp className="w-5 h-5" />
                         </div>
-                        <div>
-                            <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">Distribuição por Vencimento</h3>
-                            <p className="text-[10px] text-gray-500 mt-0.5">Apenas contas em aberto · clique no bucket para filtrar</p>
+                        <div className="min-w-0">
+                            <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-xs sm:text-sm">Distribuição por Vencimento</h3>
+                            <p className="text-[10px] text-gray-500 mt-0.5 hidden sm:block">Apenas contas em aberto · clique no bucket para filtrar</p>
                         </div>
                     </div>
                     {bucketFilter !== 'all' && (
@@ -490,7 +492,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                         >Limpar filtro</button>
                     )}
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
                     {(Object.keys(buckets) as AgingBucket[]).map(b => {
                         const data = buckets[b];
                         const pct = (data.total / maxBucket) * 100;
@@ -499,13 +501,13 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                             <button
                                 key={b}
                                 onClick={() => setBucketFilter(active ? 'all' : b)}
-                                className={`text-left p-3 rounded-xl border transition-all ${
+                                className={`text-left p-2.5 sm:p-3 rounded-xl border transition-all ${
                                     active ? `${BUCKET_COLORS[b]} ring-2` : 'border-gray-200 dark:border-[#222] hover:border-[#D4AF37]/40'
                                 }`}
                             >
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">{BUCKET_LABELS[b]}</p>
-                                <p className="text-lg font-extrabold text-gray-900 dark:text-white mt-1">{fmt(data.total)}</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">{data.count} conta(s)</p>
+                                <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-gray-500 truncate">{BUCKET_LABELS[b]}</p>
+                                <p className="text-sm sm:text-lg font-extrabold text-gray-900 dark:text-white mt-1 truncate">{fmt(data.total)}</p>
+                                <p className="text-[9px] sm:text-[10px] text-gray-400 mt-0.5">{data.count} conta(s)</p>
                                 <div className="mt-2 h-1.5 rounded-full bg-gray-100 dark:bg-[#222]">
                                     <div
                                         className={`h-full rounded-full ${b === 'overdue' ? 'bg-rose-500' : b === 'today' ? 'bg-amber-500' : b === 'd7' ? 'bg-amber-400' : accent.bg}`}
@@ -655,8 +657,93 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                 </div>
             )}
 
-            {/* ── Tabela / Lista ──────────────────────────────────────── */}
-            <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden print:border-gray-300 print:shadow-none">
+            {/* ── Mobile: Card list ──────────────────────────────────── */}
+            <div className="md:hidden space-y-2 print:hidden">
+                {filtered.length === 0 ? (
+                    <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] py-12 text-center text-gray-400">
+                        <Wallet className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                        <p className="text-sm">Nenhuma conta encontrada com os filtros atuais.</p>
+                    </div>
+                ) : filtered.map(i => {
+                    const isOpen = i.status === 'pending' || i.status === 'virtual';
+                    const d = isOpen ? daysOverdue(i.dueDate) : 0;
+                    const overdueLabel = isOpen && d > 0 ? `${d}d atraso`
+                        : isOpen && d === 0 ? 'Vence hoje'
+                        : isOpen && d >= -3 ? `Vence em ${Math.abs(d)}d` : null;
+                    const overdueClass = isOpen && d > 0 ? 'bg-rose-500/10 text-rose-500'
+                        : isOpen && d === 0 ? 'bg-amber-500/10 text-amber-500'
+                        : 'bg-amber-500/10 text-amber-400';
+                    const statusLabel = i.status === 'completed' ? 'Baixado'
+                        : i.status === 'cancelled' ? 'Cancelado'
+                        : i.status === 'virtual' ? 'Leilão' : 'Pendente';
+                    const statusClass = i.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500'
+                        : i.status === 'cancelled' ? 'bg-gray-500/10 text-gray-500'
+                        : i.status === 'virtual' ? 'bg-[#B8860B]/10 text-[#D4AF37]'
+                        : 'bg-amber-500/10 text-amber-500';
+                    return (
+                        <div key={i.key} className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] p-3">
+                            <div className="flex items-start gap-2">
+                                {i.txId && i.status === 'pending' && (
+                                    <input
+                                        type="checkbox"
+                                        checked={selected.has(i.key)}
+                                        onChange={() => toggleSel(i.key)}
+                                        className="mt-1 accent-[#D4AF37]"
+                                    />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{i.party || '—'}</p>
+                                            <p className="text-[11px] text-gray-500 truncate">{i.title}</p>
+                                        </div>
+                                        <p className={`text-sm font-bold whitespace-nowrap ${isOpen ? accent.text : 'text-gray-400'}`}>{fmt(i.balance)}</p>
+                                    </div>
+                                    <div className="flex items-center flex-wrap gap-1.5 mt-2">
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400">
+                                            <Calendar className="w-3 h-3" /> {fmtDate(i.dueDate)}
+                                        </span>
+                                        <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${statusClass}`}>{statusLabel}</span>
+                                        {overdueLabel && (
+                                            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${overdueClass}`}>{overdueLabel}</span>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-2 mt-3 pt-2 border-t border-gray-100 dark:border-[#222]">
+                                        {i.status === 'virtual' ? (
+                                            <button onClick={() => openLancar(i)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold text-black bg-gradient-to-r from-[#B8860B] to-[#9A7209]">
+                                                <Sparkles className="w-3.5 h-3.5" /> Lançar
+                                            </button>
+                                        ) : i.status === 'pending' ? (
+                                            <>
+                                                <button onClick={() => openBaixa(i)} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold ${accent.soft} ${accent.text}`}>
+                                                    <CheckCircle2 className="w-3.5 h-3.5" /> {mode === 'receber' ? 'Receber' : 'Pagar'}
+                                                </button>
+                                                <button onClick={() => openEdit(i)} className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-500/10 text-blue-500" title="Editar">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                                                </button>
+                                                <button onClick={() => i.txId && excluir(i.txId)} className="flex items-center justify-center w-9 h-9 rounded-lg bg-rose-500/10 text-rose-500" title="Excluir">
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </>
+                                        ) : i.status === 'completed' ? (
+                                            <button onClick={() => i.txId && reabrir(i.txId)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-500">
+                                                <Undo2 className="w-3.5 h-3.5" /> Reabrir
+                                            </button>
+                                        ) : (
+                                            <button onClick={() => i.txId && reabrir(i.txId)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-gray-500/10 text-gray-500">
+                                                <Undo2 className="w-3.5 h-3.5" /> Reativar
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* ── Tabela / Lista (desktop) ────────────────────────────── */}
+            <div className="hidden md:block bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden print:block print:border-gray-300 print:shadow-none">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 dark:bg-[#111] border-b border-gray-200 dark:border-[#222]">
@@ -1049,14 +1136,14 @@ function KPI({ label, value, hint, icon, color, danger }: {
         blue: 'bg-blue-500/10',
     };
     return (
-        <div className={`bg-white dark:bg-[#111] border ${danger ? 'border-rose-500/40' : 'border-gray-200 dark:border-[#222]'} rounded-2xl p-5 shadow-xl relative overflow-hidden`}>
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{label}</p>
-                    <h3 className={`text-2xl md:text-3xl font-extrabold mt-1 ${txt[color] || 'text-gray-900 dark:text-white'}`}>{value}</h3>
-                    <p className="text-[11px] text-gray-400 mt-1">{hint}</p>
+        <div className={`bg-white dark:bg-[#111] border ${danger ? 'border-rose-500/40' : 'border-gray-200 dark:border-[#222]'} rounded-2xl p-3 sm:p-5 shadow-xl relative overflow-hidden`}>
+            <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                    <p className="text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">{label}</p>
+                    <h3 className={`text-base sm:text-2xl md:text-3xl font-extrabold mt-1 truncate ${txt[color] || 'text-gray-900 dark:text-white'}`}>{value}</h3>
+                    <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5 sm:mt-1 truncate">{hint}</p>
                 </div>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${txt[color] || 'text-gray-500'} ${bg[color] || 'bg-gray-500/10'}`}>
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${txt[color] || 'text-gray-500'} ${bg[color] || 'bg-gray-500/10'}`}>
                     {icon}
                 </div>
             </div>
@@ -1066,8 +1153,8 @@ function KPI({ label, value, hint, icon, color, danger }: {
 
 function Modal({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) {
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4 print:hidden">
-            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 print:hidden" onClick={onClose}>
+            <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[92vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="p-5 border-b border-gray-100 dark:border-[#222] flex items-center justify-between sticky top-0 bg-white dark:bg-[#111] z-10">
                     <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">{title}</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-rose-500"><X className="w-5 h-5" /></button>

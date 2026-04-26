@@ -468,17 +468,17 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 print:pb-0">
             {/* ─── Header ─────────────────────────────────────────────── */}
-            <div className="flex flex-col gap-6">
-                <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:gap-6">
+                <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-3 md:gap-4">
                     <div>
-                        <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-2">
+                        <p className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-1.5 sm:mb-2">
                             Financeiro · Fluxo de Caixa
                         </p>
-                        <h2 className="text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#D4AF37] text-transparent bg-clip-text">
+                        <h2 className="text-xl sm:text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#D4AF37] text-transparent bg-clip-text">
                             Fluxo de Caixa
                         </h2>
-                        <p className="mt-2 text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
-                            Visão executiva · DRE mensal · Projeção 90d · Leitura consolidada
+                        <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
+                            DRE mensal · Projeção 90d · Consolidado
                         </p>
                     </div>
                     <div className="flex gap-2 flex-wrap print:hidden">
@@ -498,13 +498,13 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-wrap gap-3 items-center print:hidden">
-                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-[#111] p-1 rounded-xl">
+                <div className="flex flex-wrap gap-2 sm:gap-3 items-center print:hidden">
+                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-[#111] p-1 rounded-xl overflow-x-auto max-w-full">
                         {years.map(y => (
                             <button
                                 key={y}
                                 onClick={() => setSelectedYear(y)}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                                     selectedYear === y
                                         ? 'bg-[#D4AF37] text-black shadow'
                                         : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
@@ -519,24 +519,24 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                             <button
                                 key={g}
                                 onClick={() => setGranularity(g)}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                                     granularity === g
                                         ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow-sm'
                                         : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                             >
-                                {g === 'month' ? 'Mensal' : g === 'quarter' ? 'Trimestral' : 'Anual'}
+                                {g === 'month' ? 'Mensal' : g === 'quarter' ? 'Trim.' : 'Anual'}
                             </button>
                         ))}
                     </div>
-                    <label className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gray-100 dark:bg-[#111] cursor-pointer">
+                    <label className="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-xl bg-gray-100 dark:bg-[#111] cursor-pointer">
                         <input
                             type="checkbox"
                             checked={showOnlyCompleted}
                             onChange={e => setShowOnlyCompleted(e.target.checked)}
                             className="w-4 h-4 accent-[#D4AF37]"
                         />
-                        <span className="text-xs font-bold text-gray-600 dark:text-[#AAA] uppercase tracking-wider">
+                        <span className="text-[11px] sm:text-xs font-bold text-gray-600 dark:text-[#AAA] uppercase tracking-wider">
                             Só efetivados
                         </span>
                     </label>
@@ -544,7 +544,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
             </div>
 
             {/* ─── Executive KPIs ─────────────────────────────────────── */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                 {/* Saldo Inicial */}
                 <KpiCard
                     label="Saldo Inicial"
@@ -638,21 +638,21 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
 
             {/* ─── Waterfall / Evolução mensal ────────────────────────── */}
             <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
-                <div className="p-5 border-b border-gray-100 dark:border-[#222] bg-gradient-to-r from-[#B8860B]/5 to-transparent flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
+                <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-[#222] bg-gradient-to-r from-[#B8860B]/5 to-transparent flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20 shrink-0">
                             <BarChart3 className="w-5 h-5 text-[#D4AF37]" />
                         </div>
-                        <div>
-                            <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
+                        <div className="min-w-0">
+                            <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-xs sm:text-sm truncate">
                                 Evolução Mensal · {selectedYear}
                             </h3>
-                            <p className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-widest">
+                            <p className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-widest hidden sm:block">
                                 Entradas x Saídas · Saldo acumulado
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4 text-[10px] uppercase tracking-widest">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] uppercase tracking-widest">
                         <span className="flex items-center gap-1.5 text-emerald-500 font-bold">
                             <span className="w-3 h-3 rounded-full bg-emerald-500" /> Entradas
                         </span>
@@ -667,7 +667,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
 
                 {granularity === 'month' && (
                     <div className="overflow-x-auto">
-                        <div className="min-w-[960px] p-6">
+                        <div className="min-w-[640px] sm:min-w-[960px] p-4 sm:p-6">
                             {/* Chart area */}
                             <div className="relative h-56 flex items-end justify-between gap-2 border-b-2 border-gray-200 dark:border-[#222]">
                                 {monthly.map(m => {
@@ -731,9 +731,9 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                 )}
 
                 {granularity === 'quarter' && (
-                    <div className="p-6 grid grid-cols-4 gap-4">
+                    <div className="p-4 sm:p-6 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         {quarterly.map(q => (
-                            <div key={q.key} className="p-5 bg-gray-50 dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-[#222]">
+                            <div key={q.key} className="p-3 sm:p-5 bg-gray-50 dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-[#222]">
                                 <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-3">{q.label}</p>
                                 <div className="space-y-2 text-xs">
                                     <div className="flex justify-between"><span className="text-gray-500">Entradas</span><span className="font-bold text-emerald-500">{fmt(q.income)}</span></div>
@@ -747,7 +747,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                 )}
 
                 {granularity === 'year' && (
-                    <div className="p-10 flex flex-col md:flex-row items-center justify-around gap-8">
+                    <div className="p-4 sm:p-10 flex flex-col md:flex-row items-center justify-around gap-6 sm:gap-8">
                         <Waterfall
                             steps={[
                                 { label: 'Saldo Inicial', value: initialBalance, kind: 'base' },
@@ -888,7 +888,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                     {showProjection ? <ChevronUp className="w-5 h-5 text-gray-400 print:hidden" /> : <ChevronDown className="w-5 h-5 text-gray-400 print:hidden" />}
                 </button>
                 {showProjection && (
-                    <div className="p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="p-4 sm:p-5 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
                             <p className="text-[10px] uppercase tracking-widest text-emerald-500 font-bold mb-1">Entradas</p>
                             <p className="text-2xl font-black text-emerald-500">{fmt(projection.entradas)}</p>

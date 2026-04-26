@@ -81,6 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const router = useRouter();
     const supabase = createClient();
     const navRef = useRef<HTMLDivElement>(null);
+    const mobileNavRef = useRef<HTMLDivElement>(null);
     const userRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -102,8 +103,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (navRef.current && !navRef.current.contains(e.target as Node)) setOpenDropdown(null);
-            if (userRef.current && !userRef.current.contains(e.target as Node)) setUserMenuOpen(false);
+            const target = e.target as Node;
+            const inDesktopNav = navRef.current?.contains(target);
+            const inMobileNav = mobileNavRef.current?.contains(target);
+            if (!inDesktopNav && !inMobileNav) setOpenDropdown(null);
+            if (userRef.current && !userRef.current.contains(target)) setUserMenuOpen(false);
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
@@ -141,12 +145,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="min-h-screen bg-[#FAF6EC] dark:bg-[#0A0A0A] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* ─── Top Navbar ─── */}
             <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-[rgba(212,168,92,0.14)] shadow-sm shadow-black/5">
-                <div className="px-4 lg:px-6">
-                    <div className="flex items-center h-[68px] gap-3">
+                <div className="px-3 sm:px-4 lg:px-6">
+                    <div className="flex items-center h-[60px] lg:h-[68px] gap-2 sm:gap-3">
 
                         {/* Logo */}
                         <Link href="/" className="shrink-0 flex items-center">
-                            <div className="relative h-12 w-12">
+                            <div className="relative h-10 w-10 lg:h-12 lg:w-12">
                                 <Image
                                     src="/icon.svg"
                                     alt="Fórmula do Boi"
@@ -251,7 +255,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </nav>
 
                         {/* Right Side */}
-                        <div className="flex items-center gap-1.5 ml-auto">
+                        <div className="flex items-center gap-1 sm:gap-1.5 ml-auto">
                             {/* ERP */}
                             <a
                                 href="https://erp.formuladoboi.com"
@@ -307,7 +311,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                                 {userMenuOpen && (
                                     <div
-                                        className="absolute top-[calc(100%+8px)] right-0 w-56 bg-white dark:bg-[#0f0f0f] border border-gray-100 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 overflow-hidden py-2"
+                                        className="absolute top-[calc(100%+8px)] right-0 w-56 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#0f0f0f] border border-gray-100 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 overflow-hidden py-2"
                                         style={{ borderRadius: 4 }}
                                     >
                                         <span aria-hidden className="absolute top-0 right-0 block" style={{ width: 32, height: 1, background: '#A0792E' }} />
@@ -383,7 +387,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 {/* Mobile Menu */}
                 {mobileOpen && (
-                    <div className="lg:hidden border-t border-gray-200 dark:border-[rgba(212,168,92,0.14)] bg-white dark:bg-[#0A0A0A] max-h-[calc(100svh-60px)] overflow-y-auto">
+                    <div ref={mobileNavRef} className="lg:hidden border-t border-gray-200 dark:border-[rgba(212,168,92,0.14)] bg-white dark:bg-[#0A0A0A] max-h-[calc(100svh-60px)] overflow-y-auto">
                         <div className="px-4 py-3 space-y-0.5">
                             {navConfig.map((entry) => {
                                 if (!isGroup(entry)) {
@@ -474,13 +478,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Main Content */}
             <main className={`flex-1 bg-[#FAF6EC] dark:bg-[#0A0A0A] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent ${
                 (isCRM || isLeads || isOKR || isContratos)
-                    ? 'overflow-hidden flex flex-col p-4'
+                    ? 'overflow-hidden flex flex-col p-3 sm:p-4'
                     : isTactical
-                        ? 'overflow-auto flex flex-col p-4'
-                        : 'overflow-auto p-6 lg:p-10'
+                        ? 'overflow-auto flex flex-col p-3 sm:p-4'
+                        : 'overflow-auto p-4 sm:p-6 lg:p-10'
             }`}>
                 {isFullWidth ? children : (
-                    <div className="max-w-7xl mx-auto space-y-8">
+                    <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
                         {children}
                     </div>
                 )}

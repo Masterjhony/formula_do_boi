@@ -42,7 +42,15 @@ export default function ERPSidebarLayout({
     useEffect(() => {
         if (pathname.startsWith('/financeiro')) setFinanceiroOpen(true);
         if (pathname.startsWith('/contabil')) setContabilOpen(true);
-    }, [pathname]);
+        setIsSidebarOpen(false);
+    }, [pathname, searchParams]);
+
+    useEffect(() => {
+        if (!isSidebarOpen) return;
+        const original = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = original; };
+    }, [isSidebarOpen]);
 
     if (isLoading) {
         return (
@@ -67,6 +75,14 @@ export default function ERPSidebarLayout({
 
     return (
         <div className="min-h-screen bg-[#FAF6EC] dark:bg-[#0A0A0A] flex font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+            {/* Mobile Backdrop */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                    aria-hidden="true"
+                />
+            )}
             {/* Sidebar */}
             <aside
                 className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-[#0A0A0A] border-r border-gray-200 dark:border-[rgba(212,168,92,0.14)] transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -363,10 +379,11 @@ export default function ERPSidebarLayout({
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
                 {/* Mobile Header */}
-                <header className="lg:hidden bg-white dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[rgba(212,168,92,0.14)] p-4 flex items-center justify-between z-40">
+                <header className="lg:hidden sticky top-0 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-b border-gray-200 dark:border-[rgba(212,168,92,0.14)] px-3 sm:px-4 py-2.5 flex items-center justify-between gap-3 z-40">
                     <button
                         onClick={() => setIsSidebarOpen(true)}
-                        className="text-gray-500 dark:text-[#F5F0E4]/70 hover:text-[#D4A85C]"
+                        className="p-2 -ml-2 text-gray-500 dark:text-[#F5F0E4]/70 hover:text-[#D4A85C] active:scale-95 transition-transform"
+                        aria-label="Abrir menu"
                     >
                         <Menu size={22} />
                     </button>
@@ -375,14 +392,14 @@ export default function ERPSidebarLayout({
                         alt="Fórmula"
                         width={120}
                         height={40}
-                        className="h-9 w-auto object-contain"
+                        className="h-7 sm:h-8 w-auto object-contain"
                         style={{ filter: "brightness(0) saturate(100%) invert(62%) sepia(34%) saturate(762%) hue-rotate(2deg) brightness(89%) contrast(85%)" }}
                     />
                     <ThemeToggle />
                 </header>
 
-                <main className="flex-1 overflow-auto bg-[#FAF6EC] dark:bg-[#0A0A0A] p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
-                    <div className="max-w-7xl mx-auto space-y-8">
+                <main className="flex-1 overflow-auto bg-[#FAF6EC] dark:bg-[#0A0A0A] p-4 sm:p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
+                    <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
                         {children}
                     </div>
                     {/* Background Glow Effects */}

@@ -123,22 +123,22 @@ export default function ProductListClient({ initialProducts }: { initialProducts
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-4">
+        <div className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                     <input
                         type="text"
                         placeholder="Buscar por nome, registro..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-4 pr-10 py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-600 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all"
+                        className="w-full pl-4 pr-10 py-2.5 sm:py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-600 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all"
                     />
                     {/* Search Icon could go here if imported */}
                 </div>
                 <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="px-4 py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:border-[#B8860B]/50 cursor-pointer min-w-[200px]"
+                    className="px-4 py-2.5 sm:py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#B8860B]/50 cursor-pointer sm:min-w-[200px]"
                 >
                     <option value="Todos">Todas as Categorias</option>
                     <option value="Touro">Touros</option>
@@ -228,7 +228,90 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                 </div>
             )}
 
-            <div className="bg-white dark:bg-[#111111] rounded-2xl shadow-xl border border-gray-200 dark:border-[#222222] overflow-hidden">
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+                {filteredProducts?.map((product) => {
+                    const status = product.details?.status || 'Disponível';
+                    const isVendido = status.includes('Vendido');
+                    const isReservado = status.includes('Reservado');
+                    const statusBadge = isVendido
+                        ? 'bg-red-500/10 text-red-500 border-red-500/20'
+                        : isReservado
+                            ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
+                            : 'bg-green-500/10 text-green-500 border-green-500/20';
+                    return (
+                        <div key={product.id} className={`bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-3 ${product.active === false ? 'opacity-60' : ''}`}>
+                            <div className="flex items-start gap-3">
+                                <input
+                                    type="checkbox"
+                                    className="mt-1 w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#B8860B] focus:ring-[#B8860B]"
+                                    checked={selectedIds.includes(product.id)}
+                                    onChange={() => handleSelectOne(product.id)}
+                                    disabled={isBatchUpdating}
+                                />
+                                <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-[#222222] overflow-hidden flex-shrink-0 border border-gray-200 dark:border-[#333333]">
+                                    {product.image_url?.endsWith('.mp4') ? (
+                                        <video src={product.image_url} className="w-full h-full object-cover" muted />
+                                    ) : product.image_url ? (
+                                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full">
+                                            <div className="w-3 h-3 bg-gray-300 dark:bg-[#333333] rounded-full" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{product.name}</p>
+                                    <p className="text-[11px] text-gray-500 font-mono truncate">{product.details?.registro || '-'}</p>
+                                    <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 font-medium">{product.category}</span>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${statusBadge}`}>{isVendido ? 'Vendido' : isReservado ? 'Reservado' : 'Disponível'}</span>
+                                        {product.active === false && (
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200 dark:bg-[#1A1A1A] text-gray-500 font-medium">Oculto</span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm font-semibold text-[#B8860B] mt-1.5">
+                                        {typeof product.price === 'number'
+                                            ? `R$ ${product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                                            : product.price || 'Consulte'}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-[#222222]">
+                                <Link href={`/products/${product.id}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#B8860B]/10 text-[#B8860B] text-xs font-semibold">
+                                    <Edit size={13} />
+                                    Editar
+                                </Link>
+                                <button
+                                    onClick={() => handleToggleActive(product)}
+                                    className="flex items-center justify-center w-10 h-9 rounded-xl bg-blue-500/10 text-blue-500"
+                                    title={product.active === false ? 'Mostrar' : 'Ocultar'}
+                                >
+                                    <Eye size={15} className={product.active === false ? 'opacity-50' : ''} />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(product.id)}
+                                    disabled={deletingId === product.id}
+                                    className="flex items-center justify-center w-10 h-9 rounded-xl bg-red-500/10 text-red-500 disabled:opacity-50"
+                                    title="Excluir"
+                                >
+                                    {deletingId === product.id ? <div className="w-4 h-4 border-2 border-red-500 rounded-full animate-spin border-t-transparent" /> : <Trash2 size={15} />}
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
+                {(!filteredProducts || filteredProducts.length === 0) && (
+                    <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] py-10 px-4 flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-full flex items-center justify-center">
+                            <AlertCircle className="w-6 h-6 text-gray-500 dark:text-gray-600" />
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Nenhum card encontrado.</p>
+                    </div>
+                )}
+            </div>
+
+            <div className="hidden md:block bg-white dark:bg-[#111111] rounded-2xl shadow-xl border border-gray-200 dark:border-[#222222] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-[#222222]">

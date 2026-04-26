@@ -53,20 +53,20 @@ export default function LotesTourosClient({ initialProducts }: { initialProducts
     return (
         <div className="space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {[
                     { label: 'Total', value: counts.total, icon: Award, color: 'text-[#B8860B]', bg: 'bg-[#B8860B]/10' },
                     { label: 'Disponíveis', value: counts.disponivel, icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10' },
                     { label: 'Reservados', value: counts.reservado, icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
                     { label: 'Vendidos', value: counts.vendido, icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10' },
                 ].map(({ label, value, icon: Icon, color, bg }) => (
-                    <div key={label} className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-5 flex items-center gap-4">
-                        <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                            <Icon size={20} className={color} />
+                    <div key={label} className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
+                        <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+                            <Icon size={18} className={color} />
                         </div>
-                        <div>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-                            <p className="text-xs text-gray-500">{label}</p>
+                        <div className="min-w-0">
+                            <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">{value}</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500 truncate">{label}</p>
                         </div>
                     </div>
                 ))}
@@ -84,12 +84,12 @@ export default function LotesTourosClient({ initialProducts }: { initialProducts
                         className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/30 transition-all"
                     />
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="grid grid-cols-4 sm:flex gap-2 sm:flex-wrap">
                     {['Todos', 'Disponível', 'Reservado', 'Vendido'].map(s => (
                         <button
                             key={s}
                             onClick={() => setStatusFilter(s)}
-                            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${statusFilter === s
+                            className={`px-2 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${statusFilter === s
                                 ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black shadow-md shadow-[#B8860B]/20'
                                 : 'bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] text-gray-600 dark:text-gray-400 hover:border-[#B8860B]/40'
                                 }`}
