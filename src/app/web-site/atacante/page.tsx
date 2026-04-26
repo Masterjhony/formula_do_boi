@@ -46,6 +46,33 @@ function Corners({ color = "var(--gold)", size = 18 }: { color?: string; size?: 
     );
 }
 
+// ===== Brand Bar (sticky, with FdB logo) =====
+function BrandBar({ onReserve }: { onReserve: () => void }) {
+    return (
+        <div className="at-brand-bar">
+            <div className="at-brand-bar-inner">
+                <Link href="/" aria-label="Fórmula do Boi — Voltar para a página inicial" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <img
+                        src="/assets/sertanejo/logo-horizontal-white.png"
+                        alt="Fórmula do Boi"
+                        className="at-brand-logo"
+                    />
+                </Link>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <Link href="/" className="at-brand-back" aria-label="Voltar para o site">
+                        <span>←</span>
+                        <span className="at-brand-back-label">Voltar ao site</span>
+                    </Link>
+                    <button onClick={onReserve} className="btn btn-gold at-brand-cta" aria-label="Reservar dose">
+                        Reservar dose
+                    </button>
+                </div>
+            </div>
+            <div className="at-brand-bar-stitch" />
+        </div>
+    );
+}
+
 // ===== Hero =====
 function Hero({ onReserve }: { onReserve: () => void }) {
     const [t, setT] = useState(0);
@@ -56,7 +83,7 @@ function Hero({ onReserve }: { onReserve: () => void }) {
     }, []);
 
     return (
-        <section style={{ position: "relative", height: "100vh", minHeight: 720, overflow: "hidden" }}>
+        <section className="at-hero" style={{ position: "relative", height: "100vh", minHeight: 720, overflow: "hidden" }}>
             <div
                 style={{
                     position: "absolute", inset: 0,
@@ -77,18 +104,18 @@ function Hero({ onReserve }: { onReserve: () => void }) {
                 }}
             />
 
-            <div style={{ position: "absolute", left: 36, top: 0, bottom: 0, width: 1, background: "linear-gradient(180deg, transparent, var(--rule), transparent)" }} />
-            <div style={{ position: "absolute", right: 36, top: 0, bottom: 0, width: 1, background: "linear-gradient(180deg, transparent, var(--rule), transparent)" }} />
+            <div className="at-vert-rail" style={{ position: "absolute", left: 36, top: 0, bottom: 0, width: 1, background: "linear-gradient(180deg, transparent, var(--rule), transparent)" }} />
+            <div className="at-vert-rail" style={{ position: "absolute", right: 36, top: 0, bottom: 0, width: 1, background: "linear-gradient(180deg, transparent, var(--rule), transparent)" }} />
 
-            <div className="mono" style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%) rotate(-90deg)", transformOrigin: "left center", fontSize: 10, letterSpacing: "0.4em", color: "var(--gold)", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+            <div className="mono at-vert-label" style={{ position: "absolute", left: 18, top: "50%", transform: "translateY(-50%) rotate(-90deg)", transformOrigin: "left center", fontSize: 10, letterSpacing: "0.4em", color: "var(--gold)", textTransform: "uppercase", whiteSpace: "nowrap" }}>
                 RDM B 3224 MAT. · PROCRIAR SP · NASC. 01.08.2024
             </div>
-            <div className="mono" style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%) rotate(90deg)", transformOrigin: "right center", fontSize: 10, letterSpacing: "0.4em", color: "var(--gold)", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+            <div className="mono at-vert-label" style={{ position: "absolute", right: 18, top: "50%", transform: "translateY(-50%) rotate(90deg)", transformOrigin: "right center", fontSize: 10, letterSpacing: "0.4em", color: "var(--gold)", textTransform: "uppercase", whiteSpace: "nowrap" }}>
                 MGTE 42,38 · TOP 0,1% · ELITE PESO · PE · AOL
             </div>
 
             <div
-                className="pad-side-big"
+                className="at-hero-content"
                 style={{
                     position: "relative", zIndex: 2, height: "100%",
                     display: "flex", flexDirection: "column", justifyContent: "flex-end",
@@ -96,14 +123,14 @@ function Hero({ onReserve }: { onReserve: () => void }) {
                     maxWidth: 1480, margin: "0 auto",
                 }}
             >
-                <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 28, opacity: 1 - t }}>
-                    <div style={{ width: 60, height: 1, background: "var(--gold)" }} />
+                <div className="at-hero-kicker" style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 28, opacity: 1 - t }}>
+                    <span style={{ width: 60, height: 1, background: "var(--gold)", display: "inline-block" }} />
                     <span className="mono" style={{ fontSize: 11, letterSpacing: "0.32em", color: "var(--gold-2)", textTransform: "uppercase" }}>
                         Aceleradora de Touros · Lançamento 2026
                     </span>
                 </div>
 
-                <h1 className="serif-tight" style={{
+                <h1 className="serif-tight at-hero-h1" style={{
                     fontSize: "clamp(64px, 13vw, 220px)", color: "var(--bone)",
                     textShadow: "0 8px 40px rgba(0,0,0,0.6)", marginBottom: 16,
                 }}>
@@ -111,7 +138,7 @@ function Hero({ onReserve }: { onReserve: () => void }) {
                     <span style={{ display: "block", fontStyle: "italic", color: "var(--bone-2)" }}>da Matinha</span>
                 </h1>
 
-                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 60, flexWrap: "wrap", marginTop: 24 }}>
+                <div className="at-hero-foot" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 60, flexWrap: "wrap", marginTop: 24 }}>
                     <p style={{ color: "var(--bone-2)", fontSize: 18, lineHeight: 1.55, maxWidth: 520, fontWeight: 300 }}>
                         Touro jovem Nelore PO. Resultado direto no campo, na balança e no bolso.
                         Pacotes de sêmen exclusivos para o lançamento — pré-reserva aberta.
@@ -205,7 +232,7 @@ function Identity() {
                         </p>
 
                         <div style={{ marginTop: 48, display: "flex", gap: 24, alignItems: "center" }}>
-                            <div className="ticker-num" style={{ fontSize: 88, color: "var(--gold)", lineHeight: 0.85 }}>
+                            <div className="ticker-num at-id-ticker" style={{ fontSize: 88, color: "var(--gold)", lineHeight: 0.85 }}>
                                 5,13<span style={{ fontSize: 36 }}>%</span>
                             </div>
                             <div>
@@ -289,7 +316,7 @@ function NumbersHero() {
                             e carcaça.
                         </h2>
                     </div>
-                    <div className="mono" style={{ fontSize: 11, color: "var(--txt-dim)", letterSpacing: "0.18em", textTransform: "uppercase", textAlign: "right" }}>
+                    <div className="mono at-numbers-source" style={{ fontSize: 11, color: "var(--txt-dim)", letterSpacing: "0.18em", textTransform: "uppercase", textAlign: "right" }}>
                         Fonte ANCP<br />Procriar SP<br />Base 1ª AG · Abr/2026
                     </div>
                 </div>
@@ -352,7 +379,7 @@ function DEPsDetail() {
 
                 <div className="grid-2-col" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0 80px" }}>
                     {deps.map((d, i) => (
-                        <div key={d.code} style={{
+                        <div key={d.code} className="at-deps-row" style={{
                             padding: "24px 0",
                             borderBottom: i < deps.length - 1 ? "1px solid var(--rule)" : "none",
                             display: "grid", gridTemplateColumns: "120px 1fr 80px 80px",
@@ -369,7 +396,7 @@ function DEPsDetail() {
                                 }} />
                             </div>
                             <div className="ticker-num" style={{ color: "var(--bone)", fontSize: 22, textAlign: "right" }}>{d.val}</div>
-                            <div className="mono" style={{
+                            <div className="mono at-deps-tier" style={{
                                 fontSize: 10, color: d.bar > 85 ? "var(--gold)" : "var(--txt-dim)",
                                 letterSpacing: "0.18em", textTransform: "uppercase", textAlign: "right",
                             }}>{d.tier}</div>
@@ -481,20 +508,20 @@ function Carcaca() {
     const ref = useReveal() as React.RefObject<HTMLElement>;
     return (
         <section id="carcaça" ref={ref} className="reveal" style={{ background: "var(--ink)" }}>
-            <div className="grid-2-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: 720 }}>
-                <div style={{
+            <div className="at-carcaca-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: 720 }}>
+                <div className="at-carcaca-img" style={{
                     backgroundImage: `url("${ASSET("touro-07.jpeg")}")`,
                     backgroundSize: "cover", backgroundPosition: "center",
                     filter: "contrast(1.05) saturate(0.85) brightness(0.85)",
                     position: "relative", minHeight: 360,
                 }}>
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent 60%, var(--ink))" }} />
+                    <div className="at-carcaca-img-fade" style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent 60%, var(--ink))" }} />
                     <div className="mono" style={{ position: "absolute", top: 40, left: 40, fontSize: 10, letterSpacing: "0.32em", color: "var(--gold)", textTransform: "uppercase" }}>
                         Perfil · Anatômico
                     </div>
                 </div>
 
-                <div className="pad-side-big" style={{ padding: "120px 80px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <div className="at-carcaca-text" style={{ padding: "120px 80px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                     <div className="kicker" style={{ marginBottom: 24 }}>04 — Carcaça &amp; Frigorífico</div>
                     <h2 className="serif-tight" style={{ fontSize: "clamp(36px, 4.5vw, 72px)", color: "var(--bone)", marginBottom: 32 }}>
                         Mais arrobas em<br />
@@ -547,7 +574,7 @@ function Gallery() {
                     </div>
                 </div>
 
-                <div className="grid-2-col" style={{ display: "grid", gridTemplateColumns: "1fr 200px", gap: 32 }}>
+                <div className="at-gallery-grid" style={{ display: "grid", gridTemplateColumns: "1fr 200px", gap: 32 }}>
                     <div className="img-vignette" style={{
                         position: "relative", aspectRatio: "16 / 9",
                         backgroundImage: `url("${ASSET(imgs[active])}")`,
@@ -557,7 +584,7 @@ function Gallery() {
                     }}>
                         <Corners color="var(--gold)" />
                     </div>
-                    <div className="no-scrollbar" style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 600, overflowY: "auto" }}>
+                    <div className="no-scrollbar at-gallery-thumbs" style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 600, overflowY: "auto" }}>
                         {imgs.map((src, i) => (
                             <button key={src} onClick={() => setActive(i)} style={{
                                 aspectRatio: "16 / 9",
@@ -684,7 +711,7 @@ function SemenPricing({ onReserve }: { onReserve: (data?: { doses: number; type:
                 }}>
                     <Corners color="var(--gold)" />
 
-                    <div style={{ padding: 40 }}>
+                    <div className="at-inner-pad" style={{ padding: 40 }}>
                         <div className="kicker" style={{ marginBottom: 16 }}>Calculadora de Doses</div>
                         <h3 className="serif" style={{ fontSize: 32, color: "var(--bone)", marginBottom: 32, fontWeight: 400 }}>
                             Monte seu pacote.
@@ -733,7 +760,7 @@ function SemenPricing({ onReserve }: { onReserve: (data?: { doses: number; type:
                         </div>
                     </div>
 
-                    <div style={{
+                    <div className="at-inner-pad at-calc-right" style={{
                         padding: 40, background: "rgba(0,0,0,0.4)",
                         borderLeft: "1px solid var(--rule-2)",
                         display: "flex", flexDirection: "column", justifyContent: "space-between",
@@ -815,7 +842,7 @@ function ClosingCTA({ onReserve }: { onReserve: () => void }) {
                     </a>
                 </div>
 
-                <div style={{ marginTop: 80, display: "flex", justifyContent: "center", gap: 80, flexWrap: "wrap" }}>
+                <div className="at-closing-stats" style={{ marginTop: 80, display: "flex", justifyContent: "center", gap: 80, flexWrap: "wrap" }}>
                     {([
                         ["01", "Genética Elite", "MGTe 42,38 · TOP 0,1%"],
                         ["02", "Resultado Direto", "Carcaças que o frigorífico paga"],
@@ -894,14 +921,14 @@ function ReserveDrawer({ open, onClose, prefill }: { open: boolean; onClose: () 
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="leather-bg"
+                className="leather-bg at-drawer"
                 style={{
                     width: "min(560px, 100vw)", height: "100%", overflowY: "auto",
                     borderLeft: "1px solid var(--gold)",
                     animation: "atacante-slide-in 0.4s cubic-bezier(0.2,0.7,0.2,1)",
                 }}
             >
-                <div style={{
+                <div className="at-drawer-header" style={{
                     padding: "28px 36px", borderBottom: "1px solid var(--rule)",
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                     position: "sticky", top: 0, background: "rgba(20,17,15,0.95)", backdropFilter: "blur(8px)", zIndex: 1,
@@ -944,7 +971,7 @@ function ReserveDrawer({ open, onClose, prefill }: { open: boolean; onClose: () 
                             ))}
                         </div>
 
-                        <div style={{ padding: 36 }}>
+                        <div className="at-drawer-pad" style={{ padding: 36 }}>
                             {step === 1 && (
                                 <div>
                                     <h3 className="serif" style={{ fontSize: 26, color: "var(--bone)", marginBottom: 24 }}>Quantidade &amp; tipo</h3>
@@ -1085,6 +1112,7 @@ export default function AtacanteMatinhaPage() {
     return (
         <div className="atacante-wrap">
             <style dangerouslySetInnerHTML={{ __html: atacanteCss }} />
+            <BrandBar onReserve={() => openReserve()} />
             <Hero onReserve={() => openReserve()} />
             <Marquee />
             <Identity />

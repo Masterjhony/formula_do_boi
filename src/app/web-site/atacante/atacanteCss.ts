@@ -19,8 +19,15 @@ export const atacanteCss = `
   --mono-atacante: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
 }
 
-.atacante-wrap, .atacante-wrap * { box-sizing: border-box; }
-.atacante-wrap { background: var(--ink); color: var(--txt); font-family: var(--sans-atacante); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: hidden; }
+.atacante-wrap, .atacante-wrap *, .atacante-wrap *::before, .atacante-wrap *::after { box-sizing: border-box; }
+.atacante-wrap {
+  background: var(--ink); color: var(--txt);
+  font-family: var(--sans-atacante);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
 .atacante-wrap a { text-decoration: none; color: inherit; }
 .atacante-wrap ul { list-style: none; padding: 0; margin: 0; }
 .atacante-wrap img { max-width: 100%; display: block; }
@@ -151,23 +158,173 @@ export const atacanteCss = `
 .atacante-wrap .no-scrollbar::-webkit-scrollbar { display: none; }
 .atacante-wrap .no-scrollbar { scrollbar-width: none; }
 
+/* ===== Brand bar (sticky) ===== */
+.atacante-wrap .at-brand-bar {
+  position: sticky; top: 0; z-index: 60;
+  background: rgba(10,9,8,0.92);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--rule);
+}
+.atacante-wrap .at-brand-bar-inner {
+  max-width: 1480px; margin: 0 auto;
+  padding: 14px clamp(16px, 4vw, 36px);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.atacante-wrap .at-brand-bar-stitch {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+  opacity: 0.35;
+}
+.atacante-wrap .at-brand-logo { height: 28px; width: auto; display: block; }
+.atacante-wrap .at-brand-back {
+  font-family: var(--mono-atacante);
+  font-size: 10px; letter-spacing: 0.22em; color: var(--bone-2);
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border: 1px solid var(--rule);
+  transition: all 0.2s;
+}
+.atacante-wrap .at-brand-back:hover { border-color: var(--gold); color: var(--gold-2); }
+.atacante-wrap .at-brand-cta {
+  padding: 10px 18px; font-size: 10px; letter-spacing: 0.22em;
+}
+
+/* ===== Responsive section padding ===== */
+/* These rules cascade to override inline padding via !important */
+
 @media (max-width: 1024px) {
   .atacante-wrap .grid-2-col { grid-template-columns: 1fr !important; gap: 60px !important; }
   .atacante-wrap .grid-3-col { grid-template-columns: 1fr !important; }
   .atacante-wrap .grid-4-col { grid-template-columns: repeat(2, 1fr) !important; }
   .atacante-wrap .grid-5-col { grid-template-columns: repeat(2, 1fr) !important; }
   .atacante-wrap .ped-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
-  .atacante-wrap .pad-side { padding-left: 32px !important; padding-right: 32px !important; }
-  .atacante-wrap .pad-side-big { padding-left: 32px !important; padding-right: 32px !important; }
   .atacante-wrap .calc-grid { grid-template-columns: 1fr !important; }
   .atacante-wrap .nav-center { display: none !important; }
+
+  /* Section padding overrides (override inline 160px 80px / 120px 80px) */
+  .atacante-wrap .pad-side-big {
+    padding-left: clamp(20px, 5vw, 40px) !important;
+    padding-right: clamp(20px, 5vw, 40px) !important;
+    padding-top: clamp(60px, 10vw, 120px) !important;
+    padding-bottom: clamp(60px, 10vw, 120px) !important;
+  }
+  /* Inner pads (e.g., calculator panels with padding: 40) */
+  .atacante-wrap .at-inner-pad { padding: clamp(24px, 4vw, 36px) !important; }
+}
+
+@media (max-width: 768px) {
+  /* Hide vertical rotated rails — they take up edge space and feel cramped */
+  .atacante-wrap .at-vert-rail { display: none !important; }
+  .atacante-wrap .at-vert-label { display: none !important; }
+
+  /* Hero adjustments */
+  .atacante-wrap .at-hero {
+    height: auto !important;
+    min-height: 520px !important;
+    padding-top: 80px !important;
+    padding-bottom: 60px !important;
+  }
+  .atacante-wrap .at-hero-content {
+    padding: 0 20px 60px !important;
+  }
+  .atacante-wrap .at-hero-h1 {
+    font-size: clamp(56px, 18vw, 90px) !important;
+    line-height: 0.92 !important;
+  }
+  .atacante-wrap .at-hero-foot {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 24px !important;
+  }
+  .atacante-wrap .at-hero-foot p { font-size: 15px !important; }
+
+  /* Carcaça split → stack */
+  .atacante-wrap .at-carcaca-grid {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+  .atacante-wrap .at-carcaca-img { min-height: 280px !important; aspect-ratio: 4 / 3; }
+  .atacante-wrap .at-carcaca-img-fade { background: linear-gradient(180deg, transparent 50%, var(--ink)) !important; }
+  .atacante-wrap .at-carcaca-text {
+    padding: clamp(48px, 10vw, 80px) clamp(20px, 5vw, 40px) !important;
+  }
+
+  /* Gallery: side thumbs → bottom thumbs */
+  .atacante-wrap .at-gallery-grid { grid-template-columns: 1fr !important; }
+  .atacante-wrap .at-gallery-thumbs {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    max-height: none !important;
+  }
+  .atacante-wrap .at-gallery-thumbs button { flex: 0 0 96px; }
+
+  /* DEPs row internal grid: tighter */
+  .atacante-wrap .at-deps-row {
+    grid-template-columns: 92px 1fr 64px !important;
+    gap: 10px !important;
+  }
+  .atacante-wrap .at-deps-row .at-deps-tier { display: none !important; }
+
+  /* NumbersHero: hide source aside on small */
+  .atacante-wrap .at-numbers-source { display: none !important; }
+
+  /* SemenPricing: full-width tiers */
+  .atacante-wrap .grid-4-col { grid-template-columns: 1fr 1fr !important; }
+  .atacante-wrap .grid-5-col { grid-template-columns: 1fr 1fr !important; }
+
+  /* Calculator panels: drop side border, stack pads */
+  .atacante-wrap .at-calc-right { border-left: none !important; border-top: 1px solid var(--rule-2) !important; }
+
+  /* Closing CTA stat row */
+  .atacante-wrap .at-closing-stats {
+    flex-direction: column !important;
+    gap: 36px !important;
+    margin-top: 56px !important;
+  }
 }
 
 @media (max-width: 640px) {
-  .atacante-wrap .grid-4-col { grid-template-columns: 1fr 1fr !important; }
-  .atacante-wrap .grid-5-col { grid-template-columns: 1fr 1fr !important; }
-  .atacante-wrap .pad-side { padding-left: 20px !important; padding-right: 20px !important; }
-  .atacante-wrap .pad-side-big { padding-left: 20px !important; padding-right: 20px !important; }
-  .atacante-wrap .nav-pre { display: none !important; }
+  .atacante-wrap .grid-4-col { grid-template-columns: 1fr !important; }
+  .atacante-wrap .grid-5-col { grid-template-columns: 1fr !important; }
+
+  /* Hero: tighter scroll indicator + ensure h1 fits */
+  .atacante-wrap .at-hero-kicker {
+    font-size: 10px !important;
+    letter-spacing: 0.24em !important;
+  }
+  .atacante-wrap .at-hero-kicker span { width: 32px !important; }
+
+  /* Brand bar tighter */
+  .atacante-wrap .at-brand-back-label { display: none !important; }
+  .atacante-wrap .at-brand-cta { padding: 8px 12px !important; font-size: 9px !important; }
+  .atacante-wrap .at-brand-logo { height: 22px !important; }
+
+  /* Identity inner ticker */
+  .atacante-wrap .at-id-ticker { font-size: 64px !important; }
+
+  /* NumbersHero: stack stats vertically */
+  .atacante-wrap .grid-5-col {
+    grid-template-columns: 1fr !important;
+  }
+  .atacante-wrap .grid-5-col > div { min-height: 180px !important; padding: 28px 20px !important; }
+
+  /* Pedigree nodes: smaller */
+  .atacante-wrap .at-ped-node { padding: 14px 16px !important; min-height: 0 !important; }
+
+  /* Section padding super compact */
+  .atacante-wrap .pad-side-big {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    padding-top: 56px !important;
+    padding-bottom: 56px !important;
+  }
+
+  /* Drawer: full-width on mobile */
+  .atacante-wrap .at-drawer { width: 100vw !important; }
+  .atacante-wrap .at-drawer-pad { padding: 24px !important; }
+  .atacante-wrap .at-drawer-header { padding: 22px 24px !important; }
 }
 `;
