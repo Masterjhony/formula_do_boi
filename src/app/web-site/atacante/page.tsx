@@ -85,9 +85,10 @@ function Hero({ onReserve }: { onReserve: () => void }) {
     return (
         <section className="at-hero" style={{ position: "relative", height: "100vh", minHeight: 720, overflow: "hidden" }}>
             <div
+                className="at-hero-bg"
                 style={{
                     position: "absolute", inset: 0,
-                    backgroundImage: `url("${ASSET("touro-02.jpeg")}")`,
+                    backgroundImage: `url("${ASSET("touro-04.jpeg")}")`,
                     backgroundSize: "cover", backgroundPosition: "center 30%",
                     transform: `scale(${1.05 + t * 0.05}) translateY(${t * -30}px)`,
                     transition: "transform 0.05s linear",
@@ -95,6 +96,7 @@ function Hero({ onReserve }: { onReserve: () => void }) {
                 }}
             />
             <div
+                className="at-hero-grad"
                 style={{
                     position: "absolute", inset: 0,
                     background: `
@@ -154,7 +156,7 @@ function Hero({ onReserve }: { onReserve: () => void }) {
                 </div>
             </div>
 
-            <div style={{
+            <div className="at-hero-scroll" style={{
                 position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
                 opacity: 1 - t * 2,

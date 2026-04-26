@@ -219,26 +219,83 @@ export const atacanteCss = `
   .atacante-wrap .at-vert-rail { display: none !important; }
   .atacante-wrap .at-vert-label { display: none !important; }
 
-  /* Hero adjustments */
+  /* Hero — switch from full-bleed bg+overlay to STACKED magazine layout:
+     [bull image block]
+     [title + text + buttons block] */
   .atacante-wrap .at-hero {
     height: auto !important;
-    min-height: 520px !important;
-    padding-top: 80px !important;
-    padding-bottom: 60px !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: var(--ink) !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
+
+  /* Bull image becomes a flow block with explicit aspect ratio.
+     cover + center 35% favors the bull body in a 4:3 frame. */
+  .atacante-wrap .at-hero-bg {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    aspect-ratio: 4 / 3 !important;
+    background-size: cover !important;
+    background-position: center 38% !important;
+    transform: none !important;
+    filter: contrast(1.05) saturate(0.9) brightness(0.95) !important;
+    flex: 0 0 auto;
+  }
+
+  /* The dark vignette overlay becomes a soft fade only at the bottom of the image. */
+  .atacante-wrap .at-hero-grad {
+    position: absolute !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 60% !important;
+    inset: auto 0 0 0 !important;
+    background:
+      linear-gradient(180deg,
+        rgba(10,9,8,0) 0%,
+        rgba(10,9,8,0.15) 50%,
+        rgba(10,9,8,0.65) 100%) !important;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Text content: now sits BELOW the image in normal flow */
   .atacante-wrap .at-hero-content {
-    padding: 0 20px 60px !important;
+    position: static !important;
+    height: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 36px 22px 56px !important;
+    background: var(--ink) !important;
   }
   .atacante-wrap .at-hero-h1 {
-    font-size: clamp(56px, 18vw, 90px) !important;
+    font-size: clamp(54px, 16vw, 88px) !important;
     line-height: 0.92 !important;
+  }
+  .atacante-wrap .at-hero-kicker {
+    margin-bottom: 18px !important;
+  }
+  .atacante-wrap .at-hero-kicker > span:first-child {
+    width: 36px !important;
   }
   .atacante-wrap .at-hero-foot {
     flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 24px !important;
+    align-items: stretch !important;
+    gap: 22px !important;
+    margin-top: 22px !important;
   }
-  .atacante-wrap .at-hero-foot p { font-size: 15px !important; }
+  .atacante-wrap .at-hero-foot p { font-size: 15px !important; max-width: none !important; }
+  .atacante-wrap .at-hero-foot .btn { width: 100%; justify-content: center; }
+  .atacante-wrap .at-hero-foot > div:last-child {
+    width: 100%; flex-direction: column; gap: 10px !important;
+  }
+  /* Hide the "Rolar" scroll indicator on mobile (hero is no longer 100vh) */
+  .atacante-wrap .at-hero-scroll { display: none !important; }
 
   /* Carcaça split → stack */
   .atacante-wrap .at-carcaca-grid {
