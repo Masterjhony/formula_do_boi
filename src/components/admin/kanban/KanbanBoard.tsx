@@ -242,7 +242,7 @@ export function KanbanBoard({
                                     <select
                                         value={filterAssignee}
                                         onChange={e => setFilterAssignee(e.target.value)}
-                                        className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#B8860B]"
+                                        className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#A0792E]"
                                     >
                                         <option value="all">Todos</option>
                                         {assigneeOptions.map(name => (
@@ -253,7 +253,7 @@ export function KanbanBoard({
                                 <select
                                     value={filterPriority}
                                     onChange={e => setFilterPriority(e.target.value)}
-                                    className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#B8860B]"
+                                    className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#A0792E]"
                                 >
                                     <option value="all">Todas prioridades</option>
                                     <option value="Alta">Alta 🔥</option>
@@ -263,7 +263,7 @@ export function KanbanBoard({
                                 <button
                                     onClick={() => setFocusMode(!focusMode)}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${focusMode
-                                        ? 'bg-[#B8860B]/10 border-[#B8860B]/30 text-[#B8860B]'
+                                        ? 'bg-[#A0792E]/10 border-[#A0792E]/30 text-[#A0792E]'
                                         : 'bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#222222] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                         }`}
                                     title="Modo Foco — apenas tarefas críticas"
@@ -284,7 +284,7 @@ export function KanbanBoard({
                         {(viewMode === 'kanban' || viewMode === 'gantt') && (
                             <button
                                 onClick={() => { setEditingTask(undefined); setDefaultStatus('A fazer'); setIsModalOpen(true); }}
-                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-lg font-bold hover:shadow-lg hover:shadow-[#B8860B]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap text-sm"
+                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-lg font-bold hover:shadow-lg hover:shadow-[#A0792E]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap text-sm"
                             >
                                 <Plus size={16} /> Nova Tarefa
                             </button>
@@ -348,7 +348,7 @@ export function KanbanBoard({
                                             }
                                         }}
                                         onBlur={() => { setIsCreatingColumn(false); setNewColumnTitle(''); }}
-                                        className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#B8860B] rounded-lg focus:outline-none text-sm text-gray-900 dark:text-white"
+                                        className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#A0792E] rounded-lg focus:outline-none text-sm text-gray-900 dark:text-white"
                                         placeholder="Nome da coluna..."
                                     />
                                 ) : (

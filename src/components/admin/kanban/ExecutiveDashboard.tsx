@@ -149,7 +149,7 @@ export function ExecutiveDashboard({ tasks, columns, objectives }: Props) {
           metrics.overdue > 0 ? 'down' : 'up'
         )}
         {kpiCard(
-          <Zap size={18} className="text-[#B8860B]" />,
+          <Zap size={18} className="text-[#A0792E]" />,
           'ICE Score Médio',
           metrics.avgICE,
           'prioridade ponderada das tarefas',
@@ -164,7 +164,7 @@ export function ExecutiveDashboard({ tasks, columns, objectives }: Props) {
         <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-5 border border-gray-200 dark:border-[#222222] shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Target size={16} className="text-[#B8860B]" /> Progresso OKRs
+              <Target size={16} className="text-[#A0792E]" /> Progresso OKRs
             </h3>
             <span className={`text-sm font-bold ${statusColor(okrProgress)}`}>{okrProgress}%</span>
           </div>
@@ -203,7 +203,7 @@ export function ExecutiveDashboard({ tasks, columns, objectives }: Props) {
         {/* Bottlenecks & Priority Rate */}
         <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-5 border border-gray-200 dark:border-[#222222] shadow-sm space-y-4">
           <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <BarChart3 size={16} className="text-[#B8860B]" /> Saúde da Execução
+            <BarChart3 size={16} className="text-[#A0792E]" /> Saúde da Execução
           </h3>
 
           {/* Priority completion */}
@@ -264,7 +264,7 @@ export function ExecutiveDashboard({ tasks, columns, objectives }: Props) {
       {/* Strategic Funnel */}
       <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-5 border border-gray-200 dark:border-[#222222] shadow-sm">
         <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-          <TrendingUp size={16} className="text-[#B8860B]" /> Visão Estratégica — Funil de Negócio
+          <TrendingUp size={16} className="text-[#A0792E]" /> Visão Estratégica — Funil de Negócio
         </h3>
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
           {stageData.map((s, i) => (
@@ -274,7 +274,7 @@ export function ExecutiveDashboard({ tasks, columns, objectives }: Props) {
                 <div className="text-xs font-medium text-gray-500 dark:text-gray-400">{s.stage}</div>
                 <div className="mt-1 w-full h-1.5 bg-gray-100 dark:bg-[#111111] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-[#B8860B] to-[#D4AF37] rounded-full"
+                    className="h-full bg-gradient-to-r from-[#A0792E] to-[#D4A85C] rounded-full"
                     style={{ width: `${Math.min(100, s.count * 10)}%` }}
                   />
                 </div>

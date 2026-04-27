@@ -36,7 +36,7 @@ export default async function EstoquePage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 md:gap-4">
                 <div>
-                    <h2 className="text-xl sm:text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#D4AF37] text-transparent bg-clip-text">
+                    <h2 className="text-xl sm:text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4A85C] via-[#FFF8DC] to-[#D4A85C] text-transparent bg-clip-text">
                         Estoque & Inventário
                     </h2>
                     <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
@@ -47,7 +47,7 @@ export default async function EstoquePage() {
                     <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-teal-500/50 text-gray-900 dark:text-white text-xs sm:text-sm font-semibold rounded-xl transition-all shadow-lg hover:shadow-teal-500/20">
                         <MapPin className="w-4 h-4 text-teal-500" /> <span className="hidden sm:inline">Locais/</span>Baías
                     </button>
-                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-[#B8860B]/20 hover:scale-105 transition-all">
+                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-[#A0792E] to-[#9A7209] text-black rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-[#A0792E]/20 hover:scale-105 transition-all">
                         <Plus className="w-4 h-4" /> Novo<span className="hidden sm:inline"> Produto</span>
                     </button>
                 </div>
@@ -55,9 +55,9 @@ export default async function EstoquePage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                        <Package className="w-14 h-14 sm:w-24 sm:h-24 text-[#D4AF37]" />
+                        <Package className="w-14 h-14 sm:w-24 sm:h-24 text-[#D4A85C]" />
                     </div>
                     <div className="relative z-10">
                         <p className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Total de Itens</p>
@@ -65,7 +65,7 @@ export default async function EstoquePage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
                         <Activity className="w-14 h-14 sm:w-24 sm:h-24 text-blue-500" />
                     </div>
@@ -75,7 +75,7 @@ export default async function EstoquePage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
                         <Layers className="w-14 h-14 sm:w-24 sm:h-24 text-purple-500" />
                     </div>
@@ -85,7 +85,7 @@ export default async function EstoquePage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
                         <Tag className="w-14 h-14 sm:w-24 sm:h-24 text-emerald-500" />
                     </div>
@@ -102,11 +102,11 @@ export default async function EstoquePage() {
                     <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-xs sm:text-sm">Catálogo de Ativos e Genética</h3>
                     <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
                         <div className="relative flex-1 sm:w-80 group/search">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#555] group-focus-within/search:text-[#D4AF37] transition-colors" />
+                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#555] group-focus-within/search:text-[#D4A85C] transition-colors" />
                             <input
                                 type="text"
                                 placeholder="Buscar por nome, SKU..."
-                                className="w-full pl-10 pr-4 py-2.5 text-sm bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl focus:outline-none focus:border-[#B8860B]/50 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] transition-all"
+                                className="w-full pl-10 pr-4 py-2.5 text-sm bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl focus:outline-none focus:border-[#A0792E]/50 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] transition-all"
                             />
                         </div>
                         <button className="shrink-0 px-3 sm:px-4 py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-xl text-gray-500 dark:text-[#888] hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-[#1A1A1A] transition-colors text-xs sm:text-sm font-bold uppercase tracking-widest flex items-center gap-1.5 sm:gap-2">

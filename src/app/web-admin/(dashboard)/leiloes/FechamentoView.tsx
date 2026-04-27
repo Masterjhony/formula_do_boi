@@ -102,7 +102,7 @@ function coveragePct(vendidos: number, ofertados: number) {
   return Math.round((vendidos / ofertados) * 100)
 }
 
-const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#B8860B] transition-colors"
+const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E] transition-colors"
 
 // ── Empty Form ─────────────────────────────────────────────────────────────────
 
@@ -123,12 +123,12 @@ function KpiCard({ icon: Icon, label, value, sub, gold }: {
   icon: React.ElementType; label: string; value: string; sub?: string; gold?: boolean
 }) {
   return (
-    <div className={`rounded-2xl border px-5 py-4 ${gold ? 'border-[#B8860B]/30 bg-[#B8860B]/8' : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'}`}>
+    <div className={`rounded-2xl border px-5 py-4 ${gold ? 'border-[#A0792E]/30 bg-[#A0792E]/8' : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'}`}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon size={13} className={gold ? 'text-[#B8860B]' : 'text-gray-400'} />
+        <Icon size={13} className={gold ? 'text-[#A0792E]' : 'text-gray-400'} />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
       </div>
-      <p className={`text-2xl font-black leading-none ${gold ? 'text-[#B8860B]' : 'text-gray-900 dark:text-white'}`}>{value}</p>
+      <p className={`text-2xl font-black leading-none ${gold ? 'text-[#A0792E]' : 'text-gray-900 dark:text-white'}`}>{value}</p>
       {sub && <p className="text-[10px] text-gray-400 mt-1">{sub}</p>}
     </div>
   )
@@ -145,24 +145,24 @@ function FechamentoCard({ f, selected, onClick }: { f: Fechamento; selected: boo
       onClick={onClick}
       className={`w-full text-left rounded-2xl border transition-all duration-200 overflow-hidden
         ${selected
-          ? 'border-[#B8860B]/50 bg-[#B8860B]/5 dark:bg-[#B8860B]/8 shadow-md shadow-[#B8860B]/10'
-          : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] hover:border-[#B8860B]/30 hover:shadow-sm'
+          ? 'border-[#A0792E]/50 bg-[#A0792E]/5 dark:bg-[#A0792E]/8 shadow-md shadow-[#A0792E]/10'
+          : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] hover:border-[#A0792E]/30 hover:shadow-sm'
         }`}
     >
       {/* Coverage bar accent */}
       <div className="h-1 w-full bg-gray-100 dark:bg-[#1A1A1A]">
         <div
           className="h-full transition-all duration-500"
-          style={{ width: `${pct}%`, background: pct >= 60 ? '#22c55e' : pct >= 30 ? '#B8860B' : '#ef4444' }}
+          style={{ width: `${pct}%`, background: pct >= 60 ? '#22c55e' : pct >= 30 ? '#A0792E' : '#ef4444' }}
         />
       </div>
 
       <div className="p-4 flex gap-4">
         {/* Date badge */}
         <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl border flex-shrink-0 transition-colors
-          ${selected ? 'border-[#B8860B]/40 bg-[#B8860B]/12' : 'border-[#B8860B]/20 bg-[#B8860B]/6'}`}>
-          <span className="text-[#B8860B] font-black text-xl leading-none">{dt.dia}</span>
-          <span className="text-[#B8860B]/70 text-[9px] font-bold uppercase tracking-wider mt-0.5">{dt.mes}</span>
+          ${selected ? 'border-[#A0792E]/40 bg-[#A0792E]/12' : 'border-[#A0792E]/20 bg-[#A0792E]/6'}`}>
+          <span className="text-[#A0792E] font-black text-xl leading-none">{dt.dia}</span>
+          <span className="text-[#A0792E]/70 text-[9px] font-bold uppercase tracking-wider mt-0.5">{dt.mes}</span>
         </div>
 
         {/* Content */}
@@ -174,7 +174,7 @@ function FechamentoCard({ f, selected, onClick }: { f: Fechamento; selected: boo
             </div>
           )}
           <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span className="text-xs font-black text-[#B8860B]">{R(f.vgv_total)}</span>
+            <span className="text-xs font-black text-[#A0792E]">{R(f.vgv_total)}</span>
             <span className="text-[10px] text-gray-500">
               {f.lotes_vendidos}/{f.lotes_ofertados} lotes <span className="font-semibold">{pct}%</span>
             </span>
@@ -182,14 +182,14 @@ function FechamentoCard({ f, selected, onClick }: { f: Fechamento; selected: boo
           </div>
           <div className="flex gap-2 flex-wrap">
             {f.por_assessor.slice(0, 3).map(a => (
-              <span key={a.nome} className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#B8860B]/10 text-[#B8860B] font-bold uppercase">
+              <span key={a.nome} className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#A0792E]/10 text-[#A0792E] font-bold uppercase">
                 {a.nome.split(' ')[0]}
               </span>
             ))}
           </div>
         </div>
 
-        <ChevronRight size={15} className={`flex-shrink-0 self-center text-gray-300 dark:text-gray-700 transition-transform ${selected ? 'rotate-90 text-[#B8860B]' : ''}`} />
+        <ChevronRight size={15} className={`flex-shrink-0 self-center text-gray-300 dark:text-gray-700 transition-transform ${selected ? 'rotate-90 text-[#A0792E]' : ''}`} />
       </div>
     </button>
   )
@@ -204,7 +204,7 @@ function DrawerTabBtn({ active, onClick, children }: { active: boolean; onClick:
     <button
       onClick={onClick}
       className={`flex-1 px-2 py-2 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors
-        ${active ? 'border-b-2 border-[#B8860B] text-[#B8860B]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 border-b-2 border-transparent'}`}
+        ${active ? 'border-b-2 border-[#A0792E] text-[#A0792E]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 border-b-2 border-transparent'}`}
     >
       {children}
     </button>
@@ -229,7 +229,7 @@ function CatalogoTab({ lots }: { lots: LoteCatalogo[] }) {
         ]).map(({ key, label }) => (
           <button key={key} onClick={() => setFiltro(key)}
             className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all
-              ${filtro === key ? 'bg-[#B8860B] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400 hover:text-[#B8860B]'}`}>
+              ${filtro === key ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400 hover:text-[#A0792E]'}`}>
             {label}
           </button>
         ))}
@@ -238,11 +238,11 @@ function CatalogoTab({ lots }: { lots: LoteCatalogo[] }) {
         {filtered.map(lot => (
           <div key={lot.lote}
             className={`rounded-xl border p-3 ${lot.vendido
-              ? 'border-[#B8860B]/30 bg-[#B8860B]/4 dark:bg-[#B8860B]/6'
+              ? 'border-[#A0792E]/30 bg-[#A0792E]/4 dark:bg-[#A0792E]/6'
               : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'}`}>
             <div className="flex items-start gap-3">
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0
-                ${lot.vendido ? 'bg-[#B8860B] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400'}`}>
+                ${lot.vendido ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400'}`}>
                 {lot.lote}
               </div>
               <div className="flex-1 min-w-0 space-y-1.5">
@@ -273,8 +273,8 @@ function CatalogoTab({ lots }: { lots: LoteCatalogo[] }) {
               </div>
               {lot.vendido && lot.fazenda && (
                 <div className="flex-shrink-0 text-right">
-                  <p className="text-[9px] font-bold text-[#B8860B] truncate max-w-[90px]">{lot.fazenda}</p>
-                  {lot.uf && <span className="text-[9px] px-1 py-0.5 rounded bg-[#B8860B]/10 text-[#B8860B] font-bold">{lot.uf}</span>}
+                  <p className="text-[9px] font-bold text-[#A0792E] truncate max-w-[90px]">{lot.fazenda}</p>
+                  {lot.uf && <span className="text-[9px] px-1 py-0.5 rounded bg-[#A0792E]/10 text-[#A0792E] font-bold">{lot.uf}</span>}
                   {lot.assessor && <p className="text-[9px] text-gray-400 mt-0.5">{lot.assessor.split(' ')[0]}</p>}
                 </div>
               )}
@@ -298,7 +298,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
   const maxVgvEstado = f.por_estado.length ? Math.max(...f.por_estado.map(e => e.vgv)) : 1
 
   const EMPRESA_COLORS: Record<string, string> = {
-    'Bula Remates': '#B8860B',
+    'Bula Remates': '#A0792E',
     'Fórmula do Boi': '#4A8FBF',
   }
 
@@ -313,16 +313,16 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
       >
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white dark:bg-[#111111] border-b border-gray-100 dark:border-[#1E1E1E] px-6 py-4 flex items-start gap-4">
-          <div className="flex flex-col items-center justify-center w-14 h-14 rounded-xl border border-[#B8860B]/30 bg-[#B8860B]/8 flex-shrink-0">
-            <span className="text-[#B8860B] font-black text-xl leading-none">{dt.dia}</span>
-            <span className="text-[#B8860B]/70 text-[10px] font-bold uppercase tracking-wider mt-0.5">{dt.mes}</span>
+          <div className="flex flex-col items-center justify-center w-14 h-14 rounded-xl border border-[#A0792E]/30 bg-[#A0792E]/8 flex-shrink-0">
+            <span className="text-[#A0792E] font-black text-xl leading-none">{dt.dia}</span>
+            <span className="text-[#A0792E]/70 text-[10px] font-bold uppercase tracking-wider mt-0.5">{dt.mes}</span>
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="font-black text-gray-900 dark:text-white text-base leading-tight uppercase">{f.nome}</h2>
             {f.local && <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1"><MapPin size={10} />{f.local}</p>}
             <div className="flex items-center gap-2 mt-1.5">
               <div className="flex-1 max-w-32 bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-1.5 overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 60 ? '#22c55e' : '#B8860B' }} />
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 60 ? '#22c55e' : '#A0792E' }} />
               </div>
               <span className="text-[10px] font-bold text-gray-500">{f.lotes_vendidos}/{f.lotes_ofertados} lotes · {pct}%</span>
             </div>
@@ -360,12 +360,12 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                   { icon: MapPin, label: 'Estados Alcançados', value: f.estados_alcancados.toString(), sub: f.por_estado.map(e => e.uf).join(' · ') || undefined },
                   { icon: Award, label: 'Comissão Assessoria', value: f.comissao_assessoria ? R(f.comissao_assessoria) : '—' },
                 ].map(({ icon: Icon, label, value, sub, gold }) => (
-                  <div key={label} className={`rounded-xl border p-3.5 ${gold ? 'border-[#B8860B]/30 bg-[#B8860B]/8' : 'border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#151515]'}`}>
+                  <div key={label} className={`rounded-xl border p-3.5 ${gold ? 'border-[#A0792E]/30 bg-[#A0792E]/8' : 'border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#151515]'}`}>
                     <div className="flex items-center gap-1.5 mb-1.5">
-                      <Icon size={11} className={gold ? 'text-[#B8860B]' : 'text-gray-400'} />
+                      <Icon size={11} className={gold ? 'text-[#A0792E]' : 'text-gray-400'} />
                       <span className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
                     </div>
-                    <p className={`text-lg font-black leading-tight ${gold ? 'text-[#B8860B]' : 'text-gray-900 dark:text-white'}`}>{value}</p>
+                    <p className={`text-lg font-black leading-tight ${gold ? 'text-[#A0792E]' : 'text-gray-900 dark:text-white'}`}>{value}</p>
                     {sub && <p className="text-[9px] text-gray-400 mt-0.5">{sub}</p>}
                   </div>
                 ))}
@@ -397,11 +397,11 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                         <div key={e.empresa} className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#151515] p-3">
                           <div className="flex justify-between items-center mb-1.5">
                             <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{e.empresa}</span>
-                            <span className="text-xs font-black text-[#B8860B]">{R(e.vgv)}</span>
+                            <span className="text-xs font-black text-[#A0792E]">{R(e.vgv)}</span>
                           </div>
                           <div className="h-1.5 rounded-full bg-gray-200 dark:bg-[#1A1A1A] mb-1.5 overflow-hidden">
                             <div className="h-full rounded-full transition-all"
-                              style={{ width: `${(e.vgv / maxVgvE) * 100}%`, background: EMPRESA_COLORS[e.empresa] ?? '#B8860B' }} />
+                              style={{ width: `${(e.vgv / maxVgvE) * 100}%`, background: EMPRESA_COLORS[e.empresa] ?? '#A0792E' }} />
                           </div>
                           <div className="flex gap-3 text-[9px] text-gray-400">
                             <span>{PCT(e.pct_total)} do total</span>
@@ -434,7 +434,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                 <div key={a.nome} className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-4">
                   <div className="flex items-start gap-3 mb-3">
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0
-                      ${i === 0 ? 'bg-[#B8860B] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400'}`}>
+                      ${i === 0 ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400'}`}>
                       {i === 0 ? <Star size={16} /> : a.posicao}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -442,14 +442,14 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                       <p className="text-[10px] text-gray-400 uppercase tracking-wide">{a.empresa}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-black text-[#B8860B] text-base">{R(a.vgv)}</p>
+                      <p className="font-black text-[#A0792E] text-base">{R(a.vgv)}</p>
                       <p className="text-[10px] text-gray-400">{PCT(a.pct_total)} do total</p>
                     </div>
                   </div>
                   {/* VGV bar */}
                   <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] mb-3 overflow-hidden">
                     <div className="h-full rounded-full transition-all"
-                      style={{ width: `${(a.vgv / maxVgv) * 100}%`, background: EMPRESA_COLORS[a.empresa] ?? '#B8860B' }} />
+                      style={{ width: `${(a.vgv / maxVgv) * 100}%`, background: EMPRESA_COLORS[a.empresa] ?? '#A0792E' }} />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -478,7 +478,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                   {f.compradores.map(c => (
                     <div key={c.rank} className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-3.5">
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0
-                        ${c.rank === 1 ? 'bg-[#B8860B] text-black' : c.rank === 2 ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200' : c.rank === 3 ? 'bg-amber-700 text-white' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500'}`}>
+                        ${c.rank === 1 ? 'bg-[#A0792E] text-black' : c.rank === 2 ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200' : c.rank === 3 ? 'bg-amber-700 text-white' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500'}`}>
                         {c.rank}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -490,7 +490,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="font-black text-[#B8860B] text-sm">{R(c.vgv)}</p>
+                        <p className="font-black text-[#A0792E] text-sm">{R(c.vgv)}</p>
                       </div>
                     </div>
                   ))}
@@ -516,8 +516,8 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
                       {f.lances.map((l, i) => (
-                        <tr key={i} className="bg-white dark:bg-[#111111] hover:bg-[#B8860B]/3 transition-colors">
-                          <td className="px-3 py-2.5 font-bold text-[#B8860B] whitespace-nowrap">{l.lote}</td>
+                        <tr key={i} className="bg-white dark:bg-[#111111] hover:bg-[#A0792E]/3 transition-colors">
+                          <td className="px-3 py-2.5 font-bold text-[#A0792E] whitespace-nowrap">{l.lote}</td>
                           <td className="px-3 py-2.5 max-w-[160px]">
                             <p className="font-semibold text-gray-900 dark:text-white truncate">{l.fazenda}</p>
                             {l.comprador !== l.fazenda && <p className="text-gray-400 truncate">{l.comprador}</p>}
@@ -533,7 +533,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                           <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-gray-700 dark:text-gray-300">
                             {l.parcela ? `R$ ${l.parcela.toLocaleString('pt-BR')}` : '—'}
                           </td>
-                          <td className="px-3 py-2.5 whitespace-nowrap font-black text-[#B8860B]">{R(l.vgv)}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-black text-[#A0792E]">{R(l.vgv)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -544,7 +544,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                           {f.lances.reduce((s, l) => s + l.animais, 0)}
                         </td>
                         <td></td>
-                        <td className="px-3 py-2.5 font-black text-[#B8860B]">
+                        <td className="px-3 py-2.5 font-black text-[#A0792E]">
                           {R(f.lances.reduce((s, l) => s + l.vgv, 0))}
                         </td>
                       </tr>
@@ -563,20 +563,20 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
               ) : f.por_estado.map(e => (
                 <div key={e.uf} className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-4">
                   <div className="flex items-center gap-3 mb-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-[#B8860B]/10 flex items-center justify-center flex-shrink-0">
-                      <span className="text-[#B8860B] font-black text-xs">{e.uf}</span>
+                    <div className="w-10 h-10 rounded-xl bg-[#A0792E]/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[#A0792E] font-black text-xs">{e.uf}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-gray-900 dark:text-white text-sm">{e.estado}</p>
                       <p className="text-[10px] text-gray-400">{e.lotes} lote{e.lotes !== 1 ? 's' : ''} · {e.animais} animal{e.animais !== 1 ? 'is' : ''}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-black text-[#B8860B] text-sm">{R(e.vgv)}</p>
+                      <p className="font-black text-[#A0792E] text-sm">{R(e.vgv)}</p>
                       <p className="text-[10px] text-gray-400">{PCT(e.pct_total)} do total</p>
                     </div>
                   </div>
                   <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${(e.vgv / maxVgvEstado) * 100}%`, background: '#B8860B' }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${(e.vgv / maxVgvEstado) * 100}%`, background: '#A0792E' }} />
                   </div>
                 </div>
               ))}
@@ -643,7 +643,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                         return (
                           <tr key={idx.fonte} className="bg-white dark:bg-[#111111]">
                             <td className="px-3 py-3 font-semibold text-gray-800 dark:text-gray-200">{idx.fonte}</td>
-                            <td className="px-3 py-3 font-black text-[#B8860B]">{idx.media_vendida}</td>
+                            <td className="px-3 py-3 font-black text-[#A0792E]">{idx.media_vendida}</td>
                             <td className="px-3 py-3 text-gray-600 dark:text-gray-400">{idx.media_catalogo}</td>
                             <td className="px-3 py-3">
                               <span className={`inline-flex items-center gap-1 font-bold
@@ -677,12 +677,12 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                             <p className="text-[10px] text-gray-400">{s.observacao}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-black text-[#B8860B] text-lg">{s.quantidade}</p>
+                            <p className="font-black text-[#A0792E] text-lg">{s.quantidade}</p>
                             <p className="text-[10px] text-gray-400">{PCT(s.pct)}</p>
                           </div>
                         </div>
                         <div className="h-2 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: PCT(s.pct), background: '#B8860B' }} />
+                          <div className="h-full rounded-full" style={{ width: PCT(s.pct), background: '#A0792E' }} />
                         </div>
                       </div>
                     ))}
@@ -704,7 +704,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
           <button onClick={onDelete} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-red-100 dark:border-red-500/20 transition-colors">
             <Trash2 size={14} /> Excluir
           </button>
-          <button onClick={onEdit} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#B8860B] hover:bg-[#D4AF37] text-black text-sm font-semibold transition-colors">
+          <button onClick={onEdit} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#A0792E] hover:bg-[#D4A85C] text-black text-sm font-semibold transition-colors">
             <Edit2 size={14} /> Editar
           </button>
         </div>
@@ -766,7 +766,7 @@ function RowCard({ title, onRemove, children }: { title: string; onRemove: () =>
 function AddRowButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick}
-      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#B8860B]/10 hover:bg-[#B8860B]/20 text-[#B8860B] text-[10px] font-bold uppercase tracking-wide transition-colors">
+      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#A0792E]/10 hover:bg-[#A0792E]/20 text-[#A0792E] text-[10px] font-bold uppercase tracking-wide transition-colors">
       <Plus size={12} /> {label}
     </button>
   )
@@ -844,7 +844,7 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
           {FORM_TABS.map(t => (
             <button key={t.key} onClick={() => setFormTab(t.key)}
               className={`px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors
-                ${formTab === t.key ? 'border-b-2 border-[#B8860B] text-[#B8860B]' : 'text-gray-400 hover:text-gray-600 border-b-2 border-transparent'}`}>
+                ${formTab === t.key ? 'border-b-2 border-[#A0792E] text-[#A0792E]' : 'text-gray-400 hover:text-gray-600 border-b-2 border-transparent'}`}>
               {t.label}
             </button>
           ))}
@@ -1051,7 +1051,7 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
 
         <div className="px-6 py-4 border-t border-gray-100 dark:border-[#1E1E1E] flex justify-end gap-3 flex-shrink-0">
           <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors">Cancelar</button>
-          <button onClick={handleSubmit} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#B8860B] hover:bg-[#D4AF37] text-black text-sm font-semibold disabled:opacity-50 transition-colors">
+          <button onClick={handleSubmit} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#A0792E] hover:bg-[#D4A85C] text-black text-sm font-semibold disabled:opacity-50 transition-colors">
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {isEdit ? 'Salvar alterações' : 'Criar fechamento'}
           </button>
@@ -1116,7 +1116,7 @@ export default function FechamentoView() {
         </div>
         <button
           onClick={() => { setEditItem(null); setShowForm(true) }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#B8860B]/20"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#A0792E]/20"
         >
           <Plus size={16} /> Novo Fechamento
         </button>
@@ -1137,7 +1137,7 @@ export default function FechamentoView() {
       {/* Content */}
       {loading ? (
         <div className="flex items-center justify-center py-24">
-          <Loader2 size={28} className="animate-spin text-[#B8860B]" />
+          <Loader2 size={28} className="animate-spin text-[#A0792E]" />
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
@@ -1150,7 +1150,7 @@ export default function FechamentoView() {
           </div>
           <button
             onClick={() => { setEditItem(null); setShowForm(true) }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#B8860B] hover:bg-[#D4AF37] text-black rounded-xl font-semibold text-sm transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] text-black rounded-xl font-semibold text-sm transition-colors"
           >
             <Plus size={15} /> Adicionar primeiro fechamento
           </button>

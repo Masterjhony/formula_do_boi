@@ -45,7 +45,7 @@ export default function RankingCard({ product, rank, activeMetric, isSelected, o
 
     // Determine badge color based on rank
     const rankBadgeColor =
-        rank === 1 ? "bg-[#FFD700] text-black border-[#DAA520]" : // Gold
+        rank === 1 ? "bg-[#E8CB85] text-black border-[#A0792E]" : // Gold
             rank === 2 ? "bg-[#C0C0C0] text-black border-[#A9A9A9]" : // Silver
                 rank === 3 ? "bg-[#CD7F32] text-white border-[#8B4513]" : // Bronze
                     "bg-gray-100 text-gray-500 border-gray-200"; // Others

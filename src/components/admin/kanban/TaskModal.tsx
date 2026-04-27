@@ -226,7 +226,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
         <div>
             <div className="flex justify-between items-center mb-1">
                 <label className="text-xs text-gray-500 dark:text-gray-400">{label}</label>
-                <span className="text-xs font-bold text-[#B8860B]">{value}/10</span>
+                <span className="text-xs font-bold text-[#A0792E]">{value}/10</span>
             </div>
             <input
                 type="range"
@@ -234,7 +234,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                 max={10}
                 value={value}
                 onChange={e => onChange(parseInt(e.target.value))}
-                className="w-full h-1.5 rounded-full appearance-none bg-gray-200 dark:bg-[#222222] accent-[#B8860B]"
+                className="w-full h-1.5 rounded-full appearance-none bg-gray-200 dark:bg-[#222222] accent-[#A0792E]"
             />
         </div>
     );
@@ -271,7 +271,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                             type="button"
                             onClick={() => setActiveSection(s.key)}
                             className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeSection === s.key
-                                ? 'border-[#B8860B] text-[#B8860B]'
+                                ? 'border-[#A0792E] text-[#A0792E]'
                                 : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                 }`}
                         >
@@ -292,7 +292,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                     required
                                     value={title}
                                     onChange={e => setTitle(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-400"
                                     placeholder="Ex: Atualizar contrato..."
                                 />
                             </div>
@@ -304,7 +304,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                         value={description}
                                         onChange={e => setDescription(e.target.value)}
                                         rows={3}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-400 resize-none"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-400 resize-none"
                                         placeholder="Detalhes da tarefa..."
                                     />
                                 </div>
@@ -312,7 +312,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
                                     <select value={status} onChange={e => setStatus(e.target.value)}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white">
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white">
                                         {columns.map(col => <option key={col.title} value={col.title}>{col.title}</option>)}
                                     </select>
                                 </div>
@@ -320,7 +320,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prioridade</label>
                                     <select value={priority} onChange={e => setPriority(e.target.value)}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white">
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white">
                                         <option value="Baixa">Baixa</option>
                                         <option value="Média">Média</option>
                                         <option value="Alta">Alta 🔥</option>
@@ -332,7 +332,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                     <div className="relative">
                                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white" />
+                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white" />
                                     </div>
                                 </div>
 
@@ -341,16 +341,16 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                     <div className="relative">
                                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white" />
+                                            className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white" />
                                     </div>
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
-                                        <Map size={14} className="text-[#B8860B]" /> Etapa Estratégica
+                                        <Map size={14} className="text-[#A0792E]" /> Etapa Estratégica
                                     </label>
                                     <select value={strategicStage} onChange={e => setStrategicStage(e.target.value)}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white">
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white">
                                         {STRATEGIC_STAGES.map(s => <option key={s} value={s}>{s || '— Nenhuma —'}</option>)}
                                     </select>
                                 </div>
@@ -363,7 +363,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                             {members.map(m => (
                                                 <label key={m.id} className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-lg cursor-pointer transition-colors">
                                                     <input type="checkbox" checked={assignees.includes(m.name)} onChange={() => toggleAssignee(m.name)}
-                                                        className="w-4 h-4 text-[#B8860B] border-gray-300 rounded focus:ring-[#B8860B]" />
+                                                        className="w-4 h-4 text-[#A0792E] border-gray-300 rounded focus:ring-[#A0792E]" />
                                                     <div className="flex items-center gap-2">
                                                         <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-black shrink-0"
                                                             style={{ backgroundColor: m.avatar_color }}>
@@ -389,14 +389,14 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                             {otherTasks.length > 0 && (
                                 <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
                                     <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-3">
-                                        <Link size={16} className="text-[#B8860B]" /> Depende de
+                                        <Link size={16} className="text-[#A0792E]" /> Depende de
                                         {dependsOn.length > 0 && <span className="text-xs text-gray-400">({dependsOn.length} selecionada{dependsOn.length > 1 ? 's' : ''})</span>}
                                     </label>
                                     <div className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-3 max-h-40 overflow-y-auto space-y-1.5 custom-scrollbar">
                                         {otherTasks.map(t => (
                                             <label key={t.id} className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-lg cursor-pointer transition-colors">
                                                 <input type="checkbox" checked={dependsOn.includes(t.id)} onChange={() => toggleDependency(t.id)}
-                                                    className="w-4 h-4 text-[#B8860B] border-gray-300 rounded focus:ring-[#B8860B]" />
+                                                    className="w-4 h-4 text-[#A0792E] border-gray-300 rounded focus:ring-[#A0792E]" />
                                                 <div className="flex-1 min-w-0">
                                                     <span className="text-sm text-gray-700 dark:text-gray-300 truncate block">{t.title}</span>
                                                     <span className="text-[10px] text-gray-400">{t.status} · {t.priority}</span>
@@ -410,7 +410,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                             {/* Checklists */}
                             <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
                                 <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-4">
-                                    <CheckCircle2 size={18} className="text-[#B8860B]" /> Checklist
+                                    <CheckCircle2 size={18} className="text-[#A0792E]" /> Checklist
                                 </label>
                                 <div className="flex items-center gap-2 mb-4">
                                     <input
@@ -418,7 +418,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                         value={newChecklistTitle}
                                         onChange={e => setNewChecklistTitle(e.target.value)}
                                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addChecklistItem(); } }}
-                                        className="flex-1 px-4 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-lg focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-500 text-sm"
+                                        className="flex-1 px-4 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-lg focus:ring-2 focus:ring-[#A0792E] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-500 text-sm"
                                         placeholder="Adicionar item..."
                                     />
                                     <button type="button" onClick={addChecklistItem} disabled={!newChecklistTitle.trim()}
@@ -430,7 +430,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                     {checklists.map(check => (
                                         <div key={check.id} className="flex items-start gap-3 group">
                                             <button type="button" className="mt-1 flex-shrink-0" onClick={() => setChecklists(c => c.map(ci => ci.id === check.id ? { ...ci, completed: !ci.completed } : ci))}>
-                                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${check.completed ? 'bg-[#B8860B] border-[#B8860B] text-black' : 'border-gray-300 dark:border-gray-600'}`}>
+                                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${check.completed ? 'bg-[#A0792E] border-[#A0792E] text-black' : 'border-gray-300 dark:border-gray-600'}`}>
                                                     {check.completed && <CheckCircle2 size={14} />}
                                                 </div>
                                             </button>
@@ -449,9 +449,9 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                     {/* ── ICE SCORING TAB ───────────────────────────────────── */}
                     {activeSection === 'scoring' && (
                         <div className="space-y-6">
-                            <div className="bg-gradient-to-r from-[#B8860B]/10 to-[#D4AF37]/5 border border-[#B8860B]/20 rounded-2xl p-5 text-center">
+                            <div className="bg-gradient-to-r from-[#A0792E]/10 to-[#D4A85C]/5 border border-[#A0792E]/20 rounded-2xl p-5 text-center">
                                 <p className="text-sm text-gray-500 mb-1">ICE Score</p>
-                                <p className="text-4xl font-bold text-[#B8860B]">{iceScore}</p>
+                                <p className="text-4xl font-bold text-[#A0792E]">{iceScore}</p>
                                 <p className="text-xs text-gray-400 mt-1">Impacto × Confiança × Facilidade</p>
                                 <div className="flex justify-center gap-2 mt-3 flex-wrap">
                                     {iceScore >= 500 && <span className="px-2 py-1 text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 rounded-md">Alta Prioridade</span>}
@@ -463,7 +463,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                             <div className="bg-white dark:bg-[#111111] rounded-2xl p-5 border border-gray-200 dark:border-[#222222] space-y-5">
                                 <div>
                                     <div className="flex items-center gap-2 mb-3">
-                                        <Zap size={16} className="text-[#B8860B]" />
+                                        <Zap size={16} className="text-[#A0792E]" />
                                         <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Metodologia ICE</h3>
                                     </div>
                                     <p className="text-xs text-gray-500 leading-relaxed">
@@ -505,7 +505,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                 comments.map(comment => (
                                     <div key={comment.id} className="bg-gray-50 dark:bg-[#111111] p-3 rounded-lg border border-gray-100 dark:border-[#222222]">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-[9px] font-bold text-black min-w-[20px]">
+                                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#A0792E] to-[#9A7209] flex items-center justify-center text-[9px] font-bold text-black min-w-[20px]">
                                                 {(comment.profiles?.full_name || comment.profiles?.email || '?').charAt(0).toUpperCase()}
                                             </div>
                                             <span className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -523,12 +523,12 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                 <textarea
                                     value={newComment}
                                     onChange={e => setNewComment(e.target.value)}
-                                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-lg focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-500 text-sm resize-none custom-scrollbar"
+                                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-lg focus:ring-2 focus:ring-[#A0792E] focus:border-transparent transition-all outline-none text-gray-900 dark:text-white placeholder-gray-500 text-sm resize-none custom-scrollbar"
                                     placeholder="Escreva um comentário..."
                                     rows={2}
                                 />
                                 <button type="button" onClick={handleSendComment} disabled={!newComment.trim() || isSendingComment}
-                                    className="p-2.5 bg-[#B8860B] text-black rounded-lg hover:bg-[#D4AF37] transition-colors disabled:opacity-50 flex items-center justify-center shrink-0 mb-0.5">
+                                    className="p-2.5 bg-[#A0792E] text-black rounded-lg hover:bg-[#D4A85C] transition-colors disabled:opacity-50 flex items-center justify-center shrink-0 mb-0.5">
                                     {isSendingComment ? <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Send size={16} />}
                                 </button>
                             </div>
@@ -558,14 +558,14 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                 <div className="space-y-2">
                                     {attachments.map(att => (
                                         <div key={att.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#111111] border border-gray-100 dark:border-[#222222] rounded-lg group">
-                                            <span className="text-[#B8860B] shrink-0">{getFileIcon(att.file_type)}</span>
+                                            <span className="text-[#A0792E] shrink-0">{getFileIcon(att.file_type)}</span>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{att.file_name}</p>
                                                 {att.file_size && <p className="text-[11px] text-gray-400">{formatFileSize(att.file_size)}</p>}
                                             </div>
                                             <div className="flex items-center gap-1 shrink-0">
                                                 <a href={att.file_url} target="_blank" rel="noopener noreferrer" download={att.file_name}
-                                                    className="p-1.5 text-gray-400 hover:text-[#B8860B] rounded-md transition-colors" title="Baixar">
+                                                    className="p-1.5 text-gray-400 hover:text-[#A0792E] rounded-md transition-colors" title="Baixar">
                                                     <Download size={15} />
                                                 </a>
                                                 <button type="button" onClick={() => handleDeleteAttachment(att)}
@@ -601,7 +601,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                         </button>
                     </div>
                     <button type="submit" form="task-form" disabled={isSaving}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-bold shadow-lg shadow-[#B8860B]/20 hover:shadow-[#B8860B]/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black font-bold shadow-lg shadow-[#A0792E]/20 hover:shadow-[#A0792E]/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                         {isSaving ? <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <><Save size={18} /> Salvar</>}
                     </button>
                 </div>

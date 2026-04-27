@@ -69,7 +69,7 @@ export function FunnelMetrics({ leads, stages }: FunnelMetricsProps) {
             value: fmtBRL(weightedForecast),
             sub: 'valor × probabilidade',
             icon: TrendingUp,
-            color: 'text-[#B8860B] bg-[#B8860B]/10',
+            color: 'text-[#A0792E] bg-[#A0792E]/10',
         },
         {
             label: 'Taxa de conversão',

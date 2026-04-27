@@ -16,7 +16,11 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        const { nome, email, tel, uf, cidade, momento_pecuaria, quantidade_cabecas } = body;
+        const {
+            nome, email, tel, uf, cidade, momento_pecuaria, quantidade_cabecas,
+            utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+            gclid, fbclid, referrer, landing_url,
+        } = body;
 
         if (!nome || !email || !tel || !uf || !cidade || !momento_pecuaria || !quantidade_cabecas) {
             return NextResponse.json({ error: 'Todos os campos são obrigatórios' }, { status: 400 });
@@ -31,6 +35,14 @@ export async function POST(request: NextRequest) {
             .limit(1);
 
         const position = (maxPosData?.[0]?.position || 0) + 1000;
+
+        // Default attribution quando UTMs ausentes — marca origem como tráfego direto da LP
+        // ao invés de deixar NULL, facilitando análise no CRM e no Sheets.
+        const attrSource   = utm_source   || (referrer ? 'referral' : 'direct');
+        const attrMedium   = utm_medium   || (gclid ? 'cpc' : fbclid ? 'paid_social' : 'organic');
+        const attrCampaign = utm_campaign || '(not set)';
+        const attrContent  = utm_content  || null;
+        const attrTerm     = utm_term     || null;
 
         const notesLines = [
             `Momento na pecuária: ${momento_pecuaria}`,
@@ -54,6 +66,15 @@ export async function POST(request: NextRequest) {
                 estado: uf,
                 cidade,
                 source_page: 'lp.formuladoboi.com',
+                source:      attrSource,
+                medium:      attrMedium,
+                campaign:    attrCampaign,
+                utm_content: attrContent,
+                utm_term:    attrTerm,
+                gclid:       gclid || null,
+                fbclid:      fbclid || null,
+                referrer:    referrer || null,
+                landing_url: landing_url || null,
             })
             .select()
             .single();
@@ -138,9 +159,15 @@ export async function POST(request: NextRequest) {
 
                 const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
+                // Estendido para A:R — adiciona UTMs e referrer ao final (L..R).
+                // Cabeçalho esperado na linha 1 (criar/atualizar manualmente uma vez):
+                //   A=Data/Hora B=Nome C=Email D=Telefone E=Cabeças F=(reservado)
+                //   G=Momento H=(reservado) I=(reservado) J=UF K=Cidade
+                //   L=utm_source M=utm_medium N=utm_campaign O=utm_content P=utm_term
+                //   Q=gclid/fbclid R=referrer
                 await sheets.spreadsheets.values.append({
                     spreadsheetId: SPREADSHEET_ID,
-                    range: `${SHEET_NAME}!A:K`,
+                    range: `${SHEET_NAME}!A:R`,
                     valueInputOption: 'USER_ENTERED',
                     requestBody: {
                         values: [[
@@ -155,6 +182,13 @@ export async function POST(request: NextRequest) {
                             '',
                             uf,
                             cidade,
+                            attrSource,
+                            attrMedium,
+                            attrCampaign,
+                            attrContent || '',
+                            attrTerm || '',
+                            gclid || fbclid || '',
+                            referrer || '',
                         ]],
                     },
                 });

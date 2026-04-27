@@ -26,10 +26,10 @@ export default async function ProposalsPage() {
                 {proposals?.map((proposal) => {
                     const product = PRODUCTS.find(p => p.id === proposal.animal_id)
                     return (
-                        <div key={proposal.id} className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group hover:border-[#B8860B]/30 transition-colors shadow-sm dark:shadow-none">
+                        <div key={proposal.id} className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group hover:border-[#A0792E]/30 transition-colors shadow-sm dark:shadow-none">
                             <div className="flex items-start gap-4">
-                                <div className="p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl group-hover:bg-[#B8860B]/10 transition-colors">
-                                    <FileText className="w-6 h-6 text-[#B8860B]" />
+                                <div className="p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl group-hover:bg-[#A0792E]/10 transition-colors">
+                                    <FileText className="w-6 h-6 text-[#A0792E]" />
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
@@ -58,7 +58,7 @@ export default async function ProposalsPage() {
                                 </span>
                                 <Link
                                     href={`/lote/${proposal.animal_id}`}
-                                    className="p-2 bg-gray-100 dark:bg-[#1A1A1A] hover:bg-[#B8860B] hover:text-black dark:text-white dark:hover:text-black rounded-lg transition-colors group-hover:translate-x-1 duration-300"
+                                    className="p-2 bg-gray-100 dark:bg-[#1A1A1A] hover:bg-[#A0792E] hover:text-black dark:text-white dark:hover:text-black rounded-lg transition-colors group-hover:translate-x-1 duration-300"
                                 >
                                     <ArrowUpRight className="w-5 h-5" />
                                 </Link>
@@ -72,7 +72,7 @@ export default async function ProposalsPage() {
                         <FileText className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Nenhuma proposta encontrada</h3>
                         <p className="text-gray-500 mb-6">Você ainda não realizou nenhuma proposta nos nossos leilões.</p>
-                        <Link href="/touros" className="inline-flex items-center justify-center px-6 py-3 bg-[#B8860B] hover:bg-[#D4AF37] text-black font-bold rounded-xl transition-all">
+                        <Link href="/touros" className="inline-flex items-center justify-center px-6 py-3 bg-[#A0792E] hover:bg-[#D4A85C] text-black font-bold rounded-xl transition-all">
                             Ver Lotes Disponíveis
                         </Link>
                     </div>

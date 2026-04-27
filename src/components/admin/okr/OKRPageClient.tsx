@@ -183,7 +183,7 @@ export function OKRPageClient({
         <div className="h-full flex flex-col bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#1E1E1E] overflow-hidden shadow-sm">
 
             {/* Gold accent line */}
-            <div className="h-[3px] bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#B8860B]/10 shrink-0" />
+            <div className="h-[3px] bg-gradient-to-r from-[#A0792E] via-[#D4A85C] to-[#A0792E]/10 shrink-0" />
 
             {/* Header */}
             <div className="px-6 pt-5 pb-0 shrink-0 border-b border-gray-100 dark:border-[#1A1A1A]">
@@ -192,10 +192,10 @@ export function OKRPageClient({
                     <div>
                         <div className="flex items-center gap-2 mb-1.5">
                             <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B8860B] opacity-60" />
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#B8860B]" />
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A0792E] opacity-60" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#A0792E]" />
                             </span>
-                            <span className="text-[10px] font-bold text-[#B8860B] uppercase tracking-[0.18em]">
+                            <span className="text-[10px] font-bold text-[#A0792E] uppercase tracking-[0.18em]">
                                 Painel Estratégico
                             </span>
                         </div>
@@ -262,7 +262,7 @@ export function OKRPageClient({
                             onClick={() => setTab(t.key)}
                             className={`relative flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-all border-b-2 whitespace-nowrap ${
                                 tab === t.key
-                                    ? 'border-[#B8860B] text-[#B8860B] dark:text-[#D4AF37]'
+                                    ? 'border-[#A0792E] text-[#A0792E] dark:text-[#D4A85C]'
                                     : 'border-transparent text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-200 dark:hover:border-[#2a2a2a]'
                             }`}
                         >
@@ -272,7 +272,7 @@ export function OKRPageClient({
                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-tight ${
                                     t.alertBadge
                                         ? 'bg-red-500/10 text-red-600 dark:text-red-400'
-                                        : 'bg-[#B8860B]/10 text-[#B8860B]'
+                                        : 'bg-[#A0792E]/10 text-[#A0792E]'
                                 }`}>
                                     {t.badge}
                                 </span>

@@ -397,7 +397,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                 <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-3 md:gap-4">
                     <div>
                         <div className="flex items-center gap-3 text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest">
-                            <Link href="/web-erp/financeiro" className="hover:text-[#D4AF37] transition-colors">Financeiro</Link>
+                            <Link href="/web-erp/financeiro" className="hover:text-[#D4A85C] transition-colors">Financeiro</Link>
                             <ChevronRight className="w-3 h-3" />
                             <span className={accent.text}>{cfg.title}</span>
                         </div>
@@ -411,20 +411,20 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                     <div className="flex flex-wrap gap-2 w-full md:w-auto">
                         <Link
                             href={cfg.routeOther}
-                            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/40 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
+                            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4A85C]/40 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
                         >
                             <CircleDollarSign className="w-4 h-4" /> {cfg.routeOtherLabel}
                         </Link>
                         <button
                             onClick={handleExport}
-                            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/40 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
+                            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4A85C]/40 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
                             title="Exportar lista filtrada para CSV"
                         >
                             <FileDown className="w-4 h-4" /> CSV
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="hidden sm:flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/40 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
+                            className="hidden sm:flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#D4A85C]/40 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-xl transition-all"
                         >
                             <Printer className="w-4 h-4" /> Imprimir
                         </button>
@@ -488,7 +488,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                     {bucketFilter !== 'all' && (
                         <button
                             onClick={() => setBucketFilter('all')}
-                            className="text-xs text-[#D4AF37] font-bold hover:underline"
+                            className="text-xs text-[#D4A85C] font-bold hover:underline"
                         >Limpar filtro</button>
                     )}
                 </div>
@@ -502,7 +502,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                                 key={b}
                                 onClick={() => setBucketFilter(active ? 'all' : b)}
                                 className={`text-left p-2.5 sm:p-3 rounded-xl border transition-all ${
-                                    active ? `${BUCKET_COLORS[b]} ring-2` : 'border-gray-200 dark:border-[#222] hover:border-[#D4AF37]/40'
+                                    active ? `${BUCKET_COLORS[b]} ring-2` : 'border-gray-200 dark:border-[#222] hover:border-[#D4A85C]/40'
                                 }`}
                             >
                                 <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-gray-500 truncate">{BUCKET_LABELS[b]}</p>
@@ -522,9 +522,9 @@ export default function ContasClient({ mode, accounts, categories, transactions,
 
             {/* ── Banner leilões/fechamentos ──────────────────────────── */}
             {virtuaisCount > 0 && (
-                <div className="bg-gradient-to-r from-[#B8860B]/10 via-[#B8860B]/5 to-transparent border border-[#B8860B]/30 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 print:hidden">
+                <div className="bg-gradient-to-r from-[#A0792E]/10 via-[#A0792E]/5 to-transparent border border-[#A0792E]/30 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 print:hidden">
                     <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center shadow-lg shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A0792E] to-[#9A7209] flex items-center justify-center shadow-lg shrink-0">
                             <Gavel className="w-5 h-5 text-black" />
                         </div>
                         <div>
@@ -539,7 +539,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                     <button
                         onClick={lancarTodosVirtuais}
                         disabled={busy}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg hover:scale-105 transition-all disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#A0792E] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg hover:scale-105 transition-all disabled:opacity-50"
                     >
                         <Sparkles className="w-4 h-4" /> Lançar tudo no ERP
                     </button>
@@ -569,7 +569,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder={`Buscar por descrição, ${cfg.actionSubject}, categoria...`}
-                                className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#D4AF37]/50"
+                                className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#D4A85C]/50"
                             />
                         </div>
                     </div>
@@ -578,7 +578,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                         <select
                             value={catFilter}
                             onChange={e => setCatFilter(e.target.value)}
-                            className="px-3 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]/50"
+                            className="px-3 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4A85C]/50"
                         >
                             <option value="all">Todas categorias</option>
                             <option value="__none__">Sem categoria</option>
@@ -587,7 +587,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                         <select
                             value={accFilter}
                             onChange={e => setAccFilter(e.target.value)}
-                            className="px-3 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]/50"
+                            className="px-3 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4A85C]/50"
                         >
                             <option value="all">Todas contas</option>
                             {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -595,7 +595,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                         <select
                             value={sourceFilter}
                             onChange={e => setSourceFilter(e.target.value as any)}
-                            className="px-3 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]/50"
+                            className="px-3 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4A85C]/50"
                         >
                             <option value="all">Todas origens</option>
                             <option value="erp">ERP</option>
@@ -606,14 +606,14 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                                 type="date"
                                 value={dateFrom}
                                 onChange={e => setDateFrom(e.target.value)}
-                                className="px-2 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]/50"
+                                className="px-2 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4A85C]/50"
                             />
                             <span className="text-gray-400">→</span>
                             <input
                                 type="date"
                                 value={dateTo}
                                 onChange={e => setDateTo(e.target.value)}
-                                className="px-2 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4AF37]/50"
+                                className="px-2 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4A85C]/50"
                             />
                         </div>
                         {(search || catFilter !== 'all' || accFilter !== 'all' || sourceFilter !== 'all' || dateFrom || dateTo || bucketFilter !== 'all') && (
@@ -678,7 +678,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                         : i.status === 'virtual' ? 'Leilão' : 'Pendente';
                     const statusClass = i.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500'
                         : i.status === 'cancelled' ? 'bg-gray-500/10 text-gray-500'
-                        : i.status === 'virtual' ? 'bg-[#B8860B]/10 text-[#D4AF37]'
+                        : i.status === 'virtual' ? 'bg-[#A0792E]/10 text-[#D4A85C]'
                         : 'bg-amber-500/10 text-amber-500';
                     return (
                         <div key={i.key} className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] p-3">
@@ -688,7 +688,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                                         type="checkbox"
                                         checked={selected.has(i.key)}
                                         onChange={() => toggleSel(i.key)}
-                                        className="mt-1 accent-[#D4AF37]"
+                                        className="mt-1 accent-[#D4A85C]"
                                     />
                                 )}
                                 <div className="flex-1 min-w-0">
@@ -710,7 +710,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                                     </div>
                                     <div className="flex gap-2 mt-3 pt-2 border-t border-gray-100 dark:border-[#222]">
                                         {i.status === 'virtual' ? (
-                                            <button onClick={() => openLancar(i)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold text-black bg-gradient-to-r from-[#B8860B] to-[#9A7209]">
+                                            <button onClick={() => openLancar(i)} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold text-black bg-gradient-to-r from-[#A0792E] to-[#9A7209]">
                                                 <Sparkles className="w-3.5 h-3.5" /> Lançar
                                             </button>
                                         ) : i.status === 'pending' ? (
@@ -757,7 +757,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                                             } else setSelected(new Set());
                                         }}
                                         checked={selectedItems.length > 0 && selectedItems.length === filtered.filter(i => i.txId && i.status === 'pending').length}
-                                        className="accent-[#D4AF37]"
+                                        className="accent-[#D4A85C]"
                                     />
                                 </th>
                                 <th className="text-left px-3 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500">Vencimento</th>
@@ -941,7 +941,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                         <div className="flex gap-3 pt-2">
                             <button
                                 onClick={() => { setShowBaixa(false); openParcial(baixaItem); }}
-                                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold text-gray-500 hover:text-[#D4AF37]"
+                                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold text-gray-500 hover:text-[#D4A85C]"
                             >
                                 <SplitSquareHorizontal className="w-4 h-4" /> Parcial
                             </button>
@@ -1028,13 +1028,13 @@ export default function ContasClient({ mode, accounts, categories, transactions,
             {showLancar && lancarItem && (
                 <Modal onClose={() => setShowLancar(false)} title={`Lançar ${cfg.short === 'Receber' ? 'Receita' : 'Despesa'} no ERP`}>
                     <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-[#B8860B]/10 border border-[#B8860B]/30">
+                        <div className="p-4 rounded-xl bg-[#A0792E]/10 border border-[#A0792E]/30">
                             <div className="flex items-start gap-2">
-                                <Gavel className="w-4 h-4 text-[#D4AF37] mt-0.5" />
+                                <Gavel className="w-4 h-4 text-[#D4A85C] mt-0.5" />
                                 <div>
                                     <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Origem: Leilão</p>
                                     <p className="text-base font-bold text-gray-900 dark:text-white mt-1">{lancarItem.title}</p>
-                                    <p className="text-xl font-extrabold mt-1 text-[#D4AF37]">{fmt(lancarItem.balance)}</p>
+                                    <p className="text-xl font-extrabold mt-1 text-[#D4A85C]">{fmt(lancarItem.balance)}</p>
                                 </div>
                             </div>
                         </div>
@@ -1211,7 +1211,7 @@ function Row({
     ) : item.status === 'cancelled' ? (
         <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest bg-gray-500/10 text-gray-500 border border-gray-500/30">Cancelado</span>
     ) : item.status === 'virtual' ? (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest bg-[#B8860B]/10 text-[#D4AF37] border border-[#B8860B]/30">
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest bg-[#A0792E]/10 text-[#D4A85C] border border-[#A0792E]/30">
             <Gavel className="w-3 h-3" /> Leilão
         </span>
     ) : (
@@ -1219,14 +1219,14 @@ function Row({
     );
 
     return (
-        <tr className={`border-b border-gray-100 dark:border-[#1A1A1A] hover:bg-gray-50 dark:hover:bg-[#0F0F0F] transition-colors ${selected ? 'bg-[#D4AF37]/5' : ''}`}>
+        <tr className={`border-b border-gray-100 dark:border-[#1A1A1A] hover:bg-gray-50 dark:hover:bg-[#0F0F0F] transition-colors ${selected ? 'bg-[#D4A85C]/5' : ''}`}>
             <td className="px-3 py-3 print:hidden">
                 <input
                     type="checkbox"
                     disabled={!item.txId || item.status !== 'pending'}
                     checked={selected}
                     onChange={onToggle}
-                    className="accent-[#D4AF37] disabled:opacity-30"
+                    className="accent-[#D4A85C] disabled:opacity-30"
                 />
             </td>
             <td className="px-3 py-3 whitespace-nowrap">
@@ -1261,7 +1261,7 @@ function Row({
                     {item.status === 'virtual' ? (
                         <button
                             onClick={onLancar}
-                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-black bg-gradient-to-r from-[#B8860B] to-[#9A7209] hover:scale-105 transition-transform"
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[10px] font-bold text-black bg-gradient-to-r from-[#A0792E] to-[#9A7209] hover:scale-105 transition-transform"
                             title="Lançar no ERP"
                         >
                             <Sparkles className="w-3 h-3" /> Lançar
@@ -1275,7 +1275,7 @@ function Row({
                             >
                                 <CheckCircle2 className="w-3 h-3" /> {mode === 'receber' ? 'Receber' : 'Pagar'}
                             </button>
-                            <button onClick={onParcial} className="text-gray-400 hover:text-[#D4AF37] p-1" title="Baixa parcial">
+                            <button onClick={onParcial} className="text-gray-400 hover:text-[#D4A85C] p-1" title="Baixa parcial">
                                 <SplitSquareHorizontal className="w-4 h-4" />
                             </button>
                             <button onClick={onEdit} className="text-gray-400 hover:text-blue-500 p-1" title="Editar">

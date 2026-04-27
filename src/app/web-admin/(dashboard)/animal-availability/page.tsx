@@ -181,7 +181,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> =
 };
 
 const REGION_COLORS = [
-    '#B8860B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444',
+    '#A0792E', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444',
     '#F59E0B', '#06B6D4', '#EC4899', '#84CC16', '#F97316',
 ];
 
@@ -291,7 +291,7 @@ export default async function AnimalAvailabilityPage() {
             <div className="border-b border-gray-200 dark:border-[#222222] pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-                        <MapPin className="w-8 h-8 text-[#B8860B]" />
+                        <MapPin className="w-8 h-8 text-[#A0792E]" />
                         Disponibilidade de Animais
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400">
@@ -309,7 +309,7 @@ export default async function AnimalAvailabilityPage() {
                 <div className="col-span-2 lg:col-span-1 bg-white dark:bg-[#111111] p-5 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222222]">
-                            <Package className="w-5 h-5 text-[#B8860B]" />
+                            <Package className="w-5 h-5 text-[#A0792E]" />
                         </div>
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total</span>
                     </div>
@@ -358,14 +358,14 @@ export default async function AnimalAvailabilityPage() {
                 </div>
 
                 {/* MG */}
-                <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-[#B8860B]/30 shadow-xl">
+                <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-[#A0792E]/30 shadow-xl">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 bg-[#B8860B]/10 rounded-xl">
-                            <MapPin className="w-5 h-5 text-[#B8860B]" />
+                        <div className="p-2 bg-[#A0792E]/10 rounded-xl">
+                            <MapPin className="w-5 h-5 text-[#A0792E]" />
                         </div>
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Em MG</span>
                     </div>
-                    <p className="text-3xl font-bold text-[#B8860B]">{totalMG}</p>
+                    <p className="text-3xl font-bold text-[#A0792E]">{totalMG}</p>
                     <p className="text-xs text-gray-500 mt-1">
                         {total > 0 ? ((totalMG / total) * 100).toFixed(1) : '0.0'}% do total
                     </p>
@@ -378,7 +378,7 @@ export default async function AnimalAvailabilityPage() {
                 {/* Distribuição por Estado */}
                 <div className="bg-white dark:bg-[#111111] p-6 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-[#222222] pb-4 flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 text-[#B8860B]" />
+                        <BarChart3 className="w-5 h-5 text-[#A0792E]" />
                         Distribuição por Estado
                     </h2>
                     <div className="space-y-3">
@@ -412,9 +412,9 @@ export default async function AnimalAvailabilityPage() {
                 </div>
 
                 {/* Regiões de Minas Gerais */}
-                <div className="bg-white dark:bg-[#111111] p-6 rounded-2xl border border-[#B8860B]/20 shadow-xl">
+                <div className="bg-white dark:bg-[#111111] p-6 rounded-2xl border border-[#A0792E]/20 shadow-xl">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-[#222222] pb-4 flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-[#B8860B]" />
+                        <MapPin className="w-5 h-5 text-[#A0792E]" />
                         Regiões de Minas Gerais
                         <span className="ml-auto text-xs font-normal text-gray-500 bg-gray-100 dark:bg-[#1A1A1A] px-2 py-1 rounded-full">
                             {totalMG} animais
@@ -521,7 +521,7 @@ export default async function AnimalAvailabilityPage() {
             {sortedMGCities.length > 0 && (
                 <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden">
                     <div className="p-6 border-b border-gray-200 dark:border-[#222222] flex items-center gap-2">
-                        <List className="w-5 h-5 text-[#B8860B]" />
+                        <List className="w-5 h-5 text-[#A0792E]" />
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                             Detalhamento por Cidade — Minas Gerais
                         </h2>

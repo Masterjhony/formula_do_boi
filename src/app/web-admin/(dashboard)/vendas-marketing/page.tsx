@@ -141,7 +141,7 @@ export default async function VendasMarketingPage() {
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#B8860B]/5 to-transparent p-5">
+                <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#A0792E]/5 to-transparent p-5">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl" />
                     <div className="relative">
                         <div className="flex items-center gap-2 mb-2">

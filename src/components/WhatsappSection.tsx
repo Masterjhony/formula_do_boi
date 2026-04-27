@@ -11,13 +11,6 @@ const INK = "#0A0A0A";
 const INK_2 = "#141414";
 const FG = "#F5F0E4";
 
-const leatherTextureStyle: React.CSSProperties = {
-    backgroundImage: [
-        "repeating-linear-gradient(62deg, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px)",
-        "repeating-linear-gradient(-62deg, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px)",
-        "repeating-linear-gradient(180deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 12px)",
-    ].join(", "),
-};
 
 export default function WhatsappSection() {
     return (
@@ -35,17 +28,15 @@ export default function WhatsappSection() {
                         borderRadius: 4,
                     }}
                 >
-                    {/* Card couro escuro */}
+                    {/* Card brandbook — ink puro com hairline bronze */}
                     <div
                         className="relative w-full overflow-hidden"
                         style={{
-                            background: `linear-gradient(135deg, ${INK_2} 0%, #1F1A0E 50%, ${INK_2} 100%)`,
+                            background: INK_2,
                             boxShadow: "0 20px 60px rgba(0,0,0,0.7)",
                             borderRadius: 4,
                         }}
                     >
-                        {/* Textura de couro */}
-                        <div className="absolute inset-0" style={leatherTextureStyle} />
 
                         {/* Brilho radial bronze */}
                         <div

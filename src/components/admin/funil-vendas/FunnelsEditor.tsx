@@ -219,9 +219,9 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
         }
     };
 
-    const inputCls = 'px-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg outline-none focus:ring-2 focus:ring-[#B8860B] dark:text-white';
+    const inputCls = 'px-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg outline-none focus:ring-2 focus:ring-[#A0792E] dark:text-white';
     const btnSecondary = 'flex items-center gap-1.5 text-sm px-3 py-1.5 bg-gray-100 dark:bg-[#333] hover:bg-gray-200 dark:hover:bg-[#444] rounded-lg text-gray-700 dark:text-gray-300 transition-colors font-medium';
-    const btnGold = 'flex items-center gap-1 px-3 py-2 bg-[#B8860B] hover:bg-[#9A7209] text-black text-sm font-semibold rounded-lg transition-colors';
+    const btnGold = 'flex items-center gap-1 px-3 py-2 bg-[#A0792E] hover:bg-[#9A7209] text-black text-sm font-semibold rounded-lg transition-colors';
     const btnCancel = 'p-2 text-gray-400 hover:bg-gray-200 dark:hover:bg-[#333] rounded-lg transition-colors';
 
     return (
@@ -261,7 +261,7 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                                             type="button"
                                             onClick={() => setNewFunnelColor(c.id)}
                                             title={c.label}
-                                            className={`w-6 h-6 rounded-full ${c.dot} transition-transform ${newFunnelColor === c.id ? 'scale-125 ring-2 ring-offset-2 ring-[#B8860B]' : 'hover:scale-110'}`}
+                                            className={`w-6 h-6 rounded-full ${c.dot} transition-transform ${newFunnelColor === c.id ? 'scale-125 ring-2 ring-offset-2 ring-[#A0792E]' : 'hover:scale-110'}`}
                                         />
                                     ))}
                                 </div>
@@ -293,12 +293,12 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                                             value={funnel.name}
                                             onChange={e => renameFunnel(funnel.id, e.target.value)}
                                             onClick={e => e.stopPropagation()}
-                                            className="text-sm font-semibold text-gray-900 dark:text-white bg-transparent border-none outline-none focus:ring-2 focus:ring-[#B8860B]/40 rounded px-1 -ml-1 w-full"
+                                            className="text-sm font-semibold text-gray-900 dark:text-white bg-transparent border-none outline-none focus:ring-2 focus:ring-[#A0792E]/40 rounded px-1 -ml-1 w-full"
                                         />
                                         <p className="text-xs text-gray-400 mt-0.5">
                                             {funnel.stages.length} etapa{funnel.stages.length !== 1 ? 's' : ''}
                                             {funnel.custom_fields.length > 0 && ` · ${funnel.custom_fields.length} campo${funnel.custom_fields.length !== 1 ? 's' : ''} extra${funnel.custom_fields.length !== 1 ? 's' : ''}`}
-                                            {fi === 0 && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-[#B8860B]/10 text-[#B8860B] font-semibold">principal</span>}
+                                            {fi === 0 && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-[#A0792E]/10 text-[#A0792E] font-semibold">principal</span>}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
@@ -324,7 +324,7 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Etapas</p>
                                                 <button
                                                     onClick={() => setShowNewStage(v => !v)}
-                                                    className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] hover:border-[#B8860B] rounded-lg text-gray-600 dark:text-gray-300 transition-colors font-medium"
+                                                    className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] hover:border-[#A0792E] rounded-lg text-gray-600 dark:text-gray-300 transition-colors font-medium"
                                                 >
                                                     <Plus size={11} /> Adicionar etapa
                                                 </button>
@@ -364,7 +364,7 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                                                                     type="button"
                                                                     onClick={() => setNewStageColor(c.id)}
                                                                     title={c.label}
-                                                                    className={`w-5 h-5 rounded-full ${c.dot} transition-transform ${newStageColor === c.id ? 'scale-125 ring-2 ring-offset-1 ring-[#B8860B]' : 'hover:scale-110'}`}
+                                                                    className={`w-5 h-5 rounded-full ${c.dot} transition-transform ${newStageColor === c.id ? 'scale-125 ring-2 ring-offset-1 ring-[#A0792E]' : 'hover:scale-110'}`}
                                                                 />
                                                             ))}
                                                         </div>
@@ -403,7 +403,7 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                                                                     stage.id,
                                                                     e.target.value === '' ? null : Number(e.target.value)
                                                                 )}
-                                                                className="w-16 px-2 py-1 text-xs bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-[#333] rounded outline-none focus:ring-2 focus:ring-[#B8860B]/40 dark:text-white"
+                                                                className="w-16 px-2 py-1 text-xs bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-[#333] rounded outline-none focus:ring-2 focus:ring-[#A0792E]/40 dark:text-white"
                                                                 placeholder="—"
                                                             />
                                                             <span className="text-xs text-gray-400">%</span>
@@ -429,7 +429,7 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Campos do formulário</p>
                                                 <button
                                                     onClick={() => setShowNewField(v => !v)}
-                                                    className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] hover:border-[#B8860B] rounded-lg text-gray-600 dark:text-gray-300 transition-colors font-medium"
+                                                    className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] hover:border-[#A0792E] rounded-lg text-gray-600 dark:text-gray-300 transition-colors font-medium"
                                                 >
                                                     <Plus size={11} /> Adicionar campo
                                                 </button>
@@ -475,7 +475,7 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                                                                 type="checkbox"
                                                                 checked={newFieldRequired}
                                                                 onChange={e => setNewFieldRequired(e.target.checked)}
-                                                                className="w-4 h-4 accent-[#B8860B]"
+                                                                className="w-4 h-4 accent-[#A0792E]"
                                                             />
                                                             <label htmlFor={`req-${funnel.id}`} className="text-xs text-gray-500 cursor-pointer">Obrigatório</label>
                                                         </div>
@@ -540,7 +540,7 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg disabled:opacity-50 ${
                         saved
                             ? 'bg-green-500 text-white shadow-green-500/20'
-                            : 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#9A7209] hover:to-[#B8860B] text-black shadow-[#B8860B]/20'
+                            : 'bg-gradient-to-r from-[#A0792E] to-[#D4A85C] hover:from-[#9A7209] hover:to-[#A0792E] text-black shadow-[#A0792E]/20'
                     }`}
                 >
                     {saved ? (

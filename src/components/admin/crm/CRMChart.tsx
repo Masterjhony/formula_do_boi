@@ -39,7 +39,7 @@ const SOURCE_LABELS: Record<string, string> = {
     'facebook-ads': 'Facebook Ads',
 };
 
-function LineChart({ data, color = '#B8860B' }: { data: number[]; color?: string }) {
+function LineChart({ data, color = '#A0792E' }: { data: number[]; color?: string }) {
     if (data.length < 2) return <div className="h-20 flex items-center justify-center text-xs text-gray-400">Sem dados</div>;
 
     const W = 600;
@@ -237,7 +237,7 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
                             onClick={() => setMonthOffset(i)}
                             className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
                                 monthOffset === i
-                                    ? 'border-[#B8860B] text-gray-900 dark:text-white'
+                                    ? 'border-[#A0792E] text-gray-900 dark:text-white'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                             }`}
                         >
@@ -251,7 +251,7 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
                         { label: 'Em aberto', value: mStats.emAberto, color: 'text-orange-500' },
                         { label: 'Fechados', value: mStats.fechados, color: 'text-green-500' },
                         { label: 'Perdidos', value: mStats.perdidos, color: 'text-red-500' },
-                        { label: 'Taxa fechamento', value: `${mStats.taxa}%`, color: 'text-[#B8860B]' },
+                        { label: 'Taxa fechamento', value: `${mStats.taxa}%`, color: 'text-[#A0792E]' },
                     ].map(({ label, value, color }) => (
                         <div key={label} className="bg-gray-50 dark:bg-[#111] rounded-lg p-3">
                             <p className="text-xs text-gray-500 mb-1">{label}</p>
@@ -268,7 +268,7 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
                         <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Leads por dia</h3>
                         <span className="text-xs text-gray-400">Últimos 30 dias · máx {Math.max(...daily.days)}</span>
                     </div>
-                    <LineChart data={daily.days} color="#B8860B" />
+                    <LineChart data={daily.days} color="#A0792E" />
                     <div className="flex justify-between mt-1 px-1">
                         {daily.labels.map((lbl, i) => (i % 5 === 0 || i === 29) && (
                             <span key={i} className="text-[10px] text-gray-400">{lbl}</span>
@@ -289,7 +289,7 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
                                         <span className="text-gray-500 font-medium">{count}</span>
                                     </div>
                                     <div className="h-1.5 bg-gray-100 dark:bg-[#222] rounded-full overflow-hidden">
-                                        <div className="h-full rounded-full bg-[#B8860B]" style={{ width: `${(count / maxSource) * 100}%` }} />
+                                        <div className="h-full rounded-full bg-[#A0792E]" style={{ width: `${(count / maxSource) * 100}%` }} />
                                     </div>
                                 </div>
                             ))}
@@ -333,7 +333,7 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
                         <div className="flex flex-col gap-2.5">
                             {responsaveis.map(([resp, count]) => (
                                 <div key={resp} className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-[#B8860B]/20 text-[#B8860B] text-xs font-bold flex items-center justify-center shrink-0">
+                                    <div className="w-6 h-6 rounded-full bg-[#A0792E]/20 text-[#A0792E] text-xs font-bold flex items-center justify-center shrink-0">
                                         {resp.charAt(0).toUpperCase()}
                                     </div>
                                     <div className="flex-1">

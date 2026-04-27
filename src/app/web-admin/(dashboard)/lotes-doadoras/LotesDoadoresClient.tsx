@@ -101,7 +101,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {[
-                    { label: 'Total', value: counts.total, icon: Dna, color: 'text-[#B8860B]', bg: 'bg-[#B8860B]/10' },
+                    { label: 'Total', value: counts.total, icon: Dna, color: 'text-[#A0792E]', bg: 'bg-[#A0792E]/10' },
                     { label: 'Disponíveis', value: counts.disponivel, icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10' },
                     { label: 'Reservadas', value: counts.reservado, icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
                     { label: 'Vendidas', value: counts.vendido, icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10' },
@@ -127,13 +127,13 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                         placeholder="Buscar por nome, RGD, pai..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/30 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/30 transition-all"
                     />
                 </div>
                 <select
                     value={categoryFilter}
                     onChange={e => setCategoryFilter(e.target.value)}
-                    className="px-4 py-2.5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#B8860B]/50 cursor-pointer sm:min-w-[160px]"
+                    className="px-4 py-2.5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 cursor-pointer sm:min-w-[160px]"
                 >
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -143,8 +143,8 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                             key={s}
                             onClick={() => setStatusFilter(s)}
                             className={`px-2 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${statusFilter === s
-                                ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black shadow-md shadow-[#B8860B]/20'
-                                : 'bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] text-gray-600 dark:text-gray-400 hover:border-[#B8860B]/40'
+                                ? 'bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black shadow-md shadow-[#A0792E]/20'
+                                : 'bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] text-gray-600 dark:text-gray-400 hover:border-[#A0792E]/40'
                                 }`}
                         >
                             {s}
@@ -177,7 +177,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                         return (
                             <div
                                 key={p.id}
-                                className={`group bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden hover:border-[#B8860B]/40 hover:shadow-lg hover:shadow-[#B8860B]/5 transition-all duration-200 flex flex-col ${p.active === false ? 'opacity-60' : ''}`}
+                                className={`group bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden hover:border-[#A0792E]/40 hover:shadow-lg hover:shadow-[#A0792E]/5 transition-all duration-200 flex flex-col ${p.active === false ? 'opacity-60' : ''}`}
                             >
                                 {/* Image */}
                                 <div className="relative h-48 bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
@@ -218,7 +218,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                                 {/* Content */}
                                 <div className="p-4 flex-1 flex flex-col gap-3">
                                     <div>
-                                        <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-tight group-hover:text-[#B8860B] transition-colors line-clamp-2">
+                                        <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-tight group-hover:text-[#A0792E] transition-colors line-clamp-2">
                                             {p.name}
                                         </h3>
                                         {registro && (
@@ -233,12 +233,12 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                                         </div>
                                     )}
 
-                                    <p className="text-sm font-bold text-[#B8860B] mt-auto">{price}</p>
+                                    <p className="text-sm font-bold text-[#A0792E] mt-auto">{price}</p>
 
                                     <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-[#222222]">
                                         <Link
                                             href={`/products/${p.id}`}
-                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#B8860B]/10 text-[#B8860B] hover:bg-[#B8860B]/20 text-xs font-semibold transition-all"
+                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#A0792E]/10 text-[#A0792E] hover:bg-[#A0792E]/20 text-xs font-semibold transition-all"
                                         >
                                             <Edit size={13} />
                                             Editar

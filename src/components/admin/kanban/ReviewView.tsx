@@ -270,20 +270,20 @@ function RisksTab({ risks, onRisksChange }: { risks: TacticalRisk[]; onRisksChan
   });
 
   const FormRow = () => (
-    <div className="bg-gray-50 dark:bg-[#111111] rounded-xl p-4 space-y-3 border border-[#B8860B]/30">
+    <div className="bg-gray-50 dark:bg-[#111111] rounded-xl p-4 space-y-3 border border-[#A0792E]/30">
       <input
         autoFocus
         value={form.title}
         onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
         placeholder="Título do risco"
-        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white"
+        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
       />
       <textarea
         value={form.description}
         onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
         placeholder="Descrição"
         rows={2}
-        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white resize-none"
+        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white resize-none"
       />
       <div className="flex gap-3 flex-wrap">
         <div>
@@ -319,10 +319,10 @@ function RisksTab({ risks, onRisksChange }: { risks: TacticalRisk[]; onRisksChan
         onChange={e => setForm(p => ({ ...p, mitigation: e.target.value }))}
         placeholder="Plano de mitigação"
         rows={2}
-        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white resize-none"
+        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white resize-none"
       />
       <div className="flex gap-2">
-        <button onClick={handleSave} disabled={!form.title.trim()} className="px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-lg text-sm font-bold disabled:opacity-50">
+        <button onClick={handleSave} disabled={!form.title.trim()} className="px-4 py-2 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-lg text-sm font-bold disabled:opacity-50">
           <Check size={14} className="inline mr-1" /> Salvar
         </button>
         <button onClick={() => { setShowForm(false); setEditId(null); resetForm(); }} className="px-4 py-2 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-lg text-sm">
@@ -344,7 +344,7 @@ function RisksTab({ risks, onRisksChange }: { risks: TacticalRisk[]; onRisksChan
         </div>
         <button
           onClick={() => { setShowForm(true); setEditId(null); resetForm(); }}
-          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-xl text-sm font-bold"
+          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-xl text-sm font-bold"
         >
           <Plus size={14} /> Novo Risco
         </button>
@@ -388,7 +388,7 @@ function RisksTab({ risks, onRisksChange }: { risks: TacticalRisk[]; onRisksChan
                       )}
                     </div>
                     <div className="flex gap-1 shrink-0">
-                      <button onClick={() => handleEdit(r)} className="p-1.5 text-gray-300 hover:text-[#B8860B] transition-colors">
+                      <button onClick={() => handleEdit(r)} className="p-1.5 text-gray-300 hover:text-[#A0792E] transition-colors">
                         <Edit2 size={14} />
                       </button>
                       <button onClick={() => handleDelete(r.id)} className="p-1.5 text-gray-300 hover:text-red-500 transition-colors">
@@ -443,34 +443,34 @@ function DecisionsTab({ decisions, onDecisionsChange }: { decisions: TacticalDec
   };
 
   const FormRow = () => (
-    <div className="bg-gray-50 dark:bg-[#111111] rounded-xl p-4 space-y-3 border border-[#B8860B]/30">
+    <div className="bg-gray-50 dark:bg-[#111111] rounded-xl p-4 space-y-3 border border-[#A0792E]/30">
       <input
         autoFocus
         value={form.decision}
         onChange={e => setForm(p => ({ ...p, decision: e.target.value }))}
         placeholder="Decisão tomada"
-        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white"
+        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
       />
       <textarea
         value={form.reason}
         onChange={e => setForm(p => ({ ...p, reason: e.target.value }))}
         placeholder="Motivo / contexto"
         rows={2}
-        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white resize-none"
+        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white resize-none"
       />
       <textarea
         value={form.data_basis}
         onChange={e => setForm(p => ({ ...p, data_basis: e.target.value }))}
         placeholder="Base de dados / evidências usadas"
         rows={2}
-        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white resize-none"
+        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white resize-none"
       />
       <textarea
         value={form.outcome}
         onChange={e => setForm(p => ({ ...p, outcome: e.target.value }))}
         placeholder="Resultado posterior (opcional — preencha depois)"
         rows={2}
-        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white resize-none"
+        className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white resize-none"
       />
       <div className="flex items-center gap-3">
         <label className="text-xs text-gray-500">Data:</label>
@@ -478,7 +478,7 @@ function DecisionsTab({ decisions, onDecisionsChange }: { decisions: TacticalDec
           className="px-3 py-1.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg text-sm outline-none text-gray-900 dark:text-white" />
       </div>
       <div className="flex gap-2">
-        <button onClick={handleSave} disabled={!form.decision.trim()} className="px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-lg text-sm font-bold disabled:opacity-50">
+        <button onClick={handleSave} disabled={!form.decision.trim()} className="px-4 py-2 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-lg text-sm font-bold disabled:opacity-50">
           <Check size={14} className="inline mr-1" /> Salvar
         </button>
         <button onClick={() => { setShowForm(false); setEditId(null); resetForm(); }} className="px-4 py-2 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-lg text-sm">
@@ -493,7 +493,7 @@ function DecisionsTab({ decisions, onDecisionsChange }: { decisions: TacticalDec
       <div className="flex justify-end">
         <button
           onClick={() => { setShowForm(true); setEditId(null); resetForm(); }}
-          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-xl text-sm font-bold"
+          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-xl text-sm font-bold"
         >
           <Plus size={14} /> Registrar Decisão
         </button>
@@ -529,7 +529,7 @@ function DecisionsTab({ decisions, onDecisionsChange }: { decisions: TacticalDec
                     )}
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <button onClick={() => handleEdit(d)} className="p-1.5 text-gray-300 hover:text-[#B8860B] transition-colors">
+                    <button onClick={() => handleEdit(d)} className="p-1.5 text-gray-300 hover:text-[#A0792E] transition-colors">
                       <Edit2 size={14} />
                     </button>
                     <button onClick={() => handleDelete(d.id)} className="p-1.5 text-gray-300 hover:text-red-500 transition-colors">

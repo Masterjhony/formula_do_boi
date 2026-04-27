@@ -85,7 +85,7 @@ export default function SertanejoLanding() {
     useEffect(() => {
         startPhotoAutoPlay();
 
-        // Inject Google Fonts (Bodoni Moda + Inter + JetBrains Mono)
+        // Inject Google Fonts (Space Grotesk + JetBrains Mono)
         const id = "sertanejo-v2-google-fonts";
         if (typeof document !== "undefined" && !document.getElementById(id)) {
             const pre1 = document.createElement("link");
@@ -102,7 +102,7 @@ export default function SertanejoLanding() {
             const link = document.createElement("link");
             link.id = id;
             link.rel = "stylesheet";
-            link.href = "https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap";
+            link.href = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap";
             document.head.appendChild(link);
         }
 

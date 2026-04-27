@@ -89,7 +89,7 @@ export function MobileNav({ user, profile }: MobileNavProps) {
                                 {/* User Info */}
                                 <div className="mb-6">
                                     <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl border border-gray-100 dark:border-[#222222]">
-                                        <div className="w-10 h-10 rounded-full bg-[#B8860B] flex items-center justify-center text-black font-bold text-lg overflow-hidden relative shrink-0">
+                                        <div className="w-10 h-10 rounded-full bg-[#A0792E] flex items-center justify-center text-black font-bold text-lg overflow-hidden relative shrink-0">
                                             {profile?.avatar_url ? (
                                                 <Image
                                                     src={profile.avatar_url}

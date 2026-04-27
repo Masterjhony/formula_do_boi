@@ -1455,6 +1455,37 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
         }
 
+        // Capture UTMs e referrer no primeiro pageview e persiste em sessionStorage
+        // (sobrevive navegação entre passos do quiz, mas não vaza para outras visitas)
+        (function captureAttribution() {
+            try {
+                const KEY = 'lp_attribution';
+                const url = new URL(window.location.href);
+                const utmKeys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
+                const fromUrl = {};
+                for (const k of utmKeys) {
+                    const v = url.searchParams.get(k);
+                    if (v) fromUrl[k] = v;
+                }
+                const existing = (() => {
+                    try { return JSON.parse(sessionStorage.getItem(KEY) || '{}'); } catch { return {}; }
+                })();
+                // Primeira atribuição vence — não sobrescreve com cliques internos sem UTM
+                const merged = Object.keys(fromUrl).length > 0
+                    ? { ...fromUrl, referrer: document.referrer || null, landing_url: window.location.href, ts: existing.ts || Date.now() }
+                    : (Object.keys(existing).length > 0 ? existing : { referrer: document.referrer || null, landing_url: window.location.href, ts: Date.now() });
+                sessionStorage.setItem(KEY, JSON.stringify(merged));
+            } catch (e) {
+                // sessionStorage indisponível (ex: modo privado bloqueado) — segue silencioso
+            }
+        })();
+
+        function getAttribution() {
+            try {
+                return JSON.parse(sessionStorage.getItem('lp_attribution') || '{}');
+            } catch { return {}; }
+        }
+
         async function submitQuiz() {
             if (!validateStep3()) return;
 
@@ -1462,6 +1493,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             btn.disabled = true;
             btn.textContent = 'Enviando...';
 
+            const attr = getAttribution();
             const lead = {
                 nome:              document.getElementById('qNome').value.trim(),
                 email:             document.getElementById('qEmail').value.trim(),
@@ -1470,6 +1502,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 cidade:            document.getElementById('qCidade').value,
                 momento_pecuaria:  document.getElementById('qMomento').value,
                 quantidade_cabecas: document.getElementById('qCabecas').value,
+                utm_source:   attr.utm_source   || null,
+                utm_medium:   attr.utm_medium   || null,
+                utm_campaign: attr.utm_campaign || null,
+                utm_content:  attr.utm_content  || null,
+                utm_term:     attr.utm_term     || null,
+                gclid:        attr.gclid        || null,
+                fbclid:       attr.fbclid       || null,
+                referrer:     attr.referrer     || null,
+                landing_url:  attr.landing_url  || null,
             };
 
             try {

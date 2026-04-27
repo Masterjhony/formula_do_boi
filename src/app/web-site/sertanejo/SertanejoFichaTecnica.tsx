@@ -152,7 +152,7 @@ export default function SertanejoFichaTecnica() {
             const link = document.createElement("link");
             link.id = fontId;
             link.rel = "stylesheet";
-            link.href = "https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap";
+            link.href = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap";
             document.head.appendChild(link);
         }
 

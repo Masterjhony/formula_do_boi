@@ -24,14 +24,14 @@
   --dcl-blue: #6a8fd4;
   --dcl-violet: #9b86c4;
   color: var(--dcl-ink);
-  font-family: var(--font-manrope), var(--font-space-grotesk), system-ui, sans-serif;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: 'cv11', 'ss01';
 }
 .dcl-root * { box-sizing: border-box; }
 .dcl-root button { font-family: inherit; color: inherit; background: none; border: none; cursor: pointer; padding: 0; }
 .dcl-mono { font-family: var(--font-mono), ui-monospace, monospace; font-feature-settings: 'ss02'; }
-.dcl-serif { font-family: var(--font-fraunces), Georgia, serif; font-style: italic; font-weight: 500; }
+.dcl-serif { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-style: italic; font-weight: 500; }
 
 /* ========= Page header ========= */
 .dcl-pagehead { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; gap: 24px; flex-wrap: wrap; }
@@ -85,7 +85,7 @@
   text-align: center; color: #0a0a0b; padding: 10px 8px;
 }
 .dcl-date-block .dcl-wk { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; opacity: 0.65; text-transform: uppercase; }
-.dcl-date-block .dcl-day { font-family: var(--font-fraunces), Georgia, serif; font-style: italic; font-size: 58px; line-height: 0.95; font-weight: 500; display: grid; place-items: center; }
+.dcl-date-block .dcl-day { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-style: italic; font-size: 58px; line-height: 0.95; font-weight: 500; display: grid; place-items: center; }
 .dcl-date-block .dcl-mo { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; opacity: 0.65; text-transform: uppercase; }
 .dcl-hero-body { position: relative; min-width: 0; }
 .dcl-hero-tags { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -173,7 +173,7 @@
 .dcl-agenda-row:first-child { border-top: none; }
 .dcl-agenda-row:hover .dcl-agenda-title { color: var(--dcl-gold); }
 .dcl-agenda-date { text-align: center; color: var(--dcl-ink-2); }
-.dcl-agenda-date .dcl-d { font-family: var(--font-fraunces), Georgia, serif; font-style: italic; font-size: 26px; line-height: 1; color: var(--dcl-ink); }
+.dcl-agenda-date .dcl-d { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-style: italic; font-size: 26px; line-height: 1; color: var(--dcl-ink); }
 .dcl-agenda-date .dcl-m { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dcl-ink-3); margin-top: 3px; }
 .dcl-agenda-title { font-size: 14px; font-weight: 500; margin: 0 0 3px; transition: color 0.15s; color: var(--dcl-ink); }
 .dcl-agenda-meta { font-size: 11.5px; color: var(--dcl-ink-3); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -251,7 +251,7 @@
 /* ========= Rankings (assessores/compradores/lances) ========= */
 .dcl-rank-row { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--dcl-line-soft); }
 .dcl-rank-row:first-child { border-top: none; }
-.dcl-rank-pos { font-family: var(--font-fraunces), Georgia, serif; font-style: italic; font-size: 20px; color: var(--dcl-gold); line-height: 1; }
+.dcl-rank-pos { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-style: italic; font-size: 20px; color: var(--dcl-gold); line-height: 1; }
 .dcl-rank-pos.dcl-mut { color: var(--dcl-ink-4); }
 .dcl-rank-name { font-size: 13px; color: var(--dcl-ink); font-weight: 500; margin: 0 0 2px; }
 .dcl-rank-meta { font-size: 11px; color: var(--dcl-ink-3); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

@@ -8,13 +8,6 @@ const INK = "#0A0A0A";
 const INK_2 = "#141414";
 const FG = "#F5F0E4";
 
-const leatherTexture: React.CSSProperties = {
-    backgroundImage: [
-        "repeating-linear-gradient(62deg, transparent 0px, transparent 3px, rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 4px)",
-        "repeating-linear-gradient(-62deg, transparent 0px, transparent 3px, rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 4px)",
-    ].join(", "),
-};
-
 const PATHS = [
     {
         title: "Seu touro na Aceleradora",
@@ -31,15 +24,12 @@ export default function VendaConoscoSection() {
         <section
             className="stitch-divider relative overflow-hidden"
             style={{
-                background: `linear-gradient(180deg, ${INK_2} 0%, #1A1609 100%)`,
+                background: INK_2,
                 color: FG,
                 padding: "96px 20px",
                 borderTop: "1px solid rgba(212,168,92,0.12)",
             }}
         >
-            {/* Textura de couro */}
-            <div className="absolute inset-0 pointer-events-none" style={leatherTexture} />
-
             {/* Glow radial */}
             <div
                 className="absolute pointer-events-none"

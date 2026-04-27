@@ -37,8 +37,8 @@ const QUANTIDADE_OPTIONS = [
     'Acima de 300 cabeças',
 ]
 
-const inputClass = "w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all placeholder:text-gray-600"
-const selectClass = "w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all appearance-none"
+const inputClass = "w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all placeholder:text-gray-600"
+const selectClass = "w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all appearance-none"
 
 export default function SignupPage() {
     return (
@@ -116,14 +116,14 @@ function SignupPageInner() {
         return (
             <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4">
                 <div className="bg-[#111111] border border-[#222222] rounded-2xl p-8 backdrop-blur-sm shadow-xl max-w-md w-full text-center">
-                    <div className="w-16 h-16 bg-[#B8860B]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle2 className="w-8 h-8 text-[#B8860B]" />
+                    <div className="w-16 h-16 bg-[#A0792E]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle2 className="w-8 h-8 text-[#A0792E]" />
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">Conta Criada com Sucesso!</h2>
                     <p className="text-gray-400 mb-8">Por favor, verifique seu email para confirmar seu cadastro antes de fazer login.</p>
                     <Link
                         href={redirect ? `/login?next=${encodeURIComponent(redirect)}` : '/login'}
-                        className="inline-flex items-center justify-center w-full bg-[#B8860B] hover:bg-[#D4AF37] text-black font-bold py-3.5 rounded-xl transition-all"
+                        className="inline-flex items-center justify-center w-full bg-[#A0792E] hover:bg-[#D4A85C] text-black font-bold py-3.5 rounded-xl transition-all"
                     >
                         Voltar para Login
                     </Link>
@@ -136,8 +136,8 @@ function SignupPageInner() {
         <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#B8860B]/5 rounded-full blur-[100px]" />
-                <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#B8860B]/5 rounded-full blur-[100px]" />
+                <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#A0792E]/5 rounded-full blur-[100px]" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#A0792E]/5 rounded-full blur-[100px]" />
             </div>
 
             <div className="w-full max-w-lg relative z-10 py-10">
@@ -278,7 +278,7 @@ function SignupPageInner() {
                                     name="momento"
                                     value={formData.momento}
                                     onChange={handleChange}
-                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all appearance-none"
+                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all appearance-none"
                                     required
                                 >
                                     <option value="">Selecione uma opção</option>
@@ -296,7 +296,7 @@ function SignupPageInner() {
                                     name="busca"
                                     value={formData.busca}
                                     onChange={handleChange}
-                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all appearance-none"
+                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all appearance-none"
                                     required
                                 >
                                     <option value="">Selecione uma opção</option>
@@ -314,7 +314,7 @@ function SignupPageInner() {
                                     name="quantidade"
                                     value={formData.quantidade}
                                     onChange={handleChange}
-                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all appearance-none"
+                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 px-4 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all appearance-none"
                                     required
                                 >
                                     <option value="">Selecione uma opção</option>
@@ -362,7 +362,7 @@ function SignupPageInner() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-[#B8860B] to-[#DAA520] hover:from-[#D4AF37] hover:to-[#FFD700] text-black font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(184,134,11,0.3)] hover:shadow-[0_6px_25px_-5px_rgba(184,134,11,0.4)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                            className="w-full bg-gradient-to-r from-[#A0792E] to-[#A0792E] hover:from-[#D4A85C] hover:to-[#E8CB85] text-black font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(160,121,46,0.3)] hover:shadow-[0_6px_25px_-5px_rgba(160,121,46,0.4)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
                         >
                             {loading ? (
                                 <>
@@ -378,7 +378,7 @@ function SignupPageInner() {
                     <div className="mt-8 text-center">
                         <p className="text-gray-400 text-sm">
                             Já tem uma conta?{' '}
-                            <Link href={redirect ? `/login?next=${encodeURIComponent(redirect)}` : '/login'} className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">
+                            <Link href={redirect ? `/login?next=${encodeURIComponent(redirect)}` : '/login'} className="text-[#A0792E] font-semibold hover:text-[#D4A85C] transition-colors">
                                 Fazer login
                             </Link>
                         </p>

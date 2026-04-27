@@ -90,7 +90,7 @@ const fmtDate = (d: string) =>
 const today = () => new Date().toISOString().split('T')[0];
 
 const CAT_COLORS = [
-    '#D4AF37', '#10B981', '#F43F5E', '#3B82F6', '#8B5CF6',
+    '#D4A85C', '#10B981', '#F43F5E', '#3B82F6', '#8B5CF6',
     '#F97316', '#06B6D4', '#EC4899', '#84CC16', '#6366F1',
     '#F59E0B', '#14B8A6', '#EF4444', '#60A5FA', '#A78BFA',
 ];
@@ -491,7 +491,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
 
     const accountIconColor = (type: string) => {
         const m: Record<string, string> = { checking: 'bg-blue-500/10 text-blue-400', savings: 'bg-emerald-500/10 text-emerald-400', credit_card: 'bg-purple-500/10 text-purple-400' };
-        return m[type] || 'bg-[#D4AF37]/10 text-[#D4AF37]';
+        return m[type] || 'bg-[#D4A85C]/10 text-[#D4A85C]';
     };
 
     // ── Render ───────────────────────────────────────────────────────────────
@@ -501,7 +501,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
                     <div>
-                        <h2 className="text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#D4AF37] text-transparent bg-clip-text">
+                        <h2 className="text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4A85C] via-[#FFF8DC] to-[#D4A85C] text-transparent bg-clip-text">
                             {mode === 'conciliacao' ? 'Conciliação' : 'Financeiro'}
                         </h2>
                         <p className="mt-2 flex items-center gap-2 text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
@@ -517,7 +517,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                         </button>
                         <button
                             onClick={() => openNew('expense')}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#B8860B]/20 hover:scale-105 transition-all"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#A0792E] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#A0792E]/20 hover:scale-105 transition-all"
                         >
                             <ArrowDownRight className="w-4 h-4" /> Nova Despesa
                         </button>
@@ -535,7 +535,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                             <button
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
-                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.key ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === tab.key ? 'bg-white dark:bg-[#222] text-[#D4A85C] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
                             >
                                 <tab.icon className="w-4 h-4" /> {tab.label}
                             </button>
@@ -552,9 +552,9 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     {/* Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Saldo */}
-                        <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
+                        <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                                <Wallet className="w-24 h-24 text-[#D4AF37]" />
+                                <Wallet className="w-24 h-24 text-[#D4A85C]" />
                             </div>
                             <div className="relative z-10">
                                 <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Saldo Consolidado</p>
@@ -608,9 +608,9 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     {/* Leilões — Receita × Comissão (full width) */}
                     {leiloesResumo.porLeilao.length > 0 && (
                         <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
-                            <div className="p-5 border-b border-gray-100 dark:border-[#222] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-[#B8860B]/5 to-transparent">
+                            <div className="p-5 border-b border-gray-100 dark:border-[#222] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-[#A0792E]/5 to-transparent">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center shadow-lg">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A0792E] to-[#9A7209] flex items-center justify-center shadow-lg">
                                         <Gavel className="w-5 h-5 text-black" />
                                     </div>
                                     <div>
@@ -622,7 +622,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 </div>
                                 <button
                                     onClick={() => router.push('/leiloes')}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#B8860B]/10 text-[#B8860B] border border-[#B8860B]/30 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#B8860B] hover:text-black transition-all"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#A0792E]/10 text-[#A0792E] border border-[#A0792E]/30 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#A0792E] hover:text-black transition-all"
                                 >
                                     Gerenciar lançamentos
                                     <ChevronRight className="w-3.5 h-3.5" />
@@ -645,10 +645,10 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 </div>
                                 <div className="p-5 bg-white dark:bg-[#0F0F0F]">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Trophy className={`w-3.5 h-3.5 ${leiloesResumo.sobra >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`} />
-                                        <span className={`text-[10px] uppercase tracking-widest font-bold ${leiloesResumo.sobra >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>Sobra Bruta</span>
+                                        <Trophy className={`w-3.5 h-3.5 ${leiloesResumo.sobra >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`} />
+                                        <span className={`text-[10px] uppercase tracking-widest font-bold ${leiloesResumo.sobra >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>Sobra Bruta</span>
                                     </div>
-                                    <p className={`text-2xl font-black ${leiloesResumo.sobra >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>
+                                    <p className={`text-2xl font-black ${leiloesResumo.sobra >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>
                                         {leiloesResumo.sobra >= 0 ? '+' : ''}{fmt(leiloesResumo.sobra)}
                                     </p>
                                     <p className="text-[10px] text-gray-500 mt-0.5">
@@ -681,7 +681,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                                     <td className="px-6 py-3 text-right font-mono text-xs text-gray-500">{p.vgv > 0 ? fmt(p.vgv) : '—'}</td>
                                                     <td className="px-6 py-3 text-right font-black text-emerald-500">{p.receita > 0 ? fmt(p.receita) : '—'}</td>
                                                     <td className="px-6 py-3 text-right font-black text-rose-500">{p.comissao > 0 ? fmt(p.comissao) : '—'}</td>
-                                                    <td className={`px-6 py-3 text-right font-black ${p.sobra >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>
+                                                    <td className={`px-6 py-3 text-right font-black ${p.sobra >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>
                                                         {p.sobra !== 0 ? `${p.sobra >= 0 ? '+' : ''}${fmt(p.sobra)}` : '—'}
                                                     </td>
                                                 </tr>
@@ -703,7 +703,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 </div>
                                 <div className="p-3 space-y-2">
                                     {accounts.length > 0 ? accounts.map(acc => (
-                                        <div key={acc.id} className="p-4 rounded-xl bg-gray-50 dark:bg-[#111] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all flex items-center justify-between border border-gray-200 dark:border-[#222] hover:border-[#B8860B]/40">
+                                        <div key={acc.id} className="p-4 rounded-xl bg-gray-50 dark:bg-[#111] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all flex items-center justify-between border border-gray-200 dark:border-[#222] hover:border-[#A0792E]/40">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${accountIconColor(acc.type)}`}>
                                                     {accountIcon(acc.type)}
@@ -713,7 +713,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                                     <p className="text-[10px] text-gray-400 dark:text-[#666] uppercase tracking-widest mt-0.5">{accountLabel(acc.type)}</p>
                                                 </div>
                                             </div>
-                                            <p className="text-sm font-extrabold text-[#D4AF37]">{fmt(Number(acc.current_balance))}</p>
+                                            <p className="text-sm font-extrabold text-[#D4A85C]">{fmt(Number(acc.current_balance))}</p>
                                         </div>
                                     )) : (
                                         <div className="p-8 text-center text-sm text-gray-400 dark:text-[#555] uppercase tracking-widest font-bold">Nenhuma conta cadastrada</div>
@@ -728,13 +728,13 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 <div className="p-5 border-b border-gray-100 dark:border-[#222] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50 dark:bg-[#141414]">
                                     <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">Últimas Movimentações</h3>
                                     <div className="relative flex-1 sm:w-64 sm:flex-initial group/search">
-                                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#555] group-focus-within/search:text-[#D4AF37] transition-colors" />
+                                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#555] group-focus-within/search:text-[#D4A85C] transition-colors" />
                                         <input
                                             type="text"
                                             placeholder="Buscar..."
                                             value={searchTerm}
                                             onChange={e => setSearchTerm(e.target.value)}
-                                            className="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl focus:outline-none focus:border-[#B8860B]/50 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] transition-all"
+                                            className="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl focus:outline-none focus:border-[#A0792E]/50 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] transition-all"
                                         />
                                     </div>
                                 </div>
@@ -788,7 +788,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     {/* KPI Cards */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl p-5 shadow-xl relative overflow-hidden">
-                            <div className="absolute right-[-10%] bottom-[-20%] opacity-5 text-[#D4AF37]">
+                            <div className="absolute right-[-10%] bottom-[-20%] opacity-5 text-[#D4A85C]">
                                 <Building2 className="w-32 h-32" />
                             </div>
                             <p className="text-[10px] font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Saldo Consolidado</p>
@@ -809,12 +809,12 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 {transactions.filter(t => t.status === 'pending' && t.type === 'expense').length} lançamento{transactions.filter(t => t.status === 'pending' && t.type === 'expense').length !== 1 ? 's' : ''}
                             </p>
                         </div>
-                        <div className="bg-white dark:bg-[#111111] border border-[#D4AF37]/30 rounded-2xl p-5 shadow-xl relative overflow-hidden">
-                            <p className="text-[10px] font-bold text-[#B8860B] uppercase tracking-widest">% Conciliado</p>
-                            <h3 className="text-2xl font-extrabold text-[#D4AF37] mt-1 tracking-tight">{concStats.pct.toFixed(1)}%</h3>
+                        <div className="bg-white dark:bg-[#111111] border border-[#D4A85C]/30 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                            <p className="text-[10px] font-bold text-[#A0792E] uppercase tracking-widest">% Conciliado</p>
+                            <h3 className="text-2xl font-extrabold text-[#D4A85C] mt-1 tracking-tight">{concStats.pct.toFixed(1)}%</h3>
                             <p className="text-[10px] text-gray-400 dark:text-[#666] mt-1 uppercase tracking-widest">{concStats.completedCount} de {concStats.total}</p>
                             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100 dark:bg-[#1A1A1A]">
-                                <div className="h-full bg-gradient-to-r from-[#B8860B] to-[#D4AF37] transition-all" style={{ width: `${concStats.pct}%` }} />
+                                <div className="h-full bg-gradient-to-r from-[#A0792E] to-[#D4A85C] transition-all" style={{ width: `${concStats.pct}%` }} />
                             </div>
                         </div>
                     </div>
@@ -830,7 +830,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     <span className="text-xs font-mono text-gray-700 dark:text-gray-300">{concStats.completedCount} / {concStats.total}</span>
                                 </div>
                                 <div className="h-3 bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden">
-                                    <div className="h-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-[#D4AF37] transition-all" style={{ width: `${concStats.pct}%` }} />
+                                    <div className="h-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-[#D4A85C] transition-all" style={{ width: `${concStats.pct}%` }} />
                                 </div>
                                 <div className="flex items-center gap-6 mt-3 text-[11px]">
                                     <span className="flex items-center gap-1.5 text-amber-500 font-semibold">
@@ -867,7 +867,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 <button
                                     key={opt.key}
                                     onClick={() => setConcStatusFilter(opt.key)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${concStatusFilter === opt.key ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${concStatusFilter === opt.key ? 'bg-white dark:bg-[#222] text-[#D4A85C] shadow' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
                                 >
                                     {opt.label}
                                 </button>
@@ -882,7 +882,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 <button
                                     key={opt.key}
                                     onClick={() => setConcTypeFilter(opt.key)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${concTypeFilter === opt.key ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${concTypeFilter === opt.key ? 'bg-white dark:bg-[#222] text-[#D4A85C] shadow' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
                                 >
                                     {opt.label}
                                 </button>
@@ -891,7 +891,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                         <select
                             value={concAccountFilter}
                             onChange={e => setConcAccountFilter(e.target.value)}
-                            className="px-3 py-2 text-xs font-semibold bg-gray-100 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] text-gray-700 dark:text-gray-300 rounded-xl focus:outline-none focus:border-[#D4AF37]/50"
+                            className="px-3 py-2 text-xs font-semibold bg-gray-100 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] text-gray-700 dark:text-gray-300 rounded-xl focus:outline-none focus:border-[#D4A85C]/50"
                         >
                             <option value="">Todas as contas</option>
                             {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -903,8 +903,8 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
 
                     {/* Bulk action bar */}
                     {selectedTxIds.size > 0 && (
-                        <div className="bg-gradient-to-r from-[#B8860B]/10 to-[#D4AF37]/5 border border-[#D4AF37]/30 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xl">
-                            <p className="text-sm font-bold text-[#B8860B] dark:text-[#D4AF37]">
+                        <div className="bg-gradient-to-r from-[#A0792E]/10 to-[#D4A85C]/5 border border-[#D4A85C]/30 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xl">
+                            <p className="text-sm font-bold text-[#A0792E] dark:text-[#D4A85C]">
                                 {selectedTxIds.size} selecionado{selectedTxIds.size !== 1 ? 's' : ''}
                             </p>
                             <div className="flex items-center gap-2">
@@ -928,8 +928,8 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
                         <div className="p-5 border-b border-gray-100 dark:border-[#222] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50 dark:bg-[#141414]">
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
-                                    <Building2 className="w-5 h-5 text-[#D4AF37]" />
+                                <div className="w-10 h-10 rounded-xl bg-[#D4A85C]/10 flex items-center justify-center border border-[#D4A85C]/20">
+                                    <Building2 className="w-5 h-5 text-[#D4A85C]" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gray-900 dark:text-white tracking-widest text-sm uppercase">Movimentações</h3>
@@ -937,13 +937,13 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 </div>
                             </div>
                             <div className="relative sm:w-64 group/search">
-                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#555] group-focus-within/search:text-[#D4AF37] transition-colors" />
+                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#555] group-focus-within/search:text-[#D4A85C] transition-colors" />
                                 <input
                                     type="text"
                                     placeholder="Buscar..."
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
-                                    className="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl focus:outline-none focus:border-[#B8860B]/50 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] transition-all"
+                                    className="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl focus:outline-none focus:border-[#A0792E]/50 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] transition-all"
                                 />
                             </div>
                         </div>
@@ -956,7 +956,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                                 type="checkbox"
                                                 checked={filtered.filter(t => t.status === 'pending').length > 0 && filtered.filter(t => t.status === 'pending').every(t => selectedTxIds.has(t.id))}
                                                 onChange={toggleSelectAllVisible}
-                                                className="w-4 h-4 rounded border-gray-300 dark:border-[#333] bg-white dark:bg-[#111] text-[#D4AF37] focus:ring-[#D4AF37]/50 cursor-pointer"
+                                                className="w-4 h-4 rounded border-gray-300 dark:border-[#333] bg-white dark:bg-[#111] text-[#D4A85C] focus:ring-[#D4A85C]/50 cursor-pointer"
                                                 title="Selecionar todos pendentes visíveis"
                                             />
                                         </th>
@@ -972,20 +972,20 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 </thead>
                                 <tbody>
                                     {filtered.length > 0 ? filtered.map(tx => (
-                                        <tr key={tx.id} className={`border-b border-gray-100 dark:border-[#1A1A1A] transition-colors group ${selectedTxIds.has(tx.id) ? 'bg-[#D4AF37]/5' : tx.status === 'completed' ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'hover:bg-gray-50 dark:hover:bg-[#141414]'}`}>
+                                        <tr key={tx.id} className={`border-b border-gray-100 dark:border-[#1A1A1A] transition-colors group ${selectedTxIds.has(tx.id) ? 'bg-[#D4A85C]/5' : tx.status === 'completed' ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'hover:bg-gray-50 dark:hover:bg-[#141414]'}`}>
                                             <td className="px-4 py-4">
                                                 {tx.status === 'pending' ? (
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedTxIds.has(tx.id)}
                                                         onChange={() => toggleSelectTx(tx.id)}
-                                                        className="w-4 h-4 rounded border-gray-300 dark:border-[#333] bg-white dark:bg-[#111] text-[#D4AF37] focus:ring-[#D4AF37]/50 cursor-pointer"
+                                                        className="w-4 h-4 rounded border-gray-300 dark:border-[#333] bg-white dark:bg-[#111] text-[#D4A85C] focus:ring-[#D4A85C]/50 cursor-pointer"
                                                     />
                                                 ) : null}
                                             </td>
                                             <td className="px-6 py-4 text-gray-500 dark:text-[#888] font-mono text-xs">{fmtDate(tx.transaction_date)}</td>
                                             <td
-                                                className="px-6 py-4 font-bold text-gray-900 dark:text-white max-w-[250px] truncate cursor-pointer hover:text-[#D4AF37] transition-colors"
+                                                className="px-6 py-4 font-bold text-gray-900 dark:text-white max-w-[250px] truncate cursor-pointer hover:text-[#D4A85C] transition-colors"
                                                 title={tx.description}
                                                 onClick={() => openEdit(tx)}
                                             >
@@ -999,7 +999,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                                         <select
                                                             value={tx.category_id || ''}
                                                             onChange={e => handleCatChange(tx.id, e.target.value)}
-                                                            className="w-[160px] appearance-none bg-white dark:bg-[#0A0A0A] border border-gray-300 dark:border-[#333] hover:border-[#D4AF37]/50 rounded-lg pl-9 pr-8 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                            className="w-[160px] appearance-none bg-white dark:bg-[#0A0A0A] border border-gray-300 dark:border-[#333] hover:border-[#D4A85C]/50 rounded-lg pl-9 pr-8 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#D4A85C]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                                             disabled={tx.status === 'completed'}
                                                         >
                                                             <option value="">Classificar...</option>
@@ -1029,13 +1029,13 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                                         onBlur={() => handleObsSave(tx.id)}
                                                         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleObsSave(tx.id); } if (e.key === 'Escape') { setEditingObsId(null); } }}
                                                         rows={2}
-                                                        className="w-full px-3 py-2 text-xs bg-white dark:bg-[#0A0A0A] border border-[#B8860B]/50 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/50 resize-none transition-all"
+                                                        className="w-full px-3 py-2 text-xs bg-white dark:bg-[#0A0A0A] border border-[#A0792E]/50 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#D4A85C]/50 resize-none transition-all"
                                                         placeholder="Adicionar observação..."
                                                     />
                                                 ) : (
                                                     <button
                                                         onClick={() => { setEditingObsId(tx.id); setObsValue(tx.observacao || ''); }}
-                                                        className={`w-full text-left text-xs px-3 py-2 rounded-lg border transition-all ${tx.observacao ? 'border-[#B8860B]/20 text-gray-700 dark:text-gray-300 bg-[#B8860B]/5 hover:border-[#B8860B]/40' : 'border-dashed border-gray-300 dark:border-[#333] text-gray-400 dark:text-[#555] hover:border-gray-400 dark:hover:border-[#555]'}`}
+                                                        className={`w-full text-left text-xs px-3 py-2 rounded-lg border transition-all ${tx.observacao ? 'border-[#A0792E]/20 text-gray-700 dark:text-gray-300 bg-[#A0792E]/5 hover:border-[#A0792E]/40' : 'border-dashed border-gray-300 dark:border-[#333] text-gray-400 dark:text-[#555] hover:border-gray-400 dark:hover:border-[#555]'}`}
                                                     >
                                                         {tx.observacao || 'Adicionar obs...'}
                                                     </button>
@@ -1051,7 +1051,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                                 <div className="flex items-center justify-center gap-1">
                                                     <button
                                                         onClick={() => openEdit(tx)}
-                                                        className="p-2 rounded-full text-gray-400 dark:text-[#555] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all"
+                                                        className="p-2 rounded-full text-gray-400 dark:text-[#555] hover:text-[#D4A85C] hover:bg-[#D4A85C]/10 transition-all"
                                                         title="Editar"
                                                     >
                                                         <Pencil className="w-4 h-4" />
@@ -1095,17 +1095,17 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                             <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Saldo Consolidado</p>
                             <h3 className="text-2xl font-extrabold text-emerald-500 mt-1">{fmt(totalBalance)}</h3>
                         </div>
-                        <div className="bg-white dark:bg-[#111111] border border-[#D4AF37]/30 rounded-2xl p-5 shadow-xl">
-                            <p className="text-[10px] font-bold text-[#B8860B] uppercase tracking-widest">Saldo Inicial Cumulativo</p>
-                            <h3 className="text-2xl font-extrabold text-[#D4AF37] mt-1">{fmt(accounts.reduce((s, a) => s + Number(a.initial_balance || 0), 0))}</h3>
+                        <div className="bg-white dark:bg-[#111111] border border-[#D4A85C]/30 rounded-2xl p-5 shadow-xl">
+                            <p className="text-[10px] font-bold text-[#A0792E] uppercase tracking-widest">Saldo Inicial Cumulativo</p>
+                            <h3 className="text-2xl font-extrabold text-[#D4A85C] mt-1">{fmt(accounts.reduce((s, a) => s + Number(a.initial_balance || 0), 0))}</h3>
                         </div>
                     </div>
 
                     <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
                         <div className="p-5 border-b border-gray-100 dark:border-[#222] flex items-center justify-between bg-gray-50 dark:bg-[#141414]">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
-                                    <Banknote className="w-5 h-5 text-[#D4AF37]" />
+                                <div className="w-10 h-10 rounded-xl bg-[#D4A85C]/10 flex items-center justify-center border border-[#D4A85C]/20">
+                                    <Banknote className="w-5 h-5 text-[#D4A85C]" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gray-900 dark:text-white tracking-widest text-sm uppercase">Contas Bancárias & Caixa</h3>
@@ -1114,7 +1114,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                             </div>
                             <button
                                 onClick={openNewAcc}
-                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg hover:scale-105 transition-all"
+                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#A0792E] to-[#9A7209] text-black text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg hover:scale-105 transition-all"
                             >
                                 <Plus className="w-4 h-4" /> Nova Conta
                             </button>
@@ -1143,8 +1143,8 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                                 <tr key={a.id} className="border-b border-gray-100 dark:border-[#1A1A1A] hover:bg-gray-50 dark:hover:bg-[#141414] transition-colors group">
                                                     <td className="px-5 py-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#B8860B]/20 to-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
-                                                                {a.type === 'cash' ? <Wallet className="w-4 h-4 text-[#D4AF37]" /> : a.type === 'credit' ? <CreditCard className="w-4 h-4 text-[#D4AF37]" /> : <Building2 className="w-4 h-4 text-[#D4AF37]" />}
+                                                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#A0792E]/20 to-[#D4A85C]/10 flex items-center justify-center border border-[#D4A85C]/20">
+                                                                {a.type === 'cash' ? <Wallet className="w-4 h-4 text-[#D4A85C]" /> : a.type === 'credit' ? <CreditCard className="w-4 h-4 text-[#D4A85C]" /> : <Building2 className="w-4 h-4 text-[#D4A85C]" />}
                                                             </div>
                                                             <span className="font-bold text-gray-900 dark:text-white">{a.name}</span>
                                                         </div>
@@ -1161,7 +1161,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                                         <div className="flex items-center justify-center gap-1">
                                                             <button
                                                                 onClick={() => openEditAcc(a)}
-                                                                className="p-2 rounded-full text-gray-400 dark:text-[#555] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all"
+                                                                className="p-2 rounded-full text-gray-400 dark:text-[#555] hover:text-[#D4A85C] hover:bg-[#D4A85C]/10 transition-all"
                                                                 title="Editar"
                                                             >
                                                                 <Pencil className="w-4 h-4" />
@@ -1188,7 +1188,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 <p className="text-xs text-gray-400 dark:text-[#666] mb-6">Cadastre sua primeira conta bancária ou caixa para começar a registrar movimentações.</p>
                                 <button
                                     onClick={openNewAcc}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg hover:scale-105 transition-all"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#A0792E] to-[#9A7209] text-black text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg hover:scale-105 transition-all"
                                 >
                                     <Plus className="w-4 h-4" /> Cadastrar Primeira Conta
                                 </button>
@@ -1230,7 +1230,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                         </div>
                                         <button
                                             onClick={() => openEditCat(cat)}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all"
+                                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:text-[#D4A85C] hover:bg-[#D4A85C]/10 transition-all"
                                         >
                                             <Pencil className="w-3.5 h-3.5" />
                                         </button>
@@ -1269,7 +1269,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                         </div>
                                         <button
                                             onClick={() => openEditCat(cat)}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all"
+                                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:text-[#D4A85C] hover:bg-[#D4A85C]/10 transition-all"
                                         >
                                             <Pencil className="w-3.5 h-3.5" />
                                         </button>
@@ -1294,8 +1294,8 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     <div className="relative bg-white dark:bg-[#111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl shadow-2xl w-full max-w-sm animate-in zoom-in-95 fade-in duration-200">
                         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-[#222]">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center">
-                                    <Tag className="w-5 h-5 text-[#D4AF37]" />
+                                <div className="w-10 h-10 rounded-xl bg-[#D4A85C]/10 flex items-center justify-center">
+                                    <Tag className="w-5 h-5 text-[#D4A85C]" />
                                 </div>
                                 <h3 className="font-bold text-gray-900 dark:text-white text-lg">
                                     {editingCat ? 'Editar Categoria' : 'Nova Categoria'}
@@ -1335,7 +1335,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     onKeyDown={e => e.key === 'Enter' && handleSaveCat()}
                                     placeholder="Ex: Marketing, Salários..."
                                     autoFocus
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#A0792E]/50 transition-all"
                                 />
                             </div>
                         </div>
@@ -1358,7 +1358,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 <button
                                     onClick={handleSaveCat}
                                     disabled={savingCat || !catForm.name.trim()}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#B8860B]/20 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#A0792E] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#A0792E]/20 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
                                 >
                                     {savingCat && <Loader2 className="w-4 h-4 animate-spin" />}
                                     {savingCat ? 'Salvando...' : 'Salvar'}
@@ -1408,8 +1408,8 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                     <div className="relative bg-white dark:bg-[#111] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 fade-in duration-200">
                         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-[#222]">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center">
-                                    <Banknote className="w-5 h-5 text-[#D4AF37]" />
+                                <div className="w-10 h-10 rounded-xl bg-[#D4A85C]/10 flex items-center justify-center">
+                                    <Banknote className="w-5 h-5 text-[#D4A85C]" />
                                 </div>
                                 <h3 className="font-bold text-gray-900 dark:text-white text-lg">
                                     {editingAcc ? 'Editar Conta' : 'Nova Conta'}
@@ -1429,7 +1429,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     onChange={e => setAccForm(f => ({ ...f, name: e.target.value }))}
                                     placeholder="Ex: Banco Inter - C/C, Caixa Interno..."
                                     autoFocus
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#A0792E]/50 transition-all"
                                 />
                             </div>
 
@@ -1446,7 +1446,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                             key={opt.key}
                                             type="button"
                                             onClick={() => setAccForm(f => ({ ...f, type: opt.key }))}
-                                            className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all border ${accForm.type === opt.key ? 'bg-[#D4AF37]/10 border-[#D4AF37]/40 text-[#D4AF37]' : 'bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#222] text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                                            className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all border ${accForm.type === opt.key ? 'bg-[#D4A85C]/10 border-[#D4A85C]/40 text-[#D4A85C]' : 'bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#222] text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
                                         >
                                             <opt.icon className="w-4 h-4" /> {opt.label}
                                         </button>
@@ -1462,7 +1462,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     value={accForm.initial_balance}
                                     onChange={e => setAccForm(f => ({ ...f, initial_balance: e.target.value }))}
                                     placeholder="0,00"
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all font-mono"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#A0792E]/50 transition-all font-mono"
                                 />
                                 <p className="text-[10px] text-gray-400 dark:text-[#666] mt-2 uppercase tracking-widest">Saldo antes das movimentações do ERP</p>
                             </div>
@@ -1486,7 +1486,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 <button
                                     onClick={handleSaveAcc}
                                     disabled={savingAcc || !accForm.name.trim()}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#B8860B]/20 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#A0792E] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#A0792E]/20 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
                                 >
                                     {savingAcc && <Loader2 className="w-4 h-4 animate-spin" />}
                                     {savingAcc ? 'Salvando...' : 'Salvar'}
@@ -1580,7 +1580,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     value={form.description}
                                     onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                                     placeholder="Ex: Pix enviado - Fornecedor"
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#A0792E]/50 transition-all"
                                 />
                             </div>
 
@@ -1595,7 +1595,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                         value={form.amount}
                                         onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
                                         placeholder="0,00"
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#A0792E]/50 transition-all"
                                     />
                                 </div>
                                 <div>
@@ -1604,7 +1604,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                         type="date"
                                         value={form.transaction_date}
                                         onChange={e => setForm(f => ({ ...f, transaction_date: e.target.value }))}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#B8860B]/50 transition-all"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 transition-all"
                                     />
                                 </div>
                             </div>
@@ -1616,7 +1616,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     <select
                                         value={form.account_id}
                                         onChange={e => setForm(f => ({ ...f, account_id: e.target.value }))}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#B8860B]/50 transition-all appearance-none"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 transition-all appearance-none"
                                     >
                                         <option value="">Selecionar...</option>
                                         {accounts.map(acc => (
@@ -1629,7 +1629,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     <select
                                         value={form.status}
                                         onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#B8860B]/50 transition-all appearance-none"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 transition-all appearance-none"
                                     >
                                         <option value="pending">Pendente</option>
                                         <option value="completed">Efetivado</option>
@@ -1645,7 +1645,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     <select
                                         value={form.category_id}
                                         onChange={e => setForm(f => ({ ...f, category_id: e.target.value }))}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#B8860B]/50 transition-all appearance-none"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 transition-all appearance-none"
                                     >
                                         <option value="">Sem categoria</option>
                                         {(modalType === 'income' ? incomeCategories : expenseCategories).map(cat => (
@@ -1666,7 +1666,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                     onChange={e => setForm(f => ({ ...f, observacao: e.target.value }))}
                                     placeholder="Informações adicionais sobre o lançamento..."
                                     rows={3}
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#B8860B]/50 transition-all resize-none"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#444] focus:outline-none focus:border-[#A0792E]/50 transition-all resize-none"
                                 />
                             </div>
                         </div>
@@ -1690,7 +1690,7 @@ export default function FinanceiroClient({ initialAccounts, initialTransactions,
                                 <button
                                     onClick={handleSave}
                                     disabled={saving || !form.description.trim() || !form.amount || !form.account_id}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#B8860B]/20 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#A0792E] to-[#9A7209] text-black rounded-xl text-sm font-bold shadow-lg shadow-[#A0792E]/20 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
                                 >
                                     {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                                     {saving ? 'Salvando...' : 'Salvar'}
@@ -2012,16 +2012,16 @@ export function LeiloesIntegracao({
                 </div>
 
                 <div className={`bg-gradient-to-br border rounded-2xl p-6 relative overflow-hidden ${resultadoLiquido >= 0
-                    ? 'from-[#B8860B]/15 via-[#B8860B]/5 to-transparent border-[#B8860B]/30'
+                    ? 'from-[#A0792E]/15 via-[#A0792E]/5 to-transparent border-[#A0792E]/30'
                     : 'from-rose-600/15 via-rose-500/5 to-transparent border-rose-500/30'}`}>
-                    <div className="absolute -top-8 -right-8 w-32 h-32 bg-[#B8860B]/10 rounded-full blur-3xl" />
+                    <div className="absolute -top-8 -right-8 w-32 h-32 bg-[#A0792E]/10 rounded-full blur-3xl" />
                     <div className="flex items-center gap-2 mb-2 relative">
-                        <Trophy className={`w-4 h-4 ${resultadoLiquido >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`} />
-                        <span className={`text-[10px] uppercase tracking-widest font-bold ${resultadoLiquido >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>
+                        <Trophy className={`w-4 h-4 ${resultadoLiquido >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`} />
+                        <span className={`text-[10px] uppercase tracking-widest font-bold ${resultadoLiquido >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>
                             Resultado líquido esperado
                         </span>
                     </div>
-                    <p className={`text-3xl font-black leading-tight ${resultadoLiquido >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>
+                    <p className={`text-3xl font-black leading-tight ${resultadoLiquido >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>
                         {resultadoLiquido >= 0 ? '+' : ''}{fmt(resultadoLiquido)}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
@@ -2033,12 +2033,12 @@ export function LeiloesIntegracao({
             {/* ── Toolbar ─────────────────────────────────────────────────── */}
             <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-2xl p-4 flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#B8860B]" />
+                    <Sparkles className="w-4 h-4 text-[#A0792E]" />
                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Lançar no ERP</span>
                 </div>
                 <div className="flex items-center gap-2 flex-1 flex-wrap">
                     <select value={accountId} onChange={e => setAccountId(e.target.value)}
-                        className="px-3 py-2 text-xs font-semibold bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-[#B8860B] outline-none">
+                        className="px-3 py-2 text-xs font-semibold bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-[#A0792E] outline-none">
                         <option value="">Conta ERP…</option>
                         {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
@@ -2055,11 +2055,11 @@ export function LeiloesIntegracao({
                 </div>
                 <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400 cursor-pointer">
                     <input type="checkbox" checked={hideLancados} onChange={e => setHideLancados(e.target.checked)}
-                        className="w-3.5 h-3.5 accent-[#B8860B]" />
+                        className="w-3.5 h-3.5 accent-[#A0792E]" />
                     Ocultar já lançados
                 </label>
                 <button onClick={lancarTudo} disabled={busy !== null || !accountId}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#9A7209] text-black rounded-lg text-xs font-bold shadow-md hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100">
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#A0792E] to-[#9A7209] text-black rounded-lg text-xs font-bold shadow-md hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100">
                     {busy === 'all' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCheck className="w-3.5 h-3.5" />}
                     Lançar tudo pendente
                 </button>
@@ -2070,8 +2070,8 @@ export function LeiloesIntegracao({
                 <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-2xl overflow-hidden">
                     <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-2 bg-[#B8860B]/10 rounded-xl">
-                                <Trophy className="w-4 h-4 text-[#B8860B]" />
+                            <div className="p-2 bg-[#A0792E]/10 rounded-xl">
+                                <Trophy className="w-4 h-4 text-[#A0792E]" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-gray-900 dark:text-white">Resumo por Fechamento</h3>
@@ -2112,7 +2112,7 @@ export function LeiloesIntegracao({
                                             <td className="px-4 py-3 text-right font-mono text-xs text-gray-500">{p.vgv > 0 ? fmt(p.vgv) : '—'}</td>
                                             <td className="px-4 py-3 text-right font-black text-emerald-500">{p.receita > 0 ? fmt(p.receita) : '—'}</td>
                                             <td className="px-4 py-3 text-right font-black text-rose-500">{p.comissao > 0 ? fmt(p.comissao) : '—'}</td>
-                                            <td className={`px-4 py-3 text-right font-black ${p.sobra >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>
+                                            <td className={`px-4 py-3 text-right font-black ${p.sobra >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>
                                                 {p.sobra !== 0 ? `${p.sobra >= 0 ? '+' : ''}${fmt(p.sobra)}` : '—'}
                                             </td>
                                             <td className="px-4 py-3 text-center">
@@ -2155,7 +2155,7 @@ export function LeiloesIntegracao({
                                     <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">{fmt(fechamentoPnL.reduce((s, x) => s + x.vgv, 0))}</td>
                                     <td className="px-4 py-3 text-right text-emerald-500">{fmt(fechamentoPnL.reduce((s, x) => s + x.receita, 0))}</td>
                                     <td className="px-4 py-3 text-right text-rose-500">{fmt(fechamentoPnL.reduce((s, x) => s + x.comissao, 0))}</td>
-                                    <td className="px-4 py-3 text-right text-[#B8860B]">{fmt(fechamentoPnL.reduce((s, x) => s + x.sobra, 0))}</td>
+                                    <td className="px-4 py-3 text-right text-[#A0792E]">{fmt(fechamentoPnL.reduce((s, x) => s + x.sobra, 0))}</td>
                                     <td className="px-4 py-3" colSpan={2} />
                                 </tr>
                             </tfoot>
@@ -2207,7 +2207,7 @@ export function LeiloesIntegracao({
                                         <td className="px-4 py-3 font-mono text-xs text-gray-500">{r.data ? fmtDate(r.data) : '—'}</td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
-                                                <span className={`inline-block text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${r.origem === 'fechamento' ? 'bg-[#B8860B]/15 text-[#B8860B]' : 'bg-sky-500/15 text-sky-500'}`}>
+                                                <span className={`inline-block text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${r.origem === 'fechamento' ? 'bg-[#A0792E]/15 text-[#A0792E]' : 'bg-sky-500/15 text-sky-500'}`}>
                                                     {r.origem === 'fechamento' ? 'Fech.' : 'Leilão'}
                                                 </span>
                                                 <p className="font-bold text-gray-900 dark:text-white">{r.nome}</p>
@@ -2328,13 +2328,13 @@ export function LeiloesIntegracao({
             </div>
 
             {/* ── Ajuda ──────────────────────────────────────────────────── */}
-            <div className="bg-gradient-to-br from-[#B8860B]/5 to-transparent border border-[#B8860B]/20 rounded-2xl p-5 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+            <div className="bg-gradient-to-br from-[#A0792E]/5 to-transparent border border-[#A0792E]/20 rounded-2xl p-5 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                 <div className="flex items-start gap-3">
-                    <ChevronRight className="w-4 h-4 text-[#B8860B] shrink-0 mt-0.5" />
+                    <ChevronRight className="w-4 h-4 text-[#A0792E] shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                        <p><strong className="text-[#B8860B]">Como funciona:</strong> cada comissão de leilão vira uma conta a receber e cada comissão de assessor vira uma conta a pagar, ambas como <em>Pendentes</em> no ERP.</p>
-                        <p><strong className="text-[#B8860B]">Deduplicação:</strong> o sistema marca o lançamento com uma tag na observação (<code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">[LEILAO:&lt;id&gt;]</code> / <code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">[FECHAMENTO:&lt;id&gt;:ASSESSOR:&lt;nome&gt;]</code>) evitando duplicatas ao re-lançar.</p>
-                        <p><strong className="text-[#B8860B]">Conciliar:</strong> depois de recebido/pago, vá em <em>Conciliação</em> e mude o status para Efetivado — isso atualiza o saldo real da conta.</p>
+                        <p><strong className="text-[#A0792E]">Como funciona:</strong> cada comissão de leilão vira uma conta a receber e cada comissão de assessor vira uma conta a pagar, ambas como <em>Pendentes</em> no ERP.</p>
+                        <p><strong className="text-[#A0792E]">Deduplicação:</strong> o sistema marca o lançamento com uma tag na observação (<code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">[LEILAO:&lt;id&gt;]</code> / <code className="bg-gray-100 dark:bg-[#1A1A1A] px-1 rounded">[FECHAMENTO:&lt;id&gt;:ASSESSOR:&lt;nome&gt;]</code>) evitando duplicatas ao re-lançar.</p>
+                        <p><strong className="text-[#A0792E]">Conciliar:</strong> depois de recebido/pago, vá em <em>Conciliação</em> e mude o status para Efetivado — isso atualiza o saldo real da conta.</p>
                     </div>
                 </div>
             </div>

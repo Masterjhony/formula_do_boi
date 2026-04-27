@@ -131,14 +131,14 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                         placeholder="Buscar por nome, registro..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-4 pr-10 py-2.5 sm:py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-600 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all"
+                        className="w-full pl-4 pr-10 py-2.5 sm:py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-600 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all"
                     />
                     {/* Search Icon could go here if imported */}
                 </div>
                 <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="px-4 py-2.5 sm:py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#B8860B]/50 cursor-pointer sm:min-w-[200px]"
+                    className="px-4 py-2.5 sm:py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 cursor-pointer sm:min-w-[200px]"
                 >
                     <option value="Todos">Todas as Categorias</option>
                     <option value="Touro">Touros</option>
@@ -150,9 +150,9 @@ export default function ProductListClient({ initialProducts }: { initialProducts
             </div>
 
             {selectedIds.length > 0 && (
-                <div className="bg-white dark:bg-[#111111] border border-[#B8860B]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2">
+                <div className="bg-white dark:bg-[#111111] border border-[#A0792E]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2">
                     <div className="flex items-center gap-3">
-                        <span className="bg-[#B8860B]/10 text-[#B8860B] font-bold px-3 py-1 rounded-full text-sm">
+                        <span className="bg-[#A0792E]/10 text-[#A0792E] font-bold px-3 py-1 rounded-full text-sm">
                             {selectedIds.length} selecionado{selectedIds.length > 1 ? 's' : ''}
                         </span>
                         <span className="text-gray-600 dark:text-gray-400 text-sm">Ações em lote:</span>
@@ -244,7 +244,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                             <div className="flex items-start gap-3">
                                 <input
                                     type="checkbox"
-                                    className="mt-1 w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#B8860B] focus:ring-[#B8860B]"
+                                    className="mt-1 w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#A0792E] focus:ring-[#A0792E]"
                                     checked={selectedIds.includes(product.id)}
                                     onChange={() => handleSelectOne(product.id)}
                                     disabled={isBatchUpdating}
@@ -270,7 +270,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200 dark:bg-[#1A1A1A] text-gray-500 font-medium">Oculto</span>
                                         )}
                                     </div>
-                                    <p className="text-sm font-semibold text-[#B8860B] mt-1.5">
+                                    <p className="text-sm font-semibold text-[#A0792E] mt-1.5">
                                         {typeof product.price === 'number'
                                             ? `R$ ${product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
                                             : product.price || 'Consulte'}
@@ -278,7 +278,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                 </div>
                             </div>
                             <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-[#222222]">
-                                <Link href={`/products/${product.id}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#B8860B]/10 text-[#B8860B] text-xs font-semibold">
+                                <Link href={`/products/${product.id}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#A0792E]/10 text-[#A0792E] text-xs font-semibold">
                                     <Edit size={13} />
                                     Editar
                                 </Link>
@@ -319,7 +319,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                 <th className="px-6 py-5 w-12 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
                                     <input 
                                         type="checkbox" 
-                                        className="w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#B8860B] focus:ring-[#B8860B]"
+                                        className="w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#A0792E] focus:ring-[#A0792E]"
                                         checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
                                         onChange={handleSelectAll}
                                         disabled={isBatchUpdating}
@@ -340,7 +340,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                     <td className="px-6 py-4 text-center">
                                         <input 
                                             type="checkbox" 
-                                            className="w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#B8860B] focus:ring-[#B8860B]"
+                                            className="w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#A0792E] focus:ring-[#A0792E]"
                                             checked={selectedIds.includes(product.id)}
                                             onChange={() => handleSelectOne(product.id)}
                                             onClick={(e) => e.stopPropagation()}
@@ -349,7 +349,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-[#222222] overflow-hidden relative flex-shrink-0 border border-gray-200 dark:border-[#333333] group-hover:border-[#B8860B]/50 transition-colors">
+                                            <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-[#222222] overflow-hidden relative flex-shrink-0 border border-gray-200 dark:border-[#333333] group-hover:border-[#A0792E]/50 transition-colors">
                                                 {product.image_url?.endsWith('.mp4') ? (
                                                     <video src={product.image_url} className="w-full h-full object-cover" muted />
                                                 ) : product.image_url?.includes('youtube.com') || product.image_url?.includes('youtu.be') ? (
@@ -390,7 +390,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                                 )}
                                             </div>
                                             <div>
-                                                <div className="font-bold text-gray-900 dark:text-white group-hover:text-[#B8860B] transition-colors">{product.name}</div>
+                                                <div className="font-bold text-gray-900 dark:text-white group-hover:text-[#A0792E] transition-colors">{product.name}</div>
                                                 <div className="text-xs text-gray-500 font-mono mt-0.5">{product.details?.registro || '-'}</div>
                                             </div>
                                         </div>
@@ -442,7 +442,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Link href={`/products/${product.id}`} className="p-2.5 text-gray-400 hover:text-[#B8860B] hover:bg-[#B8860B]/10 rounded-lg transition-all" title="Editar">
+                                            <Link href={`/products/${product.id}`} className="p-2.5 text-gray-400 hover:text-[#A0792E] hover:bg-[#A0792E]/10 rounded-lg transition-all" title="Editar">
                                                 <Edit size={18} />
                                             </Link>
                                             <button

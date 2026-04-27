@@ -10,10 +10,10 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, icon: Icon, description, isCurrency }: StatsCardProps) {
     return (
-        <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 hover:border-[#B8860B]/30 transition-colors group shadow-sm dark:shadow-none">
+        <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-6 hover:border-[#A0792E]/30 transition-colors group shadow-sm dark:shadow-none">
             <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl group-hover:bg-[#B8860B]/10 transition-colors">
-                    <Icon className="w-6 h-6 text-[#B8860B]" />
+                <div className="p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl group-hover:bg-[#A0792E]/10 transition-colors">
+                    <Icon className="w-6 h-6 text-[#A0792E]" />
                 </div>
                 {isCurrency && (
                     <span className="text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded-full">+0%</span>

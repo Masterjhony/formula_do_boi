@@ -68,8 +68,8 @@ function LoginPageInner() {
         <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#B8860B]/5 rounded-full blur-[100px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#B8860B]/5 rounded-full blur-[100px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#A0792E]/5 rounded-full blur-[100px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#A0792E]/5 rounded-full blur-[100px]" />
             </div>
 
             <div className="w-full max-w-md relative z-10">
@@ -104,7 +104,7 @@ function LoginPageInner() {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all placeholder:text-gray-600"
+                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all placeholder:text-gray-600"
                                     placeholder="seu@email.com"
                                     required
                                 />
@@ -114,7 +114,7 @@ function LoginPageInner() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center ml-1">
                                 <label className="text-sm font-medium text-gray-300">Senha</label>
-                                <Link href="#" className="text-xs text-[#B8860B] hover:text-[#D4AF37] transition-colors">
+                                <Link href="#" className="text-xs text-[#A0792E] hover:text-[#D4A85C] transition-colors">
                                     Esqueceu a senha?
                                 </Link>
                             </div>
@@ -124,7 +124,7 @@ function LoginPageInner() {
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all placeholder:text-gray-600"
+                                    className="w-full bg-[#1A1A1A] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all placeholder:text-gray-600"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -134,7 +134,7 @@ function LoginPageInner() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-[#B8860B] to-[#DAA520] hover:from-[#D4AF37] hover:to-[#FFD700] text-black font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(184,134,11,0.3)] hover:shadow-[0_6px_25px_-5px_rgba(184,134,11,0.4)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full bg-gradient-to-r from-[#A0792E] to-[#A0792E] hover:from-[#D4A85C] hover:to-[#E8CB85] text-black font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_-5px_rgba(160,121,46,0.3)] hover:shadow-[0_6px_25px_-5px_rgba(160,121,46,0.4)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
@@ -150,7 +150,7 @@ function LoginPageInner() {
                     <div className="mt-8 text-center">
                         <p className="text-gray-400 text-sm">
                             Não tem uma conta?{' '}
-                            <Link href={nextParam ? `/auth/signup?redirect=${encodeURIComponent(nextParam)}` : '/auth/signup'} className="text-[#B8860B] font-semibold hover:text-[#D4AF37] transition-colors">
+                            <Link href={nextParam ? `/auth/signup?redirect=${encodeURIComponent(nextParam)}` : '/auth/signup'} className="text-[#A0792E] font-semibold hover:text-[#D4A85C] transition-colors">
                                 Criar conta gratuita
                             </Link>
                         </p>

@@ -80,7 +80,7 @@ export default function TopCriadoresPage() {
                 <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay pointer-events-none"></div>
 
                 <div className="container mx-auto px-4 text-center relative z-10">
-                    <h2 className="text-3xl md:text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] via-[#FAD058] to-[#D4AF37] mb-4 tracking-wide">
+                    <h2 className="text-3xl md:text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-[#D4A85C] via-[#FAD058] to-[#D4A85C] mb-4 tracking-wide">
                         O QUE É SER UM TOP CRIADOR?
                     </h2>
                     <p className="text-[#888] font-display italic max-w-3xl mx-auto mb-16 text-lg">
@@ -89,10 +89,10 @@ export default function TopCriadoresPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Premium Cards for Benefits */}
-                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-sm border border-[#222] hover:border-[#D4AF37]/30 transition-all group shadow-xl">
+                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-sm border border-[#222] hover:border-[#D4A85C]/30 transition-all group shadow-xl">
                             <div className="w-14 h-14 mx-auto mb-6 relative flex items-center justify-center">
-                                <div className="absolute inset-0 rotate-45 border border-[#D4AF37]/20 group-hover:border-[#D4AF37] transition-colors duration-500"></div>
-                                <Crown className="w-6 h-6 text-[#D4AF37] relative z-10" />
+                                <div className="absolute inset-0 rotate-45 border border-[#D4A85C]/20 group-hover:border-[#D4A85C] transition-colors duration-500"></div>
+                                <Crown className="w-6 h-6 text-[#D4A85C] relative z-10" />
                             </div>
                             <h3 className="text-xl font-display font-bold mb-3 text-white">Genética de Ponta</h3>
                             <p className="text-sm text-gray-500 font-light leading-relaxed">
@@ -100,10 +100,10 @@ export default function TopCriadoresPage() {
                             </p>
                         </div>
 
-                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-sm border border-[#222] hover:border-[#D4AF37]/30 transition-all group shadow-xl">
+                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-sm border border-[#222] hover:border-[#D4A85C]/30 transition-all group shadow-xl">
                             <div className="w-14 h-14 mx-auto mb-6 relative flex items-center justify-center">
-                                <div className="absolute inset-0 rotate-45 border border-[#D4AF37]/20 group-hover:border-[#D4AF37] transition-colors duration-500"></div>
-                                <TrendingUp className="w-6 h-6 text-[#D4AF37] relative z-10" />
+                                <div className="absolute inset-0 rotate-45 border border-[#D4A85C]/20 group-hover:border-[#D4A85C] transition-colors duration-500"></div>
+                                <TrendingUp className="w-6 h-6 text-[#D4A85C] relative z-10" />
                             </div>
                             <h3 className="text-xl font-display font-bold mb-3 text-white">Performance</h3>
                             <p className="text-sm text-gray-500 font-light leading-relaxed">
@@ -111,10 +111,10 @@ export default function TopCriadoresPage() {
                             </p>
                         </div>
 
-                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-sm border border-[#222] hover:border-[#D4AF37]/30 transition-all group shadow-xl">
+                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-sm border border-[#222] hover:border-[#D4A85C]/30 transition-all group shadow-xl">
                             <div className="w-14 h-14 mx-auto mb-6 relative flex items-center justify-center">
-                                <div className="absolute inset-0 rotate-45 border border-[#D4AF37]/20 group-hover:border-[#D4AF37] transition-colors duration-500"></div>
-                                <Shield className="w-6 h-6 text-[#D4AF37] relative z-10" />
+                                <div className="absolute inset-0 rotate-45 border border-[#D4A85C]/20 group-hover:border-[#D4A85C] transition-colors duration-500"></div>
+                                <Shield className="w-6 h-6 text-[#D4A85C] relative z-10" />
                             </div>
                             <h3 className="text-xl font-display font-bold mb-3 text-white">Confiabilidade</h3>
                             <p className="text-sm text-gray-500 font-light leading-relaxed">
@@ -128,7 +128,7 @@ export default function TopCriadoresPage() {
             {/* Filter/Tabs Section */}
             <section className="pt-10 pb-12 bg-gradient-to-b from-[#0a0a0a] to-[#050505] relative border-t border-white/5">
                 <div className="container mx-auto px-4 flex flex-col items-center">
-                    <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent mb-8"></div>
+                    <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#D4A85C]/50 to-transparent mb-8"></div>
                     <h2 className="text-3xl font-display font-bold mb-8 text-center text-white tracking-wider">
                         RANKING DE CRIADORES
                     </h2>
@@ -143,8 +143,8 @@ export default function TopCriadoresPage() {
                                     key={id}
                                     onClick={() => setActiveTab(id.replace('rank-', ''))}
                                     className={`px-8 py-2.5 text-sm font-display font-bold uppercase tracking-[0.15em] transition-all border ${isActive
-                                        ? 'bg-gradient-to-r from-[#D4AF37] to-[#FAD058] text-black border-transparent shadow-[0_0_15px_rgba(212,175,55,0.3)]'
-                                        : 'bg-transparent text-[#888] border-[#333] hover:text-[#D4AF37] hover:border-[#D4AF37]/50'
+                                        ? 'bg-gradient-to-r from-[#D4A85C] to-[#FAD058] text-black border-transparent shadow-[0_0_15px_rgba(212,168,92,0.3)]'
+                                        : 'bg-transparent text-[#888] border-[#333] hover:text-[#D4A85C] hover:border-[#D4A85C]/50'
                                         }`}
                                 >
                                     {tab}

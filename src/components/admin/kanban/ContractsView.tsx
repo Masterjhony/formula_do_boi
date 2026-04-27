@@ -138,13 +138,13 @@ export function ContractsView({ initialContracts }: Props) {
                 {/* All */}
                 <button
                     onClick={() => { setCurrentFolder('all'); setSearch(''); }}
-                    className={`flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors ${currentFolder === 'all' ? 'text-[#B8860B] bg-[#B8860B]/10' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]'}`}
+                    className={`flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors ${currentFolder === 'all' ? 'text-[#A0792E] bg-[#A0792E]/10' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]'}`}
                 >
                     <div className="flex items-center gap-2.5">
-                        <Folder size={15} className={currentFolder === 'all' ? 'text-[#B8860B]' : 'text-gray-400'} />
+                        <Folder size={15} className={currentFolder === 'all' ? 'text-[#A0792E]' : 'text-gray-400'} />
                         Todos os Contratos
                     </div>
-                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${currentFolder === 'all' ? 'bg-[#B8860B] text-black' : 'bg-gray-200 dark:bg-[#2A2A2A] text-gray-600 dark:text-gray-400'}`}>
+                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${currentFolder === 'all' ? 'bg-[#A0792E] text-black' : 'bg-gray-200 dark:bg-[#2A2A2A] text-gray-600 dark:text-gray-400'}`}>
                         {counts.total}
                     </span>
                 </button>
@@ -158,13 +158,13 @@ export function ContractsView({ initialContracts }: Props) {
                         <button
                             key={status}
                             onClick={() => { setCurrentFolder(status); setSearch(''); }}
-                            className={`flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors ${isActive ? 'text-[#B8860B] bg-[#B8860B]/10' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]'}`}
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors ${isActive ? 'text-[#A0792E] bg-[#A0792E]/10' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]'}`}
                         >
                             <div className="flex items-center gap-2.5">
-                                <StatusIcon size={14} className={isActive ? 'text-[#B8860B]' : cfg.folderColor} />
+                                <StatusIcon size={14} className={isActive ? 'text-[#A0792E]' : cfg.folderColor} />
                                 {status}
                             </div>
-                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-[#B8860B] text-black' : 'bg-gray-200 dark:bg-[#2A2A2A] text-gray-600 dark:text-gray-400'}`}>
+                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-[#A0792E] text-black' : 'bg-gray-200 dark:bg-[#2A2A2A] text-gray-600 dark:text-gray-400'}`}>
                                 {counts.byStatus[status] ?? 0}
                             </span>
                         </button>
@@ -174,7 +174,7 @@ export function ContractsView({ initialContracts }: Props) {
                 {/* Bottom: valor */}
                 <div className="mt-auto px-4 py-5 border-t border-gray-100 dark:border-[#222222]">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Valor em Ativos</p>
-                    <p className="text-sm font-bold text-[#B8860B]">{formatCurrency(counts.valor)}</p>
+                    <p className="text-sm font-bold text-[#A0792E]">{formatCurrency(counts.valor)}</p>
                     {counts.vencendo > 0 && (
                         <p className="text-xs text-amber-500 mt-1.5 flex items-center gap-1">
                             <AlertTriangle size={11} />
@@ -192,7 +192,7 @@ export function ContractsView({ initialContracts }: Props) {
                     {/* Breadcrumb */}
                     <div className="flex items-center gap-1 text-sm text-gray-500 mr-2 shrink-0">
                         <span
-                            className="hover:text-[#B8860B] cursor-pointer transition-colors"
+                            className="hover:text-[#A0792E] cursor-pointer transition-colors"
                             onClick={() => { setCurrentFolder('all'); setSearch(''); }}
                         >
                             Contratos
@@ -212,16 +212,16 @@ export function ContractsView({ initialContracts }: Props) {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Buscar contratos..."
-                            className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-xl outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white"
+                            className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-xl outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
                         />
                     </div>
 
                     {/* View toggle */}
                     <div className="flex items-center bg-gray-100 dark:bg-[#1A1A1A] rounded-xl p-1">
-                        <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-[#2A2A2A] shadow text-[#B8860B]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}>
+                        <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-[#2A2A2A] shadow text-[#A0792E]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}>
                             <Grid3X3 size={14} />
                         </button>
-                        <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-[#2A2A2A] shadow text-[#B8860B]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}>
+                        <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-[#2A2A2A] shadow text-[#A0792E]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}>
                             <List size={14} />
                         </button>
                     </div>
@@ -229,7 +229,7 @@ export function ContractsView({ initialContracts }: Props) {
                     {/* New contract */}
                     <button
                         onClick={openCreate}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-[#B8860B]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap shrink-0"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-[#A0792E]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap shrink-0"
                     >
                         <Upload size={14} /> Novo Contrato
                     </button>
@@ -268,11 +268,11 @@ export function ContractsView({ initialContracts }: Props) {
                                         <button
                                             key={status}
                                             onClick={() => setCurrentFolder(status)}
-                                            className="group flex flex-col gap-3 p-4 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl hover:border-[#B8860B]/40 hover:shadow-md hover:shadow-[#B8860B]/10 transition-all text-left"
+                                            className="group flex flex-col gap-3 p-4 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl hover:border-[#A0792E]/40 hover:shadow-md hover:shadow-[#A0792E]/10 transition-all text-left"
                                         >
                                             <div className="flex items-center justify-between">
                                                 <FolderOpen size={28} className={`${cfg.folderColor} group-hover:scale-110 transition-transform`} />
-                                                <ChevronRight size={14} className="text-gray-300 dark:text-gray-600 group-hover:text-[#B8860B] transition-colors" />
+                                                <ChevronRight size={14} className="text-gray-300 dark:text-gray-600 group-hover:text-[#A0792E] transition-colors" />
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-gray-900 dark:text-white text-sm">{status}</p>
@@ -334,8 +334,8 @@ export function ContractsView({ initialContracts }: Props) {
 
                         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#222222] shrink-0">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-[#B8860B]/10 rounded-xl">
-                                    <FileText size={20} className="text-[#B8860B]" />
+                                <div className="p-2 bg-[#A0792E]/10 rounded-xl">
+                                    <FileText size={20} className="text-[#A0792E]" />
                                 </div>
                                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                                     {editing ? 'Editar Contrato' : 'Novo Contrato'}
@@ -350,41 +350,41 @@ export function ContractsView({ initialContracts }: Props) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><User size={13} /> Cliente</label>
-                                    <input type="text" value={form.client_name} onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))} placeholder="Nome do cliente..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="text" value={form.client_name} onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))} placeholder="Nome do cliente..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><FileText size={13} /> Título do Contrato</label>
-                                    <input type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Contrato de Venda — Touro Prometeu..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Contrato de Venda — Touro Prometeu..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                                    <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Contract['status'] }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] outline-none text-gray-900 dark:text-white text-sm">
+                                    <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Contract['status'] }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm">
                                         {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><DollarSign size={13} /> Valor (R$)</label>
-                                    <input type="number" min="0" step="0.01" value={form.value ?? ''} onChange={e => setForm(f => ({ ...f, value: e.target.value ? parseFloat(e.target.value) : null }))} placeholder="0,00" className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="number" min="0" step="0.01" value={form.value ?? ''} onChange={e => setForm(f => ({ ...f, value: e.target.value ? parseFloat(e.target.value) : null }))} placeholder="0,00" className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><Calendar size={13} /> Início da Vigência</label>
-                                    <input type="date" value={form.start_date ?? ''} onChange={e => setForm(f => ({ ...f, start_date: e.target.value || null }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="date" value={form.start_date ?? ''} onChange={e => setForm(f => ({ ...f, start_date: e.target.value || null }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><Calendar size={13} /> Fim da Vigência</label>
-                                    <input type="date" value={form.end_date ?? ''} onChange={e => setForm(f => ({ ...f, end_date: e.target.value || null }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="date" value={form.end_date ?? ''} onChange={e => setForm(f => ({ ...f, end_date: e.target.value || null }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><StickyNote size={13} /> Observações</label>
-                                <textarea value={form.notes ?? ''} onChange={e => setForm(f => ({ ...f, notes: e.target.value || null }))} rows={3} placeholder="Detalhes adicionais sobre o contrato..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#B8860B] outline-none text-gray-900 dark:text-white text-sm resize-none" />
+                                <textarea value={form.notes ?? ''} onChange={e => setForm(f => ({ ...f, notes: e.target.value || null }))} rows={3} placeholder="Detalhes adicionais sobre o contrato..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm resize-none" />
                             </div>
 
                             <div>
@@ -403,8 +403,8 @@ export function ContractsView({ initialContracts }: Props) {
                                         </button>
                                     </div>
                                 ) : (
-                                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full flex flex-col items-center gap-2 px-4 py-6 bg-gray-50 dark:bg-[#111111] border-2 border-dashed border-gray-200 dark:border-[#333333] rounded-xl hover:border-[#B8860B] hover:bg-[#B8860B]/5 transition-all disabled:opacity-50 cursor-pointer">
-                                        {isUploading ? <div className="w-6 h-6 border-2 border-[#B8860B]/30 border-t-[#B8860B] rounded-full animate-spin" /> : <Upload size={22} className="text-gray-400" />}
+                                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full flex flex-col items-center gap-2 px-4 py-6 bg-gray-50 dark:bg-[#111111] border-2 border-dashed border-gray-200 dark:border-[#333333] rounded-xl hover:border-[#A0792E] hover:bg-[#A0792E]/5 transition-all disabled:opacity-50 cursor-pointer">
+                                        {isUploading ? <div className="w-6 h-6 border-2 border-[#A0792E]/30 border-t-[#A0792E] rounded-full animate-spin" /> : <Upload size={22} className="text-gray-400" />}
                                         <span className="text-sm text-gray-500">{isUploading ? 'Enviando...' : 'Clique para fazer upload do contrato (PDF)'}</span>
                                     </button>
                                 )}
@@ -416,7 +416,7 @@ export function ContractsView({ initialContracts }: Props) {
                             <button type="button" onClick={() => setModalOpen(false)} className="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-[#222222] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] rounded-xl transition-colors">
                                 Cancelar
                             </button>
-                            <button type="button" onClick={handleSave} disabled={isSaving || !form.client_name.trim() || !form.title.trim()} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-[#B8860B]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button type="button" onClick={handleSave} disabled={isSaving || !form.client_name.trim() || !form.title.trim()} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-[#A0792E]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                                 {isSaving ? <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Save size={15} />}
                                 {isSaving ? 'Salvando...' : 'Salvar'}
                             </button>
@@ -438,7 +438,7 @@ function ContractCard({ contract: c, onEdit, onDelete }: { contract: Contract; o
     return (
         <div
             onClick={() => onEdit(c)}
-            className="group relative bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-4 hover:border-[#B8860B]/40 hover:shadow-md hover:shadow-[#B8860B]/10 transition-all cursor-pointer"
+            className="group relative bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-4 hover:border-[#A0792E]/40 hover:shadow-md hover:shadow-[#A0792E]/10 transition-all cursor-pointer"
         >
             {/* Delete btn */}
             <button
@@ -450,8 +450,8 @@ function ContractCard({ contract: c, onEdit, onDelete }: { contract: Contract; o
 
             {/* Icon + status */}
             <div className="flex items-start gap-3 mb-3">
-                <div className="p-2.5 bg-[#B8860B]/10 rounded-xl shrink-0">
-                    <FileText size={18} className="text-[#B8860B]" />
+                <div className="p-2.5 bg-[#A0792E]/10 rounded-xl shrink-0">
+                    <FileText size={18} className="text-[#A0792E]" />
                 </div>
                 <div className="flex-1 min-w-0 pt-0.5">
                     <p className="font-semibold text-gray-900 dark:text-white text-sm truncate pr-6">{c.title}</p>
@@ -466,7 +466,7 @@ function ContractCard({ contract: c, onEdit, onDelete }: { contract: Contract; o
                     {cfg.label}
                 </span>
                 {c.value && (
-                    <span className="text-xs font-bold text-[#B8860B]">{formatCurrency(c.value)}</span>
+                    <span className="text-xs font-bold text-[#A0792E]">{formatCurrency(c.value)}</span>
                 )}
             </div>
 
@@ -511,7 +511,7 @@ function ContractRow({ contract: c, onEdit, onDelete }: { contract: Contract; on
         <tr onClick={() => onEdit(c)} className="hover:bg-gray-50 dark:hover:bg-[#0D0D0D] transition-colors cursor-pointer group">
             <td className="px-4 py-3.5">
                 <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] text-black text-xs flex items-center justify-center font-bold shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#A0792E] to-[#9A7209] text-black text-xs flex items-center justify-center font-bold shrink-0">
                         {c.client_name.charAt(0).toUpperCase()}
                     </div>
                     <span className="font-semibold text-gray-900 dark:text-white truncate max-w-[130px]" title={c.client_name}>{c.client_name}</span>
@@ -542,7 +542,7 @@ function ContractRow({ contract: c, onEdit, onDelete }: { contract: Contract; on
                 </div>
             </td>
             <td className="px-4 py-3.5">
-                <span className={`font-semibold ${c.value ? 'text-[#B8860B]' : 'text-gray-400'}`}>{formatCurrency(c.value)}</span>
+                <span className={`font-semibold ${c.value ? 'text-[#A0792E]' : 'text-gray-400'}`}>{formatCurrency(c.value)}</span>
             </td>
             <td className="px-4 py-3.5">
                 {c.file_url ? (

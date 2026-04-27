@@ -24,7 +24,7 @@ export default async function LotesTourosPage() {
                 </div>
                 <Link
                     href="/products/new"
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#B8860B] to-[#DAA520] hover:from-[#D4AF37] hover:to-[#FFD700] text-black font-bold px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all shadow-lg shadow-[#B8860B]/20 hover:shadow-[#B8860B]/30 hover:-translate-y-0.5"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#A0792E] to-[#A0792E] hover:from-[#D4A85C] hover:to-[#E8CB85] text-black font-bold px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all shadow-lg shadow-[#A0792E]/20 hover:shadow-[#A0792E]/30 hover:-translate-y-0.5"
                 >
                     <Plus size={18} />
                     Novo Touro

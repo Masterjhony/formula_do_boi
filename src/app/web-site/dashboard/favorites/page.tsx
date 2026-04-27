@@ -46,7 +46,7 @@ export default async function FavoritesPage() {
             ) : (
                 <div className="min-h-[400px] flex flex-col items-center justify-center bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-200 dark:border-[#333333] p-8 text-center animate-in fade-in zoom-in-95 duration-500">
                     <div className="w-16 h-16 bg-brand-gold/10 rounded-full flex items-center justify-center mb-4">
-                        <Heart className="w-8 h-8 text-[#B8860B]" />
+                        <Heart className="w-8 h-8 text-[#A0792E]" />
                     </div>
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                         Sua lista de favoritos está vazia
@@ -56,7 +56,7 @@ export default async function FavoritesPage() {
                     </p>
                     <Link
                         href="/"
-                        className="px-6 py-3 bg-[#B8860B] hover:bg-[#DAA520] text-black font-bold rounded-xl transition-all shadow-lg shadow-[#B8860B]/20"
+                        className="px-6 py-3 bg-[#A0792E] hover:bg-[#A0792E] text-black font-bold rounded-xl transition-all shadow-lg shadow-[#A0792E]/20"
                     >
                         Explorar Leilões
                     </Link>

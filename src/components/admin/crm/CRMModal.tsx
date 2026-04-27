@@ -105,7 +105,7 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
         }
     };
 
-    const inputClass = "w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#B8860B] focus:border-transparent transition-all";
+    const inputClass = "w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#A0792E] focus:border-transparent transition-all";
     const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
 
     return (
@@ -496,7 +496,7 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
                             <button
                                 type="submit"
                                 disabled={isSaving}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#9A7209] hover:to-[#B8860B] text-black font-bold rounded-xl transition-all shadow-lg shadow-[#B8860B]/20 disabled:opacity-50"
+                                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] hover:from-[#9A7209] hover:to-[#A0792E] text-black font-bold rounded-xl transition-all shadow-lg shadow-[#A0792E]/20 disabled:opacity-50"
                             >
                                 <Save size={18} />
                                 {isSaving ? 'Salvando...' : 'Salvar'}

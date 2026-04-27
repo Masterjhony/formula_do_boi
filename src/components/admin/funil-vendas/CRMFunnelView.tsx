@@ -58,7 +58,7 @@ export function CRMFunnelView({ leads, crmConfig, onConfigSaved }: CRMFunnelView
                             onClick={() => setSubTab(t.id)}
                             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
                                 active
-                                    ? 'border-[#B8860B] text-gray-900 dark:text-white'
+                                    ? 'border-[#A0792E] text-gray-900 dark:text-white'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                             }`}
                         >

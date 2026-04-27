@@ -235,7 +235,7 @@ export default function NewAdPage() {
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] focus:ring-2 focus:ring-[#B8860B]/50 focus:border-[#B8860B] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] focus:ring-2 focus:ring-[#A0792E]/50 focus:border-[#A0792E] outline-none transition-colors"
                             />
                         </div>
                         <div className="space-y-2">
@@ -327,8 +327,8 @@ export default function NewAdPage() {
                 <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-100 dark:border-[#333] pb-2">Números e Valores</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="space-y-4 border-l-4 border-[#B8860B] pl-4 bg-[#B8860B]/5 p-4 rounded-r-lg dark:bg-[#B8860B]/10">
-                            <h4 className="font-semibold text-[#B8860B]">Condições de Venda</h4>
+                        <div className="space-y-4 border-l-4 border-[#A0792E] pl-4 bg-[#A0792E]/5 p-4 rounded-r-lg dark:bg-[#A0792E]/10">
+                            <h4 className="font-semibold text-[#A0792E]">Condições de Venda</h4>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Preço Total / À Vista</label>
                                 <input
@@ -336,7 +336,7 @@ export default function NewAdPage() {
                                     value={formData.price}
                                     onChange={handleChange}
                                     placeholder="27.000,00"
-                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#222] outline-none transition-colors focus:border-[#B8860B]"
+                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#222] outline-none transition-colors focus:border-[#A0792E]"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -445,7 +445,7 @@ export default function NewAdPage() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <label className="cursor-pointer bg-[#B8860B]/10 hover:bg-[#B8860B]/20 text-[#B8860B] border border-[#B8860B]/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                    <label className="cursor-pointer bg-[#A0792E]/10 hover:bg-[#A0792E]/20 text-[#A0792E] border border-[#A0792E]/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
                                         {uploadingVideo ? <Loader2 className="animate-spin w-4 h-4" /> : <Upload className="w-4 h-4" />}
                                         {uploadingVideo ? 'Enviando Mídia...' : 'Fazer Upload de Vídeo/Imagem'}
                                         <input
@@ -545,7 +545,7 @@ export default function NewAdPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2.5 bg-[#B8860B] hover:bg-yellow-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2"
+                        className="px-6 py-2.5 bg-[#A0792E] hover:bg-yellow-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2"
                     >
                         {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <Save className="w-5 h-5" />}
                         Publicar Anúncio

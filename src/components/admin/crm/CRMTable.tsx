@@ -230,7 +230,7 @@ export function CRMTable({ leads, onEditLead }: CRMTableProps) {
                                     onClick={() => setPage(btn)}
                                     className={`min-w-[28px] h-7 px-1 rounded-lg text-xs font-medium transition-colors ${
                                         btn === safePage
-                                            ? 'bg-[#B8860B] text-white border border-[#B8860B]'
+                                            ? 'bg-[#A0792E] text-white border border-[#A0792E]'
                                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] border border-transparent'
                                     }`}
                                 >

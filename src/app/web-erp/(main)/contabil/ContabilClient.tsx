@@ -137,7 +137,7 @@ export default function ContabilClient({
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#D4AF37] text-transparent bg-clip-text">
+                    <h2 className="text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4A85C] via-[#FFF8DC] to-[#D4A85C] text-transparent bg-clip-text">
                         Contábil
                     </h2>
                     <p className="mt-2 text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
@@ -148,7 +148,7 @@ export default function ContabilClient({
                     <select
                         value={year}
                         onChange={e => setYear(Number(e.target.value))}
-                        className="px-4 py-2.5 bg-white dark:bg-[#111] border border-gray-300 dark:border-[#333] text-gray-900 dark:text-white text-sm font-bold rounded-xl focus:outline-none focus:border-[#D4AF37]/50"
+                        className="px-4 py-2.5 bg-white dark:bg-[#111] border border-gray-300 dark:border-[#333] text-gray-900 dark:text-white text-sm font-bold rounded-xl focus:outline-none focus:border-[#D4A85C]/50"
                     >
                         {yearsAvailable.map(y => <option key={y} value={y}>{y}</option>)}
                     </select>
@@ -228,8 +228,8 @@ export default function ContabilClient({
                 <div className="space-y-6 animate-in fade-in duration-500">
                     <div className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl shadow-xl overflow-hidden">
                         <div className="p-5 border-b border-gray-100 dark:border-[#222] bg-gray-50 dark:bg-[#141414] flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
-                                <TrendingUp className="w-5 h-5 text-[#D4AF37]" />
+                            <div className="w-10 h-10 rounded-xl bg-[#D4A85C]/10 flex items-center justify-center border border-[#D4A85C]/20">
+                                <TrendingUp className="w-5 h-5 text-[#D4A85C]" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-gray-900 dark:text-white tracking-widest text-sm uppercase">Demonstrativo de Resultado do Exercício</h3>
@@ -441,8 +441,8 @@ export default function ContabilClient({
             {activeTab === 'razao' && (
                 <div className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl shadow-xl overflow-hidden animate-in fade-in duration-500">
                     <div className="p-5 border-b border-gray-100 dark:border-[#222] bg-gray-50 dark:bg-[#141414] flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
-                            <BookOpen className="w-5 h-5 text-[#D4AF37]" />
+                        <div className="w-10 h-10 rounded-xl bg-[#D4A85C]/10 flex items-center justify-center border border-[#D4A85C]/20">
+                            <BookOpen className="w-5 h-5 text-[#D4A85C]" />
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900 dark:text-white tracking-widest text-sm uppercase">Livro Razão</h3>
@@ -593,7 +593,7 @@ function PlanoGrupo({ codigo, nome, subs }: { codigo: string; nome: string; subs
     return (
         <div className="p-4 bg-gray-50 dark:bg-[#141414] rounded-xl border border-gray-200 dark:border-[#222]">
             <div className="flex items-center gap-3 mb-3">
-                <span className="text-xs font-mono font-extrabold text-[#D4AF37] bg-[#D4AF37]/10 px-2 py-1 rounded-md border border-[#D4AF37]/20">{codigo}</span>
+                <span className="text-xs font-mono font-extrabold text-[#D4A85C] bg-[#D4A85C]/10 px-2 py-1 rounded-md border border-[#D4A85C]/20">{codigo}</span>
                 <span className="text-sm font-extrabold uppercase tracking-widest text-gray-900 dark:text-white">{nome}</span>
             </div>
             <ul className="space-y-1.5 pl-6 border-l-2 border-gray-300 dark:border-[#333]">

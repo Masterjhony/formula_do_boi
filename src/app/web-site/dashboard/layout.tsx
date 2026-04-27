@@ -59,7 +59,7 @@ export default async function DashboardLayout({
 
                 <div className="px-6 mb-8">
                     <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222222] shadow-sm dark:shadow-none transition-colors duration-300">
-                        <div className="w-10 h-10 rounded-full bg-[#B8860B] flex items-center justify-center text-black font-bold text-lg overflow-hidden relative">
+                        <div className="w-10 h-10 rounded-full bg-[#A0792E] flex items-center justify-center text-black font-bold text-lg overflow-hidden relative">
                             {profile?.avatar_url ? (
                                 <Image
                                     src={profile.avatar_url}

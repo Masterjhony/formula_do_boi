@@ -74,7 +74,7 @@ export default function ERPSidebarLayout({
     const sectionActiveStyle = 'text-[#D4A85C] border-l-2 border-[#A0792E] pl-[14px]';
 
     return (
-        <div className="min-h-screen bg-[#FAF6EC] dark:bg-[#0A0A0A] flex font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+        <div className="min-h-screen bg-[#FFFFFF] dark:bg-[#0A0A0A] flex font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* Mobile Backdrop */}
             {isSidebarOpen && (
                 <div
@@ -398,7 +398,7 @@ export default function ERPSidebarLayout({
                     <ThemeToggle />
                 </header>
 
-                <main className="flex-1 overflow-auto bg-[#FAF6EC] dark:bg-[#0A0A0A] p-4 sm:p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
+                <main className="flex-1 overflow-auto bg-[#FFFFFF] dark:bg-[#0A0A0A] p-4 sm:p-6 lg:p-10 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
                     <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
                         {children}
                     </div>

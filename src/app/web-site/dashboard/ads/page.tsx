@@ -62,11 +62,11 @@ export default async function MyAdsPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Meus Anúncios</h1>
                     <p className="text-gray-500">Gerencie os animais que você anunciou no site</p>
-                    {breederName && <p className="text-xs text-gray-500 mt-1">Exibindo anúncios para: <span className="text-[#B8860B]">{breederName}</span></p>}
+                    {breederName && <p className="text-xs text-gray-500 mt-1">Exibindo anúncios para: <span className="text-[#A0792E]">{breederName}</span></p>}
                 </div>
                 <Link
                     href="/dashboard/ads/new"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#B8860B] text-white rounded-lg hover:bg-yellow-600 transition-colors font-medium shadow-sm"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#A0792E] text-white rounded-lg hover:bg-yellow-600 transition-colors font-medium shadow-sm"
                 >
                     <Plus className="w-5 h-5" />
                     Cadastrar Novo Anúncio
@@ -84,7 +84,7 @@ export default async function MyAdsPage() {
                 </div>
             ) : (
                 <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-12 text-center shadow-sm dark:shadow-none">
-                    <div className="bg-gray-50 dark:bg-[#1A1A1A] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-[#B8860B]">
+                    <div className="bg-gray-50 dark:bg-[#1A1A1A] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-[#A0792E]">
                         <Store className="w-8 h-8" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Nenhum anúncio encontrado</h3>
@@ -93,7 +93,7 @@ export default async function MyAdsPage() {
                     </p>
                     <Link
                         href="/dashboard/ads/new"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#B8860B] text-white rounded-lg hover:bg-yellow-600 transition-colors font-bold shadow-lg shadow-yellow-500/20"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#A0792E] text-white rounded-lg hover:bg-yellow-600 transition-colors font-bold shadow-lg shadow-yellow-500/20"
                     >
                         <Plus className="w-5 h-5" />
                         Criar Primeiro Anúncio

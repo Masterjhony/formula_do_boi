@@ -234,7 +234,7 @@ export default async function ERPDashboard() {
     })
 
     // ─── Composição de saídas (mês corrente, por categoria) ──────────────────
-    const PALETTE = ['#D4AF37', '#B8860B', '#7C3AED', '#0EA5E9', '#10B981', '#F97316', '#EC4899', '#64748B']
+    const PALETTE = ['#D4A85C', '#A0792E', '#7C3AED', '#0EA5E9', '#10B981', '#F97316', '#EC4899', '#64748B']
     const expenseCatMap = new Map<string, number>()
     for (const t of txsAll) {
         if (t.type !== 'expense') continue
@@ -331,20 +331,20 @@ export default async function ERPDashboard() {
             description: 'Contas a pagar, receber, fluxo de caixa, conciliação e categorias.',
             href: '/financeiro',
             icon: Wallet,
-            color: 'from-[#B8860B] to-[#9A7209]',
-            textColor: 'text-[#D4AF37]',
-            bgColor: 'bg-[#B8860B]/10',
-            borderColor: 'border-[#B8860B]/20',
+            color: 'from-[#A0792E] to-[#9A7209]',
+            textColor: 'text-[#D4A85C]',
+            bgColor: 'bg-[#A0792E]/10',
+            borderColor: 'border-[#A0792E]/20',
         },
         {
             name: 'Leilões',
             description: 'Receita, comissão e fechamentos de leilões da Bula Genética.',
             href: '/leiloes',
             icon: Gavel,
-            color: 'from-[#B8860B] to-[#9A7209]',
-            textColor: 'text-[#D4AF37]',
-            bgColor: 'bg-[#B8860B]/10',
-            borderColor: 'border-[#B8860B]/20',
+            color: 'from-[#A0792E] to-[#9A7209]',
+            textColor: 'text-[#D4A85C]',
+            bgColor: 'bg-[#A0792E]/10',
+            borderColor: 'border-[#A0792E]/20',
         },
         {
             name: 'Contábil Base',
@@ -363,20 +363,20 @@ export default async function ERPDashboard() {
             {/* ─── Header ───────────────────────────────────────────── */}
             <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#D4AF37] text-transparent bg-clip-text">
+                    <h2 className="text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4A85C] via-[#FFF8DC] to-[#D4A85C] text-transparent bg-clip-text">
                         Dashboard ERP
                     </h2>
                     <p className="mt-2 flex items-center gap-2 text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
-                        <Activity className="w-4 h-4 text-[#B8860B]" />
+                        <Activity className="w-4 h-4 text-[#A0792E]" />
                         Visão Geral Estratégica · {now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Link
                         href="/financeiro/fluxo-caixa"
-                        className="px-5 py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#B8860B]/50 text-gray-900 dark:text-white text-sm font-semibold rounded-xl transition-all shadow-lg hover:shadow-[#B8860B]/20 flex items-center gap-2"
+                        className="px-5 py-2.5 bg-gray-100 dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#A0792E]/50 text-gray-900 dark:text-white text-sm font-semibold rounded-xl transition-all shadow-lg hover:shadow-[#A0792E]/20 flex items-center gap-2"
                     >
-                        <BarChart3 className="w-4 h-4 text-[#D4AF37]" />
+                        <BarChart3 className="w-4 h-4 text-[#D4A85C]" />
                         Fluxo de Caixa
                     </Link>
                 </div>
@@ -385,11 +385,11 @@ export default async function ERPDashboard() {
             {/* ─── KPI Row: Financial Pulse (4) ─────────────────────── */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Saldo Atual */}
-                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group">
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                         <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Saldo Atual</p>
-                        <div className="p-2 bg-[#B8860B]/10 rounded-lg group-hover:scale-110 transition-transform">
-                            <Wallet className="w-5 h-5 text-[#D4AF37]" />
+                        <div className="p-2 bg-[#A0792E]/10 rounded-lg group-hover:scale-110 transition-transform">
+                            <Wallet className="w-5 h-5 text-[#D4A85C]" />
                         </div>
                     </div>
                     <p className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
@@ -427,11 +427,11 @@ export default async function ERPDashboard() {
                 </div>
 
                 {/* Resultado Mês */}
-                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group">
+                <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                         <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Resultado (Mês)</p>
-                        <div className="p-2 bg-[#B8860B]/10 rounded-lg group-hover:scale-110 transition-transform">
-                            <Trophy className="w-5 h-5 text-[#D4AF37]" />
+                        <div className="p-2 bg-[#A0792E]/10 rounded-lg group-hover:scale-110 transition-transform">
+                            <Trophy className="w-5 h-5 text-[#D4A85C]" />
                         </div>
                     </div>
                     <p className={`text-3xl font-extrabold tracking-tight ${resultadoMes >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -498,13 +498,13 @@ export default async function ERPDashboard() {
                 {/* Receita Leilões 12m */}
                 <Link
                     href="/leiloes"
-                    className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#B8860B]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group"
+                    className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group"
                 >
                     <div className="flex items-center justify-between mb-3">
                         <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Receita Leilões (12m)</p>
-                        <Gavel className="w-5 h-5 text-[#D4AF37]" />
+                        <Gavel className="w-5 h-5 text-[#D4A85C]" />
                     </div>
-                    <p className="text-2xl font-extrabold text-[#D4AF37] tracking-tight">
+                    <p className="text-2xl font-extrabold text-[#D4A85C] tracking-tight">
                         {formatCurrency(receitaLeiloes12m)}
                     </p>
                     <div className="mt-4 space-y-1.5 text-[11px]">
@@ -522,7 +522,7 @@ export default async function ERPDashboard() {
                 <div className="lg:col-span-3 bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl p-6 shadow-xl flex flex-col">
                     <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#B8860B] to-[#D4AF37] rounded-full" />
+                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#A0792E] to-[#D4A85C] rounded-full" />
                             <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
                                 Fluxo de Caixa — últimos 6 meses
                             </h3>
@@ -534,8 +534,8 @@ export default async function ERPDashboard() {
                             <span className="flex items-center gap-1.5 text-rose-500">
                                 <span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /> Saídas
                             </span>
-                            <span className="flex items-center gap-1.5 text-[#D4AF37]">
-                                <span className="w-3 h-[2px] bg-[#D4AF37] rounded-full" /> Resultado
+                            <span className="flex items-center gap-1.5 text-[#D4A85C]">
+                                <span className="w-3 h-[2px] bg-[#D4A85C] rounded-full" /> Resultado
                             </span>
                         </div>
                     </div>
@@ -609,11 +609,11 @@ export default async function ERPDashboard() {
                             })}
 
                             {/* Linha de resultado */}
-                            <path d={netPath} fill="none" stroke="#D4AF37" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                            <path d={netPath} fill="none" stroke="#D4A85C" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
                             {netPts.map((p, i) => (
                                 <g key={`net-${i}`}>
-                                    <circle cx={p.x} cy={p.y} r="6" fill="#D4AF37" fillOpacity="0.18" />
-                                    <circle cx={p.x} cy={p.y} r="3.5" className="fill-white dark:fill-[#0F0F0F]" stroke="#D4AF37" strokeWidth="2">
+                                    <circle cx={p.x} cy={p.y} r="6" fill="#D4A85C" fillOpacity="0.18" />
+                                    <circle cx={p.x} cy={p.y} r="3.5" className="fill-white dark:fill-[#0F0F0F]" stroke="#D4A85C" strokeWidth="2">
                                         <title>{`${series[i].label.toUpperCase()} · Resultado: ${formatCurrency(series[i].net)}`}</title>
                                     </circle>
                                 </g>
@@ -646,7 +646,7 @@ export default async function ERPDashboard() {
                         </div>
                         <div>
                             <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-[#666] mb-1">Resultado 6m</p>
-                            <p className={`text-base font-extrabold tracking-tight ${resultado6m >= 0 ? 'text-[#D4AF37]' : 'text-rose-500'}`}>
+                            <p className={`text-base font-extrabold tracking-tight ${resultado6m >= 0 ? 'text-[#D4A85C]' : 'text-rose-500'}`}>
                                 {formatCurrency(resultado6m)}
                             </p>
                         </div>
@@ -657,7 +657,7 @@ export default async function ERPDashboard() {
                 <div className="lg:col-span-2 bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl p-6 shadow-xl">
                     <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#B8860B] to-[#D4AF37] rounded-full" />
+                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#A0792E] to-[#D4A85C] rounded-full" />
                             <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
                                 Próximos Vencimentos
                             </h3>
@@ -670,7 +670,7 @@ export default async function ERPDashboard() {
                             return (
                                 <div
                                     key={i}
-                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${vencido ? 'border-rose-500/30 bg-rose-500/5' : 'border-gray-200 dark:border-[#222] hover:border-[#B8860B]/30'}`}
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${vencido ? 'border-rose-500/30 bg-rose-500/5' : 'border-gray-200 dark:border-[#222] hover:border-[#A0792E]/30'}`}
                                 >
                                     <div className="min-w-0 flex-1">
                                         <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
@@ -702,7 +702,7 @@ export default async function ERPDashboard() {
                 <div className="lg:col-span-2 bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl p-6 shadow-xl">
                     <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#B8860B] to-[#D4AF37] rounded-full" />
+                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#A0792E] to-[#D4A85C] rounded-full" />
                             <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
                                 Composição de Saídas
                             </h3>
@@ -754,7 +754,7 @@ export default async function ERPDashboard() {
                 <div className="lg:col-span-2 bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl p-6 shadow-xl">
                     <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#B8860B] to-[#D4AF37] rounded-full" />
+                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#A0792E] to-[#D4A85C] rounded-full" />
                             <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
                                 Heatmap Diário
                             </h3>
@@ -785,10 +785,10 @@ export default async function ERPDashboard() {
                                     return (
                                         <div
                                             key={ci}
-                                            className={`aspect-square rounded-md flex items-center justify-center text-[9px] font-bold transition-all ${isToday ? 'ring-1 ring-[#D4AF37]/60' : ''}`}
+                                            className={`aspect-square rounded-md flex items-center justify-center text-[9px] font-bold transition-all ${isToday ? 'ring-1 ring-[#D4A85C]/60' : ''}`}
                                             style={{
                                                 backgroundColor: cell.value > 0
-                                                    ? `rgba(212, 175, 55, ${opacity})`
+                                                    ? `rgba(212,168,92, ${opacity})`
                                                     : 'rgba(36, 36, 36, 0.25)',
                                                 color: cell.value > 0 && intensity > 0.6 ? '#0a0a0a' : '#888',
                                             }}
@@ -805,7 +805,7 @@ export default async function ERPDashboard() {
                     <div className="mt-5 pt-4 border-t border-gray-100 dark:border-[#1A1A1A] grid grid-cols-3 gap-3 text-[10px]">
                         <div>
                             <p className="font-bold uppercase tracking-widest text-gray-400 dark:text-[#666] mb-1">Total mês</p>
-                            <p className="text-sm font-extrabold text-[#D4AF37]">{formatShort(heatTotalMes)}</p>
+                            <p className="text-sm font-extrabold text-[#D4A85C]">{formatShort(heatTotalMes)}</p>
                         </div>
                         <div>
                             <p className="font-bold uppercase tracking-widest text-gray-400 dark:text-[#666] mb-1">Pico</p>
@@ -824,7 +824,7 @@ export default async function ERPDashboard() {
                 <div className="lg:col-span-2 bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl p-6 shadow-xl">
                     <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#B8860B] to-[#D4AF37] rounded-full" />
+                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#A0792E] to-[#D4A85C] rounded-full" />
                             <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
                                 Contas & Saldos
                             </h3>
@@ -840,11 +840,11 @@ export default async function ERPDashboard() {
                             {accountBalances.map(a => (
                                 <div
                                     key={a.id}
-                                    className="flex items-center justify-between gap-3 p-3 rounded-xl border border-gray-200 dark:border-[#1A1A1A] hover:border-[#B8860B]/30 transition-all"
+                                    className="flex items-center justify-between gap-3 p-3 rounded-xl border border-gray-200 dark:border-[#1A1A1A] hover:border-[#A0792E]/30 transition-all"
                                 >
                                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                                        <div className="w-9 h-9 rounded-lg bg-[#B8860B]/10 border border-[#B8860B]/20 flex items-center justify-center flex-shrink-0">
-                                            <Building2 className="w-4 h-4 text-[#D4AF37]" />
+                                        <div className="w-9 h-9 rounded-lg bg-[#A0792E]/10 border border-[#A0792E]/20 flex items-center justify-center flex-shrink-0">
+                                            <Building2 className="w-4 h-4 text-[#D4A85C]" />
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{a.name}</p>
@@ -862,7 +862,7 @@ export default async function ERPDashboard() {
                             ))}
                             <div className="mt-3 pt-3 border-t border-gray-100 dark:border-[#1A1A1A] flex items-center justify-between">
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-[#666]">Saldo consolidado</span>
-                                <span className="text-base font-extrabold text-[#D4AF37]">
+                                <span className="text-base font-extrabold text-[#D4A85C]">
                                     {formatCurrency(accountBalances.reduce((s, a) => s + a.balance, 0))}
                                 </span>
                             </div>
@@ -878,16 +878,16 @@ export default async function ERPDashboard() {
             {/* ─── Últimos Leilões ──────────────────────────────────── */}
             {fechs.length > 0 && (
                 <div className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl overflow-hidden shadow-xl">
-                    <div className="p-5 border-b border-gray-100 dark:border-[#222] flex items-center justify-between bg-gradient-to-r from-[#B8860B]/5 to-transparent">
+                    <div className="p-5 border-b border-gray-100 dark:border-[#222] flex items-center justify-between bg-gradient-to-r from-[#A0792E]/5 to-transparent">
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#B8860B] to-[#D4AF37] rounded-full" />
+                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#A0792E] to-[#D4A85C] rounded-full" />
                             <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
                                 Últimos Fechamentos de Leilão
                             </h3>
                         </div>
                         <Link
                             href="/leiloes"
-                            className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37] hover:text-[#B8860B] flex items-center gap-1"
+                            className="text-[10px] font-bold uppercase tracking-widest text-[#D4A85C] hover:text-[#A0792E] flex items-center gap-1"
                         >
                             Ver todos <ArrowRight className="w-3 h-3" />
                         </Link>
@@ -916,7 +916,7 @@ export default async function ERPDashboard() {
                                         <td className="px-6 py-4 text-right text-emerald-500 font-extrabold">
                                             {formatCurrency(Number(f.receita_bula) || 0)}
                                         </td>
-                                        <td className="px-6 py-4 text-right text-[#D4AF37] font-extrabold">
+                                        <td className="px-6 py-4 text-right text-[#D4A85C] font-extrabold">
                                             +{formatCurrency(Number(f.sobra_bruta) || 0)}
                                         </td>
                                     </tr>
@@ -930,7 +930,7 @@ export default async function ERPDashboard() {
             {/* ─── Módulos do Sistema ───────────────────────────────── */}
             <div className="pt-4">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-1.5 h-6 bg-gradient-to-b from-[#B8860B] to-[#D4AF37] rounded-full" />
+                    <div className="w-1.5 h-6 bg-gradient-to-b from-[#A0792E] to-[#D4A85C] rounded-full" />
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">
                         Módulos do Sistema
                     </h3>

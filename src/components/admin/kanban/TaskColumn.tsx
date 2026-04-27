@@ -71,7 +71,7 @@ export function TaskColumn({ id, title, tasks, onTaskClick, onAddTask, onUpdateC
                                 setEditTitle(title);
                             }
                         }}
-                        className="w-full px-2 py-1 text-sm bg-white dark:bg-[#111111] border border-[#B8860B] rounded focus:outline-none"
+                        className="w-full px-2 py-1 text-sm bg-white dark:bg-[#111111] border border-[#A0792E] rounded focus:outline-none"
                     />
                 ) : (
                     <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setIsEditing(true)}>

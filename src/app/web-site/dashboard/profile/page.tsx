@@ -94,7 +94,7 @@ export default function ProfilePage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#B8860B]" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#A0792E]" />
             </div>
         )
     }
@@ -111,7 +111,7 @@ export default function ProfilePage() {
                 {/* Personal Info */}
                 <div className="space-y-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <User className="w-5 h-5 text-[#B8860B]" />
+                        <User className="w-5 h-5 text-[#A0792E]" />
                         Informações Pessoais
                     </h2>
 
@@ -120,7 +120,7 @@ export default function ProfilePage() {
                         {/* Avatar Upload */}
                         <div className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-[#222222]">
                             <div className="relative group">
-                                <div className="w-20 h-20 rounded-full bg-[#B8860B] flex items-center justify-center text-black font-bold text-2xl overflow-hidden relative">
+                                <div className="w-20 h-20 rounded-full bg-[#A0792E] flex items-center justify-center text-black font-bold text-2xl overflow-hidden relative">
                                     {formData.avatar_url ? (
                                         <img
                                             src={formData.avatar_url}
@@ -181,7 +181,7 @@ export default function ProfilePage() {
                                 type="text"
                                 value={formData.full_name}
                                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all outline-none"
                             />
                         </div>
                         <div className="space-y-2">
@@ -205,7 +205,7 @@ export default function ProfilePage() {
                                         type="text"
                                         value={formData.cpf}
                                         onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
-                                        className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                        className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all outline-none"
                                         placeholder="000.000.000-00"
                                     />
                                 </div>
@@ -218,7 +218,7 @@ export default function ProfilePage() {
                                         type="tel"
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                        className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all outline-none"
                                         placeholder="(00) 00000-0000"
                                     />
                                 </div>
@@ -230,7 +230,7 @@ export default function ProfilePage() {
                 {/* Address Info */}
                 <div className="space-y-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-[#B8860B]" />
+                        <MapPin className="w-5 h-5 text-[#A0792E]" />
                         Endereço
                     </h2>
 
@@ -241,7 +241,7 @@ export default function ProfilePage() {
                                 type="text"
                                 value={formData.address_street}
                                 onChange={(e) => setFormData({ ...formData, address_street: e.target.value })}
-                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all outline-none"
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -251,7 +251,7 @@ export default function ProfilePage() {
                                     type="text"
                                     value={formData.address_city}
                                     onChange={(e) => setFormData({ ...formData, address_city: e.target.value })}
-                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all outline-none"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -260,7 +260,7 @@ export default function ProfilePage() {
                                     type="text"
                                     value={formData.address_state}
                                     onChange={(e) => setFormData({ ...formData, address_state: e.target.value })}
-                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                    className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all outline-none"
                                 />
                             </div>
                         </div>
@@ -270,7 +270,7 @@ export default function ProfilePage() {
                                 type="text"
                                 value={formData.address_zip}
                                 onChange={(e) => setFormData({ ...formData, address_zip: e.target.value })}
-                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#B8860B]/50 focus:ring-1 focus:ring-[#B8860B]/50 transition-all outline-none"
+                                className="w-full bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white rounded-xl py-3 px-4 focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all outline-none"
                                 placeholder="00000-000"
                             />
                         </div>
@@ -285,7 +285,7 @@ export default function ProfilePage() {
                     <button
                         type="submit"
                         disabled={updating}
-                        className="w-full bg-gradient-to-r from-[#B8860B] to-[#DAA520] hover:from-[#D4AF37] hover:to-[#FFD700] text-black font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-70"
+                        className="w-full bg-gradient-to-r from-[#A0792E] to-[#A0792E] hover:from-[#D4A85C] hover:to-[#E8CB85] text-black font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-70"
                     >
                         {updating ? (
                             <>

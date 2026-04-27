@@ -18,7 +18,7 @@ export default function LeiloesClient({
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#A0792E] to-[#9A7209] flex items-center justify-center shadow-lg">
                     <Gavel className="w-6 h-6 text-black" />
                 </div>
                 <div>

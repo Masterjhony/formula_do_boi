@@ -12,7 +12,7 @@ import {
     Minus, AlertTriangle, CheckCircle2, Clock, Zap,
 } from 'lucide-react';
 
-const COLORS = ['#B8860B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B', '#06B6D4'];
+const COLORS = ['#A0792E', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B', '#06B6D4'];
 const QUARTERS = ['Q1 2026', 'Q2 2026', 'Q3 2026', 'Q4 2026', 'Q1 2027'];
 
 // ── Quarter pacing ─────────────────────────────────────────────────────────────
@@ -472,7 +472,7 @@ export function OKRView({ objectives, onObjectivesChange }: Props) {
                                                                                 type="number" autoFocus
                                                                                 value={editKR.current}
                                                                                 onChange={e => setEditKR({ id: kr.id, current: e.target.value })}
-                                                                                className="w-16 px-2 py-1 text-xs bg-gray-50 dark:bg-[#111] border border-[#B8860B] rounded-lg outline-none text-gray-900 dark:text-white"
+                                                                                className="w-16 px-2 py-1 text-xs bg-gray-50 dark:bg-[#111] border border-[#A0792E] rounded-lg outline-none text-gray-900 dark:text-white"
                                                                             />
                                                                             <span className="text-xs text-gray-400">/{kr.target_value}{kr.unit}</span>
                                                                             <button onClick={() => handleUpdateKRValue(kr, editKR.current)} className="text-emerald-500 hover:text-emerald-400"><Check size={13} /></button>
@@ -482,7 +482,7 @@ export function OKRView({ objectives, onObjectivesChange }: Props) {
                                                                         <>
                                                                             <button
                                                                                 onClick={() => setEditKR({ id: kr.id, current: String(kr.current_value ?? 0) })}
-                                                                                className="text-xs text-gray-400 hover:text-[#B8860B] flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                                className="text-xs text-gray-400 hover:text-[#A0792E] flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                                                             >
                                                                                 <Edit2 size={10} />
                                                                                 {kr.current_value ?? 0}{kr.unit}/{kr.target_value}{kr.unit}
@@ -519,14 +519,14 @@ export function OKRView({ objectives, onObjectivesChange }: Props) {
                                                         if (e.key === 'Escape') { setAddingKRForObj(null); setNewKRTitle(''); }
                                                     }}
                                                     placeholder="Ex: Atingir 50 leads qualificados/mês"
-                                                    className="flex-1 min-w-[200px] px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white"
+                                                    className="flex-1 min-w-[200px] px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
                                                 />
                                                 <input type="number" value={newKRTarget} onChange={e => setNewKRTarget(e.target.value)} placeholder="Meta"
-                                                    className="w-20 px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white" />
+                                                    className="w-20 px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white" />
                                                 <input value={newKRUnit} onChange={e => setNewKRUnit(e.target.value)} placeholder="Und."
-                                                    className="w-14 px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#B8860B] text-gray-900 dark:text-white" />
+                                                    className="w-14 px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white" />
                                                 <button onClick={() => handleAddKR(obj.id)} disabled={!newKRTitle.trim()}
-                                                    className="px-3 py-2 bg-[#B8860B] text-black rounded-lg text-sm font-bold disabled:opacity-50">
+                                                    className="px-3 py-2 bg-[#A0792E] text-black rounded-lg text-sm font-bold disabled:opacity-50">
                                                     <Check size={14} />
                                                 </button>
                                                 <button onClick={() => { setAddingKRForObj(null); setNewKRTitle(''); }}
@@ -537,7 +537,7 @@ export function OKRView({ objectives, onObjectivesChange }: Props) {
                                         ) : (
                                             <button
                                                 onClick={() => { setAddingKRForObj(obj.id); setNewKRTitle(''); }}
-                                                className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-gray-200 dark:border-[#272727] text-xs text-gray-400 hover:text-[#B8860B] hover:border-[#B8860B]/40 transition-all mt-0.5"
+                                                className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-gray-200 dark:border-[#272727] text-xs text-gray-400 hover:text-[#A0792E] hover:border-[#A0792E]/40 transition-all mt-0.5"
                                             >
                                                 <Plus size={13} /> Adicionar Resultado-Chave
                                             </button>
@@ -673,8 +673,8 @@ function Header({ overallPct, onNew, objCount }: { overallPct: number; onNew: ()
     return (
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#B8860B]/10 border border-[#B8860B]/25 flex items-center justify-center shrink-0">
-                    <Target size={17} className="text-[#B8860B]" />
+                <div className="w-9 h-9 rounded-xl bg-[#A0792E]/10 border border-[#A0792E]/25 flex items-center justify-center shrink-0">
+                    <Target size={17} className="text-[#A0792E]" />
                 </div>
                 <div>
                     <h2 className="font-bold text-gray-900 dark:text-white text-base">Objetivos & Resultados-Chave</h2>
@@ -689,7 +689,7 @@ function Header({ overallPct, onNew, objCount }: { overallPct: number; onNew: ()
             </div>
             <button
                 onClick={onNew}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-[#B8860B]/25 transition-all hover:-translate-y-0.5 shrink-0"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-[#A0792E]/25 transition-all hover:-translate-y-0.5 shrink-0"
             >
                 <Plus size={15} /> Novo Objetivo
             </button>
@@ -707,20 +707,20 @@ interface NewObjFormProps {
 
 function NewObjForm({ title, setTitle, desc, setDesc, quarter, setQuarter, color, setColor, onSave, onCancel }: NewObjFormProps) {
     return (
-        <div className="bg-white dark:bg-[#161616] rounded-2xl p-5 border border-[#B8860B]/30 shadow-lg space-y-4">
+        <div className="bg-white dark:bg-[#161616] rounded-2xl p-5 border border-[#A0792E]/30 shadow-lg space-y-4">
             <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Plus size={15} className="text-[#B8860B]" /> Novo Objetivo
+                <Plus size={15} className="text-[#A0792E]" /> Novo Objetivo
             </h3>
             <input
                 autoFocus value={title} onChange={e => setTitle(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') onSave(); if (e.key === 'Escape') onCancel(); }}
                 placeholder="Ex: Dominar o mercado de genética Nelore PO no Triângulo Mineiro"
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-[#2a2a2a] rounded-xl outline-none focus:ring-2 focus:ring-[#B8860B] text-sm text-gray-900 dark:text-white"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-[#2a2a2a] rounded-xl outline-none focus:ring-2 focus:ring-[#A0792E] text-sm text-gray-900 dark:text-white"
             />
             <textarea
                 value={desc} onChange={e => setDesc(e.target.value)}
                 placeholder="Descrição (opcional)" rows={2}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-[#2a2a2a] rounded-xl outline-none focus:ring-2 focus:ring-[#B8860B] text-sm text-gray-900 dark:text-white resize-none"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-[#2a2a2a] rounded-xl outline-none focus:ring-2 focus:ring-[#A0792E] text-sm text-gray-900 dark:text-white resize-none"
             />
             <div className="flex gap-4 flex-wrap items-center">
                 <select value={quarter} onChange={e => setQuarter(e.target.value)}
@@ -738,7 +738,7 @@ function NewObjForm({ title, setTitle, desc, setDesc, quarter, setQuarter, color
             </div>
             <div className="flex gap-2">
                 <button onClick={onSave} disabled={!title.trim()}
-                    className="px-4 py-2 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black rounded-lg font-bold text-sm disabled:opacity-50">
+                    className="px-4 py-2 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-lg font-bold text-sm disabled:opacity-50">
                     Criar Objetivo
                 </button>
                 <button onClick={onCancel}

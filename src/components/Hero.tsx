@@ -87,16 +87,6 @@ export default function Hero() {
                 }}
             />
 
-            {/* Leather grain */}
-            <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                    backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.8 0 0 0 0 0.7 0 0 0 0 0.3 0 0 0 0.10 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-                    opacity: 0.30,
-                    mixBlendMode: "overlay",
-                }}
-            />
-
             {/* Conteúdo */}
             <div className="relative z-10 w-full" style={{ maxWidth: 1200, margin: "0 auto" }}>
 

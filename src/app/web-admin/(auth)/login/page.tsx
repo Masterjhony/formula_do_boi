@@ -56,7 +56,7 @@ export default function AdminLoginPage() {
         <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Elements - Slightly different for Admin */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] bg-[#B8860B]/5 rounded-full blur-[120px]" />
+                <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] bg-[#A0792E]/5 rounded-full blur-[120px]" />
             </div>
 
             <div className="w-full max-w-md relative z-10">
@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
                             className="object-contain hover:scale-105 transition-transform duration-500"
                             priority
                         />
-                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-32 bg-[#B8860B]/10 blur-3xl group-hover:blur-[100px] transition-all duration-500 -z-10 rounded-full opacity-60"></div>
+                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-32 bg-[#A0792E]/10 blur-3xl group-hover:blur-[100px] transition-all duration-500 -z-10 rounded-full opacity-60"></div>
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2 tracking-wide uppercase">Painel Administrativo</h2>
                     <p className="text-gray-500 text-sm">Acesso restrito a gestores</p>
@@ -93,7 +93,7 @@ export default function AdminLoginPage() {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#B8860B]/30 focus:ring-1 focus:ring-[#B8860B]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
+                                    className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
                                     placeholder="admin@formuladoboi.com"
                                     required
                                 />
@@ -110,7 +110,7 @@ export default function AdminLoginPage() {
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#B8860B]/30 focus:ring-1 focus:ring-[#B8860B]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
+                                    className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
                                     placeholder="••••••••"
                                     required
                                 />

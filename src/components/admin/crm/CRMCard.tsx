@@ -36,7 +36,7 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
             <div
                 ref={setNodeRef}
                 style={style}
-                className="opacity-30 border-2 border-dashed border-[#B8860B] rounded-xl h-[120px]"
+                className="opacity-30 border-2 border-dashed border-[#A0792E] rounded-xl h-[120px]"
             />
         );
     }
@@ -53,7 +53,7 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
             {...attributes}
             {...listeners}
             onClick={() => onClick(lead)}
-            className="group relative bg-white dark:bg-[#1A1A1A] p-4 rounded-xl border border-gray-200 dark:border-[#222222] shadow-sm hover:shadow-md hover:border-[#B8860B]/50 transition-all cursor-grab active:cursor-grabbing flex flex-col gap-3"
+            className="group relative bg-white dark:bg-[#1A1A1A] p-4 rounded-xl border border-gray-200 dark:border-[#222222] shadow-sm hover:shadow-md hover:border-[#A0792E]/50 transition-all cursor-grab active:cursor-grabbing flex flex-col gap-3"
         >
             {/* Header */}
             <div className="flex justify-between items-start gap-2">

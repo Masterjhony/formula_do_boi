@@ -1,17 +1,18 @@
 export const atacanteCss = `
 :root {
-  --ink: #0a0908;
-  --leather: #14110f;
-  --leather-2: #1c1816;
-  --leather-3: #2a221d;
+  /* Brandbook neutros — Ink Nelore + escala Ink. Variáveis com nome legado mantidas para compatibilidade. */
+  --ink: #0A0A0A;
+  --leather: #141414;
+  --leather-2: #1E1E1E;
+  --leather-3: #2A2A2A;
   --bone: #f4ede0;
   --bone-2: #e8d9b0;
-  --gold: #c9a24a;
-  --gold-2: #e3c279;
-  --gold-deep: #8a6a26;
-  --copper: #a07334;
-  --rule: rgba(201, 162, 74, 0.22);
-  --rule-2: rgba(201, 162, 74, 0.45);
+  --gold: #A0792E;
+  --gold-2: #D4A85C;
+  --gold-deep: #6B4F1E;
+  --copper: #6B4F1E;
+  --rule: rgba(160,121,46, 0.22);
+  --rule-2: rgba(160,121,46, 0.45);
   --txt: #d8cfbe;
   --txt-dim: #8e8478;
   /* Brandbook fonts: Space Grotesk + JetBrains Mono. No serif. */
@@ -33,15 +34,13 @@ export const atacanteCss = `
 .atacante-wrap ul { list-style: none; padding: 0; margin: 0; }
 .atacante-wrap img { max-width: 100%; display: block; }
 
+/* Brandbook: ink puro com glow bronze sutil — sem textura de couro */
 .atacante-wrap .leather-bg {
   background-color: var(--leather);
   background-image:
-    radial-gradient(ellipse at 20% 10%, rgba(201,162,74,0.06), transparent 40%),
-    radial-gradient(ellipse at 90% 90%, rgba(201,162,74,0.04), transparent 50%),
-    url("/assets/atacante/leather-texture.png");
-  background-size: auto, auto, 600px 600px;
-  background-blend-mode: normal, normal, overlay;
-  background-repeat: no-repeat, no-repeat, repeat;
+    radial-gradient(ellipse at 20% 10%, rgba(160,121,46,0.06), transparent 40%),
+    radial-gradient(ellipse at 90% 90%, rgba(160,121,46,0.04), transparent 50%);
+  background-repeat: no-repeat;
 }
 
 /* "serif" classes now use Space Grotesk (per brandbook). The italic variants
@@ -87,7 +86,7 @@ export const atacanteCss = `
   box-shadow:
     0 0 0 1px var(--gold-deep) inset,
     0 1px 0 rgba(255,255,255,0.4) inset,
-    0 8px 30px rgba(201,162,74,0.18);
+    0 8px 30px rgba(160,121,46,0.18);
 }
 .atacante-wrap .btn-gold:hover {
   background: linear-gradient(180deg, var(--gold), var(--gold-2));
@@ -95,7 +94,7 @@ export const atacanteCss = `
   box-shadow:
     0 0 0 1px var(--gold-deep) inset,
     0 1px 0 rgba(255,255,255,0.5) inset,
-    0 12px 40px rgba(201,162,74,0.32);
+    0 12px 40px rgba(160,121,46,0.32);
 }
 .atacante-wrap .btn-ghost {
   background: transparent;
@@ -103,7 +102,7 @@ export const atacanteCss = `
   border: 1px solid var(--rule-2);
 }
 .atacante-wrap .btn-ghost:hover {
-  background: rgba(201,162,74,0.08);
+  background: rgba(160,121,46,0.08);
   border-color: var(--gold);
   color: var(--gold-2);
 }
@@ -152,7 +151,7 @@ export const atacanteCss = `
 }
 
 .atacante-wrap .gold-foil {
-  background: linear-gradient(135deg, #8a6a26 0%, #e3c279 30%, #fbe8a8 50%, #c9a24a 70%, #8a6a26 100%);
+  background: linear-gradient(135deg, #6B4F1E 0%, #D4A85C 30%, #fbe8a8 50%, #A0792E 70%, #6B4F1E 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;

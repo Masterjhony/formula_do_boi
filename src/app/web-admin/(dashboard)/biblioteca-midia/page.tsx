@@ -268,7 +268,7 @@ export default function BibliotecaMidia() {
             {isDragging && (
                 <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center pointer-events-none">
                     <div className="flex flex-col items-center gap-4 text-center">
-                        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#B8860B] to-[#D4AF37] flex items-center justify-center shadow-2xl shadow-[#B8860B]/40">
+                        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#A0792E] to-[#D4A85C] flex items-center justify-center shadow-2xl shadow-[#A0792E]/40">
                             <Upload size={44} className="text-black" />
                         </div>
                         <p className="text-2xl font-bold text-white">Solte para enviar</p>
@@ -297,7 +297,7 @@ export default function BibliotecaMidia() {
                     <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-[#B8860B]/20 disabled:opacity-60"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-[#A0792E]/20 disabled:opacity-60"
                     >
                         {uploading ? (
                             <>
@@ -352,7 +352,7 @@ export default function BibliotecaMidia() {
                         placeholder="Buscar arquivos..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-[#B8860B]/50 transition-colors"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-[#A0792E]/50 transition-colors"
                     />
                     {searchQuery && (
                         <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -368,7 +368,7 @@ export default function BibliotecaMidia() {
                             key={tab.id}
                             onClick={() => setFilterType(tab.id)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${filterType === tab.id
-                                ? 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black shadow-sm'
+                                ? 'bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black shadow-sm'
                                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                         >
@@ -385,7 +385,7 @@ export default function BibliotecaMidia() {
                     <select
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value as SortBy)}
-                        className="appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-[#B8860B]/50 cursor-pointer"
+                        className="appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-[#A0792E]/50 cursor-pointer"
                     >
                         <option value="date_desc">Mais recentes</option>
                         <option value="date_asc">Mais antigos</option>
@@ -421,8 +421,8 @@ export default function BibliotecaMidia() {
                 </div>
             ) : displayFiles.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
-                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#B8860B]/15 to-[#D4AF37]/5 border border-[#B8860B]/15 flex items-center justify-center">
-                        <FolderOpen size={34} className="text-[#B8860B]/60" />
+                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#A0792E]/15 to-[#D4A85C]/5 border border-[#A0792E]/15 flex items-center justify-center">
+                        <FolderOpen size={34} className="text-[#A0792E]/60" />
                     </div>
                     <div>
                         <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
@@ -437,7 +437,7 @@ export default function BibliotecaMidia() {
                     {!(searchQuery || filterType !== 'all') && (
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-semibold text-sm hover:opacity-90 transition-opacity"
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black font-semibold text-sm hover:opacity-90 transition-opacity"
                         >
                             <Upload size={16} />
                             Enviar primeiro arquivo
@@ -456,7 +456,7 @@ export default function BibliotecaMidia() {
                         return (
                             <div
                                 key={file.name}
-                                className="group relative rounded-2xl overflow-hidden border border-gray-200 dark:border-[#222222] bg-white dark:bg-[#111111] hover:border-[#B8860B]/40 transition-all duration-200 hover:shadow-lg hover:shadow-[#B8860B]/5"
+                                className="group relative rounded-2xl overflow-hidden border border-gray-200 dark:border-[#222222] bg-white dark:bg-[#111111] hover:border-[#A0792E]/40 transition-all duration-200 hover:shadow-lg hover:shadow-[#A0792E]/5"
                             >
                                 {/* Thumbnail */}
                                 <div className="aspect-square relative bg-gray-50 dark:bg-[#0D0D0D] flex items-center justify-center overflow-hidden">

@@ -65,7 +65,7 @@ export function TaskCard({ task, onClick, allTasks = [], doneStatus }: TaskCardP
             <div
                 ref={setNodeRef}
                 style={style}
-                className="opacity-50 bg-[#1A1A1A] p-4 rounded-xl border-2 border-dashed border-[#B8860B]/50 h-[120px]"
+                className="opacity-50 bg-[#1A1A1A] p-4 rounded-xl border-2 border-dashed border-[#A0792E]/50 h-[120px]"
             />
         );
     }
@@ -77,7 +77,7 @@ export function TaskCard({ task, onClick, allTasks = [], doneStatus }: TaskCardP
     const attachmentCount = task.tactical_task_attachments?.[0]?.count || 0;
 
     // Border color based on state
-    let borderClass = 'border-gray-200/80 dark:border-[#333333]/80 hover:border-[#B8860B]/60';
+    let borderClass = 'border-gray-200/80 dark:border-[#333333]/80 hover:border-[#A0792E]/60';
     if (isBlocked) borderClass = 'border-red-400/70 dark:border-red-500/50';
     else if (isOverdue) borderClass = 'border-red-300/70 dark:border-red-500/40';
     else if (isStale) borderClass = 'border-amber-300/70 dark:border-amber-500/40';
@@ -126,7 +126,7 @@ export function TaskCard({ task, onClick, allTasks = [], doneStatus }: TaskCardP
                 </span>
                 <div className="flex items-center gap-1.5">
                     {scoreUsed && (
-                        <div className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md bg-[#B8860B]/10 text-[#B8860B] border border-[#B8860B]/20">
+                        <div className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md bg-[#A0792E]/10 text-[#A0792E] border border-[#A0792E]/20">
                             <Zap size={9} />
                             {score}
                         </div>
@@ -185,7 +185,7 @@ export function TaskCard({ task, onClick, allTasks = [], doneStatus }: TaskCardP
                                 {uniqueAssignees.slice(0, 3).map((assignee, index) => (
                                     <div
                                         key={index}
-                                        className="w-6 h-6 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center text-[8px] font-bold text-black border border-[#1A1A1A] shrink-0 transform transition-transform hover:scale-110 hover:z-10"
+                                        className="w-6 h-6 rounded-full bg-gradient-to-br from-[#A0792E] to-[#9A7209] flex items-center justify-center text-[8px] font-bold text-black border border-[#1A1A1A] shrink-0 transform transition-transform hover:scale-110 hover:z-10"
                                         title={assignee}
                                     >
                                         {assignee.charAt(0).toUpperCase()}

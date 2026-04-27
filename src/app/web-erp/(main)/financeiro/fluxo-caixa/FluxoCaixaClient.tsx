@@ -34,7 +34,7 @@ const fmtMonthLong = (key: string) => {
 };
 
 const CAT_COLORS = [
-    '#D4AF37', '#10B981', '#F43F5E', '#3B82F6', '#8B5CF6',
+    '#D4A85C', '#10B981', '#F43F5E', '#3B82F6', '#8B5CF6',
     '#F97316', '#06B6D4', '#EC4899', '#84CC16', '#6366F1',
     '#F59E0B', '#14B8A6', '#EF4444', '#60A5FA', '#A78BFA',
 ];
@@ -474,7 +474,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                         <p className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest mb-1.5 sm:mb-2">
                             Financeiro · Fluxo de Caixa
                         </p>
-                        <h2 className="text-xl sm:text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4AF37] via-[#FFF8DC] to-[#D4AF37] text-transparent bg-clip-text">
+                        <h2 className="text-xl sm:text-3xl font-bold tracking-wide uppercase bg-gradient-to-r from-[#D4A85C] via-[#FFF8DC] to-[#D4A85C] text-transparent bg-clip-text">
                             Fluxo de Caixa
                         </h2>
                         <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
@@ -484,7 +484,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                     <div className="flex gap-2 flex-wrap print:hidden">
                         <button
                             onClick={() => window.print()}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#B8860B]/50 text-gray-900 dark:text-white text-xs font-bold rounded-xl transition-all uppercase tracking-widest"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#111] border border-gray-300 dark:border-[#333] hover:border-[#A0792E]/50 text-gray-900 dark:text-white text-xs font-bold rounded-xl transition-all uppercase tracking-widest"
                         >
                             <Printer className="w-4 h-4" /> Imprimir
                         </button>
@@ -506,7 +506,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                                 onClick={() => setSelectedYear(y)}
                                 className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                                     selectedYear === y
-                                        ? 'bg-[#D4AF37] text-black shadow'
+                                        ? 'bg-[#D4A85C] text-black shadow'
                                         : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                             >
@@ -521,7 +521,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                                 onClick={() => setGranularity(g)}
                                 className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                                     granularity === g
-                                        ? 'bg-white dark:bg-[#222] text-[#D4AF37] shadow-sm'
+                                        ? 'bg-white dark:bg-[#222] text-[#D4A85C] shadow-sm'
                                         : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                             >
@@ -534,7 +534,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                             type="checkbox"
                             checked={showOnlyCompleted}
                             onChange={e => setShowOnlyCompleted(e.target.checked)}
-                            className="w-4 h-4 accent-[#D4AF37]"
+                            className="w-4 h-4 accent-[#D4A85C]"
                         />
                         <span className="text-[11px] sm:text-xs font-bold text-gray-600 dark:text-[#AAA] uppercase tracking-wider">
                             Só efetivados
@@ -600,9 +600,9 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
 
             {/* ─── Leitura Executiva ──────────────────────────────────── */}
             {insights.length > 0 && (
-                <div className="bg-gradient-to-br from-[#B8860B]/10 via-white to-transparent dark:from-[#B8860B]/10 dark:via-[#0F0F0F] dark:to-[#0A0A0A] rounded-2xl border border-[#B8860B]/30 shadow-xl overflow-hidden">
-                    <div className="p-5 border-b border-[#B8860B]/20 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#B8860B] to-[#9A7209] flex items-center justify-center shadow-lg">
+                <div className="bg-gradient-to-br from-[#A0792E]/10 via-white to-transparent dark:from-[#A0792E]/10 dark:via-[#0F0F0F] dark:to-[#0A0A0A] rounded-2xl border border-[#A0792E]/30 shadow-xl overflow-hidden">
+                    <div className="p-5 border-b border-[#A0792E]/20 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A0792E] to-[#9A7209] flex items-center justify-center shadow-lg">
                             <Sparkles className="w-5 h-5 text-black" />
                         </div>
                         <div>
@@ -638,10 +638,10 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
 
             {/* ─── Waterfall / Evolução mensal ────────────────────────── */}
             <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
-                <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-[#222] bg-gradient-to-r from-[#B8860B]/5 to-transparent flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-[#222] bg-gradient-to-r from-[#A0792E]/5 to-transparent flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20 shrink-0">
-                            <BarChart3 className="w-5 h-5 text-[#D4AF37]" />
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#D4A85C]/10 flex items-center justify-center border border-[#D4A85C]/20 shrink-0">
+                            <BarChart3 className="w-5 h-5 text-[#D4A85C]" />
                         </div>
                         <div className="min-w-0">
                             <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-xs sm:text-sm truncate">
@@ -659,8 +659,8 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                         <span className="flex items-center gap-1.5 text-rose-500 font-bold">
                             <span className="w-3 h-3 rounded-full bg-rose-500" /> Saídas
                         </span>
-                        <span className="flex items-center gap-1.5 text-[#D4AF37] font-bold">
-                            <span className="w-3 h-3 rounded-full bg-[#D4AF37]" /> Saldo
+                        <span className="flex items-center gap-1.5 text-[#D4A85C] font-bold">
+                            <span className="w-3 h-3 rounded-full bg-[#D4A85C]" /> Saldo
                         </span>
                     </div>
                 </div>
@@ -710,12 +710,12 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                                         const h = (Math.abs(m.closeBalance) / maxBal) * 80;
                                         return (
                                             <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-                                                <div className={`text-[9px] font-bold whitespace-nowrap ${m.closeBalance >= 0 ? 'text-[#D4AF37]' : 'text-rose-500'}`}>
+                                                <div className={`text-[9px] font-bold whitespace-nowrap ${m.closeBalance >= 0 ? 'text-[#D4A85C]' : 'text-rose-500'}`}>
                                                     {fmtShort(m.closeBalance)}
                                                 </div>
                                                 <div className="w-full bg-gray-100 dark:bg-[#1A1A1A] rounded-lg overflow-hidden" style={{ height: '80px' }}>
                                                     <div
-                                                        className={`w-full rounded-lg transition-all ${m.closeBalance >= 0 ? 'bg-[#D4AF37]/70' : 'bg-rose-500/70'}`}
+                                                        className={`w-full rounded-lg transition-all ${m.closeBalance >= 0 ? 'bg-[#D4A85C]/70' : 'bg-rose-500/70'}`}
                                                         style={{ height: `${h}%`, marginTop: `${80 - h}px` }}
                                                         title={`${m.labelLong}: ${fmt(m.closeBalance)}`}
                                                     />
@@ -739,7 +739,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                                     <div className="flex justify-between"><span className="text-gray-500">Entradas</span><span className="font-bold text-emerald-500">{fmt(q.income)}</span></div>
                                     <div className="flex justify-between"><span className="text-gray-500">Saídas</span><span className="font-bold text-rose-500">{fmt(q.expense)}</span></div>
                                     <div className="border-t border-gray-200 dark:border-[#222] pt-2 flex justify-between"><span className="font-bold text-gray-700 dark:text-gray-300">Resultado</span><span className={`font-extrabold ${q.net >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{fmt(q.net)}</span></div>
-                                    <div className="flex justify-between"><span className="text-gray-500">Saldo Final</span><span className="font-bold text-[#D4AF37]">{fmt(q.closeBalance)}</span></div>
+                                    <div className="flex justify-between"><span className="text-gray-500">Saldo Final</span><span className="font-bold text-[#D4A85C]">{fmt(q.closeBalance)}</span></div>
                                 </div>
                             </div>
                         ))}
@@ -785,7 +785,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                                         <td className={`px-5 py-3 text-right font-extrabold ${m.net >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                                             {m.net !== 0 ? (m.net > 0 ? '+' : '') + fmt(m.net) : '—'}
                                         </td>
-                                        <td className={`px-5 py-3 text-right font-extrabold ${m.closeBalance >= 0 ? 'text-[#D4AF37]' : 'text-rose-500'}`}>{fmt(m.closeBalance)}</td>
+                                        <td className={`px-5 py-3 text-right font-extrabold ${m.closeBalance >= 0 ? 'text-[#D4A85C]' : 'text-rose-500'}`}>{fmt(m.closeBalance)}</td>
                                         <td className="px-5 py-3 text-right text-xs font-bold text-gray-500">{m.income > 0 ? `${margin.toFixed(1)}%` : '—'}</td>
                                     </tr>
                                 );
@@ -798,7 +798,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                                 <td className={`px-5 py-3 text-right font-black ${totals.net >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                                     {totals.net > 0 ? '+' : ''}{fmt(totals.net)}
                                 </td>
-                                <td className={`px-5 py-3 text-right font-black ${totals.finalBalance >= 0 ? 'text-[#D4AF37]' : 'text-rose-500'}`}>{fmt(totals.finalBalance)}</td>
+                                <td className={`px-5 py-3 text-right font-black ${totals.finalBalance >= 0 ? 'text-[#D4A85C]' : 'text-rose-500'}`}>{fmt(totals.finalBalance)}</td>
                                 <td className="px-5 py-3 text-right text-xs font-black text-gray-700 dark:text-gray-300">{totals.margin.toFixed(1)}%</td>
                             </tr>
                         </tbody>
@@ -836,7 +836,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                                     {dre.rows.map(r => (
                                         <th key={r.month} className="px-3 py-3 text-right font-bold">{r.label}</th>
                                     ))}
-                                    <th className="px-4 py-3 text-right font-black bg-[#D4AF37]/10 text-[#B8860B]">Ano</th>
+                                    <th className="px-4 py-3 text-right font-black bg-[#D4A85C]/10 text-[#A0792E]">Ano</th>
                                 </tr>
                             </thead>
                             <tbody className="text-xs">
@@ -853,7 +853,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                                             {r.receita > 0 ? `${r.margemEbitda.toFixed(1)}%` : '—'}
                                         </td>
                                     ))}
-                                    <td className="px-4 py-3 text-right text-[10px] font-black bg-[#D4AF37]/10 text-[#B8860B]">
+                                    <td className="px-4 py-3 text-right text-[10px] font-black bg-[#D4A85C]/10 text-[#A0792E]">
                                         {dre.margem.toFixed(1)}%
                                     </td>
                                 </tr>
@@ -897,9 +897,9 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                             <p className="text-[10px] uppercase tracking-widest text-rose-500 font-bold mb-1">Saídas</p>
                             <p className="text-2xl font-black text-rose-500">{fmt(projection.saidas)}</p>
                         </div>
-                        <div className={`p-4 rounded-xl ${projection.liquido >= 0 ? 'bg-[#D4AF37]/5 border-[#D4AF37]/30' : 'bg-rose-500/5 border-rose-500/20'} border`}>
-                            <p className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${projection.liquido >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>Resultado</p>
-                            <p className={`text-2xl font-black ${projection.liquido >= 0 ? 'text-[#B8860B]' : 'text-rose-500'}`}>
+                        <div className={`p-4 rounded-xl ${projection.liquido >= 0 ? 'bg-[#D4A85C]/5 border-[#D4A85C]/30' : 'bg-rose-500/5 border-rose-500/20'} border`}>
+                            <p className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${projection.liquido >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>Resultado</p>
+                            <p className={`text-2xl font-black ${projection.liquido >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>
                                 {projection.liquido >= 0 ? '+' : ''}{fmt(projection.liquido)}
                             </p>
                         </div>
@@ -960,8 +960,8 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
             {accounts.length > 0 && (
                 <div className="bg-white dark:bg-[#0F0F0F] rounded-2xl border border-gray-200 dark:border-[#222] shadow-xl overflow-hidden">
                     <div className="p-5 border-b border-gray-100 dark:border-[#222] bg-gray-50 dark:bg-[#141414] flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
-                            <Building2 className="w-5 h-5 text-[#D4AF37]" />
+                        <div className="w-10 h-10 rounded-xl bg-[#D4A85C]/10 flex items-center justify-center border border-[#D4A85C]/20">
+                            <Building2 className="w-5 h-5 text-[#D4A85C]" />
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">Saldos por Conta</h3>
@@ -972,7 +972,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                         {accounts.map(acc => (
                             <div key={acc.id} className="p-5 bg-white dark:bg-[#0F0F0F]">
                                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">{acc.name}</p>
-                                <p className="text-2xl font-black text-[#D4AF37] mt-1">{fmt(Number(acc.current_balance))}</p>
+                                <p className="text-2xl font-black text-[#D4A85C] mt-1">{fmt(Number(acc.current_balance))}</p>
                                 <p className="text-[10px] text-gray-400 mt-1">inicial: {fmt(Number(acc.initial_balance))}</p>
                             </div>
                         ))}
@@ -1000,19 +1000,19 @@ function KpiCard({
     const border = {
         emerald: 'border-emerald-500/20 hover:border-emerald-500/40',
         rose: 'border-rose-500/20 hover:border-rose-500/40',
-        gold: 'border-[#B8860B]/20 hover:border-[#B8860B]/40',
+        gold: 'border-[#A0792E]/20 hover:border-[#A0792E]/40',
         blue: 'border-blue-500/20 hover:border-blue-500/40',
     }[color];
     const iconBg = {
         emerald: 'bg-emerald-500/10 text-emerald-500',
         rose: 'bg-rose-500/10 text-rose-500',
-        gold: 'bg-[#B8860B]/10 text-[#B8860B]',
+        gold: 'bg-[#A0792E]/10 text-[#A0792E]',
         blue: 'bg-blue-500/10 text-blue-500',
     }[color];
     const valueColor = {
         emerald: 'text-emerald-500',
         rose: 'text-rose-500',
-        gold: 'text-[#D4AF37]',
+        gold: 'text-[#D4A85C]',
         blue: 'text-blue-500',
     }[color];
 
@@ -1037,14 +1037,14 @@ function DRERow({
 }) {
     const cls = strong ? 'font-bold' : muted ? 'text-gray-500 dark:text-[#AAA]' : '';
     return (
-        <tr className={`border-b border-gray-100 dark:border-[#1A1A1A] ${highlight ? 'bg-[#B8860B]/5' : ''}`}>
-            <td className={`px-4 py-2.5 sticky left-0 bg-white dark:bg-[#0F0F0F] ${highlight ? 'bg-[#B8860B]/5' : ''} ${cls} ${color || ''}`}>{label}</td>
+        <tr className={`border-b border-gray-100 dark:border-[#1A1A1A] ${highlight ? 'bg-[#A0792E]/5' : ''}`}>
+            <td className={`px-4 py-2.5 sticky left-0 bg-white dark:bg-[#0F0F0F] ${highlight ? 'bg-[#A0792E]/5' : ''} ${cls} ${color || ''}`}>{label}</td>
             {values.map((v, i) => (
                 <td key={i} className={`px-3 py-2.5 text-right font-mono ${cls} ${color || ''}`}>
                     {v !== 0 ? fmtShort(v) : '—'}
                 </td>
             ))}
-            <td className={`px-4 py-2.5 text-right font-black bg-[#D4AF37]/10 ${color || 'text-[#B8860B]'}`}>{fmtShort(total)}</td>
+            <td className={`px-4 py-2.5 text-right font-black bg-[#D4A85C]/10 ${color || 'text-[#A0792E]'}`}>{fmtShort(total)}</td>
         </tr>
     );
 }
@@ -1056,7 +1056,7 @@ function Waterfall({ steps }: { steps: Array<{ label: string; value: number; kin
             <div className="grid grid-cols-4 gap-4 items-end h-56">
                 {steps.map((s, i) => {
                     const h = (Math.abs(s.value) / max) * 100;
-                    const cls = s.kind === 'positive' ? 'bg-emerald-500' : s.kind === 'negative' ? 'bg-rose-500' : 'bg-[#D4AF37]';
+                    const cls = s.kind === 'positive' ? 'bg-emerald-500' : s.kind === 'negative' ? 'bg-rose-500' : 'bg-[#D4A85C]';
                     return (
                         <div key={i} className="flex flex-col items-center gap-2 h-full justify-end">
                             <span className={`text-xs font-black ${s.value >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>

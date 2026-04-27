@@ -219,13 +219,13 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                             placeholder="Buscar por nome, telefone, cidade, instagram..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none dark:text-white placeholder:text-gray-400"
+                            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none dark:text-white placeholder:text-gray-400"
                         />
                     </div>
                     <select
                         value={filterStatus}
                         onChange={e => setFilterStatus(e.target.value)}
-                        className="px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none dark:text-white"
+                        className="px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none dark:text-white"
                     >
                         <option value="">Todos os status</option>
                         {stages.map(s => <option key={s} value={s}>{s}</option>)}
@@ -234,7 +234,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                         <select
                             value={filterEstado}
                             onChange={e => setFilterEstado(e.target.value)}
-                            className="px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#B8860B] focus:border-transparent outline-none dark:text-white"
+                            className="px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none dark:text-white"
                         >
                             <option value="">Todos os estados</option>
                             {estados.map(e => <option key={e} value={e}>{e}</option>)}
@@ -243,12 +243,12 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                     <button
                         onClick={() => setShowAdvFilters(v => !v)}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${showAdvFilters || activeFiltersCount > 0
-                            ? 'border-[#B8860B] bg-[#B8860B]/10 text-[#B8860B]'
-                            : 'border-gray-200 dark:border-[#333] text-gray-600 dark:text-gray-300 hover:border-[#B8860B]/40 hover:text-[#B8860B]'}`}
+                            ? 'border-[#A0792E] bg-[#A0792E]/10 text-[#A0792E]'
+                            : 'border-gray-200 dark:border-[#333] text-gray-600 dark:text-gray-300 hover:border-[#A0792E]/40 hover:text-[#A0792E]'}`}
                     >
                         <SlidersHorizontal size={15} /> Filtros
                         {activeFiltersCount > 0 && (
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#B8860B] text-white text-[10px] font-bold">
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#A0792E] text-white text-[10px] font-bold">
                                 {activeFiltersCount}
                             </span>
                         )}
@@ -257,7 +257,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                         onClick={() => exportLeadsCSV(filtered)}
                         disabled={filtered.length === 0}
                         title="Exportar leads filtrados em CSV"
-                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-[#B8860B] hover:text-[#B8860B] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-[#A0792E] hover:text-[#A0792E] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                     >
                         <Download size={15} /> Exportar
                     </button>
@@ -277,7 +277,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                             <select
                                 value={filterSource}
                                 onChange={e => setFilterSource(e.target.value)}
-                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#A0792E]"
                             >
                                 <option value="">Todas</option>
                                 {sources.map(s => (
@@ -290,7 +290,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                             <select
                                 value={filterResponsavel}
                                 onChange={e => setFilterResponsavel(e.target.value)}
-                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#A0792E]"
                             >
                                 <option value="">Todos</option>
                                 {responsaveis.map(r => <option key={r} value={r}>{r}</option>)}
@@ -301,7 +301,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                             <select
                                 value={filterCidade}
                                 onChange={e => setFilterCidade(e.target.value)}
-                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#A0792E]"
                             >
                                 <option value="">Todas</option>
                                 {cidades.map(c => <option key={c} value={c}>{c}</option>)}
@@ -312,7 +312,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                             <select
                                 value={filterPrioridade}
                                 onChange={e => setFilterPrioridade(e.target.value)}
-                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#A0792E]"
                             >
                                 <option value="">Todas</option>
                                 {prioridades.map(p => <option key={p} value={p}>{p}</option>)}
@@ -325,7 +325,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                                 value={filterBusca}
                                 onChange={e => setFilterBusca(e.target.value)}
                                 placeholder="Touro, embrião, fêmea P.O., bezerra..."
-                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#A0792E]"
                             />
                         </div>
                         <div>
@@ -334,7 +334,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                                 type="date"
                                 value={filterDataDe}
                                 onChange={e => setFilterDataDe(e.target.value)}
-                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#A0792E]"
                             />
                         </div>
                         <div>
@@ -343,7 +343,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                                 type="date"
                                 value={filterDataAte}
                                 onChange={e => setFilterDataAte(e.target.value)}
-                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#B8860B]"
+                                className="w-full px-3 py-2 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg text-sm dark:text-white focus:outline-none focus:border-[#A0792E]"
                             />
                         </div>
                         {activeFiltersCount > 0 && (
@@ -453,7 +453,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                                         <td className="px-5 py-3.5">
                                             {lead.responsavel ? (
                                                 <div className="flex items-center gap-1.5">
-                                                    <div className="w-6 h-6 rounded-full bg-[#B8860B]/20 text-[#B8860B] text-xs font-bold flex items-center justify-center shrink-0">
+                                                    <div className="w-6 h-6 rounded-full bg-[#A0792E]/20 text-[#A0792E] text-xs font-bold flex items-center justify-center shrink-0">
                                                         {lead.responsavel.charAt(0).toUpperCase()}
                                                     </div>
                                                     <span className="text-xs text-gray-600 dark:text-gray-300 truncate max-w-[80px]">
@@ -507,7 +507,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                                         onClick={() => setPage(p)}
                                         className={`w-7 h-7 text-xs rounded-lg border transition-colors ${
                                             p === page
-                                                ? 'bg-[#B8860B] border-[#B8860B] text-white font-medium'
+                                                ? 'bg-[#A0792E] border-[#A0792E] text-white font-medium'
                                                 : 'border-gray-200 dark:border-[#333] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#222]'
                                         }`}
                                     >

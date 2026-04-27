@@ -7,13 +7,6 @@ const BRONZE_LIGHT = "#D4A85C";
 const INK = "#0A0A0A";
 const FG = "#F5F0E4";
 
-const leatherTexture: React.CSSProperties = {
-    backgroundImage: [
-        "repeating-linear-gradient(62deg, transparent 0px, transparent 3px, rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 4px)",
-        "repeating-linear-gradient(-62deg, transparent 0px, transparent 3px, rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 4px)",
-    ].join(", "),
-};
-
 export const revalidate = 3600;
 
 export default async function LeiloesSection() {
@@ -25,8 +18,6 @@ export default async function LeiloesSection() {
             className="stitch-divider relative overflow-hidden scroll-mt-20"
             style={{ background: INK, color: FG, padding: "96px 20px", borderTop: "1px solid rgba(212,168,92,0.12)" }}
         >
-            <div className="absolute inset-0 pointer-events-none" style={leatherTexture} />
-
             <div
                 className="absolute inset-0 pointer-events-none opacity-30"
                 style={{

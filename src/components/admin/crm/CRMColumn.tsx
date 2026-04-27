@@ -65,7 +65,7 @@ export function CRMColumn({ id, title, leads, onLeadClick, onAddLead }: CRMColum
                         e.preventDefault();
                         onAddLead(id);
                     }}
-                    className="w-full py-3 mt-2 rounded-xl flex items-center justify-center gap-2 text-gray-400 dark:text-gray-500 hover:text-[#B8860B] hover:bg-[#B8860B]/5 border border-transparent hover:border-[#B8860B]/20 transition-all text-sm font-medium"
+                    className="w-full py-3 mt-2 rounded-xl flex items-center justify-center gap-2 text-gray-400 dark:text-gray-500 hover:text-[#A0792E] hover:bg-[#A0792E]/5 border border-transparent hover:border-[#A0792E]/20 transition-all text-sm font-medium"
                 >
                     <Plus size={16} /> Nova página
                 </button>

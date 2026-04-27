@@ -69,7 +69,7 @@ export function StageBreakdown({ leads, stages }: StageBreakdownProps) {
                                 <td className="px-6 py-3 text-right text-gray-500">{r.stage.probability ?? 0}%</td>
                                 <td className="px-6 py-3 text-right text-gray-900 dark:text-gray-100">{fmtBRL(r.value)}</td>
                                 <td className="px-6 py-3 text-right text-gray-500">{fmtBRL(r.avg)}</td>
-                                <td className="px-6 py-3 text-right font-semibold text-[#B8860B]">{fmtBRL(r.weighted)}</td>
+                                <td className="px-6 py-3 text-right font-semibold text-[#A0792E]">{fmtBRL(r.weighted)}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -80,7 +80,7 @@ export function StageBreakdown({ leads, stages }: StageBreakdownProps) {
                             <td />
                             <td className="px-6 py-3 text-right text-gray-900 dark:text-white">{fmtBRL(totals.value)}</td>
                             <td />
-                            <td className="px-6 py-3 text-right text-[#B8860B]">{fmtBRL(totals.weighted)}</td>
+                            <td className="px-6 py-3 text-right text-[#A0792E]">{fmtBRL(totals.weighted)}</td>
                         </tr>
                     </tfoot>
                 </table>

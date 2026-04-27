@@ -78,9 +78,9 @@ export function CRMSettingsView({ initialConfig, onConfigSaved }: CRMSettingsVie
         }
     };
 
-    const inputCls = 'px-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg outline-none focus:ring-2 focus:ring-[#B8860B] dark:text-white';
+    const inputCls = 'px-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg outline-none focus:ring-2 focus:ring-[#A0792E] dark:text-white';
     const btnSecondary = 'flex items-center gap-1.5 text-sm px-3 py-1.5 bg-gray-100 dark:bg-[#333] hover:bg-gray-200 dark:hover:bg-[#444] rounded-lg text-gray-700 dark:text-gray-300 transition-colors font-medium';
-    const btnGold = 'flex items-center gap-1 px-3 py-2 bg-[#B8860B] hover:bg-[#9A7209] text-black text-sm font-semibold rounded-lg transition-colors';
+    const btnGold = 'flex items-center gap-1 px-3 py-2 bg-[#A0792E] hover:bg-[#9A7209] text-black text-sm font-semibold rounded-lg transition-colors';
     const btnCancel = 'p-2 text-gray-400 hover:bg-gray-200 dark:hover:bg-[#333] rounded-lg transition-colors';
 
     return (
@@ -135,7 +135,7 @@ export function CRMSettingsView({ initialConfig, onConfigSaved }: CRMSettingsVie
                                             type="button"
                                             onClick={() => setNewRespColor(c.id)}
                                             title={c.label}
-                                            className={`w-6 h-6 rounded-full ${c.dot} transition-transform ${newRespColor === c.id ? 'scale-125 ring-2 ring-offset-2 ring-[#B8860B]' : 'hover:scale-110'}`}
+                                            className={`w-6 h-6 rounded-full ${c.dot} transition-transform ${newRespColor === c.id ? 'scale-125 ring-2 ring-offset-2 ring-[#A0792E]' : 'hover:scale-110'}`}
                                         />
                                     ))}
                                 </div>
@@ -187,7 +187,7 @@ export function CRMSettingsView({ initialConfig, onConfigSaved }: CRMSettingsVie
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg disabled:opacity-50 ${
                         saved
                             ? 'bg-green-500 text-white shadow-green-500/20'
-                            : 'bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#9A7209] hover:to-[#B8860B] text-black shadow-[#B8860B]/20'
+                            : 'bg-gradient-to-r from-[#A0792E] to-[#D4A85C] hover:from-[#9A7209] hover:to-[#A0792E] text-black shadow-[#A0792E]/20'
                     }`}
                 >
                     {saved ? (

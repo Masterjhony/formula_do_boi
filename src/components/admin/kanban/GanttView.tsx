@@ -174,14 +174,14 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                                                 ${isWeekend ? 'bg-gray-50/50 dark:bg-[#151515]/50' : ''}`}
                                         >
                                             {!isSmallZoom && (
-                                                <span className={`text-[10px] uppercase font-bold ${isWeekend ? 'text-[#B8860B]/70' : 'text-gray-400'}`}>
+                                                <span className={`text-[10px] uppercase font-bold ${isWeekend ? 'text-[#A0792E]/70' : 'text-gray-400'}`}>
                                                     {day.toLocaleDateString('pt-BR', { weekday: 'short' }).substring(0, 3)}
                                                 </span>
                                             )}
                                             <span className={`text-xs font-bold transition-all duration-200
                                                 ${isToday
-                                                    ? 'bg-[#B8860B] text-black w-6 h-6 rounded-full flex items-center justify-center mt-1 shadow-md scale-110'
-                                                    : `mt-1 ${isWeekend ? 'text-[#B8860B]/80' : 'text-gray-700 dark:text-gray-300'}`
+                                                    ? 'bg-[#A0792E] text-black w-6 h-6 rounded-full flex items-center justify-center mt-1 shadow-md scale-110'
+                                                    : `mt-1 ${isWeekend ? 'text-[#A0792E]/80' : 'text-gray-700 dark:text-gray-300'}`
                                                 }`}>
                                                 {day.getDate()}
                                             </span>
@@ -201,7 +201,7 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                             if (todayDiff >= 0 && todayDiff <= days.length) {
                                 return (
                                     <div
-                                        className="absolute top-0 bottom-0 border-l-[2px] border-[#B8860B]/50 border-dashed z-0 pointer-events-none"
+                                        className="absolute top-0 bottom-0 border-l-[2px] border-[#A0792E]/50 border-dashed z-0 pointer-events-none"
                                         style={{ left: `${256 + (todayDiff * dayWidth) + (dayWidth / 2)}px` }}
                                     />
                                 );
@@ -236,14 +236,14 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                                         className="w-64 shrink-0 border-r border-gray-200 dark:border-[#333333] p-3 cursor-pointer bg-white dark:bg-[#1A1A1A]"
                                         onClick={() => onTaskClick(task)}
                                     >
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-[#B8860B] transition-colors leading-snug" title={task.title}>
+                                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-[#A0792E] transition-colors leading-snug" title={task.title}>
                                             {task.title}
                                         </p>
                                         <div className="flex items-center gap-2 mt-1.5">
                                             {task.assignees && task.assignees.length > 0 && (
                                                 <div className="flex -space-x-1.5">
                                                     {task.assignees.slice(0, 3).map((a, i) => (
-                                                        <div key={i} className="w-5 h-5 rounded-full bg-gradient-to-br from-[#B8860B] to-[#9A7209] text-black text-[9px] flex items-center justify-center font-bold border border-white dark:border-[#1A1A1A]" title={a}>
+                                                        <div key={i} className="w-5 h-5 rounded-full bg-gradient-to-br from-[#A0792E] to-[#9A7209] text-black text-[9px] flex items-center justify-center font-bold border border-white dark:border-[#1A1A1A]" title={a}>
                                                             {a.charAt(0).toUpperCase()}
                                                         </div>
                                                     ))}
