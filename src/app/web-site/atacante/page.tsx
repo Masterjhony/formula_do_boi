@@ -205,41 +205,38 @@ function Marquee() {
 // ===== Identity =====
 function Identity() {
     const ref = useReveal() as React.RefObject<HTMLElement>;
+    // Reduced to essentials — less info density per chefe's feedback.
     const data: [string, string][] = [
         ["Matrícula", "RDM B 3224 MAT."],
-        ["Raça", "Nelore PO · Padrão"],
+        ["Raça", "Nelore PO"],
         ["Nascimento", "01.08.2024"],
-        ["Idade atual", "20 meses"],
-        ["Criador", "Nelore Visual / Rancho da Matinha"],
-        ["Proprietário", "Fazenda Bella Vista"],
+        ["Criador", "Nelore Visual"],
         ["Central", "Procriar SP"],
-        ["Sêmen disponível", "Convencional · Sexado"],
-        ["Consanguinidade", "5,13%"],
-        ["Situação", "Ativo · Pré-reserva aberta"],
+        ["Sêmen", "Convencional · Sexado"],
+        ["Situação", "Pré-reserva aberta"],
     ];
     return (
         <section id="touro" ref={ref} className="reveal pad-side-big" style={{ padding: "160px 80px", position: "relative" }}>
             <div style={{ maxWidth: 1480, margin: "0 auto" }}>
                 <div className="grid-2-col" style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 100, alignItems: "start" }}>
                     <div style={{ position: "sticky", top: 120 }}>
-                        <div className="kicker" style={{ marginBottom: 32 }}>01 — Apresentamos</div>
-                        <h2 className="serif-tight" style={{ fontSize: "clamp(44px, 6vw, 96px)", color: "var(--bone)", marginBottom: 32 }}>
+                        <div className="kicker" style={{ marginBottom: 24 }}>01 — Apresentamos</div>
+                        <h2 className="serif-tight" style={{ fontSize: "clamp(44px, 6vw, 96px)", color: "var(--bone)", marginBottom: 24 }}>
                             Um indivíduo<br />
                             <span style={{ fontStyle: "italic", color: "var(--gold-2)" }}>diferenciado.</span>
                         </h2>
-                        <p style={{ fontSize: 17, lineHeight: 1.7, color: "var(--txt)", maxWidth: 460, fontWeight: 300 }}>
-                            O B3224 MAT. chega como um dos grandes destaques da nova geração Nelore,
-                            criado na Nelore Visual. Não é apenas um bom animal — é um indivíduo
-                            diferenciado, entregando resultado no campo, na balança e no bolso.
+
+                        <p style={{ fontSize: 16, lineHeight: 1.65, color: "var(--txt)", maxWidth: 460, fontWeight: 300 }}>
+                            Resultado direto no campo, na balança e no bolso.
                         </p>
 
-                        <div style={{ marginTop: 48, display: "flex", gap: 24, alignItems: "center" }}>
-                            <div className="ticker-num at-id-ticker" style={{ fontSize: 88, color: "var(--gold)", lineHeight: 0.85 }}>
-                                5,13<span style={{ fontSize: 36 }}>%</span>
+                        <div style={{ marginTop: 40, display: "flex", gap: 22, alignItems: "center" }}>
+                            <div className="ticker-num at-id-ticker" style={{ fontSize: 72, color: "var(--gold)", lineHeight: 0.9, fontWeight: 600 }}>
+                                5,13<span style={{ fontSize: 28 }}>%</span>
                             </div>
                             <div>
                                 <div className="label">Consanguinidade</div>
-                                <div style={{ color: "var(--txt)", fontSize: 13, marginTop: 4, fontWeight: 300 }}>Sangue selecionado e seguro</div>
+                                <div style={{ color: "var(--txt)", fontSize: 12, marginTop: 4, fontWeight: 400 }}>Sangue selecionado</div>
                             </div>
                         </div>
                     </div>
@@ -295,12 +292,13 @@ function Identity() {
 // ===== NumbersHero =====
 function NumbersHero() {
     const ref = useReveal() as React.RefObject<HTMLElement>;
+    // Layout: ONE hero stat (MGTe) + 4 compact secondary stats — matches V3 PDF.
+    const heroStat = { n: "42,38", label: "MGTe · Índice Geral", sub: "TOP 0,1%" };
     const stats = [
-        { n: "42,38", label: "MGTe Índice Geral", sub: "TOP 0,1%" },
-        { n: "+24%", label: "Peso · DEP Genômica", sub: "Elite" },
-        { n: "+25%", label: "AOL · Área Olho Lombo", sub: "Elite" },
-        { n: "+21%", label: "PE · Perímetro Escrotal", sub: "Elite" },
-        { n: "5º", label: "Intra-rebanho · Final", sub: "+15%" },
+        { n: "+24%", label: "Peso", sub: "Elite" },
+        { n: "+25%", label: "AOL", sub: "Elite" },
+        { n: "+21%", label: "PE", sub: "Elite" },
+        { n: "5º", label: "Intra-rebanho", sub: "+15%" },
     ];
     return (
         <section id="genética" ref={ref} className="reveal pad-side-big" style={{
@@ -323,37 +321,71 @@ function NumbersHero() {
                     </div>
                 </div>
 
-                <div className="grid-5-col" style={{
-                    display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
-                    borderTop: "1px solid var(--rule-2)",
-                    borderLeft: "1px solid var(--rule-2)",
+                {/* Hero stat (MGTe) — single big number, right-side floats secondary stats below */}
+                <div className="at-stats-grid" style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.4fr 1fr",
+                    gap: 0,
+                    border: "1px solid var(--rule-2)",
                 }}>
-                    {stats.map((s, i) => (
-                        <div key={i} style={{
-                            padding: "40px 28px",
-                            borderRight: "1px solid var(--rule-2)",
-                            borderBottom: "1px solid var(--rule-2)",
-                            background: i === 0 ? "linear-gradient(135deg, rgba(201,162,74,0.08), transparent)" : "transparent",
-                            minHeight: 240,
-                            display: "flex", flexDirection: "column", justifyContent: "space-between",
-                        }}>
-                            <div className="label">{s.label}</div>
-                            <div>
-                                <div className="ticker-num gold-foil" style={{
-                                    fontSize: i === 0 ? "clamp(70px, 9vw, 156px)" : "clamp(48px, 5vw, 80px)",
-                                    color: "var(--gold)",
-                                }}>{s.n}</div>
-                                <div className="mono" style={{ fontSize: 11, color: "var(--gold-2)", letterSpacing: "0.18em", textTransform: "uppercase", marginTop: 12 }}>
-                                    {s.sub}
+                    <div className="at-stat-hero" style={{
+                        padding: "44px 36px",
+                        borderRight: "1px solid var(--rule-2)",
+                        background: "linear-gradient(135deg, rgba(201,162,74,0.10), transparent)",
+                        display: "flex", flexDirection: "column", justifyContent: "space-between",
+                        minHeight: 280, gap: 28,
+                    }}>
+                        <div>
+                            <div className="label">{heroStat.label}</div>
+                        </div>
+                        <div>
+                            <div className="ticker-num gold-foil" style={{
+                                fontSize: "clamp(64px, 8.5vw, 132px)", color: "var(--gold)", letterSpacing: "-0.02em",
+                            }}>{heroStat.n}</div>
+                            <div className="mono" style={{
+                                fontSize: 11, color: "var(--gold-2)", letterSpacing: "0.22em",
+                                textTransform: "uppercase", marginTop: 14, fontWeight: 600,
+                            }}>{heroStat.sub}</div>
+                        </div>
+                    </div>
+
+                    {/* 2x2 secondary stats grid */}
+                    <div className="at-stat-grid-2" style={{
+                        display: "grid", gridTemplateColumns: "1fr 1fr",
+                    }}>
+                        {stats.map((s, i) => (
+                            <div key={i} style={{
+                                padding: "20px 22px",
+                                borderRight: i % 2 === 0 ? "1px solid var(--rule-2)" : "none",
+                                borderBottom: i < 2 ? "1px solid var(--rule-2)" : "none",
+                                display: "flex", flexDirection: "column", justifyContent: "space-between",
+                                minHeight: 140, gap: 12,
+                            }}>
+                                <div className="mono" style={{
+                                    fontSize: 10, letterSpacing: "0.22em", color: "var(--txt-dim)",
+                                    textTransform: "uppercase", fontWeight: 500,
+                                }}>{s.label}</div>
+                                <div>
+                                    <div className="ticker-num" style={{
+                                        fontSize: "clamp(28px, 3vw, 40px)", color: "var(--bone)",
+                                        fontWeight: 600, letterSpacing: "-0.01em",
+                                    }}>{s.n}</div>
+                                    <div className="mono" style={{
+                                        fontSize: 9, color: "var(--gold)", letterSpacing: "0.22em",
+                                        textTransform: "uppercase", marginTop: 6, fontWeight: 600,
+                                    }}>{s.sub}</div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
 
-                <p className="serif" style={{ marginTop: 60, fontSize: 22, color: "var(--txt)", maxWidth: 720, fontWeight: 300, lineHeight: 1.5, fontStyle: "italic" }}>
-                    &ldquo;Os números de AOL e acabamento colocam o B3224 MAT. entre os melhores da população —
-                    entregando exatamente o que o mercado exige e o frigorífico paga.&rdquo;
+                <p style={{
+                    marginTop: 36, fontSize: 14, color: "var(--txt-dim)", maxWidth: 640,
+                    lineHeight: 1.6, fontFamily: "var(--mono-atacante)",
+                    letterSpacing: "0.02em",
+                }}>
+                    AOL e acabamento entre os melhores da população — exatamente o que o mercado exige.
                 </p>
             </div>
         </section>
@@ -657,13 +689,14 @@ function SemenPricing({ onReserve }: { onReserve: (data?: { doses: number; type:
                 }}>
                     {tiers.map((t, i) => (
                         <div key={i} style={{
-                            padding: "40px 30px",
+                            padding: "26px 22px",
                             borderRight: "1px solid var(--rule-2)",
                             borderBottom: "1px solid var(--rule-2)",
                             background: t.highlight ? "linear-gradient(180deg, rgba(201,162,74,0.10), rgba(201,162,74,0.02))" : "transparent",
                             position: "relative",
-                            minHeight: 280,
+                            minHeight: 180,
                             display: "flex", flexDirection: "column", justifyContent: "space-between",
+                            gap: 18,
                         }}>
                             {t.highlight && (
                                 <div style={{
@@ -673,32 +706,27 @@ function SemenPricing({ onReserve }: { onReserve: (data?: { doses: number; type:
                             )}
                             {t.highlight && (
                                 <div className="mono" style={{
-                                    position: "absolute", top: 12, right: 16, fontSize: 9,
-                                    letterSpacing: "0.28em", color: "var(--gold)", textTransform: "uppercase",
+                                    position: "absolute", top: 10, right: 14, fontSize: 9,
+                                    letterSpacing: "0.24em", color: "var(--gold)", textTransform: "uppercase",
                                 }}>
-                                    ★ Destaque
+                                    ★
                                 </div>
                             )}
 
-                            <div>
-                                <div className="label">Faixa</div>
-                                <div className="mono" style={{ fontSize: 22, color: "var(--bone)", marginTop: 8, letterSpacing: "0.05em" }}>{t.range}</div>
-                                <div className="mono" style={{ fontSize: 11, color: "var(--txt-dim)", marginTop: 4, letterSpacing: "0.18em", textTransform: "uppercase" }}>doses</div>
-                            </div>
+                            <div className="mono" style={{
+                                fontSize: 11, color: "var(--gold-2)", letterSpacing: "0.18em",
+                                textTransform: "uppercase", fontWeight: 600,
+                            }}>{t.range}</div>
 
                             <div>
-                                <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                                    <span className="mono" style={{ fontSize: 14, color: "var(--gold)" }}>R$</span>
-                                    <span className="ticker-num" style={{ fontSize: 64, color: "var(--bone)" }}>{t.price.toFixed(2).replace(".", ",")}</span>
+                                <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                                    <span className="mono" style={{ fontSize: 12, color: "var(--gold)", fontWeight: 600 }}>R$</span>
+                                    <span className="ticker-num" style={{ fontSize: 38, color: "var(--bone)", fontWeight: 600, letterSpacing: "-0.01em" }}>{t.price.toFixed(2).replace(".", ",")}</span>
                                 </div>
-                                <div className="mono" style={{ fontSize: 10, color: "var(--txt-dim)", letterSpacing: "0.22em", textTransform: "uppercase", marginTop: 4 }}>
-                                    por dose · {t.label}
+                                <div className="mono" style={{ fontSize: 10, color: "var(--txt-dim)", letterSpacing: "0.18em", textTransform: "uppercase", marginTop: 4 }}>
+                                    {t.discount ? <span style={{ color: "var(--gold)", fontWeight: 600 }}>{t.discount} · </span> : null}
+                                    {t.label}
                                 </div>
-                                {t.discount && (
-                                    <div className="mono" style={{ marginTop: 16, display: "inline-block", padding: "6px 12px", border: "1px solid var(--gold)", color: "var(--gold)", fontSize: 11, letterSpacing: "0.18em" }}>
-                                        {t.discount}
-                                    </div>
-                                )}
                             </div>
                         </div>
                     ))}
@@ -844,7 +872,7 @@ function ClosingCTA({ onReserve }: { onReserve: () => void }) {
                     </a>
                 </div>
 
-                <div className="at-closing-stats" style={{ marginTop: 80, display: "flex", justifyContent: "center", gap: 80, flexWrap: "wrap" }}>
+                <div className="at-closing-stats" style={{ marginTop: 64, display: "flex", justifyContent: "center", gap: 56, flexWrap: "wrap" }}>
                     {([
                         ["01", "Genética Elite", "MGTe 42,38 · TOP 0,1%"],
                         ["02", "Resultado Direto", "Carcaças que o frigorífico paga"],
@@ -852,7 +880,7 @@ function ClosingCTA({ onReserve }: { onReserve: () => void }) {
                     ] as [string, string, string][]).map(([n, t, s]) => (
                         <div key={n} style={{ textAlign: "center", maxWidth: 240 }}>
                             <div className="mono" style={{ fontSize: 12, color: "var(--gold)", letterSpacing: "0.32em" }}>{n}</div>
-                            <div className="serif" style={{ fontSize: 22, color: "var(--bone)", marginTop: 12, fontStyle: "italic" }}>{t}</div>
+                            <div className="serif" style={{ fontSize: 20, color: "var(--bone)", marginTop: 10, fontStyle: "italic" }}>{t}</div>
                             <div className="mono" style={{ fontSize: 11, color: "var(--txt-dim)", marginTop: 8, letterSpacing: "0.16em", textTransform: "uppercase" }}>{s}</div>
                         </div>
                     ))}
@@ -1101,7 +1129,7 @@ export default function AtacanteMatinhaPage() {
             const link = document.createElement("link");
             link.id = id;
             link.rel = "stylesheet";
-            link.href = "https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;1,6..96,400;1,6..96,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap";
+            link.href = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap";
             document.head.appendChild(link);
         }
     }, []);

@@ -14,8 +14,9 @@ export const atacanteCss = `
   --rule-2: rgba(201, 162, 74, 0.45);
   --txt: #d8cfbe;
   --txt-dim: #8e8478;
-  --serif-atacante: "Bodoni Moda", "Playfair Display", "Didot", "Times New Roman", serif;
-  --sans-atacante: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Brandbook fonts: Space Grotesk + JetBrains Mono. No serif. */
+  --serif-atacante: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --sans-atacante: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono-atacante: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
 }
 
@@ -43,9 +44,12 @@ export const atacanteCss = `
   background-repeat: no-repeat, no-repeat, repeat;
 }
 
-.atacante-wrap .serif { font-family: var(--serif-atacante); font-weight: 400; letter-spacing: -0.01em; }
-.atacante-wrap .serif-tight { font-family: var(--serif-atacante); font-weight: 500; letter-spacing: -0.03em; line-height: 0.92; }
+/* "serif" classes now use Space Grotesk (per brandbook). The italic variants
+   keep emphasis via font-style: italic with the same Space Grotesk family. */
+.atacante-wrap .serif { font-family: var(--serif-atacante); font-weight: 500; letter-spacing: -0.01em; }
+.atacante-wrap .serif-tight { font-family: var(--serif-atacante); font-weight: 600; letter-spacing: -0.025em; line-height: 0.95; }
 .atacante-wrap .mono { font-family: var(--mono-atacante); }
+
 
 .atacante-wrap .kicker {
   font-family: var(--mono-atacante);

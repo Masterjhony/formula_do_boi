@@ -84,10 +84,33 @@ def find_match(records, data_iso, leilao_name, criador_name, used_ids):
     return None
 
 
-def iso_data(v):
+def iso_data(v, sheet_name=None):
+    import datetime as _dt
     if hasattr(v, "strftime"):
         return v.strftime("%Y-%m-%d")
-    return str(v)[:10]
+    s = str(v).strip() if v is not None else ""
+    # Excel serial date (e.g., "46141.0")
+    try:
+        f = float(s)
+        if f > 30000:
+            base = _dt.datetime(1899, 12, 30)
+            return (base + _dt.timedelta(days=f)).date().isoformat()
+    except (ValueError, TypeError):
+        pass
+    # "DD / MM" form — infer year from sheet name (e.g., ABRIL2026)
+    parts = s.replace(" ", "").split("/")
+    if len(parts) == 2:
+        try:
+            day, mon = int(parts[0]), int(parts[1])
+            year = 2026
+            if sheet_name:
+                m = re.search(r"(\d{4})", sheet_name)
+                if m:
+                    year = int(m.group(1))
+            return _dt.date(year, mon, day).isoformat()
+        except ValueError:
+            pass
+    return s[:10]
 
 
 def pretty_nome(criador, leilao):
@@ -160,7 +183,7 @@ def gather_image_map(xlsx_path):
         for idx, img in enumerate(imgs):
             f = img.anchor._from
             row_1b = f.row + 1
-            data_val = iso_data(ws.cell(row=row_1b, column=1).value)
+            data_val = iso_data(ws.cell(row=row_1b, column=1).value, sn)
             leilao = ws.cell(row=row_1b, column=5).value or ws.cell(row=row_1b + 1, column=5).value
             criador = ws.cell(row=row_1b, column=6).value or ws.cell(row=row_1b + 1, column=6).value
             try:

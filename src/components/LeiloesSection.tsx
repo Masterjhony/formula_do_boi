@@ -1,12 +1,9 @@
-"use client";
-
 import Link from "next/link";
-import { LEILOES, type Leilao } from "@/data/leiloes";
+import { type Leilao } from "@/data/leiloes";
+import { getProximosLeiloes } from "@/services/leiloes.server";
 
-// Brandbook tokens
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
-const BRONZE_PALE = "#E8CB85";
 const INK = "#0A0A0A";
 const FG = "#F5F0E4";
 
@@ -17,16 +14,10 @@ const leatherTexture: React.CSSProperties = {
     ].join(", "),
 };
 
-function getProximos(n: number): Leilao[] {
-    const hoje = new Date();
-    return LEILOES.filter((l) => {
-        const d = new Date(2026, l.mesNum - 1, l.dia);
-        return d >= hoje;
-    }).slice(0, n);
-}
+export const revalidate = 3600;
 
-export default function LeiloesSection() {
-    const proximos = getProximos(3);
+export default async function LeiloesSection() {
+    const { proximos, total } = await getProximosLeiloes(3);
 
     return (
         <section
@@ -34,10 +25,8 @@ export default function LeiloesSection() {
             className="stitch-divider relative overflow-hidden scroll-mt-20"
             style={{ background: INK, color: FG, padding: "96px 20px", borderTop: "1px solid rgba(212,168,92,0.12)" }}
         >
-            {/* Textura de couro */}
             <div className="absolute inset-0 pointer-events-none" style={leatherTexture} />
 
-            {/* Dot grid */}
             <div
                 className="absolute inset-0 pointer-events-none opacity-30"
                 style={{
@@ -48,7 +37,6 @@ export default function LeiloesSection() {
 
             <div className="relative z-10" style={{ maxWidth: 1200, margin: "0 auto" }}>
 
-                {/* Eyebrow brandbook */}
                 <div
                     className="inline-flex items-center gap-3 mb-5"
                     style={{
@@ -64,7 +52,6 @@ export default function LeiloesSection() {
                     Agenda · Temporada 2026
                 </div>
 
-                {/* Título */}
                 <h2
                     className="font-display"
                     style={{
@@ -93,7 +80,6 @@ export default function LeiloesSection() {
                     transmissão, crédito e logística — infraestrutura montada.
                 </p>
 
-                {/* Lista de leilões */}
                 <div style={{
                     borderTop: "1px solid rgba(212,168,92,0.22)",
                     marginTop: 32,
@@ -109,7 +95,6 @@ export default function LeiloesSection() {
                     ))}
                 </div>
 
-                {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-3">
                     <Link
                         href="/agenda"
@@ -133,7 +118,7 @@ export default function LeiloesSection() {
                             opacity: 0.75,
                             marginLeft: 4,
                         }}>
-                            ({LEILOES.length} leilões)
+                            ({total} leilões)
                         </span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition-transform group-hover:translate-x-0.5">
                             <path d="M5 12h14M13 6l6 6-6 6"/>
@@ -169,7 +154,6 @@ function AgendaItem({ ev }: { ev: Leilao }) {
             className="flex items-center gap-4 md:gap-6 transition-all hover:pl-2 group"
             style={{ padding: "24px 0", borderBottom: "1px solid rgba(212,168,92,0.14)" }}
         >
-            {/* Data */}
             <div
                 className="flex-shrink-0 text-center"
                 style={{ width: 72, borderRight: `1px solid ${BRONZE}40`, paddingRight: 20 }}
@@ -199,7 +183,6 @@ function AgendaItem({ ev }: { ev: Leilao }) {
                 </div>
             </div>
 
-            {/* Info */}
             <div className="flex-1 min-w-0">
                 <div
                     className="font-display"
@@ -220,12 +203,12 @@ function AgendaItem({ ev }: { ev: Leilao }) {
                     color: "rgba(245,240,228,0.58)",
                     letterSpacing: "0.04em",
                 }}>
-                    {ev.quantidade} animais · {ev.diaSemana}
-                    {ev.horario !== "—" ? ` · ${ev.horario}` : ""} · {ev.modelo}
+                    {ev.quantidade > 0 ? `${ev.quantidade} animais · ` : ""}{ev.diaSemana}
+                    {ev.horario && ev.horario !== "—" ? ` · ${ev.horario}` : ""}
+                    {ev.modelo ? ` · ${ev.modelo}` : ""}
                 </div>
             </div>
 
-            {/* Badge de tipo */}
             <div
                 className="flex-shrink-0 hidden sm:block"
                 style={{
