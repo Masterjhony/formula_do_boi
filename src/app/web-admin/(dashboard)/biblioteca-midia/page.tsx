@@ -5,8 +5,11 @@ import { createClient } from '@/utils/supabase/client';
 import {
     ImageIcon, Film, FileText, Upload, Grid3X3, List, Search, X,
     Copy, Download, Trash2, RefreshCw, File, Check, AlertCircle,
-    Eye, FolderOpen, ChevronDown, SortAsc, SortDesc,
+    Eye, FolderOpen, ChevronDown, SortAsc, SortDesc, Cloud, Database,
 } from 'lucide-react';
+import R2Library from './R2Library';
+
+type Provider = 'supabase' | 'r2';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -15,7 +18,7 @@ type StorageFile = {
     id: string | null;
     updated_at: string | null;
     created_at: string | null;
-    metadata: Record<string, any> | null;
+    metadata: { mimetype?: string; size?: number; [k: string]: unknown } | null;
     publicUrl: string;
 };
 
@@ -117,6 +120,7 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 export default function BibliotecaMidia() {
     const supabase = createClient();
 
+    const [provider, setProvider] = useState<Provider>('supabase');
     const [files, setFiles] = useState<StorageFile[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -260,12 +264,12 @@ export default function BibliotecaMidia() {
     return (
         <div
             className="space-y-6 relative"
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
+            onDragOver={provider === 'supabase' ? handleDragOver : undefined}
+            onDragLeave={provider === 'supabase' ? handleDragLeave : undefined}
+            onDrop={provider === 'supabase' ? handleDrop : undefined}
         >
-            {/* Drag overlay */}
-            {isDragging && (
+            {/* Drag overlay (apenas no provider Supabase) */}
+            {provider === 'supabase' && isDragging && (
                 <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center pointer-events-none">
                     <div className="flex flex-col items-center gap-4 text-center">
                         <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#A0792E] to-[#D4A85C] flex items-center justify-center shadow-2xl shadow-[#A0792E]/40">
@@ -282,45 +286,82 @@ export default function BibliotecaMidia() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Biblioteca de Mídia</h1>
                     <p className="text-sm text-gray-500 dark:text-gray-500 mt-0.5">
-                        Central unificada de fotos, vídeos e fichas técnicas
+                        {provider === 'supabase'
+                            ? 'Central unificada de fotos, vídeos e fichas técnicas'
+                            : 'Backups e arquivos grandes no Cloudflare R2 (bucket privado)'}
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={fetchFiles}
-                        disabled={loading}
-                        className="p-2.5 rounded-xl border border-gray-200 dark:border-[#222222] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all"
-                        title="Atualizar"
-                    >
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    </button>
-                    <button
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-[#A0792E]/20 disabled:opacity-60"
-                    >
-                        {uploading ? (
-                            <>
-                                <RefreshCw size={16} className="animate-spin" />
-                                {uploadCount}/{uploadTotal} enviando...
-                            </>
-                        ) : (
-                            <>
-                                <Upload size={16} />
-                                Enviar arquivos
-                            </>
-                        )}
-                    </button>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        multiple
-                        className="hidden"
-                        onChange={e => e.target.files && uploadFiles(e.target.files)}
-                    />
-                </div>
+                {provider === 'supabase' && (
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={fetchFiles}
+                            disabled={loading}
+                            className="p-2.5 rounded-xl border border-gray-200 dark:border-[#222222] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all"
+                            title="Atualizar"
+                        >
+                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        </button>
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-[#A0792E]/20 disabled:opacity-60"
+                        >
+                            {uploading ? (
+                                <>
+                                    <RefreshCw size={16} className="animate-spin" />
+                                    {uploadCount}/{uploadTotal} enviando...
+                                </>
+                            ) : (
+                                <>
+                                    <Upload size={16} />
+                                    Enviar arquivos
+                                </>
+                            )}
+                        </button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={e => e.target.files && uploadFiles(e.target.files)}
+                        />
+                    </div>
+                )}
             </div>
 
+            {/* Provider selector */}
+            <div className="inline-flex items-center gap-1 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-1">
+                <button
+                    onClick={() => setProvider('supabase')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${provider === 'supabase'
+                        ? 'bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                >
+                    <Database size={14} />
+                    Supabase
+                    <span className={`text-[10px] ${provider === 'supabase' ? 'text-black/60' : 'text-gray-400 dark:text-gray-600'}`}>
+                        (mídia editorial)
+                    </span>
+                </button>
+                <button
+                    onClick={() => setProvider('r2')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${provider === 'r2'
+                        ? 'bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                >
+                    <Cloud size={14} />
+                    R2
+                    <span className={`text-[10px] ${provider === 'r2' ? 'text-black/60' : 'text-gray-400 dark:text-gray-600'}`}>
+                        (backups / arquivos grandes)
+                    </span>
+                </button>
+            </div>
+
+            {provider === 'r2' && <R2Library />}
+
+            {provider === 'supabase' && (<>
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard label="Total de arquivos" value={files.length} sub={formatBytes(totalSize) + ' usados'} />
@@ -671,8 +712,9 @@ export default function BibliotecaMidia() {
                     </div>
                 </div>
             )}
+            </>)}
 
-            {/* Toast */}
+            {/* Toast (compartilhado entre providers) */}
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
