@@ -2,14 +2,56 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Edit, Eye, EyeOff, Search, Award, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Edit, Eye, EyeOff, Search, Award, AlertCircle, CheckCircle, Clock, XCircle, Download, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 
 export default function LotesTourosClient({ initialProducts }: { initialProducts: any[] }) {
     const [products, setProducts] = useState(initialProducts);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('Todos');
+    const [downloadingId, setDownloadingId] = useState<any>(null);
     const supabase = createClient();
+
+    const collectMediaUrls = (p: any): string[] => {
+        const urls: string[] = [];
+        if (p.image_url) urls.push(p.image_url);
+        if (p.image) urls.push(p.image);
+        if (Array.isArray(p.gallery)) for (const g of p.gallery) if (g) urls.push(g);
+        return Array.from(new Set(urls));
+    };
+
+    const handleDownloadMedia = async (p: any) => {
+        const urls = collectMediaUrls(p);
+        if (urls.length === 0) {
+            alert('Nenhuma mídia disponível para este touro.');
+            return;
+        }
+        setDownloadingId(p.id);
+        try {
+            const safeName = (p.name || 'touro').replace(/[^a-zA-Z0-9._\- ]/g, '_').trim();
+            for (let i = 0; i < urls.length; i++) {
+                const url = urls[i];
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error('fetch failed');
+                    const blob = await res.blob();
+                    const ext = (url.split('?')[0].split('.').pop() || 'mp4').toLowerCase();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = urls.length === 1 ? `${safeName}.${ext}` : `${safeName}_${i + 1}.${ext}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+                } catch {
+                    window.open(url, '_blank', 'noopener');
+                }
+            }
+        } finally {
+            setDownloadingId(null);
+        }
+    };
 
     const handleToggleActive = async (product: any) => {
         const next = !product.active;
@@ -190,6 +232,18 @@ export default function LotesTourosClient({ initialProducts }: { initialProducts
                                             <Edit size={13} />
                                             Editar
                                         </Link>
+                                        {collectMediaUrls(p).length > 0 && (
+                                            <button
+                                                onClick={() => handleDownloadMedia(p)}
+                                                disabled={downloadingId === p.id}
+                                                title={`Baixar mídia${collectMediaUrls(p).length > 1 ? ` (${collectMediaUrls(p).length})` : ''}`}
+                                                className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-60"
+                                            >
+                                                {downloadingId === p.id
+                                                    ? <Loader2 size={15} className="animate-spin" />
+                                                    : <Download size={15} />}
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => handleToggleActive(p)}
                                             title={p.active === false ? 'Tornar visível' : 'Ocultar'}

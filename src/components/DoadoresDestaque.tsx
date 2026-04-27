@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ProductCard from "./ProductCard";
 import { EMBRYOS } from "@/data/embryos";
 
@@ -181,26 +182,47 @@ export default function DoadoresDestaque({ products, isAuthenticated = true }: D
                     ))}
                 </div>
 
-                {/* Link brandbook */}
-                <a
-                    href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20tenho%20interesse%20em%20doadoras%20e%20embri%C3%B5es%20Nelore%20P.O."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group inline-flex items-center gap-2 transition-all hover:gap-4"
-                    style={{
-                        color: FG,
-                        fontWeight: 500,
-                        fontSize: 14,
-                        borderBottom: `1px solid ${BRONZE}`,
-                        paddingBottom: 4,
-                        letterSpacing: "0.02em",
-                    }}
-                >
-                    Falar com curador
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M5 12h14M13 6l6 6-6 6"/>
-                    </svg>
-                </a>
+                {/* CTAs brandbook */}
+                <div className="flex flex-wrap items-center gap-6">
+                    <Link
+                        href="/embrioes"
+                        className="group inline-flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+                        style={{
+                            background: BRONZE,
+                            color: INK,
+                            padding: "14px 22px",
+                            borderRadius: 2,
+                            fontWeight: 600,
+                            fontSize: 14,
+                            letterSpacing: "0.02em",
+                            border: `1px solid ${BRONZE}`,
+                        }}
+                    >
+                        Ver todos os Embriões
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition-transform group-hover:translate-x-0.5">
+                            <path d="M5 12h14M13 6l6 6-6 6"/>
+                        </svg>
+                    </Link>
+                    <a
+                        href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20tenho%20interesse%20em%20doadoras%20e%20embri%C3%B5es%20Nelore%20P.O."
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group inline-flex items-center gap-2 transition-all hover:gap-4"
+                        style={{
+                            color: FG,
+                            fontWeight: 500,
+                            fontSize: 14,
+                            borderBottom: `1px solid ${BRONZE}`,
+                            paddingBottom: 4,
+                            letterSpacing: "0.02em",
+                        }}
+                    >
+                        Falar com curador
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M5 12h14M13 6l6 6-6 6"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </section>
     );
