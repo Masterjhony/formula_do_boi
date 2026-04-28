@@ -51,9 +51,9 @@ export async function updateSession(request: NextRequest, rewrittenPath?: string
 
     // 1. Admin Protection
     if (isAdminRoute) {
-        // Exclude login page from protection to avoid loops
+        // Exclude login + signup pages from protection to avoid loops
         // The path in rewrittenPath is like /(admin)/login...
-        if (!rewrittenPath?.includes('/login')) {
+        if (!rewrittenPath?.includes('/login') && !rewrittenPath?.includes('/signup')) {
             if (!user) {
                 const url = request.nextUrl.clone()
                 url.pathname = '/login'

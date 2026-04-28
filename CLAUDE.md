@@ -75,6 +75,8 @@ Migrations are in `/database/` (100+ files, one per change). Key tables:
 | `/api/parse-genealogy/batch` | GET, POST | Batch genealogy extraction (supports `dryRun`, `onlyMissing`) |
 | `/api/parse-avaliacao-genetica` | POST | Parses genetic evaluation from PDF, saves to `products.avaliacao_genetica_json` |
 | `/api/parse-avaliacao-genetica/batch` | GET, POST | Batch genetic evaluation extraction |
+| `/api/admin/auth/send-code` | POST | Generates a 6-digit code, stores SHA-256 hash in `signup_verification_codes`, sends email via SMTP. Throttled 1/min/email. |
+| `/api/admin/auth/verify-signup` | POST | Validates code (max 5 attempts, 10min TTL) and creates the user via `auth.admin.createUser` with `role='user'` (admin promotion stays manual via `/users`). |
 
 ## Environment Variables
 
@@ -87,6 +89,11 @@ WHATSAPP_SERVER_URL               # default: http://localhost:3001
 WHATSAPP_GROUP_TASK_SECRET        # Shared secret between VPS and /api/whatsapp/group-task (Production only in Vercel)
 GOOGLE_GA4_PROPERTY_ID            # GA4 property (fallback: 483341191)
 GOOGLE_SERVICE_ACCOUNT_JSON       # GA4 service account credentials (stringified JSON)
+SMTP_HOST                         # default: smtp.hostinger.com
+SMTP_PORT                         # default: 465
+SMTP_USER                         # mailbox (ex: contato@formuladoboi.com)
+SMTP_PASS                         # senha da mailbox
+SMTP_FROM                         # opcional, default: "Fórmula do Boi <SMTP_USER>"
 ```
 
 The WhatsApp server (VPS) uses the same Supabase variables to load flow config from `site_settings` at startup and every 5 minutes.

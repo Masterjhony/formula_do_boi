@@ -132,6 +132,15 @@ export default function AdminLoginPage() {
                             )}
                         </button>
                     </form>
+
+                    <div className="mt-6 text-center">
+                        <p className="text-gray-500 text-sm">
+                            Ainda não tem cadastro?{' '}
+                            <Link href="/signup" className="text-[#A0792E] font-semibold hover:text-[#D4A85C] transition-colors">
+                                Criar conta
+                            </Link>
+                        </p>
+                    </div>
                 </div>
             </div>
 
