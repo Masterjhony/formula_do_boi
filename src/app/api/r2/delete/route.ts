@@ -15,6 +15,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true });
     } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Erro inesperado.';
+        if (msg !== 'Não autenticado.' && msg !== 'Acesso negado.' && !msg.startsWith('Key')) {
+            console.error('[r2/delete]', e);
+        }
         const status = msg === 'Não autenticado.' ? 401
             : msg === 'Acesso negado.' ? 403
             : msg.startsWith('Key') ? 400

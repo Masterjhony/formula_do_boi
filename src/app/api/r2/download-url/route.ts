@@ -20,6 +20,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ url, expiresIn: ttl });
     } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Erro inesperado.';
+        if (msg !== 'Não autenticado.' && msg !== 'Acesso negado.' && !msg.startsWith('Key')) {
+            console.error('[r2/download-url]', e);
+        }
         const status = msg === 'Não autenticado.' ? 401
             : msg === 'Acesso negado.' ? 403
             : msg.startsWith('Key') ? 400

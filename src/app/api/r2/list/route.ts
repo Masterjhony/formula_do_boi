@@ -13,6 +13,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(result);
     } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Erro inesperado.';
+        if (msg !== 'Não autenticado.' && msg !== 'Acesso negado.') {
+            console.error('[r2/list]', e);
+        }
         const status = msg === 'Não autenticado.' ? 401
             : msg === 'Acesso negado.' ? 403
             : 500;
