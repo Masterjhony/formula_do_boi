@@ -53,7 +53,11 @@ export async function updateSession(request: NextRequest, rewrittenPath?: string
     if (isAdminRoute) {
         // Exclude login + signup pages from protection to avoid loops
         // The path in rewrittenPath is like /(admin)/login...
-        if (!rewrittenPath?.includes('/login') && !rewrittenPath?.includes('/signup')) {
+        if (
+            !rewrittenPath?.includes('/login') &&
+            !rewrittenPath?.includes('/signup') &&
+            !rewrittenPath?.includes('/reset-password')
+        ) {
             if (!user) {
                 const url = request.nextUrl.clone()
                 url.pathname = '/login'
