@@ -176,7 +176,7 @@ export default function DoadoresDestaque({ products, isAuthenticated = true }: D
                         <ProductCard
                             key={product.id}
                             product={product}
-                            theme="default"
+                            theme="premium"
                             isAuthenticated={isAuthenticated}
                         />
                     ))}

@@ -128,7 +128,7 @@ export default function SemenDestaque({ products, isAuthenticated = true }: Seme
                         >
                             <ProductCard
                                 product={product}
-                                theme="default"
+                                theme="premium"
                                 isAuthenticated={isAuthenticated}
                             />
                         </div>

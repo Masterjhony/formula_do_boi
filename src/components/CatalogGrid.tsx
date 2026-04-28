@@ -43,7 +43,7 @@ export default function CatalogGrid({
     neloreFilter,
     onNeloreFilterChange,
     isAuthenticated = true,
-    theme = 'default',
+    theme = 'premium',
 }: CatalogGridProps) {
     return (
         <div className="flex-1">

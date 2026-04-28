@@ -50,7 +50,7 @@ interface ProductCardProps {
     theme?: 'default' | 'premium';
 }
 
-export default function ProductCard({ product, featured = false, isAuthenticated = true, theme = 'default' }: ProductCardProps) {
+export default function ProductCard({ product, featured = false, isAuthenticated = true, theme = 'premium' }: ProductCardProps) {
     // Generate an animal code based on ID
     const animalCode = `FB-PO-${product.id.toString().padStart(3, '0')}`;
 
