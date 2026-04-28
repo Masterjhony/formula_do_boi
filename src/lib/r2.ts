@@ -33,8 +33,16 @@ function getEnv(name: string, fallback?: string): string {
     return v;
 }
 
-export const R2_BUCKET = getEnv('R2_BUCKET');
-export const R2_PREFIX = (process.env.R2_PREFIX ?? '').replace(/^\/+/, '');
+// Resolved lazily — se a env estiver faltando/vazia, o erro só estoura quando
+// uma operação R2 é tentada, não no carregamento do módulo. Isso preserva o
+// try/catch das rotas e evita 500-HTML da página de erro do Next.
+export function getR2Bucket(): string {
+    return getEnv('R2_BUCKET');
+}
+
+export function getR2Prefix(): string {
+    return (process.env.R2_PREFIX ?? '').replace(/^\/+/, '');
+}
 
 let _client: S3Client | null = null;
 function getClient(): S3Client {
@@ -77,8 +85,9 @@ export function resolveR2Key(rawKey: string): string {
     if (rawKey.includes('..') || rawKey.startsWith('/')) {
         throw new Error('Key inválido.');
     }
-    const full = rawKey.startsWith(R2_PREFIX) ? rawKey : `${R2_PREFIX}${rawKey}`;
-    if (!full.startsWith(R2_PREFIX)) {
+    const prefix = getR2Prefix();
+    const full = rawKey.startsWith(prefix) ? rawKey : `${prefix}${rawKey}`;
+    if (!full.startsWith(prefix)) {
         throw new Error('Key fora do prefixo permitido.');
     }
     return full;
@@ -86,7 +95,8 @@ export function resolveR2Key(rawKey: string): string {
 
 /** Remove o prefixo da key para exibição relativa na UI. */
 export function stripR2Prefix(key: string): string {
-    return key.startsWith(R2_PREFIX) ? key.slice(R2_PREFIX.length) : key;
+    const prefix = getR2Prefix();
+    return key.startsWith(prefix) ? key.slice(prefix.length) : key;
 }
 
 /** Sanitiza um nome de arquivo cliente para usar como key. Mantém ext. */
@@ -119,10 +129,11 @@ export async function listR2Objects(opts?: {
     maxKeys?: number;
 }): Promise<R2ListResult> {
     const client = getClient();
+    const prefix = getR2Prefix();
     const out = await client.send(
         new ListObjectsV2Command({
-            Bucket: R2_BUCKET,
-            Prefix: R2_PREFIX || undefined,
+            Bucket: getR2Bucket(),
+            Prefix: prefix || undefined,
             MaxKeys: opts?.maxKeys ?? 1000,
             ContinuationToken: opts?.continuationToken || undefined,
         })
@@ -152,7 +163,7 @@ export async function getR2DownloadUrl(
     const Key = resolveR2Key(rawKey);
     const expiresIn = Math.min(Math.max(opts?.expiresInSeconds ?? 3600, 60), 7 * 24 * 3600);
     const cmd = new GetObjectCommand({
-        Bucket: R2_BUCKET,
+        Bucket: getR2Bucket(),
         Key,
         // Sugere ao browser baixar com nome amigável em vez de tentar abrir.
         ResponseContentDisposition: opts?.downloadAs
@@ -171,7 +182,7 @@ export async function getR2UploadUrl(
     const Key = resolveR2Key(rawKey);
     const expiresIn = Math.min(Math.max(opts?.expiresInSeconds ?? 3600, 60), 24 * 3600);
     const cmd = new PutObjectCommand({
-        Bucket: R2_BUCKET,
+        Bucket: getR2Bucket(),
         Key,
         ContentType: opts?.contentType,
     });
@@ -181,10 +192,10 @@ export async function getR2UploadUrl(
 
 export async function deleteR2Object(rawKey: string): Promise<void> {
     const Key = resolveR2Key(rawKey);
-    await getClient().send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key }));
+    await getClient().send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key }));
 }
 
 export async function headR2Object(rawKey: string) {
     const Key = resolveR2Key(rawKey);
-    return getClient().send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key }));
+    return getClient().send(new HeadObjectCommand({ Bucket: getR2Bucket(), Key }));
 }
