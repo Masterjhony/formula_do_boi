@@ -1,7 +1,11 @@
 /**
  * Cloudflare R2 — cliente S3-compatible para biblioteca de mídia (backups,
- * arquivos grandes). USO EXCLUSIVAMENTE NO SERVIDOR. Nunca importar este arquivo
- * em código que vai pro browser — as credenciais R2_* não são públicas.
+ * arquivos grandes). USO EXCLUSIVAMENTE NO SERVIDOR.
+ *
+ * Usa `aws4fetch` em vez do AWS SDK v3 porque o SDK tem incompatibilidade
+ * conhecida no Vercel/Turbopack (deps internas ESM-only sendo `require()`'d
+ * pelo CJS xml-builder, quebra com ERR_REQUIRE_ESM em runtime). aws4fetch é
+ * SigV4 + fetch puro, recomendado pelo próprio Cloudflare pra R2 em serverless.
  *
  * Convenções:
  * - Todo objeto vive sob R2_PREFIX (default "libmedia/"). As funções aceitam
@@ -14,28 +18,18 @@
  */
 
 import 'server-only';
-import {
-    S3Client,
-    ListObjectsV2Command,
-    DeleteObjectCommand,
-    GetObjectCommand,
-    PutObjectCommand,
-    HeadObjectCommand,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { AwsClient } from 'aws4fetch';
+import { XMLParser } from 'fast-xml-parser';
 import { createClient } from '@/utils/supabase/server';
 
 // ── Config & client ────────────────────────────────────────────────────────────
 
-function getEnv(name: string, fallback?: string): string {
-    const v = process.env[name] ?? fallback;
+function getEnv(name: string): string {
+    const v = process.env[name];
     if (!v) throw new Error(`Variável de ambiente ${name} não configurada.`);
     return v;
 }
 
-// Resolved lazily — se a env estiver faltando/vazia, o erro só estoura quando
-// uma operação R2 é tentada, não no carregamento do módulo. Isso preserva o
-// try/catch das rotas e evita 500-HTML da página de erro do Next.
 export function getR2Bucket(): string {
     return getEnv('R2_BUCKET');
 }
@@ -44,23 +38,30 @@ export function getR2Prefix(): string {
     return (process.env.R2_PREFIX ?? '').replace(/^\/+/, '');
 }
 
-let _client: S3Client | null = null;
-function getClient(): S3Client {
+function getEndpoint(): string {
+    // R2_ENDPOINT é "https://<account>.r2.cloudflarestorage.com" (sem bucket).
+    return getEnv('R2_ENDPOINT').replace(/\/+$/, '');
+}
+
+function getBucketUrl(): string {
+    return `${getEndpoint()}/${getR2Bucket()}`;
+}
+
+let _client: AwsClient | null = null;
+function getClient(): AwsClient {
     if (_client) return _client;
-    _client = new S3Client({
+    _client = new AwsClient({
+        accessKeyId: getEnv('R2_ACCESS_KEY_ID'),
+        secretAccessKey: getEnv('R2_SECRET_ACCESS_KEY'),
+        // R2 aceita qualquer região, "auto" é o padrão.
         region: 'auto',
-        endpoint: getEnv('R2_ENDPOINT'),
-        credentials: {
-            accessKeyId: getEnv('R2_ACCESS_KEY_ID'),
-            secretAccessKey: getEnv('R2_SECRET_ACCESS_KEY'),
-        },
+        service: 's3',
     });
     return _client;
 }
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
 
-/** Garante que a request vem de um admin autenticado, ou lança. */
 export async function assertR2Admin(): Promise<void> {
     const supabase = await createClient();
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -75,9 +76,6 @@ export async function assertR2Admin(): Promise<void> {
 
 // ── Key helpers ────────────────────────────────────────────────────────────────
 
-/** Garante que o key está sob o prefixo permitido. Aceita "foo.zip" ou
- *  "libmedia/foo.zip"; retorna sempre a forma completa. Lança se o caller
- *  tentar escapar do prefixo (ex.: "../outra-pasta/x.zip"). */
 export function resolveR2Key(rawKey: string): string {
     if (!rawKey || typeof rawKey !== 'string') {
         throw new Error('Key inválido.');
@@ -93,24 +91,26 @@ export function resolveR2Key(rawKey: string): string {
     return full;
 }
 
-/** Remove o prefixo da key para exibição relativa na UI. */
 export function stripR2Prefix(key: string): string {
     const prefix = getR2Prefix();
     return key.startsWith(prefix) ? key.slice(prefix.length) : key;
 }
 
-/** Sanitiza um nome de arquivo cliente para usar como key. Mantém ext. */
 export function sanitizeR2Filename(name: string): string {
     const cleaned = name.replace(/[^a-zA-Z0-9._\-]/g, '_');
     return `${Date.now()}_${cleaned}`;
 }
 
+/** Encode key path-style preservando "/" entre segmentos. S3/R2 esperam que
+ *  cada segmento seja URL-encoded mas o "/" continue como separador. */
+function encodeKey(key: string): string {
+    return key.split('/').map(encodeURIComponent).join('/');
+}
+
 // ── Operations ─────────────────────────────────────────────────────────────────
 
 export type R2Object = {
-    /** Key completo (com prefixo). */
     key: string;
-    /** Nome relativo ao prefixo, para exibir na UI. */
     name: string;
     size: number;
     lastModified: string | null;
@@ -123,35 +123,56 @@ export type R2ListResult = {
     truncated: boolean;
 };
 
-/** Lista objetos do bucket sob R2_PREFIX. Suporta paginação. */
+const xmlParser = new XMLParser({
+    ignoreAttributes: true,
+    parseTagValue: false,
+    isArray: (name) => name === 'Contents',
+});
+
 export async function listR2Objects(opts?: {
     continuationToken?: string;
     maxKeys?: number;
 }): Promise<R2ListResult> {
     const client = getClient();
     const prefix = getR2Prefix();
-    const out = await client.send(
-        new ListObjectsV2Command({
-            Bucket: getR2Bucket(),
-            Prefix: prefix || undefined,
-            MaxKeys: opts?.maxKeys ?? 1000,
-            ContinuationToken: opts?.continuationToken || undefined,
-        })
-    );
-    const objects: R2Object[] = (out.Contents ?? [])
-        // Filtra "diretórios" vazios (key terminando em /).
+    const u = new URL(getBucketUrl() + '/');
+    u.searchParams.set('list-type', '2');
+    u.searchParams.set('max-keys', String(opts?.maxKeys ?? 1000));
+    if (prefix) u.searchParams.set('prefix', prefix);
+    if (opts?.continuationToken) u.searchParams.set('continuation-token', opts.continuationToken);
+
+    const res = await client.fetch(u.toString());
+    if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`R2 list falhou (${res.status}): ${body.slice(0, 200)}`);
+    }
+    const xml = await res.text();
+    const parsed = xmlParser.parse(xml) as {
+        ListBucketResult?: {
+            Contents?: Array<{
+                Key: string;
+                Size: string;
+                LastModified: string;
+                ETag?: string;
+            }>;
+            IsTruncated?: string;
+            NextContinuationToken?: string;
+        };
+    };
+    const result = parsed.ListBucketResult ?? {};
+    const objects: R2Object[] = (result.Contents ?? [])
         .filter(o => o.Key && !o.Key.endsWith('/'))
         .map(o => ({
-            key: o.Key!,
-            name: stripR2Prefix(o.Key!),
-            size: o.Size ?? 0,
-            lastModified: o.LastModified ? o.LastModified.toISOString() : null,
+            key: o.Key,
+            name: stripR2Prefix(o.Key),
+            size: Number(o.Size) || 0,
+            lastModified: o.LastModified ?? null,
             etag: o.ETag ?? null,
         }));
     return {
         objects,
-        nextToken: out.NextContinuationToken ?? null,
-        truncated: !!out.IsTruncated,
+        nextToken: result.NextContinuationToken ?? null,
+        truncated: result.IsTruncated === 'true',
     };
 }
 
@@ -162,40 +183,52 @@ export async function getR2DownloadUrl(
 ): Promise<string> {
     const Key = resolveR2Key(rawKey);
     const expiresIn = Math.min(Math.max(opts?.expiresInSeconds ?? 3600, 60), 7 * 24 * 3600);
-    const cmd = new GetObjectCommand({
-        Bucket: getR2Bucket(),
-        Key,
-        // Sugere ao browser baixar com nome amigável em vez de tentar abrir.
-        ResponseContentDisposition: opts?.downloadAs
-            ? `attachment; filename="${opts.downloadAs.replace(/"/g, '')}"`
-            : undefined,
+    const u = new URL(`${getBucketUrl()}/${encodeKey(Key)}`);
+    u.searchParams.set('X-Amz-Expires', String(expiresIn));
+    if (opts?.downloadAs) {
+        u.searchParams.set(
+            'response-content-disposition',
+            `attachment; filename="${opts.downloadAs.replace(/"/g, '')}"`
+        );
+    }
+    const signed = await getClient().sign(u.toString(), {
+        method: 'GET',
+        aws: { signQuery: true },
     });
-    return getSignedUrl(getClient(), cmd, { expiresIn });
+    return signed.url;
 }
 
-/** Gera URL assinada para UPLOAD direto (PUT) do browser pro R2. Limite 5GB
- *  por requisição (single-part). Pra arquivos maiores, evoluir pra multipart. */
+/** Gera URL assinada para UPLOAD direto (PUT). Limite single-part: 5GB. */
 export async function getR2UploadUrl(
     rawKey: string,
     opts?: { contentType?: string; expiresInSeconds?: number }
 ): Promise<{ url: string; key: string }> {
     const Key = resolveR2Key(rawKey);
     const expiresIn = Math.min(Math.max(opts?.expiresInSeconds ?? 3600, 60), 24 * 3600);
-    const cmd = new PutObjectCommand({
-        Bucket: getR2Bucket(),
-        Key,
-        ContentType: opts?.contentType,
+    const u = new URL(`${getBucketUrl()}/${encodeKey(Key)}`);
+    u.searchParams.set('X-Amz-Expires', String(expiresIn));
+    const headers: Record<string, string> = {};
+    if (opts?.contentType) headers['Content-Type'] = opts.contentType;
+    const signed = await getClient().sign(u.toString(), {
+        method: 'PUT',
+        headers,
+        aws: { signQuery: true },
     });
-    const url = await getSignedUrl(getClient(), cmd, { expiresIn });
-    return { url, key: Key };
+    return { url: signed.url, key: Key };
 }
 
 export async function deleteR2Object(rawKey: string): Promise<void> {
     const Key = resolveR2Key(rawKey);
-    await getClient().send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key }));
+    const u = `${getBucketUrl()}/${encodeKey(Key)}`;
+    const res = await getClient().fetch(u, { method: 'DELETE' });
+    if (!res.ok && res.status !== 204) {
+        const body = await res.text();
+        throw new Error(`R2 delete falhou (${res.status}): ${body.slice(0, 200)}`);
+    }
 }
 
 export async function headR2Object(rawKey: string) {
     const Key = resolveR2Key(rawKey);
-    return getClient().send(new HeadObjectCommand({ Bucket: getR2Bucket(), Key }));
+    const u = `${getBucketUrl()}/${encodeKey(Key)}`;
+    return getClient().fetch(u, { method: 'HEAD' });
 }
