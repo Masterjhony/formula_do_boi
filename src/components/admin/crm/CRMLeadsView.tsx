@@ -89,7 +89,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
     const [filterBusca, setFilterBusca] = useState('');
     const [filterDataDe, setFilterDataDe] = useState('');
     const [filterDataAte, setFilterDataAte] = useState('');
-    const [showAdvFilters, setShowAdvFilters] = useState(false);
+    const [showAdvFilters, setShowAdvFilters] = useState(true);
     const [page, setPage] = useState(1);
     const PER_PAGE = 25;
 

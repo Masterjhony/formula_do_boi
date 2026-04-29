@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Plus, Edit2, Trash2, X, Loader2, AlertCircle, Save,
   MapPin, Users, TrendingUp, BarChart3, DollarSign,
@@ -123,13 +123,19 @@ function KpiCard({ icon: Icon, label, value, sub, gold }: {
   icon: React.ElementType; label: string; value: string; sub?: string; gold?: boolean
 }) {
   return (
-    <div className={`rounded-2xl border px-5 py-4 ${gold ? 'border-[#A0792E]/30 bg-[#A0792E]/8' : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <Icon size={13} className={gold ? 'text-[#A0792E]' : 'text-gray-400'} />
+    <div className={`relative rounded-2xl border px-5 py-4 overflow-hidden transition-all hover:shadow-md
+      ${gold
+        ? 'border-[#A0792E]/30 bg-gradient-to-br from-[#A0792E]/12 to-[#A0792E]/4 hover:shadow-[#A0792E]/10'
+        : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] hover:border-gray-200 dark:hover:border-[#2A2A2A]'}`}>
+      <div className="flex items-center gap-2 mb-2.5">
+        <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0
+          ${gold ? 'bg-[#A0792E]/15 text-[#A0792E]' : 'bg-gray-50 dark:bg-[#1A1A1A] text-gray-400'}`}>
+          <Icon size={12} />
+        </div>
         <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
       </div>
       <p className={`text-2xl font-black leading-none ${gold ? 'text-[#A0792E]' : 'text-gray-900 dark:text-white'}`}>{value}</p>
-      {sub && <p className="text-[10px] text-gray-400 mt-1">{sub}</p>}
+      {sub && <p className="text-[10px] text-gray-400 mt-1.5">{sub}</p>}
     </div>
   )
 }
@@ -1059,7 +1065,293 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
   )
 }
 
+// ── Insights Section ───────────────────────────────────────────────────────────
+
+function fmtCompact(v: number) {
+  if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(v >= 10_000_000 ? 0 : 1)}M`
+  if (v >= 1_000) return `R$ ${Math.round(v / 1_000)}K`
+  return `R$ ${v}`
+}
+
+function InsightsSection({ items }: { items: Fechamento[] }) {
+  const data = useMemo(() => {
+    if (items.length < 2) return null
+
+    const sorted = [...items].sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())
+    const maxVgv = Math.max(...sorted.map(f => f.vgv_total), 1)
+    const maxIdx = sorted.findIndex(f => f.vgv_total === maxVgv)
+
+    // Aggregate by Fazenda (compradores) — clientes, não assessores
+    const compradorMap = new Map<string, { vgv: number; lotes: number; animais: number; cidade: string; uf: string; leiloes: number }>()
+    items.forEach(f => {
+      f.compradores.forEach(c => {
+        if (!c.fazenda) return
+        const key = c.fazenda
+        const cur = compradorMap.get(key) ?? { vgv: 0, lotes: 0, animais: 0, cidade: '', uf: '', leiloes: 0 }
+        cur.vgv += c.vgv
+        cur.lotes += c.lotes
+        cur.animais += c.animais
+        cur.leiloes += 1
+        if (c.cidade && !cur.cidade) cur.cidade = c.cidade
+        if (c.uf && !cur.uf) cur.uf = c.uf
+        compradorMap.set(key, cur)
+      })
+    })
+    const topCompradores = [...compradorMap.entries()].sort((a, b) => b[1].vgv - a[1].vgv).slice(0, 5)
+    const totalCompradoresVgv = [...compradorMap.values()].reduce((s, d) => s + d.vgv, 0)
+    const maxCVgv = topCompradores.length ? topCompradores[0][1].vgv : 1
+
+    // Geographic spread
+    const estadoMap = new Map<string, { vgv: number; lotes: number; animais: number }>()
+    items.forEach(f => {
+      f.por_estado.forEach(e => {
+        if (!e.uf) return
+        const cur = estadoMap.get(e.uf) ?? { vgv: 0, lotes: 0, animais: 0 }
+        cur.vgv += e.vgv
+        cur.lotes += e.lotes
+        cur.animais += e.animais
+        estadoMap.set(e.uf, cur)
+      })
+    })
+    const topEstados = [...estadoMap.entries()].sort((a, b) => b[1].vgv - a[1].vgv).slice(0, 6)
+    const totalEstadoVgv = [...estadoMap.values()].reduce((s, d) => s + d.vgv, 0)
+
+    return {
+      sorted, maxVgv, maxIdx,
+      topCompradores, totalCompradoresVgv, maxCVgv,
+      topEstados, totalEstadoVgv,
+    }
+  }, [items])
+
+  if (!data) return null
+  const { sorted, maxVgv, maxIdx, topCompradores, totalCompradoresVgv, maxCVgv, topEstados, totalEstadoVgv } = data
+
+  return (
+    <div className="space-y-4">
+
+      {/* VGV Evolution — full width */}
+      <div className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-5">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Evolução de VGV</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">Resultado por leilão · cor indica cobertura</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#A0792E]/10 text-[#A0792E] font-bold">
+              {sorted.length} leilões
+            </span>
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">
+              Total {R(sorted.reduce((s, f) => s + f.vgv_total, 0))}
+            </span>
+          </div>
+        </div>
+
+        <div className="relative h-44 pl-14">
+          {/* Y-axis labels */}
+          <div className="absolute left-0 top-0 bottom-7 w-12 flex flex-col justify-between text-[9px] text-gray-400 font-semibold pointer-events-none text-right pr-2">
+            <span>{fmtCompact(maxVgv)}</span>
+            <span>{fmtCompact(maxVgv * 0.75)}</span>
+            <span>{fmtCompact(maxVgv * 0.5)}</span>
+            <span>{fmtCompact(maxVgv * 0.25)}</span>
+            <span className="text-gray-300 dark:text-gray-600">0</span>
+          </div>
+          {/* Grid lines */}
+          <div className="absolute left-14 right-0 top-0 bottom-7 flex flex-col justify-between pointer-events-none">
+            {[0, 1, 2, 3, 4].map(i => (
+              <div key={i} className="w-full border-t border-dashed border-gray-100 dark:border-[#1E1E1E]" />
+            ))}
+          </div>
+          {/* Bars */}
+          <div className="relative flex items-end gap-2 h-full pb-7">
+            {sorted.map((f, i) => {
+              const pct = coveragePct(f.lotes_vendidos, f.lotes_ofertados)
+              const barH = Math.max((f.vgv_total / maxVgv) * 100, 1.5)
+              const dt = fmtDate(f.data)
+              const color = pct >= 60 ? '#22c55e' : pct >= 30 ? '#A0792E' : '#ef4444'
+              const isMax = i === maxIdx
+              const isFirst = i === 0
+              const isLast = i === sorted.length - 1
+              const tooltipPos = isFirst ? 'left-0' : isLast ? 'right-0' : 'left-1/2 -translate-x-1/2'
+              return (
+                <div key={f.id} className="flex flex-col justify-end h-full flex-1 min-w-0 group relative">
+                  {/* Tooltip */}
+                  <div className={`absolute bottom-full mb-1.5 bg-gray-900 dark:bg-[#0A0A0A] border border-gray-700 text-white text-[9px] rounded-xl px-3 py-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none z-30 shadow-2xl ${tooltipPos}`}>
+                    <p className="font-bold text-[#A0792E] text-[11px]">{R(f.vgv_total)}</p>
+                    <p className="text-gray-200 mt-1 max-w-[200px] truncate font-semibold">{f.nome}</p>
+                    <div className="flex items-center gap-3 mt-1 text-gray-400">
+                      <span>{f.lotes_vendidos}/{f.lotes_ofertados} lotes</span>
+                      <span className="font-bold" style={{ color }}>{pct}%</span>
+                      <span>{f.animais_vendidos} an.</span>
+                    </div>
+                  </div>
+                  {/* Star marker on max */}
+                  {isMax && (
+                    <Star
+                      size={12}
+                      className="absolute text-[#A0792E] fill-[#A0792E] z-10 left-1/2 -translate-x-1/2 drop-shadow-md"
+                      style={{ bottom: `calc(${barH}% + 4px)` }}
+                    />
+                  )}
+                  {/* Bar */}
+                  <div
+                    className="w-full rounded-t-lg transition-all duration-500 group-hover:brightness-125 cursor-pointer relative overflow-hidden"
+                    style={{
+                      height: `${barH}%`,
+                      background: `linear-gradient(to top, ${color}99, ${color})`,
+                      minHeight: 2,
+                      boxShadow: isMax
+                        ? `0 0 0 1.5px ${color}66, 0 -3px 12px ${color}44`
+                        : `inset 0 -1px 0 ${color}66`,
+                    }}
+                  >
+                    {/* Subtle shine */}
+                    <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/20 to-transparent rounded-t-lg" />
+                  </div>
+                  {/* Date label */}
+                  <span className="absolute -bottom-5 left-0 right-0 text-[9px] text-gray-400 font-semibold truncate text-center">
+                    {dt.dia}/{dt.mes.slice(0, 3)}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 mt-3 pt-3 border-t border-gray-50 dark:border-[#1A1A1A] flex-wrap">
+          <div className="flex gap-3 flex-wrap">
+            {[
+              { color: '#22c55e', label: '≥ 60% cobertura' },
+              { color: '#A0792E', label: '30–59%' },
+              { color: '#ef4444', label: '< 30%' },
+            ].map(({ color, label }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-sm flex-shrink-0" style={{ backgroundColor: color }} />
+                <span className="text-[10px] text-gray-400">{label}</span>
+              </div>
+            ))}
+          </div>
+          <span className="text-[10px] text-gray-400 flex items-center gap-1">
+            <Star size={10} className="text-[#A0792E] fill-[#A0792E]" /> melhor resultado
+          </span>
+        </div>
+      </div>
+
+      {/* Compradores + Estados */}
+      <div className="grid lg:grid-cols-[3fr_2fr] gap-4">
+
+        {/* Top Compradores */}
+        <div className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-5">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Top Compradores</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">Fazendas com maior volume · todos os leilões</p>
+            </div>
+            <ShoppingCart size={14} className="text-[#A0792E]" />
+          </div>
+
+          {topCompradores.length === 0 ? (
+            <p className="text-center text-gray-400 text-xs py-8">Nenhum comprador registrado</p>
+          ) : (
+            <div className="space-y-3">
+              {topCompradores.map(([fazenda, d], i) => {
+                const pctTotal = totalCompradoresVgv ? d.vgv / totalCompradoresVgv : 0
+                return (
+                  <div key={fazenda} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0
+                          ${i === 0
+                            ? 'bg-[#A0792E] text-black shadow-md shadow-[#A0792E]/40'
+                            : i === 1
+                              ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100'
+                              : i === 2
+                                ? 'bg-amber-700 text-white'
+                                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400'}`}>
+                          {i + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{fazenda}</p>
+                          {(d.cidade || d.uf) && (
+                            <p className="text-[9px] text-gray-400 flex items-center gap-1 truncate">
+                              <MapPin size={8} />
+                              {d.cidade}{d.cidade && d.uf ? ', ' : ''}{d.uf}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-xs font-black text-[#A0792E] whitespace-nowrap flex-shrink-0">{R(d.vgv)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${(d.vgv / maxCVgv) * 100}%`,
+                            background: i === 0 ? 'linear-gradient(90deg, #A0792E, #D4A85C)' : '#A0792E',
+                            opacity: 1 - i * 0.13,
+                          }}
+                        />
+                      </div>
+                      <span className="text-[9px] text-gray-400 whitespace-nowrap flex-shrink-0 w-24 text-right tabular-nums">
+                        {d.animais}an · {(pctTotal * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Distribuição Geográfica */}
+        <div className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-5">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Distribuição por UF</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">Estados alcançados</p>
+            </div>
+            <MapPin size={14} className="text-[#A0792E]" />
+          </div>
+
+          {topEstados.length === 0 ? (
+            <p className="text-center text-gray-400 text-xs py-8">Sem dados geográficos</p>
+          ) : (
+            <div className="space-y-2.5">
+              {topEstados.map(([uf, d]) => {
+                const pctTotal = totalEstadoVgv ? d.vgv / totalEstadoVgv : 0
+                return (
+                  <div key={uf} className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-lg bg-[#A0792E]/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[#A0792E] font-black text-[11px]">{uf}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400 tabular-nums">
+                          {d.lotes} lote{d.lotes !== 1 ? 's' : ''} · {d.animais} an.
+                        </span>
+                        <span className="text-xs font-black text-[#A0792E] tabular-nums">{R(d.vgv)}</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${pctTotal * 100}%`, background: '#A0792E' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main View ──────────────────────────────────────────────────────────────────
+
+type SortKey = 'recent' | 'vgv' | 'cobertura'
 
 export default function FechamentoView() {
   const [items, setItems] = useState<Fechamento[]>([])
@@ -1068,6 +1360,7 @@ export default function FechamentoView() {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Fechamento | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [sortBy, setSortBy] = useState<SortKey>('recent')
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -1104,13 +1397,22 @@ export default function FechamentoView() {
   const coberturaMedia = totalLotesOfertados ? Math.round((totalLotesVendidos / totalLotesOfertados) * 100) : 0
   const ticketMedioGeral = totalAnimais ? Math.round(totalVgv / totalAnimais) : 0
 
+  const sortedItems = useMemo(() => {
+    const arr = [...items]
+    if (sortBy === 'vgv') arr.sort((a, b) => b.vgv_total - a.vgv_total)
+    else if (sortBy === 'cobertura') arr.sort((a, b) =>
+      coveragePct(b.lotes_vendidos, b.lotes_ofertados) - coveragePct(a.lotes_vendidos, a.lotes_ofertados))
+    else arr.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+    return arr
+  }, [items, sortBy])
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Fechamento de Leilões</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{items.length} leilão{items.length !== 1 ? 'ões' : ''} com resultado registrado</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{items.length} {items.length !== 1 ? 'leilões' : 'leilão'} com resultado registrado</p>
         </div>
         <button
           onClick={() => { setEditItem(null); setShowForm(true) }}
@@ -1131,6 +1433,9 @@ export default function FechamentoView() {
           <KpiCard icon={ShoppingCart} label="Leilões Fechados" value={items.length.toString()} />
         </div>
       )}
+
+      {/* Charts */}
+      {!loading && items.length > 1 && <InsightsSection items={items} />}
 
       {/* Content */}
       {loading ? (
@@ -1154,16 +1459,40 @@ export default function FechamentoView() {
           </button>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {items.map(f => (
-            <FechamentoCard
-              key={f.id}
-              f={f}
-              selected={selected?.id === f.id}
-              onClick={() => setSelected(s => s?.id === f.id ? null : f)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="flex items-center gap-3 flex-wrap">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Todos os leilões</p>
+            <div className="flex-1 min-w-4 h-px bg-gray-100 dark:bg-[#1E1E1E]" />
+            <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-gray-50 dark:bg-[#0A0A0A] border border-gray-100 dark:border-[#1E1E1E]">
+              {([
+                { key: 'recent' as const, label: 'Recentes' },
+                { key: 'vgv' as const, label: 'VGV' },
+                { key: 'cobertura' as const, label: 'Cobertura' },
+              ]).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setSortBy(key)}
+                  className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all
+                    ${sortBy === key
+                      ? 'bg-white dark:bg-[#1A1A1A] text-[#A0792E] shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {sortedItems.map(f => (
+              <FechamentoCard
+                key={f.id}
+                f={f}
+                selected={selected?.id === f.id}
+                onClick={() => setSelected(s => s?.id === f.id ? null : f)}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Detail Drawer */}
