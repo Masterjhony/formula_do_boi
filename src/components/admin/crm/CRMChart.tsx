@@ -2,7 +2,20 @@
 
 import { useMemo, useState } from 'react';
 import { CRMLead } from '@/app/web-admin/actions/crm-leads';
-import { Users, CheckCircle2, XCircle, TrendingUp, MapPin, BarChart2, Beef } from 'lucide-react';
+import { Users, TrendingUp, MapPin, Target, Activity, Filter } from 'lucide-react';
+import { FunnelChart } from '@/components/charts/FunnelChart';
+
+// ── Brandbook V1.0 ──────────────────────────────────────────────────────────────
+// Bronze 500 #A0792E principal · Tech Green #7FD4A0 (positivo) · Tech Blue #1E3A5F (dado)
+const BRAND = {
+    BRONZE: '#A0792E',
+    BRONZE_DEEP: '#6B4F1E',
+    BRONZE_PALE: '#D4A85C',
+    BRONZE_LIGHT: '#E8CB85',
+    TECH_GREEN: '#7FD4A0',
+    TECH_BLUE: '#1E3A5F',
+    LOSS: '#A04545',
+} as const;
 
 interface CRMChartProps {
     leads: CRMLead[];
@@ -12,38 +25,62 @@ interface CRMChartProps {
 const MONTHS_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-const STAGE_COLORS: Record<string, string> = {
-    Lead: '#ec4899',
-    Qualificado: '#f97316',
-    Proposta: '#3b82f6',
-    'Negociação': '#a855f7',
-    Fechado: '#22c55e',
-    Perdido: '#ef4444',
-    'Sem Status': '#6b7280',
+const SOURCE_LABELS: Record<string, string> = {
+    facebook: 'Facebook', instagram: 'Instagram', google: 'Google',
+    whatsapp: 'WhatsApp', indicacao: 'Indicação', site: 'Site',
+    'google-ads': 'Google Ads', 'facebook-ads': 'Facebook Ads',
 };
 
-const COLOR_PALETTE = ['#ec4899', '#f97316', '#3b82f6', '#a855f7', '#22c55e', '#ef4444', '#6b7280', '#14b8a6', '#f59e0b', '#8b5cf6'];
+const card = 'rounded-2xl border border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#0A0A0A]';
+const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400';
+const dataCls = 'font-mono tabular-nums';
 
-function getStageColor(stage: string, index: number): string {
-    return STAGE_COLORS[stage] || COLOR_PALETTE[index % COLOR_PALETTE.length];
+// ── Conversion Funnel ──────────────────────────────────────────────────────────
+
+function ConversionFunnel({ leads, stages }: { leads: CRMLead[]; stages: string[] }) {
+    const data = useMemo(() => {
+        const pipeline = stages.filter(s => s !== 'Perdido' && s !== 'Sem Status');
+        const counts = pipeline.map(s => leads.filter(l => l.status === s).length);
+        const lost = leads.filter(l => l.status === 'Perdido').length;
+        return { pipeline, counts, lost };
+    }, [leads, stages]);
+
+    if (data.pipeline.length < 2) return null;
+
+    const overall = data.counts[0] > 0 ? (data.counts[data.counts.length - 1] / data.counts[0]) * 100 : 0;
+    const funnelStages = data.pipeline.map((s, i) => ({ label: s, count: data.counts[i] }));
+
+    return (
+        <div className={`${card} p-5`}>
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+                <div>
+                    <p className={labelCls}>Funil de Conversão</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                        {leads.length} leads no pipeline ·{' '}
+                        <span className={`${dataCls} text-[#A0792E]`}>{overall.toFixed(0)}%</span> conversão geral
+                    </p>
+                </div>
+                <div className="flex gap-2 text-[10px]">
+                    <span className="px-2.5 py-1 rounded-full" style={{ backgroundColor: `${BRAND.TECH_GREEN}1F`, color: BRAND.TECH_GREEN }}>
+                        <span className={dataCls}>{data.counts[data.counts.length - 1]}</span> fechados
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full" style={{ backgroundColor: `${BRAND.LOSS}1F`, color: BRAND.LOSS }}>
+                        <span className={dataCls}>{data.lost}</span> perdidos
+                    </span>
+                </div>
+            </div>
+
+            <FunnelChart stages={funnelStages} />
+        </div>
+    );
 }
 
-const SOURCE_LABELS: Record<string, string> = {
-    facebook: 'Facebook',
-    instagram: 'Instagram',
-    google: 'Google',
-    whatsapp: 'WhatsApp',
-    indicacao: 'Indicação',
-    site: 'Site',
-    'google-ads': 'Google Ads',
-    'facebook-ads': 'Facebook Ads',
-};
+// ── Line Chart ─────────────────────────────────────────────────────────────────
 
-function LineChart({ data, color = '#A0792E' }: { data: number[]; color?: string }) {
+function LineChart({ data, color = BRAND.BRONZE }: { data: number[]; color?: string }) {
     if (data.length < 2) return <div className="h-20 flex items-center justify-center text-xs text-gray-400">Sem dados</div>;
 
-    const W = 600;
-    const H = 90;
+    const W = 600, H = 90;
     const pad = { t: 8, b: 8, l: 4, r: 4 };
     const max = Math.max(...data, 1);
     const gradId = `lg-${color.replace('#', '')}`;
@@ -54,7 +91,6 @@ function LineChart({ data, color = '#A0792E' }: { data: number[]; color?: string
     }));
 
     let line = '';
-    let area = '';
     pts.forEach((p, i) => {
         if (i === 0) { line = `M${p.x} ${p.y}`; return; }
         const pr = pts[i - 1];
@@ -62,7 +98,7 @@ function LineChart({ data, color = '#A0792E' }: { data: number[]; color?: string
         const cx2 = p.x - (p.x - pr.x) * 0.5;
         line += ` C${cx1} ${pr.y},${cx2} ${p.y},${p.x} ${p.y}`;
     });
-    area = `${line} L${pts[pts.length - 1].x} ${H - pad.b} L${pts[0].x} ${H - pad.b} Z`;
+    const area = `${line} L${pts[pts.length - 1].x} ${H - pad.b} L${pts[0].x} ${H - pad.b} Z`;
 
     return (
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" style={{ height: '90px' }}>
@@ -75,18 +111,19 @@ function LineChart({ data, color = '#A0792E' }: { data: number[]; color?: string
             <path d={area} fill={`url(#${gradId})`} />
             <path d={line} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             {pts.map((p, i) => data[i] > 0 && (
-                <circle key={i} cx={p.x} cy={p.y} r="3.5" fill={color} opacity="0.8" />
+                <circle key={i} cx={p.x} cy={p.y} r="3" fill={color} opacity="0.9" />
             ))}
         </svg>
     );
 }
 
-const card = 'bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222] p-4';
+// ── Main ───────────────────────────────────────────────────────────────────────
 
 export function CRMChart({ leads, stages }: CRMChartProps) {
     const [monthOffset, setMonthOffset] = useState(0);
+    const [nowRef] = useState(() => new Date());
 
-    const now = new Date();
+    const now = nowRef;
     const monthTabs = [0, 1, 2].map(offset => {
         const d = new Date(now.getFullYear(), now.getMonth() - offset, 1);
         return { label: offset === 0 ? 'Mês corrente' : MONTHS_PT[d.getMonth()], year: d.getFullYear(), month: d.getMonth() };
@@ -104,28 +141,13 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
     const emAberto = leads.length - fechados - perdidos - semStatus;
     const taxaGeral = leads.length > 0 ? Math.round((fechados / leads.length) * 100) : 0;
 
-    // Média de cabeçinhas (animais) por lead — extrai número de quantidade_animais
-    const animaisStats = useMemo(() => {
-        const counts = leads
-            .map(l => {
-                const s = l.quantidade_animais || '';
-                const m = s.match(/\d{1,7}/);
-                return m ? Number(m[0]) : 0;
-            })
-            .filter(n => n > 0);
-        const total = counts.reduce((s, n) => s + n, 0);
-        const media = counts.length > 0 ? Math.round(total / counts.length) : 0;
-        return { total, media, comInfo: counts.length };
-    }, [leads]);
-
-    // Stage counts
-    const stageCounts = useMemo(() =>
-        activeStages.map((stage, i) => ({
-            stage, color: getStageColor(stage, i),
-            count: leads.filter(l => l.status === stage).length,
-        })), [leads, activeStages]
+    // Pipeline value
+    const pipelineValue = useMemo(
+        () => leads
+            .filter(l => l.status !== 'Fechado' && l.status !== 'Perdido' && l.status !== 'Sem Status')
+            .reduce((s, l) => s + (Number(l.valor_estimado) || 0), 0),
+        [leads]
     );
-    const maxStage = Math.max(...stageCounts.map(s => s.count), 1);
 
     // Monthly stats
     const tab = monthTabs[monthOffset];
@@ -140,9 +162,7 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
         const mFechados = monthLeads.filter(l => l.status === 'Fechado').length;
         const mPerdidos = monthLeads.filter(l => l.status === 'Perdido').length;
         return {
-            novos: monthLeads.length,
-            fechados: mFechados,
-            perdidos: mPerdidos,
+            novos: monthLeads.length, fechados: mFechados, perdidos: mPerdidos,
             emAberto: monthLeads.length - mFechados - mPerdidos,
             taxa: monthLeads.length > 0 ? Math.round((mFechados / monthLeads.length) * 100) : 0,
         };
@@ -166,14 +186,6 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
         return { days, labels };
     }, [leads]);
 
-    // Top estados
-    const topEstados = useMemo(() => {
-        const c: Record<string, number> = {};
-        leads.forEach(l => { if (l.estado) c[l.estado] = (c[l.estado] || 0) + 1; });
-        return Object.entries(c).sort(([, a], [, b]) => b - a).slice(0, 7);
-    }, [leads]);
-    const maxEstado = topEstados[0]?.[1] || 1;
-
     // Source breakdown
     const sourceCounts = useMemo(() => {
         const c: Record<string, number> = {};
@@ -182,17 +194,40 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
             const src = SOURCE_LABELS[k] || l.source || 'Sem origem';
             c[src] = (c[src] || 0) + 1;
         });
-        return Object.entries(c).sort(([, a], [, b]) => b - a).slice(0, 7);
+        return Object.entries(c).sort(([, a], [, b]) => b - a).slice(0, 6);
     }, [leads]);
     const maxSource = sourceCounts[0]?.[1] || 1;
 
-    // Responsáveis
-    const responsaveis = useMemo(() => {
+    // Top estados
+    const topEstados = useMemo(() => {
         const c: Record<string, number> = {};
-        leads.forEach(l => { const r = l.responsavel || 'Sem responsável'; c[r] = (c[r] || 0) + 1; });
+        leads.forEach(l => { if (l.estado) c[l.estado] = (c[l.estado] || 0) + 1; });
         return Object.entries(c).sort(([, a], [, b]) => b - a).slice(0, 6);
     }, [leads]);
-    const maxResp = responsaveis[0]?.[1] || 1;
+    const maxEstado = topEstados[0]?.[1] || 1;
+
+    // Atividades por responsável (richer)
+    const responsaveis = useMemo(() => {
+        type Stat = { name: string; total: number; abertos: number; fechados: number; perdidos: number; valor: number; ultimoContato: number };
+        const map = new Map<string, Stat>();
+        leads.forEach(l => {
+            const name = l.responsavel || 'Sem responsável';
+            const cur = map.get(name) ?? { name, total: 0, abertos: 0, fechados: 0, perdidos: 0, valor: 0, ultimoContato: 0 };
+            cur.total += 1;
+            if (l.status === 'Fechado') cur.fechados += 1;
+            else if (l.status === 'Perdido') cur.perdidos += 1;
+            else if (l.status !== 'Sem Status') cur.abertos += 1;
+            cur.valor += Number(l.valor_estimado) || 0;
+            const lastDate = l.ultimo_contato || l.updated_at || l.created_at;
+            if (lastDate) {
+                const t = new Date(lastDate).getTime();
+                if (t > cur.ultimoContato) cur.ultimoContato = t;
+            }
+            map.set(name, cur);
+        });
+        return [...map.values()].sort((a, b) => b.total - a.total).slice(0, 6);
+    }, [leads]);
+    const maxRespTotal = responsaveis[0]?.total || 1;
 
     // Prioridade
     const prioridades = useMemo(() => {
@@ -201,104 +236,108 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
         return Object.entries(c).sort(([, a], [, b]) => b - a);
     }, [leads]);
 
+    const fmtBRL = (v: number) => v >= 1_000_000 ? `R$ ${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `R$ ${Math.round(v / 1_000)}k` : `R$ ${v}`;
+
+    const nowMs = nowRef.getTime();
+    const fmtRelative = (t: number) => {
+        if (!t) return '—';
+        const days = Math.floor((nowMs - t) / 86400000);
+        if (days === 0) return 'hoje';
+        if (days === 1) return 'ontem';
+        if (days < 30) return `${days}d`;
+        if (days < 365) return `${Math.floor(days / 30)}m`;
+        return `${Math.floor(days / 365)}a`;
+    };
+
     return (
         <div className="flex flex-col gap-4 overflow-auto pb-2">
 
-            {/* Row 1: KPI cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-                {[
-                    { label: 'Total de leads', value: leads.length, sub: undefined as string | undefined, icon: Users, bg: 'bg-blue-50 dark:bg-blue-500/10', color: 'text-blue-500' },
-                    { label: 'Em aberto', value: emAberto, sub: undefined, icon: TrendingUp, bg: 'bg-orange-50 dark:bg-orange-500/10', color: 'text-orange-500' },
-                    { label: 'Fechados', value: fechados, sub: undefined, icon: CheckCircle2, bg: 'bg-green-50 dark:bg-green-500/10', color: 'text-green-500' },
-                    { label: 'Perdidos', value: perdidos, sub: undefined, icon: XCircle, bg: 'bg-red-50 dark:bg-red-500/10', color: 'text-red-500' },
-                    { label: 'Taxa de fechamento', value: `${taxaGeral}%`, sub: undefined, icon: BarChart2, bg: 'bg-yellow-50 dark:bg-yellow-500/10', color: 'text-yellow-600' },
-                    {
-                        label: 'Média cabeçinhas/lead',
-                        value: animaisStats.media > 0 ? animaisStats.media.toLocaleString('pt-BR') : '—',
-                        sub: animaisStats.comInfo > 0 ? `${animaisStats.comInfo} c/ info · ${animaisStats.total.toLocaleString('pt-BR')} total` : 'Sem dados',
-                        icon: Beef, bg: 'bg-rose-50 dark:bg-rose-500/10', color: 'text-rose-500',
-                    },
-                ].map(({ label, value, sub, icon: Icon, bg, color }) => (
-                    <div key={label} className={`${card} flex items-center gap-3`}>
-                        <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                            <Icon size={18} className={color} />
+            {/* Funil de Conversão (NEW) */}
+            <ConversionFunnel leads={leads} stages={activeStages} />
+
+            {/* KPI cards — paleta brand */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {([
+                    { label: 'Total de leads', value: leads.length.toLocaleString('pt-BR'), sub: `${emAberto} em aberto`, icon: Users, accent: BRAND.BRONZE },
+                    { label: 'Pipeline em valor', value: fmtBRL(pipelineValue), sub: 'estimado · em aberto', icon: Target, accent: BRAND.BRONZE_PALE },
+                    { label: 'Taxa de fechamento', value: `${taxaGeral}%`, sub: `${fechados} fechados · ${perdidos} perdidos`, icon: TrendingUp, accent: BRAND.TECH_GREEN },
+                    { label: 'Atividade 30d', value: daily.days.reduce((s, n) => s + n, 0).toLocaleString('pt-BR'), sub: `pico de ${Math.max(...daily.days)}/dia`, icon: Activity, accent: BRAND.TECH_BLUE },
+                ]).map(({ label, value, sub, icon: Icon, accent }) => (
+                    <div key={label} className={`${card} p-4 flex items-center gap-3 transition-all hover:shadow-md`}>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${accent}1A`, color: accent }}>
+                            <Icon size={18} />
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
-                            <p className="text-xs text-gray-500 leading-tight">{label}</p>
-                            {sub && <p className="text-[10px] text-gray-400 leading-tight mt-0.5 truncate">{sub}</p>}
+                        <div className="min-w-0 flex-1">
+                            <p className={`text-xl font-bold text-gray-900 dark:text-white ${dataCls}`}>{value}</p>
+                            <p className={`${labelCls} mt-0.5 truncate`}>{label}</p>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-0.5 truncate">{sub}</p>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Row 2: Pipeline por etapa */}
-            <div className={card}>
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Pipeline por etapa</h3>
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                    {stageCounts.map(({ stage, count, color }) => (
-                        <div key={stage} className="flex-1 min-w-[80px] bg-gray-50 dark:bg-[#111] rounded-lg p-3 flex flex-col items-center gap-1.5 border border-gray-100 dark:border-[#2a2a2a]">
-                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
-                            <p className="text-xl font-bold text-gray-900 dark:text-white">{count}</p>
-                            <p className="text-[10px] text-gray-500 text-center leading-tight truncate w-full text-center">{stage}</p>
-                            <div className="w-full h-1 rounded-full bg-gray-200 dark:bg-[#222] overflow-hidden">
-                                <div className="h-full rounded-full" style={{ width: `${(count / maxStage) * 100}%`, backgroundColor: color }} />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Row 3: Monthly stats */}
-            <div className={card}>
-                <div className="flex gap-1 mb-4 border-b border-gray-200 dark:border-[#222]">
-                    {monthTabs.map((t, i) => (
-                        <button
-                            key={i}
-                            onClick={() => setMonthOffset(i)}
-                            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                                monthOffset === i
-                                    ? 'border-[#A0792E] text-gray-900 dark:text-white'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                            }`}
-                        >
-                            {t.label}
-                        </button>
-                    ))}
+            {/* Mês selecionável */}
+            <div className={`${card} p-5`}>
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <div>
+                        <p className={labelCls}>Recorte mensal</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Captação e desfecho do período</p>
+                    </div>
+                    <div className="flex items-center gap-1 p-0.5 rounded-lg bg-gray-50 dark:bg-[#111] border border-gray-100 dark:border-[#1E1E1E]">
+                        {monthTabs.map((t, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setMonthOffset(i)}
+                                className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
+                                    monthOffset === i
+                                        ? 'bg-white dark:bg-[#1A1A1A] text-[#A0792E] shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                }`}
+                            >
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                    {[
-                        { label: 'Novos leads', value: mStats.novos, color: 'text-gray-900 dark:text-white' },
-                        { label: 'Em aberto', value: mStats.emAberto, color: 'text-orange-500' },
-                        { label: 'Fechados', value: mStats.fechados, color: 'text-green-500' },
-                        { label: 'Perdidos', value: mStats.perdidos, color: 'text-red-500' },
-                        { label: 'Taxa fechamento', value: `${mStats.taxa}%`, color: 'text-[#A0792E]' },
-                    ].map(({ label, value, color }) => (
-                        <div key={label} className="bg-gray-50 dark:bg-[#111] rounded-lg p-3">
-                            <p className="text-xs text-gray-500 mb-1">{label}</p>
-                            <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                    {([
+                        { label: 'Novos', value: mStats.novos, accent: 'text-gray-900 dark:text-white' },
+                        { label: 'Em aberto', value: mStats.emAberto, accent: 'text-[#A0792E]' },
+                        { label: 'Fechados', value: mStats.fechados, accent: 'text-[#7FD4A0]' },
+                        { label: 'Perdidos', value: mStats.perdidos, accent: 'text-[#A04545]' },
+                        { label: 'Taxa', value: `${mStats.taxa}%`, accent: 'text-[#1E3A5F] dark:text-[#7FD4A0]' },
+                    ]).map(({ label, value, accent }) => (
+                        <div key={label} className="rounded-lg bg-gray-50 dark:bg-[#111] p-3 border border-gray-100 dark:border-[#1E1E1E]">
+                            <p className={labelCls}>{label}</p>
+                            <p className={`text-2xl font-bold mt-1 ${accent} ${dataCls}`}>{value}</p>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* Row 4: Line chart + Source */}
+            {/* Linha 30d + Origem */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className={`${card} lg:col-span-2`}>
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Leads por dia</h3>
-                        <span className="text-xs text-gray-400">Últimos 30 dias · máx {Math.max(...daily.days)}</span>
+                <div className={`${card} lg:col-span-2 p-5`}>
+                    <div className="flex items-center justify-between mb-3">
+                        <div>
+                            <p className={labelCls}>Captação diária</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Últimos 30 dias</p>
+                        </div>
+                        <span className={`text-[10px] text-gray-400 ${dataCls}`}>pico {Math.max(...daily.days)}/dia</span>
                     </div>
-                    <LineChart data={daily.days} color="#A0792E" />
+                    <LineChart data={daily.days} color={BRAND.BRONZE} />
                     <div className="flex justify-between mt-1 px-1">
                         {daily.labels.map((lbl, i) => (i % 5 === 0 || i === 29) && (
-                            <span key={i} className="text-[10px] text-gray-400">{lbl}</span>
+                            <span key={i} className={`text-[10px] text-gray-400 ${dataCls}`}>{lbl}</span>
                         ))}
                     </div>
                 </div>
 
-                <div className={card}>
-                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Por origem</h3>
+                <div className={`${card} p-5`}>
+                    <div className="flex items-center gap-2 mb-3">
+                        <Filter size={12} className="text-[#A0792E]" />
+                        <p className={labelCls}>Origem</p>
+                    </div>
                     {sourceCounts.length === 0 ? (
                         <p className="text-xs text-gray-400">Sem dados de origem</p>
                     ) : (
@@ -306,11 +345,11 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
                             {sourceCounts.map(([src, count]) => (
                                 <div key={src}>
                                     <div className="flex justify-between text-xs mb-1">
-                                        <span className="text-gray-600 dark:text-gray-300 truncate max-w-[130px]">{src}</span>
-                                        <span className="text-gray-500 font-medium">{count}</span>
+                                        <span className="text-gray-700 dark:text-gray-300 truncate max-w-[130px]">{src}</span>
+                                        <span className={`text-gray-500 font-medium ${dataCls}`}>{count}</span>
                                     </div>
-                                    <div className="h-1.5 bg-gray-100 dark:bg-[#222] rounded-full overflow-hidden">
-                                        <div className="h-full rounded-full bg-[#A0792E]" style={{ width: `${(count / maxSource) * 100}%` }} />
+                                    <div className="h-1.5 bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden">
+                                        <div className="h-full rounded-full" style={{ width: `${(count / maxSource) * 100}%`, backgroundColor: BRAND.BRONZE }} />
                                     </div>
                                 </div>
                             ))}
@@ -319,63 +358,103 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
                 </div>
             </div>
 
-            {/* Row 5: Estados + Responsáveis + Prioridade */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className={card}>
+            {/* Atividades por responsável (enriched) */}
+            <div className={`${card} p-5`}>
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <p className={labelCls}>Atividade por responsável</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Carteira ativa e produtividade</p>
+                    </div>
+                    <Activity size={14} className="text-[#A0792E]" />
+                </div>
+                {responsaveis.length === 0 ? (
+                    <p className="text-xs text-gray-400 py-4 text-center">Sem leads atribuídos</p>
+                ) : (
+                    <div className="overflow-x-auto -mx-5 px-5">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className={labelCls}>
+                                    <th className="text-left pb-3 font-bold">Responsável</th>
+                                    <th className="text-center pb-3 font-bold">Carteira</th>
+                                    <th className="text-center pb-3 font-bold">Aberto</th>
+                                    <th className="text-center pb-3 font-bold">Fechado</th>
+                                    <th className="text-right pb-3 font-bold">Pipeline</th>
+                                    <th className="text-right pb-3 font-bold">Último toque</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-[#1E1E1E]">
+                                {responsaveis.map((r, i) => {
+                                    const taxaResp = r.total > 0 ? Math.round((r.fechados / r.total) * 100) : 0;
+                                    return (
+                                        <tr key={r.name} className="group hover:bg-gray-50 dark:hover:bg-[#111] transition-colors">
+                                            <td className="py-2.5">
+                                                <div className="flex items-center gap-2.5">
+                                                    <div
+                                                        className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0"
+                                                        style={{
+                                                            backgroundColor: i === 0 ? BRAND.BRONZE : `${BRAND.BRONZE}1F`,
+                                                            color: i === 0 ? '#000' : BRAND.BRONZE,
+                                                        }}
+                                                    >
+                                                        {r.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{r.name}</p>
+                                                        <p className={`text-[9px] text-gray-500 ${dataCls}`}>taxa {taxaResp}%</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-2.5 text-center">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <span className={`text-sm font-bold text-gray-900 dark:text-white ${dataCls}`}>{r.total}</span>
+                                                    <div className="w-16 h-1 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                                        <div className="h-full rounded-full" style={{ width: `${(r.total / maxRespTotal) * 100}%`, backgroundColor: BRAND.BRONZE }} />
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className={`py-2.5 text-center text-sm font-semibold ${dataCls} text-[#A0792E]`}>{r.abertos}</td>
+                                            <td className={`py-2.5 text-center text-sm font-semibold ${dataCls} text-[#7FD4A0]`}>{r.fechados}</td>
+                                            <td className={`py-2.5 text-right text-xs font-bold ${dataCls} text-gray-700 dark:text-gray-300`}>{fmtBRL(r.valor)}</td>
+                                            <td className={`py-2.5 text-right text-[10px] text-gray-500 ${dataCls}`}>{fmtRelative(r.ultimoContato)}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* Estados + Prioridade */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className={`${card} p-5`}>
                     <div className="flex items-center gap-2 mb-3">
-                        <MapPin size={14} className="text-orange-400" />
-                        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Top estados</h3>
+                        <MapPin size={12} className="text-[#A0792E]" />
+                        <p className={labelCls}>Distribuição por UF</p>
                     </div>
                     {topEstados.length === 0 ? (
                         <p className="text-xs text-gray-400">Sem dados de localização</p>
                     ) : (
-                        <div className="flex flex-col gap-2">
-                            {topEstados.map(([estado, count]) => (
-                                <div key={estado} className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-600 dark:text-gray-300 w-8 shrink-0 font-medium">{estado}</span>
-                                    <div className="flex-1 h-2 bg-gray-100 dark:bg-[#222] rounded-full overflow-hidden">
-                                        <div className="h-full rounded-full bg-orange-400" style={{ width: `${(count / maxEstado) * 100}%` }} />
-                                    </div>
-                                    <span className="text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div className={card}>
-                    <div className="flex items-center gap-2 mb-3">
-                        <Users size={14} className="text-blue-400" />
-                        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Responsáveis</h3>
-                    </div>
-                    {responsaveis.length === 0 ? (
-                        <p className="text-xs text-gray-400">Sem dados</p>
-                    ) : (
                         <div className="flex flex-col gap-2.5">
-                            {responsaveis.map(([resp, count]) => (
-                                <div key={resp} className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-[#A0792E]/20 text-[#A0792E] text-xs font-bold flex items-center justify-center shrink-0">
-                                        {resp.charAt(0).toUpperCase()}
+                            {topEstados.map(([estado, count]) => (
+                                <div key={estado} className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${BRAND.BRONZE}14`, color: BRAND.BRONZE }}>
+                                        <span className="text-[10px] font-black">{estado}</span>
                                     </div>
-                                    <div className="flex-1">
-                                        <div className="flex justify-between text-xs mb-0.5">
-                                            <span className="text-gray-600 dark:text-gray-300 truncate max-w-[110px]">{resp}</span>
-                                            <span className="text-gray-500 font-medium">{count}</span>
-                                        </div>
-                                        <div className="h-1.5 bg-gray-100 dark:bg-[#222] rounded-full overflow-hidden">
-                                            <div className="h-full rounded-full bg-blue-400" style={{ width: `${(count / maxResp) * 100}%` }} />
-                                        </div>
+                                    <div className="flex-1 h-1.5 bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden">
+                                        <div className="h-full rounded-full" style={{ width: `${(count / maxEstado) * 100}%`, backgroundColor: BRAND.BRONZE }} />
                                     </div>
+                                    <span className={`text-xs text-gray-500 w-8 text-right shrink-0 ${dataCls}`}>{count}</span>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
 
-                <div className={card}>
+                <div className={`${card} p-5`}>
                     <div className="flex items-center gap-2 mb-3">
-                        <BarChart2 size={14} className="text-purple-400" />
-                        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Por prioridade</h3>
+                        <Target size={12} className="text-[#A0792E]" />
+                        <p className={labelCls}>Por prioridade</p>
                     </div>
                     {prioridades.length === 0 ? (
                         <p className="text-xs text-gray-400">Sem dados</p>
@@ -383,18 +462,18 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
                         <div className="flex flex-col gap-2.5">
                             {prioridades.map(([prio, count]) => {
                                 const maxP = prioridades[0][1];
-                                const color = prio === 'Alta' ? '#ef4444' : prio === 'Média' ? '#f97316' : '#6b7280';
+                                const color = prio === 'Alta' ? BRAND.LOSS : prio === 'Média' ? BRAND.BRONZE : BRAND.TECH_BLUE;
                                 return (
-                                    <div key={prio} className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                                        <div className="flex-1">
-                                            <div className="flex justify-between text-xs mb-0.5">
-                                                <span className="text-gray-600 dark:text-gray-300">{prio}</span>
-                                                <span className="text-gray-500 font-medium">{count}</span>
+                                    <div key={prio}>
+                                        <div className="flex justify-between items-center text-xs mb-1">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                                                <span className="text-gray-700 dark:text-gray-300 font-medium">{prio}</span>
                                             </div>
-                                            <div className="h-1.5 bg-gray-100 dark:bg-[#222] rounded-full overflow-hidden">
-                                                <div className="h-full rounded-full" style={{ width: `${(count / maxP) * 100}%`, backgroundColor: color }} />
-                                            </div>
+                                            <span className={`text-gray-500 font-medium ${dataCls}`}>{count}</span>
+                                        </div>
+                                        <div className="h-1.5 bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden">
+                                            <div className="h-full rounded-full" style={{ width: `${(count / maxP) * 100}%`, backgroundColor: color }} />
                                         </div>
                                     </div>
                                 );

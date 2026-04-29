@@ -13,6 +13,8 @@ import {
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { GlobalSearch } from '@/components/admin/GlobalSearch';
+import { AdminBreadcrumbs } from '@/components/admin/AdminBreadcrumbs';
 
 type NavItem = { href: string; label: string; icon: React.ElementType };
 type NavGroup = { label: string; icon: React.ElementType; items: NavItem[] };
@@ -253,6 +255,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                         {/* Right Side */}
                         <div className="flex items-center gap-1 sm:gap-1.5 ml-auto">
+                            <GlobalSearch />
                             <ThemeToggle />
 
                             {/* User Menu */}
@@ -434,6 +437,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
                 )}
             </header>
+
+            {/* Breadcrumbs (hidden on root) */}
+            <AdminBreadcrumbs />
 
             {/* Main Content */}
             <main className={`flex-1 bg-[#FFFFFF] dark:bg-[#0A0A0A] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent ${
