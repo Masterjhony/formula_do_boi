@@ -3,7 +3,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CRMLead } from '@/app/web-admin/actions/crm-leads';
-import { Phone, Building, Calendar, DollarSign, User, MapPin } from 'lucide-react';
+import { Phone, Building, DollarSign, MapPin, Beef, MessageCircle, Crown, Search } from 'lucide-react';
 
 interface CRMCardProps {
     lead: CRMLead;
@@ -46,6 +46,8 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
         'Baixa': 'bg-blue-500/10 text-blue-500 border-blue-500/20',
     };
 
+    const contatos = lead.contact_count ?? (lead.contact_history?.length ?? 0);
+
     return (
         <div
             ref={setNodeRef}
@@ -53,14 +55,37 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
             {...attributes}
             {...listeners}
             onClick={() => onClick(lead)}
-            className="group relative bg-white dark:bg-[#1A1A1A] p-4 rounded-xl border border-gray-200 dark:border-[#222222] shadow-sm hover:shadow-md hover:border-[#A0792E]/50 transition-all cursor-grab active:cursor-grabbing flex flex-col gap-3"
+            className={`group relative bg-white dark:bg-[#1A1A1A] p-4 rounded-xl border shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing flex flex-col gap-3 ${
+                lead.is_preferencial
+                    ? 'border-[#A0792E]/50 hover:border-[#A0792E]/80 ring-1 ring-[#A0792E]/15'
+                    : 'border-gray-200 dark:border-[#222222] hover:border-[#A0792E]/50'
+            }`}
         >
             {/* Header */}
             <div className="flex justify-between items-start gap-2">
                 <h4 className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2 leading-tight flex-1">
                     {lead.nome}
                 </h4>
+                {lead.is_preferencial && (
+                    <Crown size={13} className="text-[#A0792E] shrink-0" />
+                )}
             </div>
+
+            {/* Profile pill: cabeçinhas + o que busca */}
+            {(lead.quantidade_animais || lead.o_que_busca) && (
+                <div className="flex flex-wrap gap-1.5">
+                    {lead.quantidade_animais && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                            <Beef size={10} /> {lead.quantidade_animais} cab.
+                        </span>
+                    )}
+                    {lead.o_que_busca && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 max-w-full">
+                            <Search size={10} /> <span className="truncate max-w-[140px]">{lead.o_que_busca}</span>
+                        </span>
+                    )}
+                </div>
+            )}
 
             {/* Cidade/Estado */}
             {(lead.cidade || lead.estado) && (
@@ -80,8 +105,8 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
                 </div>
             )}
 
-            {/* Interesse */}
-            {lead.interesse && (
+            {/* Interesse / Momento Pecuária — só se diferente do o_que_busca */}
+            {lead.interesse && lead.interesse !== lead.o_que_busca && (
                 <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
                     <DollarSign size={12} className="shrink-0 text-emerald-500" />
                     <span className="line-clamp-2">{lead.interesse}</span>
@@ -97,14 +122,24 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
             )}
 
             <div className="flex items-center justify-between pt-2 mt-auto border-t border-gray-100 dark:border-[#222222]">
-                {lead.responsavel && (
-                    <div className="flex items-center gap-1 text-[10px] text-gray-400 uppercase font-semibold">
-                        <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-[#333333] flex items-center justify-center text-gray-600 dark:text-gray-300">
-                            {lead.responsavel.charAt(0)}
+                <div className="flex items-center gap-2 min-w-0">
+                    {lead.responsavel && (
+                        <div className="flex items-center gap-1 text-[10px] text-gray-400 uppercase font-semibold min-w-0">
+                            <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-[#333333] flex items-center justify-center text-gray-600 dark:text-gray-300 shrink-0">
+                                {lead.responsavel.charAt(0)}
+                            </div>
+                            <span className="truncate max-w-[80px]">{lead.responsavel}</span>
                         </div>
-                        <span className="truncate max-w-[80px]">{lead.responsavel}</span>
-                    </div>
-                )}
+                    )}
+                    {contatos > 0 && (
+                        <span
+                            className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                            title={`${contatos} contato${contatos > 1 ? 's' : ''} registrado${contatos > 1 ? 's' : ''}`}
+                        >
+                            <MessageCircle size={9} /> {contatos}
+                        </span>
+                    )}
+                </div>
 
                 {/* Priority Badge */}
                 {lead.prioridade && (

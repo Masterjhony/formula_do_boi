@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Save, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Save, Trash2, ChevronDown, ChevronUp, Crown } from 'lucide-react';
 import { CRMLead, deleteLead } from '@/app/web-admin/actions/crm-leads';
 import { CRM_COLUMNS } from './CRMKanbanBoard';
 import type { CRMCustomField, CRMFunnel, CRMResponsavel } from '@/lib/crm-types';
+import { CRMContactsHistory } from './CRMContactsHistory';
 
 interface CRMModalProps {
     isOpen: boolean;
@@ -18,9 +19,10 @@ interface CRMModalProps {
     funnels?: CRMFunnel[];
     onSave: (data: any) => Promise<void>;
     onDelete?: () => void;
+    onLeadUpdated?: (lead: CRMLead) => void;
 }
 
-export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId, stages, customFields = [], responsaveis = [], funnels = [], onSave, onDelete }: CRMModalProps) {
+export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId, stages, customFields = [], responsaveis = [], funnels = [], onSave, onDelete, onLeadUpdated }: CRMModalProps) {
     const activeStages = stages && stages.length > 0 ? stages : CRM_COLUMNS;
     const [formData, setFormData] = useState<Partial<CRMLead>>({
         nome: '',
@@ -39,6 +41,7 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
         cidade: '',
         o_que_busca: '',
         quantidade_animais: '',
+        is_preferencial: false,
     });
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -69,6 +72,7 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
                 cidade: '',
                 o_que_busca: '',
                 quantidade_animais: '',
+                is_preferencial: false,
             });
             setShowOrigemSection(false);
         }
@@ -113,9 +117,16 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
             <div className="relative bg-white dark:bg-[#111111] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-gray-200 dark:border-[#222222] shadow-2xl">
                 <div className="sticky top-0 bg-white/80 dark:bg-[#111111]/80 backdrop-blur-md p-6 border-b border-gray-200 dark:border-[#222222] flex justify-between items-center z-10">
-                    <h2 className="text-xl font-bold dark:text-white">
-                        {lead ? 'Editar Lead' : 'Novo Lead'}
-                    </h2>
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-xl font-bold dark:text-white">
+                            {lead ? 'Editar Lead' : 'Novo Lead'}
+                        </h2>
+                        {formData.is_preferencial && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#A0792E]/15 text-[#A0792E]">
+                                <Crown size={10} /> Preferencial
+                            </span>
+                        )}
+                    </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-full transition-colors text-gray-500">
                         <X size={20} />
                     </button>
@@ -186,6 +197,38 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
                                 </select>
                             </div>
                         </div>
+
+                        {/* Lead preferencial */}
+                        <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, is_preferencial: !formData.is_preferencial })}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+                                formData.is_preferencial
+                                    ? 'border-[#A0792E]/50 bg-[#A0792E]/8 dark:bg-[#A0792E]/10'
+                                    : 'border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#1A1A1A] hover:border-[#A0792E]/30'
+                            }`}
+                        >
+                            <span className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                formData.is_preferencial ? 'bg-[#A0792E] text-black' : 'bg-gray-200 dark:bg-[#222] text-gray-400'
+                            }`}>
+                                <Crown size={16} />
+                            </span>
+                            <div className="flex-1 text-left">
+                                <p className={`text-sm font-bold ${formData.is_preferencial ? 'text-[#A0792E]' : 'text-gray-700 dark:text-gray-300'}`}>
+                                    Lead preferencial
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
+                                    Marca este lead para aparecer em destaque no topo do CRM principal.
+                                </p>
+                            </div>
+                            <div className={`w-10 h-6 rounded-full p-0.5 transition-colors flex-shrink-0 ${
+                                formData.is_preferencial ? 'bg-[#A0792E]' : 'bg-gray-300 dark:bg-[#333]'
+                            }`}>
+                                <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                                    formData.is_preferencial ? 'translate-x-4' : ''
+                                }`} />
+                            </div>
+                        </button>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -413,6 +456,11 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
                                     ))}
                                 </div>
                             </div>
+                        )}
+
+                        {/* Histórico de contatos (apenas em edição) */}
+                        {lead && onLeadUpdated && (
+                            <CRMContactsHistory lead={lead} onUpdated={onLeadUpdated} />
                         )}
 
                         {/* Seção Origem (colapsável) */}

@@ -4,6 +4,14 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { sendWelcomeMessage } from '@/lib/whatsapp';
 
+export interface CRMContactEntry {
+    id: string;              // uuid local
+    type: 'ligacao' | 'whatsapp' | 'email' | 'visita' | 'outro';
+    date: string;            // ISO
+    notes?: string | null;
+    by?: string | null;      // responsável que fez o contato
+}
+
 export interface CRMLead {
     id: string;
     nome: string;
@@ -35,6 +43,10 @@ export interface CRMLead {
     campaign?: string | null;
     data_entrada?: string | null;
     extra_data?: Record<string, any> | null;
+    // Qualificação / Contatos
+    contact_history?: CRMContactEntry[] | null;
+    is_preferencial?: boolean | null;
+    contact_count?: number | null;
 }
 
 export async function getLeads(funnelId?: string): Promise<CRMLead[]> {
@@ -155,4 +167,76 @@ export async function moveLeadToFunnel(id: string, funnelId: string, newStatus: 
 
     revalidatePath('/web-admin/crm');
     revalidatePath('/web-admin/funil-vendas');
+}
+
+export async function recordContact(
+    leadId: string,
+    entry: Omit<CRMContactEntry, 'id'>
+): Promise<CRMLead> {
+    const supabase = await createClient();
+
+    const { data: existing, error: fetchErr } = await supabase
+        .from('crm_leads')
+        .select('contact_history')
+        .eq('id', leadId)
+        .single();
+
+    if (fetchErr) throw new Error(`Error fetching lead: ${fetchErr.message}`);
+
+    const history: CRMContactEntry[] = Array.isArray(existing?.contact_history) ? existing.contact_history : [];
+    const newEntry: CRMContactEntry = {
+        ...entry,
+        id: (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`),
+    };
+    const nextHistory = [newEntry, ...history];
+
+    const { data: updated, error } = await supabase
+        .from('crm_leads')
+        .update({
+            contact_history: nextHistory,
+            contact_count: nextHistory.length,
+            ultimo_contato: entry.date,
+        })
+        .eq('id', leadId)
+        .select()
+        .single();
+
+    if (error) throw new Error(`Error recording contact: ${error.message}`);
+
+    revalidatePath('/web-admin/crm');
+    revalidatePath('/web-admin/leads');
+    return updated as CRMLead;
+}
+
+export async function deleteContact(leadId: string, contactId: string): Promise<CRMLead> {
+    const supabase = await createClient();
+
+    const { data: existing, error: fetchErr } = await supabase
+        .from('crm_leads')
+        .select('contact_history')
+        .eq('id', leadId)
+        .single();
+
+    if (fetchErr) throw new Error(`Error fetching lead: ${fetchErr.message}`);
+
+    const history: CRMContactEntry[] = Array.isArray(existing?.contact_history) ? existing.contact_history : [];
+    const nextHistory = history.filter(c => c.id !== contactId);
+    const lastDate = nextHistory[0]?.date ?? null;
+
+    const { data: updated, error } = await supabase
+        .from('crm_leads')
+        .update({
+            contact_history: nextHistory,
+            contact_count: nextHistory.length,
+            ultimo_contato: lastDate,
+        })
+        .eq('id', leadId)
+        .select()
+        .single();
+
+    if (error) throw new Error(`Error deleting contact: ${error.message}`);
+
+    revalidatePath('/web-admin/crm');
+    revalidatePath('/web-admin/leads');
+    return updated as CRMLead;
 }

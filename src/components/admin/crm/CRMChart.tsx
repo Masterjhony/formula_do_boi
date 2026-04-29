@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { CRMLead } from '@/app/web-admin/actions/crm-leads';
-import { Users, CheckCircle2, XCircle, TrendingUp, MapPin, BarChart2 } from 'lucide-react';
+import { Users, CheckCircle2, XCircle, TrendingUp, MapPin, BarChart2, Beef } from 'lucide-react';
 
 interface CRMChartProps {
     leads: CRMLead[];
@@ -104,6 +104,20 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
     const emAberto = leads.length - fechados - perdidos - semStatus;
     const taxaGeral = leads.length > 0 ? Math.round((fechados / leads.length) * 100) : 0;
 
+    // Média de cabeçinhas (animais) por lead — extrai número de quantidade_animais
+    const animaisStats = useMemo(() => {
+        const counts = leads
+            .map(l => {
+                const s = l.quantidade_animais || '';
+                const m = s.match(/\d{1,7}/);
+                return m ? Number(m[0]) : 0;
+            })
+            .filter(n => n > 0);
+        const total = counts.reduce((s, n) => s + n, 0);
+        const media = counts.length > 0 ? Math.round(total / counts.length) : 0;
+        return { total, media, comInfo: counts.length };
+    }, [leads]);
+
     // Stage counts
     const stageCounts = useMemo(() =>
         activeStages.map((stage, i) => ({
@@ -191,21 +205,28 @@ export function CRMChart({ leads, stages }: CRMChartProps) {
         <div className="flex flex-col gap-4 overflow-auto pb-2">
 
             {/* Row 1: KPI cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
                 {[
-                    { label: 'Total de leads', value: leads.length, icon: Users, bg: 'bg-blue-50 dark:bg-blue-500/10', color: 'text-blue-500' },
-                    { label: 'Em aberto', value: emAberto, icon: TrendingUp, bg: 'bg-orange-50 dark:bg-orange-500/10', color: 'text-orange-500' },
-                    { label: 'Fechados', value: fechados, icon: CheckCircle2, bg: 'bg-green-50 dark:bg-green-500/10', color: 'text-green-500' },
-                    { label: 'Perdidos', value: perdidos, icon: XCircle, bg: 'bg-red-50 dark:bg-red-500/10', color: 'text-red-500' },
-                    { label: 'Taxa de fechamento', value: `${taxaGeral}%`, icon: BarChart2, bg: 'bg-yellow-50 dark:bg-yellow-500/10', color: 'text-yellow-600' },
-                ].map(({ label, value, icon: Icon, bg, color }) => (
+                    { label: 'Total de leads', value: leads.length, sub: undefined as string | undefined, icon: Users, bg: 'bg-blue-50 dark:bg-blue-500/10', color: 'text-blue-500' },
+                    { label: 'Em aberto', value: emAberto, sub: undefined, icon: TrendingUp, bg: 'bg-orange-50 dark:bg-orange-500/10', color: 'text-orange-500' },
+                    { label: 'Fechados', value: fechados, sub: undefined, icon: CheckCircle2, bg: 'bg-green-50 dark:bg-green-500/10', color: 'text-green-500' },
+                    { label: 'Perdidos', value: perdidos, sub: undefined, icon: XCircle, bg: 'bg-red-50 dark:bg-red-500/10', color: 'text-red-500' },
+                    { label: 'Taxa de fechamento', value: `${taxaGeral}%`, sub: undefined, icon: BarChart2, bg: 'bg-yellow-50 dark:bg-yellow-500/10', color: 'text-yellow-600' },
+                    {
+                        label: 'Média cabeçinhas/lead',
+                        value: animaisStats.media > 0 ? animaisStats.media.toLocaleString('pt-BR') : '—',
+                        sub: animaisStats.comInfo > 0 ? `${animaisStats.comInfo} c/ info · ${animaisStats.total.toLocaleString('pt-BR')} total` : 'Sem dados',
+                        icon: Beef, bg: 'bg-rose-50 dark:bg-rose-500/10', color: 'text-rose-500',
+                    },
+                ].map(({ label, value, sub, icon: Icon, bg, color }) => (
                     <div key={label} className={`${card} flex items-center gap-3`}>
                         <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
                             <Icon size={18} className={color} />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
                             <p className="text-xs text-gray-500 leading-tight">{label}</p>
+                            {sub && <p className="text-[10px] text-gray-400 leading-tight mt-0.5 truncate">{sub}</p>}
                         </div>
                     </div>
                 ))}

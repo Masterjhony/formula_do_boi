@@ -1,0 +1,356 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import { CRMLead, updateLead } from '@/app/web-admin/actions/crm-leads';
+import type { CRMConfig } from '@/lib/crm-types';
+import { isQualificationStage } from '@/lib/crm-types';
+import {
+    ChevronRight, Phone, Instagram, MapPin, Beef, Search,
+    AlertCircle, ArrowRight, Loader2, Check, ListChecks, Sparkles,
+} from 'lucide-react';
+
+interface CRMQualificacaoViewProps {
+    leads: CRMLead[];
+    crmConfig: CRMConfig;
+    onLeadUpdated: (lead: CRMLead) => void;
+    onOpenLead: (lead: CRMLead) => void;
+}
+
+const REQUIRED_FIELDS: { key: keyof CRMLead; label: string }[] = [
+    { key: 'celular', label: 'Celular / WhatsApp' },
+    { key: 'estado', label: 'Estado' },
+    { key: 'cidade', label: 'Cidade' },
+    { key: 'quantidade_animais', label: 'Cabeçinhas' },
+    { key: 'o_que_busca', label: 'O que busca' },
+];
+
+function fieldFilled(lead: CRMLead, key: keyof CRMLead): boolean {
+    const v = lead[key];
+    if (v == null) return false;
+    if (typeof v === 'string') return v.trim().length > 0;
+    return true;
+}
+
+function missingFieldsCount(lead: CRMLead): number {
+    return REQUIRED_FIELDS.reduce((acc, f) => acc + (fieldFilled(lead, f.key) ? 0 : 1), 0);
+}
+
+export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLead }: CRMQualificacaoViewProps) {
+    const [search, setSearch] = useState('');
+    const [savingId, setSavingId] = useState<string | null>(null);
+    const [qualifyingId, setQualifyingId] = useState<string | null>(null);
+    const [draft, setDraft] = useState<Record<string, Partial<CRMLead>>>({});
+
+    const qualificationStageNames = useMemo(
+        () => new Set(crmConfig.stages.filter(isQualificationStage).map(s => s.name)),
+        [crmConfig.stages]
+    );
+
+    const firstAdvancedStage = useMemo(
+        () => crmConfig.stages.find(s => !isQualificationStage(s))?.name || 'Qualificado',
+        [crmConfig.stages]
+    );
+
+    const qualificationLeads = useMemo(() => {
+        return leads
+            .filter(l => qualificationStageNames.has(l.status))
+            .filter(l => {
+                if (!search) return true;
+                const q = search.toLowerCase();
+                return (
+                    l.nome?.toLowerCase().includes(q) ||
+                    l.celular?.includes(search) ||
+                    l.telefone?.includes(search) ||
+                    l.cidade?.toLowerCase().includes(q) ||
+                    l.estado?.toLowerCase().includes(q) ||
+                    l.o_que_busca?.toLowerCase().includes(q)
+                );
+            })
+            .sort((a, b) => {
+                // ordena: mais incompletos no topo, depois mais recentes
+                const ma = missingFieldsCount(a);
+                const mb = missingFieldsCount(b);
+                if (ma !== mb) return mb - ma;
+                const da = a.data_entrada || a.created_at;
+                const db = b.data_entrada || b.created_at;
+                return (db || '').localeCompare(da || '');
+            });
+    }, [leads, qualificationStageNames, search]);
+
+    const stats = useMemo(() => {
+        const all = leads.filter(l => qualificationStageNames.has(l.status));
+        const semAnimais = all.filter(l => !fieldFilled(l, 'quantidade_animais')).length;
+        const semInteresse = all.filter(l => !fieldFilled(l, 'o_que_busca')).length;
+        const semLocal = all.filter(l => !fieldFilled(l, 'estado') && !fieldFilled(l, 'cidade')).length;
+        const completos = all.filter(l => missingFieldsCount(l) === 0).length;
+        return { total: all.length, semAnimais, semInteresse, semLocal, completos };
+    }, [leads, qualificationStageNames]);
+
+    const updateDraft = (leadId: string, patch: Partial<CRMLead>) => {
+        setDraft(prev => ({ ...prev, [leadId]: { ...prev[leadId], ...patch } }));
+    };
+
+    const persistField = async (lead: CRMLead, patch: Partial<CRMLead>) => {
+        setSavingId(lead.id);
+        try {
+            const updated = await updateLead(lead.id, patch);
+            onLeadUpdated(updated);
+            // limpa o draft do lead após salvar
+            setDraft(prev => {
+                const cur: Partial<CRMLead> = { ...(prev[lead.id] || {}) };
+                Object.keys(patch).forEach(k => { delete cur[k as keyof CRMLead]; });
+                if (Object.keys(cur).length === 0) {
+                    const next = { ...prev };
+                    delete next[lead.id];
+                    return next;
+                }
+                return { ...prev, [lead.id]: cur };
+            });
+        } finally {
+            setSavingId(null);
+        }
+    };
+
+    const qualificar = async (lead: CRMLead) => {
+        if (missingFieldsCount(lead) > 0) {
+            const ok = window.confirm(
+                'Este lead ainda tem campos importantes vazios. Mover para o CRM principal mesmo assim?'
+            );
+            if (!ok) return;
+        }
+        setQualifyingId(lead.id);
+        try {
+            const updated = await updateLead(lead.id, { status: firstAdvancedStage });
+            onLeadUpdated(updated);
+        } finally {
+            setQualifyingId(null);
+        }
+    };
+
+    const inputCls = 'w-full px-2.5 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0F0F0F] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#A0792E] transition-colors';
+
+    return (
+        <div className="flex flex-col gap-4 pb-2">
+            {/* Header / KPIs */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {[
+                    { label: 'Aguardando qualificação', value: stats.total, icon: ListChecks, color: 'text-[#A0792E]', bg: 'bg-[#A0792E]/10' },
+                    { label: 'Sem cabeçinhas', value: stats.semAnimais, icon: Beef, color: 'text-rose-500', bg: 'bg-rose-500/10' },
+                    { label: 'Sem interesse', value: stats.semInteresse, icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                    { label: 'Sem localização', value: stats.semLocal, icon: MapPin, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                    { label: 'Prontos p/ CRM', value: stats.completos, icon: Sparkles, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                ].map(({ label, value, icon: Icon, color, bg }) => (
+                    <div key={label} className="bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222] p-4 flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+                            <Icon size={18} className={color} />
+                        </div>
+                        <div>
+                            <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
+                            <p className="text-xs text-gray-500 leading-tight">{label}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                    type="text"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Buscar por nome, telefone, cidade, interesse…"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#1A1A1A] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E]"
+                />
+            </div>
+
+            {/* Help message */}
+            <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-[#A0792E]/5 border border-[#A0792E]/20 text-xs text-gray-700 dark:text-gray-300">
+                <Sparkles size={14} className="text-[#A0792E] flex-shrink-0 mt-0.5" />
+                <p>
+                    Os leads que entram pelo grupo de WhatsApp aparecem aqui para serem qualificados.
+                    Preencha os campos obrigatórios (cabeçinhas, interesse, localização, contato) e clique em
+                    <span className="font-semibold text-[#A0792E]"> &ldquo;Mover para o CRM&rdquo;</span> quando o lead estiver pronto.
+                </p>
+            </div>
+
+            {/* Lista */}
+            {qualificationLeads.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-gray-200 dark:border-[#2A2A2A] py-12 text-center text-gray-400">
+                    <ListChecks size={32} className="mx-auto mb-2 opacity-40" />
+                    <p className="text-sm">Nenhum lead aguardando qualificação.</p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {qualificationLeads.map(lead => {
+                        const missing = REQUIRED_FIELDS.filter(f => !fieldFilled(lead, f.key));
+                        const ready = missing.length === 0;
+                        const isSaving = savingId === lead.id;
+                        const isMoving = qualifyingId === lead.id;
+                        const lDraft = draft[lead.id] || {};
+                        const dt = lead.data_entrada || lead.created_at;
+
+                        return (
+                            <div
+                                key={lead.id}
+                                className={`rounded-2xl border p-4 transition-all ${
+                                    ready
+                                        ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/[0.04]'
+                                        : 'border-gray-200 dark:border-[#222] bg-white dark:bg-[#1A1A1A]'
+                                }`}
+                            >
+                                {/* Top row */}
+                                <div className="flex items-start justify-between gap-3 mb-3">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <button
+                                                type="button"
+                                                onClick={() => onOpenLead(lead)}
+                                                className="font-bold text-gray-900 dark:text-white text-base hover:text-[#A0792E] transition-colors leading-tight text-left"
+                                            >
+                                                {lead.nome}
+                                            </button>
+                                            {ready ? (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                                                    <Check size={10} /> Completo
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                                                    {missing.length} dado{missing.length > 1 ? 's' : ''} faltando
+                                                </span>
+                                            )}
+                                            {lead.source && (
+                                                <span className="inline-flex items-center text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#222] text-gray-500 dark:text-gray-400">
+                                                    {lead.source}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-3 text-xs text-gray-500 mt-1 flex-wrap">
+                                            {(lead.celular || lead.telefone) && (
+                                                <span className="inline-flex items-center gap-1"><Phone size={11} /> {lead.celular || lead.telefone}</span>
+                                            )}
+                                            {lead.instagram && (
+                                                <span className="inline-flex items-center gap-1"><Instagram size={11} /> {lead.instagram}</span>
+                                            )}
+                                            {dt && (
+                                                <span className="inline-flex items-center gap-1 text-gray-400">
+                                                    Entrou {new Date(dt).toLocaleDateString('pt-BR')}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => qualificar(lead)}
+                                        disabled={isMoving}
+                                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black text-xs font-bold hover:shadow-md transition-all disabled:opacity-50 flex-shrink-0"
+                                        title="Mover para o CRM principal"
+                                    >
+                                        {isMoving ? <Loader2 size={12} className="animate-spin" /> : <ArrowRight size={12} />}
+                                        Mover para o CRM
+                                    </button>
+                                </div>
+
+                                {/* Quick fill grid */}
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+                                    <Field
+                                        label="Celular / WhatsApp"
+                                        value={lDraft.celular ?? lead.celular ?? ''}
+                                        onChange={v => updateDraft(lead.id, { celular: v })}
+                                        onBlur={v => v !== (lead.celular || '') && persistField(lead, { celular: v || null })}
+                                        placeholder="(00) 00000-0000"
+                                        inputCls={inputCls}
+                                        missing={!fieldFilled(lead, 'celular')}
+                                    />
+                                    <Field
+                                        label="Estado"
+                                        value={lDraft.estado ?? lead.estado ?? ''}
+                                        onChange={v => updateDraft(lead.id, { estado: v.toUpperCase() })}
+                                        onBlur={v => v.toUpperCase() !== (lead.estado || '') && persistField(lead, { estado: v ? v.toUpperCase() : null })}
+                                        placeholder="MG"
+                                        inputCls={inputCls}
+                                        missing={!fieldFilled(lead, 'estado')}
+                                    />
+                                    <Field
+                                        label="Cidade"
+                                        value={lDraft.cidade ?? lead.cidade ?? ''}
+                                        onChange={v => updateDraft(lead.id, { cidade: v })}
+                                        onBlur={v => v !== (lead.cidade || '') && persistField(lead, { cidade: v || null })}
+                                        placeholder="Uberaba"
+                                        inputCls={inputCls}
+                                        missing={!fieldFilled(lead, 'cidade')}
+                                    />
+                                    <Field
+                                        label="Cabeçinhas"
+                                        value={lDraft.quantidade_animais ?? lead.quantidade_animais ?? ''}
+                                        onChange={v => updateDraft(lead.id, { quantidade_animais: v })}
+                                        onBlur={v => v !== (lead.quantidade_animais || '') && persistField(lead, { quantidade_animais: v || null })}
+                                        placeholder="500"
+                                        inputCls={inputCls}
+                                        missing={!fieldFilled(lead, 'quantidade_animais')}
+                                    />
+                                    <Field
+                                        label="O que busca"
+                                        value={lDraft.o_que_busca ?? lead.o_que_busca ?? ''}
+                                        onChange={v => updateDraft(lead.id, { o_que_busca: v })}
+                                        onBlur={v => v !== (lead.o_que_busca || '') && persistField(lead, { o_que_busca: v || null })}
+                                        placeholder="Touros, matrizes…"
+                                        inputCls={inputCls}
+                                        missing={!fieldFilled(lead, 'o_que_busca')}
+                                    />
+                                </div>
+
+                                <div className="flex items-center justify-between mt-3">
+                                    <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                        {isSaving ? (
+                                            <><Loader2 size={10} className="animate-spin" /> Salvando…</>
+                                        ) : (
+                                            <span>Edição inline · TAB para próximo · BLUR salva automaticamente</span>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => onOpenLead(lead)}
+                                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#A0792E] transition-colors"
+                                    >
+                                        Ver perfil completo <ChevronRight size={12} />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function Field({
+    label, value, onChange, onBlur, placeholder, inputCls, missing,
+}: {
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    onBlur: (v: string) => void;
+    placeholder?: string;
+    inputCls: string;
+    missing: boolean;
+}) {
+    return (
+        <div>
+            <label className={`block text-[9px] font-bold uppercase tracking-wider mb-1 ${missing ? 'text-amber-500' : 'text-gray-400'}`}>
+                {label}
+                {missing && <span className="ml-1">•</span>}
+            </label>
+            <input
+                type="text"
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                onBlur={e => onBlur(e.target.value)}
+                placeholder={placeholder}
+                className={`${inputCls} ${missing ? 'border-amber-500/40' : ''}`}
+            />
+        </div>
+    );
+}
