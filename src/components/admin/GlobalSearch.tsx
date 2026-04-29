@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import {
     Search, X, Loader2, ArrowRight,
@@ -40,13 +41,17 @@ export function GlobalSearch() {
     const [loading, setLoading] = useState(false);
     const [activeIdx, setActiveIdx] = useState(0);
     const [isMac, setIsMac] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     const router = useRouter();
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<number | undefined>(undefined);
     const abortRef = useRef<AbortController | null>(null);
 
-    useEffect(() => { setIsMac(detectMac()); }, []);
+    useEffect(() => {
+        setIsMac(detectMac());
+        setMounted(true);
+    }, []);
 
     // Global ⌘K / Ctrl+K shortcut
     useEffect(() => {
@@ -177,17 +182,18 @@ export function GlobalSearch() {
                 <Search size={18} />
             </button>
 
-            {/* Spotlight Modal */}
-            {open && (
+            {/* Spotlight Modal — rendered via portal to escape sticky header's backdrop-filter stacking context */}
+            {open && mounted && createPortal(
                 <div
                     role="dialog"
                     aria-modal="true"
                     aria-label="Busca global"
                     className="fixed inset-0 z-[100] flex items-start justify-center p-4 sm:p-8 pt-[15vh] sm:pt-[12vh]"
+                    style={{ width: '100vw', height: '100vh' }}
                     onClick={() => setOpen(false)}
                 >
                     {/* Backdrop */}
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in" />
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in" style={{ width: '100vw', height: '100vh' }} />
 
                     {/* Panel */}
                     <div
@@ -329,7 +335,8 @@ export function GlobalSearch() {
                             </span>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Inline styles for kbd helper class */}

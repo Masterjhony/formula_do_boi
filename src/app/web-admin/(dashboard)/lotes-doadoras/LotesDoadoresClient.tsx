@@ -1,9 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Edit, Eye, EyeOff, Search, Dna, AlertCircle, CheckCircle, Clock, XCircle, Download, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import { GeneticSidePanel, valueForAxis } from '@/components/admin/genetic/GeneticSidePanel';
+import { DEPRings } from '@/components/admin/genetic/DEPRings';
+import { LotSelectionBar } from '@/components/admin/genetic/LotSelectionBar';
+import type { GeneticProduct } from '@/components/admin/genetic/GeneticAnalysisCard';
 
 export default function LotesDoadoresClient({ initialProducts }: { initialProducts: any[] }) {
     const [products, setProducts] = useState(initialProducts);
@@ -11,6 +15,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
     const [statusFilter, setStatusFilter] = useState('Todos');
     const [categoryFilter, setCategoryFilter] = useState('Todos');
     const [downloadingId, setDownloadingId] = useState<any>(null);
+    const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set());
     const supabase = createClient();
 
     const collectMediaUrls = (p: any): string[] => {
@@ -65,6 +70,15 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
         }
     };
 
+    const toggleSelection = (id: string | number) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
     const categories = ['Todos', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
 
     const filtered = products.filter(p => {
@@ -96,8 +110,28 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
 
     const getImage = (p: any) => p.image_url || p.gallery?.[0] || p.image || null;
 
+    // ── DEP rings per card (3 most relevant for doadoras: Cresc, Conf, Leite) ──
+    const ringsForProduct = useMemo(() => {
+        return (p: GeneticProduct) => {
+            const g = p.avaliacao_genetica_json;
+            return [
+                { label: 'DEP Cresc.', value: g ? valueForAxis(g, 'Crescimento', 'dep') : null },
+                { label: 'DEP Conf.', value: g ? valueForAxis(g, 'Conformidade', 'dep') : null },
+                { label: 'DEP Leite', value: g ? valueForAxis(g, 'Leite', 'dep') : null },
+            ].map(r => ({
+                ...r,
+                value: r.value !== null && r.value !== 0 ? r.value : (g ? r.value : null),
+            }));
+        };
+    }, []);
+
+    const selectedProducts = useMemo(
+        () => products.filter(p => selectedIds.has(p.id)) as GeneticProduct[],
+        [products, selectedIds]
+    );
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24">
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {[
@@ -153,122 +187,183 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                 </div>
             </div>
 
-            {/* Grid */}
-            {filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-[#1A1A1A] flex items-center justify-center">
-                        <AlertCircle size={24} className="text-gray-400" />
-                    </div>
-                    <p className="text-gray-500">Nenhuma doadora encontrada.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                    {filtered.map(p => {
-                        const st = getStatus(p);
-                        const style = statusStyle(st);
-                        const img = getImage(p);
-                        const registro = p.details?.registro ?? p.registro ?? null;
-                        const pai = p.details?.pai ?? p.pai ?? null;
-                        const mae = p.details?.mae ?? p.mae ?? null;
-                        const price = typeof p.price === 'number'
-                            ? `R$ ${p.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                            : p.price || 'Sob Consulta';
+            {/* Layout: cards + sticky sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
 
-                        return (
-                            <div
-                                key={p.id}
-                                className={`group bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden hover:border-[#A0792E]/40 hover:shadow-lg hover:shadow-[#A0792E]/5 transition-all duration-200 flex flex-col ${p.active === false ? 'opacity-60' : ''}`}
-                            >
-                                {/* Image */}
-                                <div className="relative h-48 bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
-                                    {img ? (
-                                        img.endsWith('.mp4') ? (
-                                            <video src={img} className="w-full h-full object-cover" muted playsInline />
-                                        ) : img.includes('youtube.com') || img.includes('youtu.be') ? (
-                                            <img
-                                                src={`https://img.youtube.com/vi/${img.split('v=')[1]?.split('&')[0] || img.split('/').pop()}/0.jpg`}
-                                                alt={p.name}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                                            />
-                                        ) : (
-                                            <img src={img} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                        )
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <Dna size={40} className="text-gray-300 dark:text-[#333333]" />
-                                        </div>
-                                    )}
-                                    <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold backdrop-blur-sm ${style.badge}`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-                                        {st}
-                                    </div>
-                                    {p.category && (
-                                        <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm font-medium">
-                                            {p.category}
-                                        </div>
-                                    )}
-                                    {p.active === false && (
-                                        <div className="absolute top-3 right-3 bg-gray-900/70 text-gray-300 text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                                            Oculto
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Content */}
-                                <div className="p-4 flex-1 flex flex-col gap-3">
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-tight group-hover:text-[#A0792E] transition-colors line-clamp-2">
-                                            {p.name}
-                                        </h3>
-                                        {registro && (
-                                            <p className="text-xs text-gray-400 font-mono mt-0.5">{registro}</p>
-                                        )}
-                                    </div>
-
-                                    {(pai || mae) && (
-                                        <div className="space-y-1 text-xs text-gray-500">
-                                            {pai && <p><span className="text-gray-400">Pai:</span> {pai}</p>}
-                                            {mae && <p><span className="text-gray-400">Mãe:</span> {mae}</p>}
-                                        </div>
-                                    )}
-
-                                    <p className="text-sm font-bold text-[#A0792E] mt-auto">{price}</p>
-
-                                    <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-[#222222]">
-                                        <Link
-                                            href={`/products/${p.id}`}
-                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#A0792E]/10 text-[#A0792E] hover:bg-[#A0792E]/20 text-xs font-semibold transition-all"
-                                        >
-                                            <Edit size={13} />
-                                            Editar
-                                        </Link>
-                                        {collectMediaUrls(p).length > 0 && (
-                                            <button
-                                                onClick={() => handleDownloadMedia(p)}
-                                                disabled={downloadingId === p.id}
-                                                title={`Baixar mídia${collectMediaUrls(p).length > 1 ? ` (${collectMediaUrls(p).length})` : ''}`}
-                                                className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all disabled:opacity-60"
-                                            >
-                                                {downloadingId === p.id
-                                                    ? <Loader2 size={15} className="animate-spin" />
-                                                    : <Download size={15} />}
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => handleToggleActive(p)}
-                                            title={p.active === false ? 'Tornar visível' : 'Ocultar'}
-                                            className="flex items-center justify-center w-9 h-9 rounded-xl bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 hover:bg-gray-200 dark:hover:bg-[#252525] transition-all"
-                                        >
-                                            {p.active === false ? <Eye size={15} /> : <EyeOff size={15} />}
-                                        </button>
-                                    </div>
-                                </div>
+                {/* Cards Grid */}
+                <div>
+                    {filtered.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-[#1A1A1A] flex items-center justify-center">
+                                <AlertCircle size={24} className="text-gray-400" />
                             </div>
-                        );
-                    })}
+                            <p className="text-gray-500">Nenhuma doadora encontrada.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {filtered.map(p => {
+                                const st = getStatus(p);
+                                const style = statusStyle(st);
+                                const img = getImage(p);
+                                const registro = p.details?.registro ?? p.registro ?? null;
+                                const pai = p.details?.pai ?? p.pai ?? null;
+                                const mae = p.details?.mae ?? p.mae ?? null;
+                                const price = typeof p.price === 'number'
+                                    ? `R$ ${p.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                                    : p.price || 'Sob Consulta';
+                                const isSelected = selectedIds.has(p.id);
+                                const rings = ringsForProduct(p as GeneticProduct);
+
+                                return (
+                                    <div
+                                        key={p.id}
+                                        className={`group bg-white dark:bg-[#111111] rounded-2xl border overflow-hidden transition-all duration-200 flex flex-col ${
+                                            isSelected
+                                                ? 'border-[#7FD4A0] shadow-lg shadow-[#7FD4A0]/20'
+                                                : 'border-gray-200 dark:border-[#222222] hover:border-[#A0792E]/40 hover:shadow-lg hover:shadow-[#A0792E]/5'
+                                        } ${p.active === false ? 'opacity-60' : ''}`}
+                                    >
+                                        {/* Image */}
+                                        <div className="relative h-44 bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                            {img ? (
+                                                img.endsWith('.mp4') ? (
+                                                    <video src={img} className="w-full h-full object-cover" muted playsInline />
+                                                ) : img.includes('youtube.com') || img.includes('youtu.be') ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img
+                                                        src={`https://img.youtube.com/vi/${img.split('v=')[1]?.split('&')[0] || img.split('/').pop()}/0.jpg`}
+                                                        alt={p.name}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                                                    />
+                                                ) : (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={img} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                )
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <Dna size={40} className="text-gray-300 dark:text-[#333333]" />
+                                                </div>
+                                            )}
+                                            <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold backdrop-blur-sm ${style.badge}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                                                {st}
+                                            </div>
+                                            {p.category && (
+                                                <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm font-medium">
+                                                    {p.category}
+                                                </div>
+                                            )}
+                                            {p.active === false && (
+                                                <div className="absolute top-3 right-3 bg-gray-900/70 text-gray-300 text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                                                    Oculto
+                                                </div>
+                                            )}
+                                            {/* Selection checkbox overlay */}
+                                            <button
+                                                onClick={() => toggleSelection(p.id)}
+                                                aria-label={isSelected ? 'Remover da comparação' : 'Adicionar à comparação'}
+                                                className={`absolute top-3 right-3 w-7 h-7 rounded-md flex items-center justify-center transition-all backdrop-blur-md ${
+                                                    isSelected
+                                                        ? 'bg-[#7FD4A0] text-black shadow-md'
+                                                        : 'bg-black/40 text-white/80 border border-white/20 hover:bg-black/60'
+                                                }`}
+                                                style={p.active === false ? { top: 40 } : undefined}
+                                            >
+                                                {isSelected ? <CheckCircle size={15} /> : <span className="text-[10px] font-bold">+</span>}
+                                            </button>
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="p-4 flex-1 flex flex-col gap-3">
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-tight group-hover:text-[#A0792E] transition-colors line-clamp-2">
+                                                    {p.name}
+                                                </h3>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    {registro && <p className="text-[10px] text-gray-400 font-mono">RGD: {registro}</p>}
+                                                </div>
+                                            </div>
+
+                                            {/* Price + DEP rings inline */}
+                                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                                <p className="text-sm font-bold text-[#A0792E] whitespace-nowrap">{price}</p>
+                                                <DEPRings rings={rings} size={36} compact />
+                                            </div>
+
+                                            {/* Genealogy compact */}
+                                            {(pai || mae) && (
+                                                <div className="text-[10px] text-gray-500 truncate">
+                                                    {pai && <span><span className="text-gray-400">Pai:</span> {pai}</span>}
+                                                    {pai && mae && <span className="mx-1.5 text-gray-300 dark:text-gray-700">·</span>}
+                                                    {mae && <span><span className="text-gray-400">Mãe:</span> {mae}</span>}
+                                                </div>
+                                            )}
+
+                                            {/* Actions */}
+                                            <div className="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-[#222222] mt-auto">
+                                                <Link
+                                                    href={`/products/${p.id}`}
+                                                    className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#A0792E]/10 text-[#A0792E] hover:bg-[#A0792E]/20 text-[11px] font-bold uppercase tracking-wider transition-all"
+                                                >
+                                                    <Edit size={11} />
+                                                    Ver Ficha
+                                                </Link>
+                                                <button
+                                                    onClick={() => toggleSelection(p.id)}
+                                                    title={isSelected ? 'Remover da comparação' : 'Adicionar à comparação'}
+                                                    className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all ${
+                                                        isSelected
+                                                            ? 'bg-[#7FD4A0]/20 text-[#7FD4A0] hover:bg-[#7FD4A0]/30'
+                                                            : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#252525]'
+                                                    }`}
+                                                >
+                                                    <CheckCircle size={11} />
+                                                    {isSelected ? 'Selecionado' : 'Comparar'}
+                                                </button>
+                                                {collectMediaUrls(p).length > 0 && (
+                                                    <button
+                                                        onClick={() => handleDownloadMedia(p)}
+                                                        disabled={downloadingId === p.id}
+                                                        title="Baixar mídia"
+                                                        className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 hover:bg-gray-200 dark:hover:bg-[#252525] transition-all disabled:opacity-60"
+                                                    >
+                                                        {downloadingId === p.id
+                                                            ? <Loader2 size={13} className="animate-spin" />
+                                                            : <Download size={13} />}
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => handleToggleActive(p)}
+                                                    title={p.active === false ? 'Tornar visível' : 'Ocultar'}
+                                                    className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 hover:bg-gray-200 dark:hover:bg-[#252525] transition-all"
+                                                >
+                                                    {p.active === false ? <Eye size={13} /> : <EyeOff size={13} />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
-            )}
+
+                {/* Sticky Sidebar */}
+                <aside className="lg:sticky lg:top-[120px] lg:self-start lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto">
+                    <GeneticSidePanel
+                        selectedProducts={selectedProducts}
+                        catalogProducts={products as GeneticProduct[]}
+                    />
+                </aside>
+            </div>
+
+            {/* Bottom selection bar */}
+            <LotSelectionBar
+                selected={selectedProducts}
+                onRemove={toggleSelection}
+                onClear={() => setSelectedIds(new Set())}
+            />
         </div>
     );
 }
