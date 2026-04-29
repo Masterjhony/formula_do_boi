@@ -9,7 +9,7 @@ import {
   Save, ImageIcon, Upload, LayoutGrid, Table2, DollarSign,
   Search, SlidersHorizontal, Download,
 } from 'lucide-react'
-import type { BulaLeilao, LeilaoGrupo, LeilaoTask, LeilaoSubtask } from '@/lib/bula/types'
+import type { BulaLeilao, LeilaoGrupo, LeilaoTask } from '@/lib/bula/types'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -23,9 +23,27 @@ function parseDate(iso: string) {
   return { dia: d, mesNum: m, mesNome: MES_NAMES[m] ?? '', diaSemana: DIA_NAMES[dt.getDay()] }
 }
 
+function taskProgress(task: LeilaoTask): { done: number; total: number } {
+  const subs = task.subs ?? []
+  if (subs.length > 0) {
+    return { done: subs.filter(s => s.done).length, total: subs.length }
+  }
+  return { done: task.done ? 1 : 0, total: 1 }
+}
+
+function groupProgress(group: LeilaoGrupo): { done: number; total: number } {
+  let done = 0, total = 0
+  for (const t of group.tasks ?? []) {
+    const p = taskProgress(t); done += p.done; total += p.total
+  }
+  return { done, total }
+}
+
 function checklistProgress(groups: LeilaoGrupo[]): { done: number; total: number } {
   let done = 0, total = 0
-  for (const g of groups ?? []) for (const t of g.tasks ?? []) for (const s of t.subs ?? []) { total++; if (s.done) done++ }
+  for (const g of groups ?? []) {
+    const p = groupProgress(g); done += p.done; total += p.total
+  }
   return { done, total }
 }
 
@@ -174,18 +192,49 @@ function mergeLeiloes(bula: (BulaLeilao & { catalogo_url?: string })[], crono: D
 
 // ── Default tasks ─────────────────────────────────────────────────────────────
 
+const EMPTY_RESP = { nome: '', ini: '' }
+const mkTask = (id: string, nome: string): LeilaoTask => ({
+  id, nome, ini: '', fim: '', resp: { ...EMPTY_RESP }, subs: [], done: false, observacao: '', anexos: [],
+})
+
 const DEFAULT_TASKS: LeilaoGrupo[] = [
-  { nome: 'Pré-Leilão', cor: '#4A8FBF', tasks: [
-    { id: 'pre1', nome: 'Contrato', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [{ lbl: 'Minuta enviada', done: false }, { lbl: 'Contrato assinado', done: false }] },
-    { id: 'pre2', nome: 'Catálogo', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [{ lbl: 'Fotos recebidas', done: false }, { lbl: 'Catálogo criado', done: false }, { lbl: 'Catálogo aprovado', done: false }] },
-    { id: 'pre3', nome: 'Divulgação', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [{ lbl: 'Posts programados', done: false }, { lbl: 'WhatsApp disparado', done: false }, { lbl: 'E-mail marketing enviado', done: false }] },
-  ]},
-  { nome: 'Dia do Leilão', cor: '#C8A96E', tasks: [
-    { id: 'dia1', nome: 'Operação', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [{ lbl: 'Assessor escalado confirmado', done: false }, { lbl: 'Transmissão online OK', done: false }, { lbl: 'Lotes conferidos', done: false }, { lbl: 'Resultados anotados', done: false }] },
-  ]},
-  { nome: 'Pós-Leilão', cor: '#6B8F5C', tasks: [
-    { id: 'pos1', nome: 'Pós-venda', ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [{ lbl: 'Resultado registrado no sistema', done: false }, { lbl: 'Comissão lançada', done: false }, { lbl: 'Relatório enviado ao criador', done: false }] },
-  ]},
+  {
+    nome: 'Pré-Leilão',
+    subtitulo: 'Organização dos materiais e classificação dos lotes',
+    cor: '#4A8FBF',
+    tasks: [
+      mkTask('pre-1', 'Receber catálogo em PDF'),
+      mkTask('pre-2', 'Receber link do YouTube com os lotes'),
+      mkTask('pre-3', 'Receber artes para divulgação'),
+      mkTask('pre-4', 'Comitê de avaliação dos lotes e classificação'),
+      mkTask('pre-5', 'Adicionar leilão no catálogo da semana'),
+      mkTask('pre-6', 'Divulgação no grupo de WhatsApp pré-leilão'),
+      mkTask('pre-7', 'Realizar mapa de leilão, direcionando clientes para lotes específicos'),
+    ],
+  },
+  {
+    nome: 'Dia do Leilão',
+    subtitulo: 'Dia do leilão',
+    cor: '#C8A96E',
+    tasks: [
+      mkTask('dia-1', 'Mandar lotes e avaliações para todos os clientes mapeados'),
+      mkTask('dia-2', 'Garantir que todos os clientes estejam cadastrados corretamente'),
+      mkTask('dia-3', 'Realizar ligação para os principais clientes'),
+      mkTask('dia-4', 'Fazer divulgação massiva dos lotes na hora do leilão'),
+      mkTask('dia-5', 'Ao fim do leilão, enviar todos os lotes vendidos com informações no grupo de WhatsApp'),
+    ],
+  },
+  {
+    nome: 'Pós-Leilão',
+    subtitulo: 'Atividades pós-leilão',
+    cor: '#6B8F5C',
+    tasks: [
+      mkTask('pos-1', 'Fechamento e análise do leilão'),
+      mkTask('pos-2', 'Envio de contas a pagar e a receber para financeiro'),
+      mkTask('pos-3', 'Provisionar pagamento e comunicar assessores'),
+      mkTask('pos-4', 'Postar agradecimento ao criatório nos canais de comunicação'),
+    ],
+  },
 ]
 
 type FormState = Omit<BulaLeilao, 'id' | 'assessores' | 'tasks'> & { catalogo_url: string }
@@ -209,6 +258,9 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
   const [newTaskNome, setNewTaskNome] = useState('')
   const [addingGroup, setAddingGroup] = useState(false)
   const [newGroupNome, setNewGroupNome] = useState('')
+  const [editingTask, setEditingTask] = useState<string | null>(null) // task.id
+  const [newAnexoLbl, setNewAnexoLbl] = useState('')
+  const [newAnexoUrl, setNewAnexoUrl] = useState('')
 
   const persist = async (next: LeilaoGrupo[]) => {
     setGroups(next); setSaving(true)
@@ -247,7 +299,7 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
     const nome = newTaskNome.trim()
     if (!nome) { setAddingTaskAt(null); return }
     const newId = `t-${Date.now().toString(36)}`
-    persist(groups.map((g, gIdx) => gIdx !== gi ? g : { ...g, tasks: [...g.tasks, { id: newId, nome, ini: '', fim: '', resp: { nome: 'Equipe Bula', ini: 'B' }, subs: [] }] }))
+    persist(groups.map((g, gIdx) => gIdx !== gi ? g : { ...g, tasks: [...g.tasks, mkTask(newId, nome)] }))
     setNewTaskNome(''); setAddingTaskAt(null)
   }
 
@@ -264,6 +316,27 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
   const removeGroup = (gi: number) => {
     if (!confirm(`Remover o grupo "${groups[gi].nome}" inteiro?`)) return
     persist(groups.filter((_, gIdx) => gIdx !== gi))
+  }
+
+  // Helpers para o modelo "item plano" (task sem subs)
+  const patchTask = (gi: number, ti: number, patch: Partial<LeilaoTask>) =>
+    persist(groups.map((g, gIdx) => gIdx !== gi ? g : { ...g, tasks: g.tasks.map((t, tIdx) => tIdx !== ti ? t : { ...t, ...patch }) }))
+
+  const toggleTaskDone = (gi: number, ti: number) =>
+    patchTask(gi, ti, { done: !groups[gi].tasks[ti].done })
+
+  const addAnexo = (gi: number, ti: number) => {
+    const lbl = newAnexoLbl.trim()
+    const url = newAnexoUrl.trim()
+    if (!lbl || !url) return
+    const cur = groups[gi].tasks[ti].anexos ?? []
+    patchTask(gi, ti, { anexos: [...cur, { lbl, url }] })
+    setNewAnexoLbl(''); setNewAnexoUrl('')
+  }
+
+  const removeAnexo = (gi: number, ti: number, ai: number) => {
+    const cur = groups[gi].tasks[ti].anexos ?? []
+    patchTask(gi, ti, { anexos: cur.filter((_, idx) => idx !== ai) })
   }
 
   const restoreDefaults = () => {
@@ -284,15 +357,17 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
       </div>
       {groups.map((group, gi) => {
         const isOpen = expanded.has(group.nome)
-        const gDone = group.tasks.flatMap(t => t.subs).filter(s => s.done).length
-        const gTotal = group.tasks.flatMap(t => t.subs).length
+        const { done: gDone, total: gTotal } = groupProgress(group)
         return (
           <div key={group.nome} className="rounded-xl border border-gray-100 dark:border-[#222222] overflow-hidden group/group">
             <div className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-[#151515] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors">
               <button type="button" onClick={() => setExpanded(prev => { const n = new Set(prev); n.has(group.nome) ? n.delete(group.nome) : n.add(group.nome); return n })} className="flex-1 flex items-center gap-3 text-left">
                 <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: group.cor }} />
-                <span className="flex-1 text-sm font-semibold text-gray-800 dark:text-gray-200">{group.nome}</span>
-                <span className="text-xs text-gray-400">{gDone}/{gTotal}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight">{group.nome}</p>
+                  {group.subtitulo && <p className="text-[10px] text-gray-400 mt-0.5 leading-snug">{group.subtitulo}</p>}
+                </div>
+                <span className="text-xs text-gray-400 flex-shrink-0">{gDone}/{gTotal} concluídos</span>
                 {isOpen ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
               </button>
               <button
@@ -308,6 +383,165 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
               <div className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
                 {group.tasks.map((task, ti) => {
                   const isAddingSub = addingSubAt?.gi === gi && addingSubAt?.ti === ti
+                  const hasSubs = (task.subs ?? []).length > 0
+                  const isEditing = editingTask === task.id
+                  const anexos = task.anexos ?? []
+
+                  if (!hasSubs) {
+                    // ── Item plano ─────────────────────────────────────────
+                    return (
+                      <div key={task.id} className="px-4 py-2.5 group/task">
+                        <div className="flex items-start gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleTaskDone(gi, ti)}
+                            className="mt-0.5 flex-shrink-0"
+                            title={task.done ? 'Marcar como pendente' : 'Marcar como concluído'}
+                          >
+                            <span className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${task.done ? 'bg-[#A0792E] border-[#A0792E]' : 'border-gray-200 dark:border-[#333333] hover:border-[#A0792E]/50'}`}>
+                              {task.done && <Check size={10} className="text-black" />}
+                            </span>
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <button type="button" onClick={() => { setEditingTask(isEditing ? null : task.id); setNewAnexoLbl(''); setNewAnexoUrl(''); }} className="text-left w-full">
+                              <p className={`text-sm transition-colors leading-snug ${task.done ? 'line-through text-gray-400 dark:text-gray-600' : 'text-gray-700 dark:text-gray-300'}`}>
+                                {task.nome}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] text-gray-400">
+                                {task.resp?.nome && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Users size={9} /> {task.resp.nome}
+                                  </span>
+                                )}
+                                {task.fim && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Clock size={9} /> {task.fim}
+                                  </span>
+                                )}
+                                {task.observacao && (
+                                  <span className="inline-flex items-center gap-1 max-w-[180px] truncate" title={task.observacao}>
+                                    <FileText size={9} /> {task.observacao}
+                                  </span>
+                                )}
+                                {anexos.length > 0 && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Link2 size={9} /> {anexos.length} anexo{anexos.length > 1 ? 's' : ''}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-0.5 flex-shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => { setEditingTask(isEditing ? null : task.id); setNewAnexoLbl(''); setNewAnexoUrl(''); }}
+                              className="p-1 rounded text-gray-400 hover:text-[#A0792E] hover:bg-[#A0792E]/10 transition-all"
+                              title={isEditing ? 'Fechar detalhes' : 'Editar detalhes'}
+                            >
+                              {isEditing ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeTask(gi, ti)}
+                              className="opacity-0 group-hover/task:opacity-100 p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                              title="Remover item"
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {isEditing && (
+                          <div className="mt-2.5 ml-6 p-3 rounded-lg bg-gray-50 dark:bg-[#0F0F0F] border border-gray-100 dark:border-[#1E1E1E] space-y-2.5">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Responsável</label>
+                                <input
+                                  type="text"
+                                  defaultValue={task.resp?.nome || ''}
+                                  onBlur={e => {
+                                    const nome = e.target.value.trim()
+                                    if (nome === (task.resp?.nome || '')) return
+                                    patchTask(gi, ti, { resp: { nome, ini: nome ? nome[0].toUpperCase() : '' } })
+                                  }}
+                                  placeholder="Nome do responsável"
+                                  className="w-full px-2 py-1.5 text-xs rounded-md border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Prazo</label>
+                                <input
+                                  type="date"
+                                  defaultValue={task.fim || ''}
+                                  onBlur={e => {
+                                    if (e.target.value === (task.fim || '')) return
+                                    patchTask(gi, ti, { fim: e.target.value })
+                                  }}
+                                  className="w-full px-2 py-1.5 text-xs rounded-md border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Observação</label>
+                              <textarea
+                                defaultValue={task.observacao || ''}
+                                onBlur={e => {
+                                  if (e.target.value === (task.observacao || '')) return
+                                  patchTask(gi, ti, { observacao: e.target.value })
+                                }}
+                                placeholder="Anotação rápida…"
+                                rows={2}
+                                className="w-full px-2 py-1.5 text-xs rounded-md border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E] resize-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Anexos / Links</label>
+                              <div className="space-y-1.5">
+                                {anexos.map((a, ai) => (
+                                  <div key={ai} className="flex items-center gap-2 px-2 py-1 rounded-md bg-white dark:bg-[#0A0A0A] border border-gray-100 dark:border-[#1E1E1E]">
+                                    <Link2 size={10} className="text-[#A0792E] flex-shrink-0" />
+                                    <a href={a.url} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs text-gray-700 dark:text-gray-300 hover:text-[#A0792E] truncate">{a.lbl}</a>
+                                    <button type="button" onClick={() => removeAnexo(gi, ti, ai)} className="p-0.5 rounded text-gray-300 hover:text-red-500" title="Remover">
+                                      <X size={10} />
+                                    </button>
+                                  </div>
+                                ))}
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={editingTask === task.id ? newAnexoLbl : ''}
+                                    onChange={e => setNewAnexoLbl(e.target.value)}
+                                    placeholder="Rótulo"
+                                    className="flex-1 px-2 py-1 text-xs rounded-md border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E]"
+                                  />
+                                  <input
+                                    type="url"
+                                    value={editingTask === task.id ? newAnexoUrl : ''}
+                                    onChange={e => setNewAnexoUrl(e.target.value)}
+                                    placeholder="https://…"
+                                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAnexo(gi, ti) } }}
+                                    className="flex-[2] px-2 py-1 text-xs rounded-md border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => addAnexo(gi, ti)}
+                                    disabled={!newAnexoLbl.trim() || !newAnexoUrl.trim()}
+                                    className="px-2 py-1 rounded-md text-xs font-bold text-[#A0792E] hover:bg-[#A0792E]/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                                  >
+                                    <Plus size={11} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  }
+
+                  // ── Legacy: task com subs ───────────────────────────────
                   return (
                     <div key={task.id} className="px-4 py-3 group/task">
                       <div className="flex items-center justify-between mb-2">
@@ -377,7 +611,7 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
                   )
                 })}
 
-                {/* Add new task */}
+                {/* Add new item */}
                 <div className="px-4 py-2.5 bg-gray-50/40 dark:bg-[#0F0F0F]/40">
                   {addingTaskAt === gi ? (
                     <div className="flex items-center gap-2">
@@ -391,8 +625,8 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
                           if (e.key === 'Escape') { setNewTaskNome(''); setAddingTaskAt(null) }
                         }}
                         onBlur={() => { if (!newTaskNome.trim()) { setAddingTaskAt(null) } }}
-                        placeholder="Nome da tarefa…"
-                        className="flex-1 px-2.5 py-1.5 rounded-md border border-[#A0792E]/40 bg-white dark:bg-[#0A0A0A] text-sm font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+                        placeholder="Nome do item…"
+                        className="flex-1 px-2.5 py-1.5 rounded-md border border-[#A0792E]/40 bg-white dark:bg-[#0A0A0A] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
                       />
                       <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => addTask(gi)} className="p-1.5 rounded text-[#A0792E] hover:bg-[#A0792E]/10">
                         <Check size={13} />
@@ -407,7 +641,7 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
                       onClick={() => { setNewTaskNome(''); setAddingTaskAt(gi) }}
                       className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:text-[#A0792E] transition-colors"
                     >
-                      <Plus size={12} /> Nova tarefa
+                      <Plus size={12} /> Novo item
                     </button>
                   )}
                 </div>

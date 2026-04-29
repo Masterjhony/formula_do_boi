@@ -14,6 +14,11 @@ export interface LeilaoSubtask {
     done: boolean
 }
 
+export interface LeilaoAnexo {
+    lbl: string
+    url: string
+}
+
 export interface LeilaoTask {
     id: string
     nome: string
@@ -21,11 +26,19 @@ export interface LeilaoTask {
     fim: string
     resp: { nome: string; ini: string }
     subs: LeilaoSubtask[]
+    /** Status de conclusão (usado quando a task é um item plano, sem subs). */
+    done?: boolean
+    /** Observação rápida sobre o item. */
+    observacao?: string
+    /** Anexos / links relacionados. */
+    anexos?: LeilaoAnexo[]
 }
 
 export interface LeilaoGrupo {
     nome: string
     cor: string
+    /** Subtítulo descritivo do bloco (ex.: "Organização dos materiais e classificação dos lotes"). */
+    subtitulo?: string
     tasks: LeilaoTask[]
 }
 

@@ -8,7 +8,7 @@ import DashboardClient, {
     type FeedItem,
     type TaskItem,
     type RegionItem,
-    type AssessorItem,
+    type LeilaoTopItem,
     type CompradorItem,
     type LanceItem,
 } from './DashboardClient';
@@ -203,23 +203,11 @@ export default async function AdminDashboard() {
     const metaSpark = vgvSeries.map(p => p.meta);
 
     // Rankings
-    type AssessorAgg = AssessorItem & { transacoes: number };
-    const assessorMap = new Map<string, AssessorAgg>();
     const compradorMap = new Map<string, CompradorItem>();
     const ufMap = new Map<string, RegionItem>();
     const allLances: LanceItem[] = [];
 
     for (const f of allFechamentos) {
-        for (const a of ((f.por_assessor ?? []) as Array<{ nome?: string; empresa?: string; vgv?: number; animais?: number; transacoes?: number }>)) {
-            const key = (a.nome || '').trim().toUpperCase();
-            if (!key) continue;
-            const cur = assessorMap.get(key) ?? { nome: a.nome || '', empresa: a.empresa || '', vgv: 0, animais: 0, transacoes: 0 };
-            cur.vgv += Number(a.vgv) || 0;
-            cur.animais += Number(a.animais) || 0;
-            cur.transacoes += Number(a.transacoes) || 0;
-            if (!cur.empresa && a.empresa) cur.empresa = a.empresa;
-            assessorMap.set(key, cur);
-        }
         for (const c of ((f.compradores ?? []) as Array<{ fazenda?: string; comprador?: string; uf?: string; vgv?: number; lotes?: number }>)) {
             const key = (c.fazenda || c.comprador || '').trim().toUpperCase();
             if (!key) continue;
@@ -249,7 +237,16 @@ export default async function AdminDashboard() {
         }
     }
 
-    const topAssessores = [...assessorMap.values()].sort((a, b) => b.vgv - a.vgv).slice(0, 5);
+    const topLeiloes: LeilaoTopItem[] = [...allFechamentos]
+        .sort((a, b) => (Number(b.vgv_total) || 0) - (Number(a.vgv_total) || 0))
+        .slice(0, 5)
+        .map(f => ({
+            nome: f.nome || '—',
+            data: f.data || '',
+            vgv: Number(f.vgv_total) || 0,
+            lotesVendidos: Number(f.lotes_vendidos) || 0,
+            animais: Number(f.animais_vendidos) || 0,
+        }));
     const topCompradores = [...compradorMap.values()].sort((a, b) => b.vgv - a.vgv).slice(0, 5);
     const topUFs = [...ufMap.values()].sort((a, b) => b.vgv - a.vgv).slice(0, 8);
     const topLances = allLances.sort((a, b) => b.vgv - a.vgv).slice(0, 5);
@@ -375,7 +372,7 @@ export default async function AdminDashboard() {
         tasks: topTasks,
         regions: topUFs,
         rankings: {
-            assessores: topAssessores.map(a => ({ nome: a.nome, empresa: a.empresa, vgv: a.vgv, animais: a.animais })),
+            topLeiloes,
             compradores: topCompradores,
             lances: topLances,
         },

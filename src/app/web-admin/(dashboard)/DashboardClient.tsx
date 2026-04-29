@@ -7,7 +7,7 @@ import {
     Filter, ArrowRight, Download, MoreHorizontal,
     Sparkles, CheckCircle2, Clock, MapPin,
     TrendingUp, TrendingDown, Plus, Users, MessageSquare,
-    Crown, Medal,
+    Medal,
 } from 'lucide-react';
 import './dashboard.css';
 
@@ -64,7 +64,7 @@ export type TaskItem = {
 
 export type RegionItem = { uf: string; estado: string; vgv: number; lotes: number; pct: number };
 
-export type AssessorItem = { nome: string; empresa: string; vgv: number; animais: number };
+export type LeilaoTopItem = { nome: string; data: string; vgv: number; lotesVendidos: number; animais: number };
 export type CompradorItem = { fazenda: string; uf: string; vgv: number; lotes: number };
 export type LanceItem = { lote: string; fazenda: string; uf: string; vgv: number; leilao: string };
 
@@ -95,7 +95,7 @@ export type DashboardProps = {
     tasks: TaskItem[];
     regions: RegionItem[];
     rankings: {
-        assessores: AssessorItem[];
+        topLeiloes: LeilaoTopItem[];
         compradores: CompradorItem[];
         lances: LanceItem[];
     };
@@ -113,6 +113,7 @@ const fmtBRLCompact = (v: number) => {
     return fmtBRL(v);
 };
 const fmtNum = (v: number) => v.toLocaleString('pt-BR');
+const MONTH_ABBR = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
 function useCountdown(target: number | null) {
     const [now, setNow] = useState<number>(() => Date.now());
@@ -599,15 +600,21 @@ function RegionPanel({ regions }: { regions: RegionItem[] }) {
 
 // ─── Rankings (extras) ─────────────────────────────────────────────────────
 
-function RankAssessores({ rows }: { rows: AssessorItem[] }) {
+function RankLeiloes({ rows }: { rows: LeilaoTopItem[] }) {
+    const fmtShortDate = (iso: string) => {
+        if (!iso) return '';
+        const [, m, d] = iso.split('-').map(Number);
+        if (!m || !d) return '';
+        return `${String(d).padStart(2, '0')}/${MONTH_ABBR[m - 1]}`;
+    };
     return (
         <div className="dcl-card dcl-col-4">
             <div className="dcl-card-head">
                 <div>
-                    <h3>Top assessores</h3>
-                    <span className="dcl-sub">VGV acumulado nos fechamentos</span>
+                    <h3>Top leilões realizados</h3>
+                    <span className="dcl-sub">Maiores VGV no histórico de fechamentos</span>
                 </div>
-                <Crown size={14} style={{ color: 'var(--dcl-gold)' }} />
+                <Trophy size={14} style={{ color: 'var(--dcl-gold)' }} />
             </div>
             {rows.length === 0 ? <div style={{ color: 'var(--dcl-ink-3)', fontSize: 13 }}>Sem dados.</div> : rows.map((r, i) => (
                 <div key={r.nome + i} className="dcl-rank-row">
@@ -615,9 +622,9 @@ function RankAssessores({ rows }: { rows: AssessorItem[] }) {
                     <div>
                         <div className="dcl-rank-name">{r.nome}</div>
                         <div className="dcl-rank-meta">
-                            {r.empresa && <span>{r.empresa}</span>}
-                            {r.empresa && <span className="dcl-dot" style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--dcl-ink-4)' }} />}
-                            <span>{fmtNum(r.animais)} animais</span>
+                            {r.data && <span>{fmtShortDate(r.data)}</span>}
+                            {r.data && <span className="dcl-dot" style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--dcl-ink-4)' }} />}
+                            <span>{fmtNum(r.lotesVendidos)} lotes · {fmtNum(r.animais)} animais</span>
                         </div>
                     </div>
                     <div>
@@ -729,7 +736,7 @@ export default function DashboardClient(props: DashboardProps) {
             </div>
 
             <div className="dcl-bento">
-                <RankAssessores rows={props.rankings.assessores} />
+                <RankLeiloes rows={props.rankings.topLeiloes} />
                 <RankCompradores rows={props.rankings.compradores} />
                 <RankLances rows={props.rankings.lances} />
             </div>

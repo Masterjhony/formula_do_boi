@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Plus, Edit2, Trash2, X, Loader2, AlertCircle, Save,
-  MapPin, Users, TrendingUp, Award, BarChart3, DollarSign,
+  MapPin, Users, TrendingUp, BarChart3, DollarSign,
   ChevronRight, Calendar, Target, Percent, Hash, Star,
   ArrowUp, ArrowDown, Minus, Dna, ShoppingCart,
 } from 'lucide-react'
@@ -358,7 +358,6 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                   { icon: Target, label: 'Maior Lance', value: f.maior_lance ? `R$ ${f.maior_lance.toLocaleString('pt-BR')}/parc.` : '—' },
                   { icon: Users, label: 'Compradores Únicos', value: f.compradores_unicos.toString(), sub: f.por_assessor.filter(a => a.nome).length ? `${f.por_assessor.reduce((s, a) => s + a.transacoes, 0)} transações` : undefined },
                   { icon: MapPin, label: 'Estados Alcançados', value: f.estados_alcancados.toString(), sub: f.por_estado.map(e => e.uf).join(' · ') || undefined },
-                  { icon: Award, label: 'Comissão Assessoria', value: f.comissao_assessoria ? R(f.comissao_assessoria) : '—' },
                 ].map(({ icon: Icon, label, value, sub, gold }) => (
                   <div key={label} className={`rounded-xl border p-3.5 ${gold ? 'border-[#A0792E]/30 bg-[#A0792E]/8' : 'border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#151515]'}`}>
                     <div className="flex items-center gap-1.5 mb-1.5">
@@ -868,10 +867,9 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
                 <FormField label="Ticket Médio (R$)"><input type="number" className={inputCls} value={form.ticket_medio || ''} onChange={e => set('ticket_medio', Number(e.target.value))} min={0} /></FormField>
                 <FormField label="Maior Lance (R$/parc.)"><input type="number" className={inputCls} value={form.maior_lance || ''} onChange={e => set('maior_lance', Number(e.target.value))} min={0} /></FormField>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <FormField label="Compradores Únicos"><input type="number" className={inputCls} value={form.compradores_unicos || ''} onChange={e => set('compradores_unicos', Number(e.target.value))} min={0} /></FormField>
                 <FormField label="Estados Alcançados"><input type="number" className={inputCls} value={form.estados_alcancados || ''} onChange={e => set('estados_alcancados', Number(e.target.value))} min={0} /></FormField>
-                <FormField label="Comissão Assessoria (R$)"><input type="number" className={inputCls} value={form.comissao_assessoria || ''} onChange={e => set('comissao_assessoria', Number(e.target.value))} min={0} /></FormField>
               </div>
               <FormField label="Observações">
                 <textarea className={`${inputCls} h-24 resize-none`} value={form.observacoes} onChange={e => set('observacoes', e.target.value)} placeholder="Notas sobre o fechamento..." />
