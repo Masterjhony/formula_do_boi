@@ -29,20 +29,6 @@ export default function AdminLoginPage() {
             if (signInError) throw signInError
 
             if (user) {
-                // Determine redirect based on role
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single()
-
-                if (profile?.role !== 'admin') {
-                    // If not admin, sign out and show error
-                    await supabase.auth.signOut()
-                    throw new Error('Acesso não autorizado. Apenas administradores podem acessar este painel.')
-                }
-
-                // Redirect to Admin Dashboard
                 router.refresh()
                 router.push('/')
             }

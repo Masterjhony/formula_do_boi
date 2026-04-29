@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar,
     MessageCircle, FileText, Sparkles, Gavel, Dna, Award,
-    ImageIcon, Shield, ExternalLink, ChevronDown, BarChart2, Target, BarChart3,
+    ImageIcon, Shield, ChevronDown, BarChart2, Target, BarChart3,
     Megaphone,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
@@ -89,9 +89,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) return router.push('/login');
-                const { data: profile } = await supabase
-                    .from('profiles').select('role').eq('id', user.id).single();
-                if (profile?.role !== 'admin') return router.push('/dashboard');
             } catch (e) {
                 console.error(e);
             } finally {
@@ -256,25 +253,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                         {/* Right Side */}
                         <div className="flex items-center gap-1 sm:gap-1.5 ml-auto">
-                            {/* ERP */}
-                            <a
-                                href="https://erp.formuladoboi.com"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="hidden lg:flex items-center gap-1.5 px-3.5 py-2 border border-[rgba(212,168,92,0.35)] bg-[rgba(160,121,46,0.06)] text-[#D4A85C] hover:bg-[rgba(160,121,46,0.12)] hover:border-[#D4A85C] transition-all"
-                                style={{
-                                    borderRadius: 3,
-                                    fontFamily: 'var(--font-mono), ui-monospace, monospace',
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    letterSpacing: '0.18em',
-                                    textTransform: 'uppercase',
-                                }}
-                            >
-                                <ExternalLink size={13} />
-                                <span>ERP</span>
-                            </a>
-
                             <ThemeToggle />
 
                             {/* User Menu */}
@@ -341,18 +319,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                 </div>
                                             </div>
                                         </div>
-                                        <a
-                                            href="https://erp.formuladoboi.com"
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="flex items-center gap-3 mx-1.5 px-3 py-2.5 mt-1 rounded-xl text-sm text-[#A0792E] hover:bg-[#A0792E]/10 transition-all lg:hidden"
-                                        >
-                                            <ExternalLink size={15} />
-                                            Abrir ERP
-                                        </a>
                                         <button
                                             onClick={handleSignOut}
-                                            className="flex items-center gap-3 w-full mx-1.5 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-all"
+                                            className="flex items-center gap-3 w-full mx-1.5 mt-1 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-all"
                                             style={{ width: 'calc(100% - 12px)' }}
                                         >
                                             <LogOut size={15} />
@@ -453,15 +422,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             })}
 
                             <div className="pt-3 mt-2 border-t border-gray-100 dark:border-[#222222] space-y-1">
-                                <a
-                                    href="https://erp.formuladoboi.com"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#A0792E]/30 bg-[#A0792E]/5 text-[#A0792E] text-sm font-semibold transition-all"
-                                >
-                                    <ExternalLink size={17} />
-                                    Abrir ERP
-                                </a>
                                 <button
                                     onClick={handleSignOut}
                                     className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"

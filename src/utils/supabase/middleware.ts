@@ -64,25 +64,6 @@ export async function updateSession(request: NextRequest, rewrittenPath?: string
                 url.searchParams.set('next', request.nextUrl.pathname)
                 return NextResponse.redirect(url)
             }
-
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-
-            if (profile?.role !== 'admin') {
-                const host = request.headers.get('host') || ''
-                const protocol = request.headers.get('x-forwarded-proto') || 'http'
-                let mainDomain = host.replace('admin.', '')
-                if (mainDomain === host) {
-                    if (host.startsWith('admin.')) mainDomain = host.replace('admin.', '')
-                }
-
-                const url = new URL('/', `${protocol}://${mainDomain}`)
-                url.pathname = '/dashboard'
-                return NextResponse.redirect(url)
-            }
         }
     }
 

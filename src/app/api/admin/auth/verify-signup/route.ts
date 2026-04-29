@@ -122,7 +122,7 @@ export async function POST(request: Request) {
             .update({ consumed_at: new Date().toISOString() })
             .eq('id', row.id)
 
-        // Ensure profile row exists with role 'user' (handle_new_user trigger usually creates it)
+        // Promote to admin so the new user can access the panel right after signup
         if (created.user?.id) {
             await supabase
                 .from('profiles')
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
                         id: created.user.id,
                         email: normalizedEmail,
                         full_name: effectiveName,
-                        role: 'user',
+                        role: 'admin',
                     },
                     { onConflict: 'id' }
                 )
