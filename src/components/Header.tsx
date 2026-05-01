@@ -11,6 +11,7 @@ const defaultNavItems = [
     { href: "/touros", label: "Touros" },
     { href: "/embrioes", label: "Embriões" },
     { href: "/agenda", label: "Leilões" },
+    { href: "/grupo-vip", label: "Grupo VIP" },
     { href: "/venda-conosco", label: "Contato" },
 ];
 
@@ -45,10 +46,11 @@ export default function Header() {
         setNavItems(() => {
             const items = [defaultNavItems[0]];
             if (semenEnabled === true) items.push({ href: "/semen", label: "Sêmen" });
-            if (tourosEnabled !== false) items.push(defaultNavItems[1]);
-            items.push(defaultNavItems[2]);
-            items.push(defaultNavItems[3]);
-            items.push(defaultNavItems[4]);
+            if (tourosEnabled !== false) items.push(defaultNavItems[1]); // Touros
+            items.push(defaultNavItems[2]); // Embriões
+            items.push(defaultNavItems[3]); // Leilões
+            items.push(defaultNavItems[4]); // Grupo VIP
+            items.push(defaultNavItems[5]); // Contato
             return items;
         });
     };

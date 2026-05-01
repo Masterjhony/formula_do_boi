@@ -157,6 +157,8 @@ export default function Footer() {
                                 <li><Link href="/semen" className="hover:text-[#D4A85C] transition-colors">Sêmen</Link></li>
                             )}
                             <li><Link href="/embrioes" className="hover:text-[#D4A85C] transition-colors">Doadoras & Embriões</Link></li>
+                            <li><Link href="/agenda" className="hover:text-[#D4A85C] transition-colors">Leilões</Link></li>
+                            <li><Link href="/grupo-vip" className="hover:text-[#D4A85C] transition-colors">Grupo VIP</Link></li>
                             {showTopBreeders && (
                                 <li><Link href="/top-criadores" className="hover:text-[#D4A85C] transition-colors">Top Criadores</Link></li>
                             )}
@@ -186,14 +188,61 @@ export default function Footer() {
                             </li>
                             <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
                                 <MapPin className="w-4 h-4 mt-0.5" style={{ color: "#A0792E" }} />
-                                <span>Belo Horizonte · MG</span>
+                                <span>
+                                    Rua Magi Salomon, 246 · Apt 100<br />
+                                    Salgado Filho · Belo Horizonte / MG<br />
+                                    CEP 30.550-190
+                                </span>
                             </li>
                         </ul>
                     </div>
                 </div>
 
+                {/* Parceiros — strip institucional brandbook */}
                 <div
-                    className="pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-4"
+                    className="mb-6 md:mb-8 flex flex-col md:flex-row items-center justify-center gap-5 md:gap-10"
+                    style={{
+                        borderTop: "1px solid rgba(212,168,92,0.14)",
+                        borderBottom: "1px solid rgba(212,168,92,0.14)",
+                        padding: "16px 0",
+                    }}
+                >
+                    <span
+                        style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: 10,
+                            letterSpacing: "0.28em",
+                            textTransform: "uppercase",
+                            color: "rgba(245,240,228,0.42)",
+                            fontWeight: 500,
+                        }}
+                    >
+                        Parceiros
+                    </span>
+                    {[
+                        { name: "Bula Assessoria · Bula Remates" },
+                        { name: "Aceleradora de Touros" },
+                        { name: "Central Bela Vista" },
+                        { name: "Nelore Visual" },
+                    ].map((p) => (
+                        <span
+                            key={p.name}
+                            style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: 10.5,
+                                letterSpacing: "0.16em",
+                                textTransform: "uppercase",
+                                color: "rgba(245,240,228,0.68)",
+                                fontWeight: 500,
+                            }}
+                        >
+                            {p.name}
+                        </span>
+                    ))}
+                </div>
+
+                <div
+                    className="pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-3"
                     style={{
                         borderTop: "1px solid rgba(212,168,92,0.14)",
                         fontFamily: "var(--font-mono)",
@@ -202,7 +251,9 @@ export default function Footer() {
                         color: "rgba(245,240,228,0.42)",
                     }}
                 >
-                    <p>© 2026 FÓRMULA DO BOI · CONFIDENCIAL · USO INTERNO</p>
+                    <p className="text-center md:text-left">
+                        © 2026 FÓRMULA DO BOI LTDA · CNPJ 65.565.807/0001-17
+                    </p>
                     <p>GENÉTICA DE ELITE · PRECISÃO DE DADOS</p>
                 </div>
             </div>
