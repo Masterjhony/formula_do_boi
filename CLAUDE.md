@@ -11,89 +11,250 @@ npm run start    # Start production server
 npm run lint     # Run ESLint
 ```
 
-No test suite is configured.
+No test suite is configured. `playwright` is in devDependencies but no test runner script is wired up.
 
 ## Architecture Overview
 
-**Formula do Boi** is a livestock genetics marketplace for Nelore cattle (PO). It has three distinct interfaces unified by subdomain routing via `src/middleware.ts`:
+**Fórmula do Boi** is a livestock genetics platform for Nelore PO (Puro de Origem) cattle. The app is a single Next.js 16 (App Router) deployment that serves five distinct interfaces, multiplexed by subdomain in [src/middleware.ts](src/middleware.ts):
 
 | Subdomain | Route prefix | Purpose |
 |-----------|-------------|---------|
-| `admin.*` | `/web-admin` | CRM, product management, analytics, WhatsApp |
-| `erp.*` | `/web-erp` | Internal operations (tactical plan, contracts) |
-| Root domain | `/web-site` | Public marketplace |
+| Root domain (`formuladoboi.com`, `www.*`) and `lp.*` | `/web-lp` | Landing page (lead capture, "Pag-zap" funnel) |
+| `admin.*` | `/web-admin` | CRM, products, analytics, WhatsApp, tactical plan, OKRs |
+| `erp.*` | `/web-erp` | Internal ERP (financeiro, contábil, estoque, leilões) |
+| `adminbula.*` | `/web-bula` | Bula auction platform (CRM, fechamentos, cronograma) |
+| Anything else (e.g. `app.*` legacy) | `/web-site` | Public marketplace (touros, matrizes, embriões, sêmen) |
+
+`/admin` and `/erp` paths on the marketplace subdomain are 302-redirected to `admin.*` / `erp.*`. API routes (`/api/*`) bypass the rewrite. The middleware also calls `updateSession()` from [src/utils/supabase/middleware.ts](src/utils/supabase/middleware.ts) to refresh Supabase auth cookies.
 
 ### Core Services
 
-- **Next.js (Vercel)** — App Router, deployed automatically on `git push` to `main`. Never run `vercel --prod` manually.
-- **Supabase** — PostgreSQL with RLS, used for all data persistence and auth. Three client variants: `src/utils/supabase/server.ts` (server components), `src/utils/supabase/client.ts` (browser), `src/utils/supabase/middleware.ts` (auth refresh).
+- **Next.js 16.1.4 / React 19.2.3 (Vercel)** — App Router, deployed automatically on `git push` to `main`. Never run `vercel --prod` manually.
+- **Supabase** (`@supabase/supabase-js` 2.99 + `@supabase/ssr` 0.8) — PostgreSQL with RLS, used for all data persistence and auth. Three client variants: [src/utils/supabase/server.ts](src/utils/supabase/server.ts) (server components), [src/utils/supabase/client.ts](src/utils/supabase/client.ts) (browser), [src/utils/supabase/middleware.ts](src/utils/supabase/middleware.ts) (auth refresh).
 - **WhatsApp microservice** — Separate Docker container on DigitalOcean VPS (`165.232.142.37:3001`) running Baileys. Exists because Vercel serverless cannot maintain persistent WebSocket connections. Next.js proxies to it via `/api/whatsapp/*` routes.
+- **Cloudflare R2** (`aws4fetch`) — S3-compatible object storage for the media library; Next.js issues presigned URLs via `/api/r2/*` so the browser uploads/downloads directly.
+- **Leilão server** — Optional external Python service proxied through `/api/leilao/[...path]` (`LEILAO_SERVER_URL`, default `http://localhost:8000`).
+- **GLM-4.7 (Zhipu AI)** — Called over HTTP (no SDK) at `https://open.bigmodel.cn/api/paas/v4/chat/completions`. Powers the in-app AI assistant and the WhatsApp `/ia` command via tool-calling against a fixed allow-list of Supabase tables.
+- **Asaas** — Brazilian payment processor; webhook validation only (`/api/asaas-webhook`).
 
-### Key Data Flow: Lead Automation
+### Key Data Flows
 
-Google Sheets → `POST /api/webhooks/google-sheets` (validates `x-webhook-secret`) → inserts to `crm_leads` → calls WhatsApp microservice `/send` → logs to `whatsapp_messages`.
+**Landing-page lead capture** (`lp.formuladoboi.com`):
+LP form → `POST /api/lp/lead` → applies UTM defaults → inserts into `crm_leads` → appends row to Google Sheets `Pag-zap` tab → triggers WhatsApp welcome.
 
-The welcome message and interactive menu options are configured via the admin panel (`/web-admin/whatsapp`) and stored in `site_settings` with key `whatsapp_flow`. When a lead replies with a menu option number, the server responds automatically (tracked in-memory with a configurable timeout).
+**Google-Sheets webhook lead** (legacy/external integrations):
+Sheet row → `POST /api/webhooks/google-sheets` (validates `x-webhook-secret`) → inserts to `crm_leads` → calls VPS `/send` → logs to `whatsapp_messages`.
+
+**WhatsApp interactive flow**: the welcome message and numbered menu options are configured in the admin panel (`/web-admin/whatsapp`) and stored in `site_settings.whatsapp_flow`. When a lead replies with a menu option key, the VPS responds automatically (tracked in-memory with a configurable timeout).
 
 ### Database
 
-Migrations are in `/database/` (100+ files, one per change). Key tables:
+Migrations live in [/database/](database/) (~120 files, one per change). They are run manually against Supabase — there is no migration runner. Key tables:
 
 | Table | Purpose |
 |-------|---------|
-| `products` | Livestock catalog (touros, matrizes, embriões, sêmen); `details` JSONB, `genealogia_json` JSONB, `avaliacao_genetica_json` JSONB |
-| `crm_leads` | Sales pipeline; `position` field drives Kanban ordering |
-| `profiles` | User roles (`admin` / `user`, references `auth.users`) |
-| `tactical_tasks` | ERP Kanban with `checklists` JSONB and `attachments` JSONB; columns `whatsapp_group_id`, `whatsapp_group_name`, `whatsapp_sender`, `whatsapp_sender_name` track cards created via WhatsApp groups |
-| `tactical_contracts` | Contract management |
-| `whatsapp_messages` | WhatsApp message send log (status, phone, lead_id FK) |
-| `site_settings` | Feature flags and configuration (key/JSONB value). Key `whatsapp_flow` stores the automation flow config. |
-| `breeders` | Breeder registry |
+| `products` | Livestock catalog (touros, matrizes, embriões, sêmen). `details`, `genealogia_json`, `avaliacao_genetica_json` are JSONB. |
+| `crm_leads` | Sales pipeline. `position` drives Kanban ordering. UTM/attribution fields (`source`, `medium`, `campaign`, `utm_content`, `utm_term`, `gclid`, `fbclid`, `referrer`, `landing_url`) are populated by `/api/lp/lead`. |
+| `profiles` | User roles (`admin` / `user`); references `auth.users`. |
+| `breeders` | Breeder registry. |
+| `whatsapp_messages` | WhatsApp send log (status, phone, lead_id FK). |
+| `site_settings` | Feature flags and configuration (key/JSONB). Key `whatsapp_flow` stores the automation flow config. |
+| `signup_verification_codes` | 6-digit signup codes (SHA-256 hash, expires_at, attempts). |
+| `tactical_tasks` | ERP/Admin Kanban with `checklists` and `attachments` JSONB. WhatsApp-origin columns: `whatsapp_group_id`, `whatsapp_group_name`, `whatsapp_sender`, `whatsapp_sender_name`. |
+| `tactical_task_attachments`, `tactical_task_comments`, `tactical_kanban_columns` | Companion tables for the Kanban. |
+| `tactical_contracts` | Contract management. |
+| `tactical_members` | Team registry for the tactical plan. |
+| `tactical_objectives`, `tactical_key_results`, `tactical_task_kr_links` | OKR layer (`/web-admin/okr`). |
+| `tactical_risks` | Risk register; populated by the WhatsApp `/risco` command. |
+| `tactical_decisions` | Decision log; populated by the WhatsApp `/decisao` command. |
+| `strategic_flows`, `strategic_stages` | Strategic-plan layer above the tactical Kanban. |
+| `cronograma_leiloes` | Auction schedule (admin/site). |
+| `erp_finance_accounts`, `erp_finance_categories`, `erp_finance_transactions` | ERP financeiro module. |
+| `erp_accounting_accounts`, `erp_accounting_journals`, `erp_accounting_journal_lines` | ERP contábil module. |
+| `erp_inventory_warehouses`, `erp_inventory_products`, `erp_inventory_stock`, `erp_inventory_movements` | ERP estoque module. |
+| `bula_membros`, `bula_leiloes`, `bula_leilao_assessores`, `bula_leilao_fechamento` | Bula auction core. |
+| `bula_projeto_cards`, `bula_card_responsaveis` | Bula project Kanban cards. |
+| `bula_crm_funis`, `bula_crm_deals`, `bula_leads`, `bula_marketing_config` | Bula CRM and marketing. |
 
 ### Notable Implementation Details
 
-- **WhatsApp flow builder**: Admin can edit the welcome message (supports `{nome}` variable), define numbered menu options, and configure reply timeout — stored in `site_settings.whatsapp_flow`, applied to the VPS server live via `POST /reload-config`.
-- **WhatsApp group task creation**: Members of a WhatsApp community group can type `/tarefa <description>` to create a Kanban card in `tactical_tasks`. The Baileys server detects the prefix, calls `POST /api/whatsapp/group-task` (authenticated via `WHATSAPP_GROUP_TASK_SECRET`), and replies in the group confirming creation. The card appears in the ERP Kanban with a green "WhatsApp" badge. Messages from the bot's own number are ignored (`fromMe = true`).
-- **WhatsApp group AI assistant**: Members can type `/ia <pergunta>` in the group to query the system via GLM-4.7. The VPS detects the prefix, calls `POST /api/whatsapp/group-ai` (authenticated via `WHATSAPP_GROUP_TASK_SECRET`), which uses tool-calling to query Supabase tables and returns a concise answer in the group. Supports questions about CRM leads, products, tasks, contracts, and system settings.
-- **Genealogy/Genetic Evaluation parsing**: `src/lib/genealogy-parser.ts` and `src/lib/avaliacao-genetica-parser.ts` parse PDFs via `pdf-parse` and expose batch endpoints under `/api/parse-*`.
-- **CRM Kanban**: built with `@dnd-kit` — drag updates `position` field in Supabase in real time.
-- **Analytics**: GA4 data pulled via `@google-analytics/data` using a service account; configured with `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_GA4_PROPERTY_ID`.
+- **WhatsApp flow builder**: admin can edit the welcome message (supports `{nome}` variable), define numbered menu options, and configure reply timeout — stored in `site_settings.whatsapp_flow`, applied to the VPS live via `POST /reload-config`.
+- **WhatsApp group commands**: members of a connected group (`@g.us`) can run `/tarefa`, `/decisao`, `/risco`, and `/ia`. The VPS detects the prefix in `messages.upsert` (ignoring `fromMe`), POSTs to the corresponding Next.js endpoint with `x-webhook-secret`, and replies in the group on success/failure. See [WhatsApp Group Commands](#whatsapp-group-commands) below.
+- **AI assistant (GLM-4.7)**: same model is shared by the in-app `/web-admin/ia` page (`/api/ai/chat`) and the WhatsApp `/ia` command (`/api/whatsapp/group-ai`). Both use tool-calling against an 8-table allow-list (`products`, `crm_leads`, `profiles`, `tactical_tasks`, `tactical_contracts`, `whatsapp_messages`, `site_settings`, `breeders`).
+- **Genealogy / Genetic Evaluation parsing**: [src/lib/genealogy-parser.ts](src/lib/genealogy-parser.ts) and [src/lib/avaliacao-genetica-parser.ts](src/lib/avaliacao-genetica-parser.ts) parse PDFs via `pdf-parse` and back the batch endpoints under `/api/parse-*`.
+- **CRM Kanban**: built with `@dnd-kit` — drag updates the `position` field in Supabase in real time.
+- **Global search**: `/api/search?q=...` returns categorized hits (`lead`, `product`, `leilao`, `fechamento`, `task`, `breeder`) for the spotlight UI in [src/components/admin/GlobalSearch.tsx](src/components/admin/GlobalSearch.tsx).
+- **Analytics**: GA4 data pulled via `@google-analytics/data` using a service account; configured with `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_GA4_PROPERTY_ID` (fallback `483341191`).
+- **Media library**: stored on Cloudflare R2 with prefix `R2_PREFIX` (default `libmedia/`). Browser uploads via presigned PUT issued by `/api/r2/upload-url`; downloads via presigned GET from `/api/r2/download-url`.
+- **Bula sistema**: `/web-bula/sistema` and `/web-bula/login.html` are static HTML SPAs served via tiny `route.ts` handlers that stream the file. They consume the `/api/bula/*` JSON endpoints.
 - **Path alias**: `@/*` maps to `./src/*`.
+
+## Page Routes
+
+### `/web-lp` (root domain + `lp.*`)
+- `/` (landing page form)
+- `/obrigado` (post-signup thank-you)
+
+### `/web-site` (legacy/non-matching subdomains)
+`agenda`, `animais`, `atacante`, `auth`, `dashboard`, `embrioes`, `login`, `lote`, `matrizes`, `parceiros`, `pix-teste`, `quem-somos`, `rankings`, `semen`, `sertanejo`, `top-criadores`, `touros`, `venda-conosco`.
+
+### `/web-admin` (`admin.*`)
+Dashboard segments under `(dashboard)`: `analytics`, `animal-availability`, `biblioteca-midia`, `breeders`, `central-bela-vista`, `contratos`, `crm`, `genealogia`, `ia`, `leads`, `leiloes`, `lotes-doadoras`, `lotes-touros`, `okr`, `products`, `settings`, `tactical-plan`, `users`, `vendas-marketing`, `whatsapp`. Auth pages live under `(auth)`. Server actions in [src/app/web-admin/actions/](src/app/web-admin/actions/).
+
+### `/web-erp` (`erp.*`)
+Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeiro`, `leiloes`. Auth under `(auth)`.
+
+### `/web-bula` (`adminbula.*`)
+- `/cadastro` (signup)
+- `/sistema` (single-page app served from `sistema.html`)
+- `/login.html` (login SPA shell)
 
 ## API Routes
 
+### Auth & Users (admin panel)
 | Route | Methods | Purpose |
 |-------|---------|---------|
-| `/api/webhooks/google-sheets` | POST, GET | Receives leads from Google Sheets, inserts to `crm_leads`, triggers WhatsApp send |
-| `/api/webhook/crm-lead` | POST | Legacy webhook; sends welcome WhatsApp via `src/lib/whatsapp.ts` |
-| `/api/whatsapp/status` | GET | Proxies to VPS `/status` — returns `{status, qr}` |
-| `/api/whatsapp/messages` | GET | Fetches last 50 messages + today's count + conversations from `whatsapp_messages` |
-| `/api/whatsapp/flow` | GET, PUT | Reads/saves WhatsApp flow config in `site_settings`; PUT also calls `/reload-config` on VPS |
-| `/api/whatsapp/group-task` | POST | Called by VPS when `/tarefa` is detected in a group; validates `x-webhook-secret`, creates card in `tactical_tasks` with WhatsApp origin fields |
-| `/api/whatsapp/group-ai` | POST | Called by VPS when `/ia` is detected in a group; validates `x-webhook-secret`, queries GLM-4.7 with tool-calling to answer questions about the system |
-| `/api/parse-genealogy` | POST | Parses genealogy from product PDF, saves to `products.genealogia_json` |
-| `/api/parse-genealogy/batch` | GET, POST | Batch genealogy extraction (supports `dryRun`, `onlyMissing`) |
-| `/api/parse-avaliacao-genetica` | POST | Parses genetic evaluation from PDF, saves to `products.avaliacao_genetica_json` |
-| `/api/parse-avaliacao-genetica/batch` | GET, POST | Batch genetic evaluation extraction |
 | `/api/admin/auth/send-code` | POST | Generates a 6-digit code, stores SHA-256 hash in `signup_verification_codes`, sends email via SMTP. Throttled 1/min/email. |
 | `/api/admin/auth/verify-signup` | POST | Validates code (max 5 attempts, 10min TTL) and creates the user via `auth.admin.createUser` with `role='user'` (admin promotion stays manual via `/users`). |
+| `/api/admin/users/[id]` | DELETE | Admin-only: deletes a user (refuses self-deletion). |
+| `/api/admin/users/[id]/reset-password` | POST | Admin-only: resets a user's password. |
+| `/api/admin/backfill-utm-sheet` | POST | One-shot maintenance: ensures UTM headers (cols L..R) on the `Pag-zap` Sheet and backfills missing rows with default attribution. |
+
+### Lead Capture & Webhooks
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/lp/lead` | POST | Public LP form submission; inserts to `crm_leads` (with UTM/attribution defaults), appends to Google Sheets `Pag-zap`, triggers WhatsApp welcome. |
+| `/api/webhooks/google-sheets` | POST, GET | Receives leads from Google Sheets (validates `x-webhook-secret`); inserts to `crm_leads`, triggers WhatsApp send. |
+| `/api/webhook/crm-lead` | POST | Legacy webhook; sends welcome WhatsApp via [src/lib/whatsapp.ts](src/lib/whatsapp.ts). |
+
+### WhatsApp
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/whatsapp/status` | GET | Proxies VPS `/status` — returns `{status, qr}`. |
+| `/api/whatsapp/messages` | GET | Last 50 messages + today's count + conversations from `whatsapp_messages`. |
+| `/api/whatsapp/flow` | GET, PUT | Reads/saves WhatsApp flow config in `site_settings`; PUT also calls `/reload-config` on the VPS. |
+| `/api/whatsapp/group-task` | POST | `/tarefa <desc>` from a group → creates `tactical_tasks` card with WhatsApp origin fields. |
+| `/api/whatsapp/group-decision` | POST | `/decisao <desc>` from a group → inserts into `tactical_decisions`. |
+| `/api/whatsapp/group-risk` | POST | `/risco <title>` from a group → inserts into `tactical_risks` with default `media`/`medio`. |
+| `/api/whatsapp/group-ai` | POST | `/ia <pergunta>` from a group → GLM-4.7 with tool-calling answers via tables; reply pushed back to the group by the VPS. |
+
+All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET` and call `revalidatePath('/web-admin/tactical-plan')` (where applicable).
+
+### AI (admin)
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/ai/chat` | POST | GLM-4.7 chat used by `/web-admin/ia` (tool-calling, 8-table allow-list). |
+| `/api/ai/test` | GET | Smoke-test endpoint for AI configuration. |
+
+### Cloudflare R2 (media library)
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/r2/upload-url` | POST | Presigned PUT URL (S3-compatible) for browser direct upload. |
+| `/api/r2/download-url` | GET | Presigned GET URL for authenticated download. |
+| `/api/r2/list` | GET | Lists objects in the R2 bucket with a prefix filter. |
+| `/api/r2/delete` | POST | Deletes objects from the R2 bucket. |
+
+### PDF Parsing (admin only)
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/parse-genealogy` | POST | Parses genealogy from a product PDF, saves to `products.genealogia_json`. |
+| `/api/parse-genealogy/batch` | GET, POST | Batch genealogy extraction (`dryRun`, `onlyMissing`). |
+| `/api/parse-avaliacao-genetica` | POST | Parses genetic evaluation, saves to `products.avaliacao_genetica_json`. |
+| `/api/parse-avaliacao-genetica/batch` | GET, POST | Batch genetic-evaluation extraction. |
+
+### Search
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/search` | GET | Spotlight search across `crm_leads`, `products`, `bula_leiloes`, `bula_leilao_fechamento`, `tactical_tasks`, `breeders`. Min 2 chars, 5 hits per type. |
+
+### Bula auction platform (`adminbula.*`)
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/bula/auth/signin` | POST | Email+password sign-in via Supabase Auth. |
+| `/api/bula/auth/signup` | POST | Bula user signup. |
+| `/api/bula/membros` | GET | Member list. |
+| `/api/bula/leiloes` | GET | Auction list. |
+| `/api/bula/leiloes/[id]` | GET | Auction detail. |
+| `/api/bula/leiloes/upload` | POST | Upload auction data. |
+| `/api/bula/crm/funis` | GET | CRM funnel definitions. |
+| `/api/bula/crm/deals` | POST | Create a CRM deal. |
+| `/api/bula/crm/deals/[id]` | PUT | Update a CRM deal. |
+| `/api/bula/leads` | GET | Bula lead list. |
+| `/api/bula/leads/[id]` | PATCH | Update a Bula lead. |
+| `/api/bula/projetos/cards` | GET | Project Kanban cards. |
+| `/api/bula/projetos/cards/[id]` | PUT | Update a project card. |
+| `/api/bula/cronograma` | GET | Auction schedule. |
+| `/api/bula/cronograma/[id]` | PUT | Update a cronograma item. |
+| `/api/bula/fechamento` | GET | Auction closings/results. |
+| `/api/bula/fechamento/[id]` | GET | Closing detail. |
+| `/api/bula/marketing/config` | GET | Marketing configuration. |
+
+### Payments
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/asaas-webhook` | POST, GET | Asaas validation webhook — auto-approves `TRANSFER.CREATED` so the platform can issue API keys for withdrawals. |
+| `/api/asaas-pix-test` | POST | Sandbox helper to issue a test PIX charge. |
+| `/api/checkout-semen` | POST | Public sêmen checkout: appends row to Google Sheets `Checkout-Semen` tab. |
+
+### External proxy
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/leilao/[...path]` | GET, POST, … | Catch-all proxy to `LEILAO_SERVER_URL/api/<path>` (10s timeout, no-store). |
+
+## Library code (`src/lib/`)
+
+| File | Purpose |
+|------|---------|
+| `whatsapp.ts` | Thin HTTP client for the VPS — `sendWelcomeMessage(phone, name)`. |
+| `genealogy-parser.ts` | PDF → genealogia_json. |
+| `avaliacao-genetica-parser.ts` | PDF → avaliacao_genetica_json. |
+| `auth-helpers.ts` | `requireAdmin()` and friends for API routes. |
+| `email.ts` | Nodemailer SMTP client; renders verification-code and password-reset emails. |
+| `r2.ts` | Cloudflare R2 (S3-compatible) client; presigned URLs, list, delete. |
+| `crm-types.ts` | CRM TypeScript interfaces. |
+| `bula/queries.ts`, `bula/types.ts` | Shared Supabase queries and types for the Bula APIs. |
 
 ## Environment Variables
 
 ```
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL          # Supabase REST API endpoint
 NEXT_PUBLIC_SUPABASE_ANON_KEY     # Supabase public anon key
 SUPABASE_SERVICE_ROLE_KEY         # Supabase service role key (bypasses RLS)
+
+# Webhooks & WhatsApp
 SHEETS_WEBHOOK_SECRET             # Validates Google Sheets webhook requests
 WHATSAPP_SERVER_URL               # default: http://localhost:3001
-WHATSAPP_GROUP_TASK_SECRET        # Shared secret between VPS and /api/whatsapp/group-task (Production only in Vercel)
+WHATSAPP_GROUP_TASK_SECRET        # Shared secret for /tarefa, /decisao, /risco, /ia (Production only in Vercel)
+
+# AI (GLM-4.7 / Zhipu)
+GLM_API_KEY                       # Zhipu API key
+GLM_MODEL                         # default: glm-4.7
+
+# Analytics (GA4)
 GOOGLE_GA4_PROPERTY_ID            # GA4 property (fallback: 483341191)
-GOOGLE_SERVICE_ACCOUNT_JSON       # GA4 service account credentials (stringified JSON)
+GOOGLE_SERVICE_ACCOUNT_JSON       # GA4 + Sheets service account credentials (stringified JSON)
+
+# SMTP (signup codes & resets)
 SMTP_HOST                         # default: smtp.hostinger.com
 SMTP_PORT                         # default: 465
-SMTP_USER                         # mailbox (ex: contato@formuladoboi.com)
-SMTP_PASS                         # senha da mailbox
-SMTP_FROM                         # opcional, default: "Fórmula do Boi <SMTP_USER>"
+SMTP_USER                         # mailbox (e.g. contato@formuladoboi.com)
+SMTP_PASS                         # mailbox password
+SMTP_FROM                         # optional; default: "Fórmula do Boi <SMTP_USER>"
+
+# Cloudflare R2 (media library)
+R2_ACCOUNT_ID                     # R2 account ID
+R2_BUCKET                         # R2 bucket name
+R2_ACCESS_KEY_ID                  # R2 access key
+R2_SECRET_ACCESS_KEY              # R2 secret
+R2_PREFIX                         # default: "libmedia/"
+
+# Asaas (payments)
+ASAAS_API_KEY                     # Production/sandbox API key
+ASAAS_SANDBOX                     # "true" to hit the sandbox
+
+# External services
+LEILAO_SERVER_URL                 # default: http://localhost:8000
 ```
 
 The WhatsApp server (VPS) uses the same Supabase variables to load flow config from `site_settings` at startup and every 5 minutes.
@@ -126,31 +287,22 @@ Session state is persisted in the Docker volume `/opt/whatsapp-auth/`. If the QR
 | `/config` | GET | Current in-memory flow config + pending reply count |
 | `/reload-config` | POST | Force reload flow config from Supabase |
 
-### WhatsApp Group Task Command
+### WhatsApp Group Commands
 
-When a member of a connected group types `/tarefa <description>`, the VPS:
-1. Detects the prefix in `messages.upsert` (only for `@g.us` JIDs, ignores `fromMe`)
-2. POSTs to `NEXT_JS_URL/api/whatsapp/group-task` with `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
-3. On success: replies `✅ Tarefa criada por *Name*: "description"` in the group
-4. On failure: replies `❌ Não foi possível criar a tarefa.`
+When a member of a connected group (`@g.us`, `fromMe = false`) sends one of the prefixes below, the VPS POSTs to the matching Next.js endpoint with `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET` and replies in the group with the result.
+
+| Prefix | Endpoint | Effect | Success / failure reply |
+|--------|----------|--------|------------------------|
+| `/tarefa <descrição>` | `/api/whatsapp/group-task` | Creates a `tactical_tasks` card with WhatsApp origin fields. Card shows a green "WhatsApp" badge in the ERP Kanban. | `✅ Tarefa criada por *Name*: "..."` / `❌ Não foi possível criar a tarefa.` |
+| `/decisao <texto>` | `/api/whatsapp/group-decision` | Inserts into `tactical_decisions` (`decided_at = today`). | success/failure reply |
+| `/risco <título>` | `/api/whatsapp/group-risk` | Inserts into `tactical_risks` with default `probability=media`, `impact=medio`, `status=active`. | success/failure reply |
+| `/ia <pergunta>` | `/api/whatsapp/group-ai` | Sends a "processing…" message, calls GLM-4.7 with tool-calling against the 8-table allow-list, replies with the answer (max ~1000 chars, WhatsApp formatting). 30s timeout. Fire-and-forget on the VPS so it doesn't block other group commands. | answer / `❌ Não foi possível processar a pergunta.` |
 
 VPS env vars required: `NEXT_JS_URL=https://admin.formuladoboi.com`, `WHATSAPP_GROUP_TASK_SECRET=<secret>` (same value as Vercel Production).
 
 > **Pitfall**: when adding `WHATSAPP_GROUP_TASK_SECRET` via `vercel env add`, paste the value carefully — the CLI may append a trailing newline making the length 65 instead of 64, causing all requests to fail with 401.
 
-### WhatsApp Group AI Command
-
-When a member types `/ia <question>` in a connected group, the VPS:
-1. Detects the `/ia` prefix in `messages.upsert` (only for `@g.us` JIDs, ignores `fromMe`)
-2. Sends a "processing" message in the group
-3. POSTs to `NEXT_JS_URL/api/whatsapp/group-ai` with `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
-4. The API route calls GLM-4.7 with tool-calling (can query all 8 allowed Supabase tables)
-5. On success: replies with the AI answer in the group (max ~1000 chars, WhatsApp formatting)
-6. On failure: replies `❌ Não foi possível processar a pergunta.`
-
-The call runs fire-and-forget (no `await` in the message loop) so it doesn't block other group commands. Timeout: 30 seconds.
-
-### WhatsApp Flow Config (site_settings key: `whatsapp_flow`)
+### WhatsApp Flow Config (`site_settings.whatsapp_flow`)
 
 ```json
 {
