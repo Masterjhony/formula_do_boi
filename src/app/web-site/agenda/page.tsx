@@ -8,9 +8,12 @@ function normalize(s: string) {
 }
 
 async function getLeiloesPublicos(): Promise<LeilaoPublico[]> {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        return [];
+    }
     const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
     const [{ data: bula }, { data: crono }] = await Promise.all([

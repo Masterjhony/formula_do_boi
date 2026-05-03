@@ -33,7 +33,14 @@ function getEnv(name: string, fallback?: string): string {
     return v;
 }
 
-export const R2_BUCKET = getEnv('R2_BUCKET');
+// Lazy: avaliados sob demanda — evita crash no build de ambientes sem R2
+// configurado (ex.: Vercel preview deploys com escopo só "Production").
+let _bucket: string | null = null;
+function getR2Bucket(): string {
+    if (_bucket) return _bucket;
+    _bucket = getEnv('R2_BUCKET');
+    return _bucket;
+}
 export const R2_PREFIX = (process.env.R2_PREFIX ?? '').replace(/^\/+/, '');
 
 let _client: S3Client | null = null;
@@ -121,7 +128,7 @@ export async function listR2Objects(opts?: {
     const client = getClient();
     const out = await client.send(
         new ListObjectsV2Command({
-            Bucket: R2_BUCKET,
+            Bucket: getR2Bucket(),
             Prefix: R2_PREFIX || undefined,
             MaxKeys: opts?.maxKeys ?? 1000,
             ContinuationToken: opts?.continuationToken || undefined,
@@ -152,7 +159,7 @@ export async function getR2DownloadUrl(
     const Key = resolveR2Key(rawKey);
     const expiresIn = Math.min(Math.max(opts?.expiresInSeconds ?? 3600, 60), 7 * 24 * 3600);
     const cmd = new GetObjectCommand({
-        Bucket: R2_BUCKET,
+        Bucket: getR2Bucket(),
         Key,
         // Sugere ao browser baixar com nome amigável em vez de tentar abrir.
         ResponseContentDisposition: opts?.downloadAs
@@ -171,7 +178,7 @@ export async function getR2UploadUrl(
     const Key = resolveR2Key(rawKey);
     const expiresIn = Math.min(Math.max(opts?.expiresInSeconds ?? 3600, 60), 24 * 3600);
     const cmd = new PutObjectCommand({
-        Bucket: R2_BUCKET,
+        Bucket: getR2Bucket(),
         Key,
         ContentType: opts?.contentType,
     });
@@ -181,10 +188,10 @@ export async function getR2UploadUrl(
 
 export async function deleteR2Object(rawKey: string): Promise<void> {
     const Key = resolveR2Key(rawKey);
-    await getClient().send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key }));
+    await getClient().send(new DeleteObjectCommand({ Bucket: getR2Bucket(), Key }));
 }
 
 export async function headR2Object(rawKey: string) {
     const Key = resolveR2Key(rawKey);
-    return getClient().send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key }));
+    return getClient().send(new HeadObjectCommand({ Bucket: getR2Bucket(), Key }));
 }

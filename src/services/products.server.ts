@@ -54,8 +54,19 @@ const mapProductPublic = (data: any) => {
     return product as Product;
 };
 
+// Guard: se Supabase não está configurado (dev local sem .env.local, deploy
+// preview sem envs), services retornam fallback vazio em vez de crashar.
+function supabaseConfigured(): boolean {
+    return Boolean(
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+}
+
 // For Server Components
 export const getProductsServer = async (isAuthenticated = true) => {
+    if (!supabaseConfigured()) return [];
+
     const supabase = await createServerClient();
     const { data, error } = await supabase.from('products').select('*').eq('active', true).order('display_order', { ascending: false }).order('id', { ascending: true });
 
@@ -69,6 +80,8 @@ export const getProductsServer = async (isAuthenticated = true) => {
 };
 
 export const getProductById = async (id: number, isAuthenticated = true) => {
+    if (!supabaseConfigured()) return null;
+
     const supabase = await createServerClient();
     const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
 
@@ -81,6 +94,8 @@ export const getProductById = async (id: number, isAuthenticated = true) => {
 };
 
 export const getNavigationData = async (currentId: number) => {
+    if (!supabaseConfigured()) return { nextProduct: null, relatedProducts: [] };
+
     // 1. Get all products (static + DB)
     const supabase = await createServerClient();
     const { data: dbProducts, error } = await supabase.from('products').select('*').eq('active', true).order('display_order', { ascending: false }).order('id', { ascending: true });

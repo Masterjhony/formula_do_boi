@@ -54,9 +54,12 @@ function criadorNice(criador: string, nome: string): string {
 }
 
 export async function getProximosLeiloes(limit: number): Promise<{ proximos: Leilao[]; total: number }> {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        return { proximos: [], total: 0 };
+    }
     const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
     const today = new Date().toISOString().slice(0, 10);
