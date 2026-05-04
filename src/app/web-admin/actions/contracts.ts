@@ -146,6 +146,7 @@ import {
     fileUrlToBase64DataUri,
     getDocument as csGetDocument,
     cancelDocument as csCancelDocument,
+    listDocuments as csListDocuments,
 } from '@/lib/clicksign';
 
 async function getCurrentContract(id: string): Promise<Contract> {
@@ -249,6 +250,77 @@ export async function syncContractFromClickSign(contractId: string): Promise<Con
     if (error) throw new Error(error.message);
     revalidatePath('/web-admin/contratos');
     return data as Contract;
+}
+
+/**
+ * Importa em lote os documentos do ClickSign que ainda não estão em
+ * tactical_contracts. Não falha silenciosamente — devolve o número de itens
+ * importados e o erro (se houver) para o caller decidir o que mostrar.
+ */
+export async function syncAllContractsFromClickSign(): Promise<{
+    imported: number;
+    skipped: number;
+    error?: string;
+}> {
+    try {
+        const supabase = await createClient();
+        // Busca chaves já importadas em uma query só
+        const { data: existing } = await supabase
+            .from('tactical_contracts')
+            .select('clicksign_document_key')
+            .not('clicksign_document_key', 'is', null);
+        const existingKeys = new Set((existing || []).map(e => e.clicksign_document_key));
+
+        const remote = await csListDocuments({ page: 1 });
+        const toImport = remote.documents.filter(d => !existingKeys.has(d.key));
+        if (toImport.length === 0) return { imported: 0, skipped: existingKeys.size };
+
+        let imported = 0;
+        for (const lite of toImport) {
+            try {
+                // ClickSign retorna metadata mínima na listagem; precisamos
+                // do detalhe para pegar signatários, signed_url etc.
+                const doc = await csGetDocument(lite.key);
+                const status = doc.status;
+                const isClosed = status === 'closed' || status === 'auto_closed';
+                const isCancelled = status === 'cancelled' || status === 'canceled';
+                const localStatus = isClosed ? 'Ativo' : isCancelled ? 'Cancelado' : 'Pendente';
+                const filename = doc.filename || (doc.path ? doc.path.split('/').pop() : null) || 'Contrato ClickSign';
+                const clientName = doc.signers?.[0]?.name || 'Cliente ClickSign';
+
+                const signersJson = (doc.signers || []).map(s => ({
+                    key: s.key,
+                    name: s.name || '',
+                    email: s.email || '',
+                    request_signature_key: s.request_signature_key || '',
+                    signed_at: s.signed_at ?? null,
+                }));
+
+                const { error: iErr } = await supabase
+                    .from('tactical_contracts')
+                    .insert([{
+                        client_name: clientName,
+                        title: filename,
+                        status: localStatus,
+                        clicksign_document_key: doc.key,
+                        clicksign_status: status,
+                        clicksign_url: `https://app.clicksign.com/documents/${doc.key}`,
+                        clicksign_signers: signersJson,
+                        clicksign_signed_url: doc.signed_file_url ?? null,
+                        clicksign_finished_at: isClosed || isCancelled ? (doc.finished_at || new Date().toISOString()) : null,
+                        file_name: filename,
+                    }]);
+                if (!iErr) imported++;
+            } catch (e) {
+                console.error('[syncAllFromClickSign] doc', lite.key, e);
+            }
+        }
+        if (imported > 0) revalidatePath('/web-admin/contratos');
+        return { imported, skipped: existingKeys.size };
+    } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : 'Erro inesperado.';
+        return { imported: 0, skipped: 0, error: msg };
+    }
 }
 
 export async function cancelContractClickSign(contractId: string): Promise<Contract> {

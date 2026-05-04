@@ -131,6 +131,40 @@ export async function getDocument(key: string): Promise<ClickSignDocument> {
     return res.document;
 }
 
+/**
+ * Lista documentos da conta. ClickSign retorna até 100 por página.
+ * `status` opcional: "running" | "closed" | "cancelled" | "pending" etc.
+ */
+export async function listDocuments(opts: { page?: number; status?: string } = {}): Promise<{
+    documents: ClickSignDocument[];
+    page: number;
+    has_more: boolean;
+}> {
+    const params = new URLSearchParams();
+    if (opts.page) params.set('page', String(opts.page));
+    if (opts.status) params.set('status', opts.status);
+    const qs = params.toString();
+    const res = await request<{ documents: ClickSignDocument[] } & Record<string, unknown>>(
+        `/documents${qs ? `?${qs}` : ''}`
+    );
+    return {
+        documents: res.documents || [],
+        page: opts.page ?? 1,
+        has_more: (res.documents || []).length >= 100,
+    };
+}
+
+/** Ping de saúde — confirma se o token está válido. Retorna a contagem da página 1. */
+export async function pingConnection(): Promise<{ ok: true; sample: number } | { ok: false; error: string }> {
+    try {
+        const r = await listDocuments({ page: 1 });
+        return { ok: true, sample: r.documents.length };
+    } catch (e: unknown) {
+        const msg = e instanceof ClickSignError ? `${e.status} ${e.message}` : (e instanceof Error ? e.message : 'unknown');
+        return { ok: false, error: msg };
+    }
+}
+
 /** Cancela um documento em andamento. */
 export async function cancelDocument(key: string): Promise<ClickSignDocument> {
     const res = await request<{ document: ClickSignDocument }>(`/documents/${encodeURIComponent(key)}/cancel`, {
