@@ -6,8 +6,14 @@ import {
     Calendar, DollarSign, User, AlertTriangle, CheckCircle,
     Clock, XCircle, Upload, ExternalLink, StickyNote,
     Grid3X3, List, Folder, FolderOpen, ChevronRight,
+    Mail, Phone, IdCard, Send, RefreshCw, Ban, PenLine,
 } from 'lucide-react';
-import { Contract, ContractInput, createContract, updateContract, deleteContract, uploadContractFile, deleteContractFile } from '@/app/web-admin/actions/contracts';
+import {
+    Contract, ContractInput,
+    createContract, updateContract, deleteContract,
+    uploadContractFile, deleteContractFile,
+    sendContractToClickSign, syncContractFromClickSign, cancelContractClickSign,
+} from '@/app/web-admin/actions/contracts';
 
 const STATUS_CONFIG = {
     Ativo:     { label: 'Ativo',     color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', dot: 'bg-emerald-500', icon: CheckCircle,   folderColor: 'text-emerald-500' },
@@ -40,6 +46,24 @@ function daysUntil(d?: string | null): number | null {
     return Math.ceil((new Date(d).getTime() - Date.now()) / 86_400_000);
 }
 
+type SignerDraft = {
+    name: string;
+    email: string;
+    phone_number?: string;
+    documentation?: string;
+    auths: Array<'email' | 'whatsapp' | 'sms'>;
+};
+
+const EMPTY_SIGNER: SignerDraft = { name: '', email: '', phone_number: '', documentation: '', auths: ['email'] };
+
+const CLICKSIGN_STATUS_LABEL: Record<string, { label: string; color: string }> = {
+    running:     { label: 'Aguardando assinaturas', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+    closed:      { label: 'Concluído',              color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+    auto_closed: { label: 'Concluído (auto)',       color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+    cancelled:   { label: 'Cancelado',              color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' },
+    canceled:    { label: 'Cancelado',              color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' },
+};
+
 interface Props { initialContracts: Contract[]; }
 
 export function ContractsView({ initialContracts }: Props) {
@@ -55,11 +79,28 @@ export function ContractsView({ initialContracts }: Props) {
     const [uploadedFile, setUploadedFile] = useState<{ url: string; path: string; name: string } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setUploadedFile(null); setModalOpen(true); };
+    // ── ClickSign state ──
+    const [signers, setSigners] = useState<SignerDraft[]>([{ ...EMPTY_SIGNER }]);
+    const [csMessage, setCsMessage] = useState('');
+    const [csDeadline, setCsDeadline] = useState('');
+    const [csSequence, setCsSequence] = useState(false);
+    const [isSendingCs, setIsSendingCs] = useState(false);
+    const [isSyncingCs, setIsSyncingCs] = useState(false);
+    const [isCancellingCs, setIsCancellingCs] = useState(false);
+
+    const resetCsForm = () => {
+        setSigners([{ ...EMPTY_SIGNER }]);
+        setCsMessage('');
+        setCsDeadline('');
+        setCsSequence(false);
+    };
+
+    const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setUploadedFile(null); resetCsForm(); setModalOpen(true); };
     const openEdit = (c: Contract) => {
         setEditing(c);
         setForm({ client_name: c.client_name, title: c.title, status: c.status, value: c.value ?? null, start_date: c.start_date ?? null, end_date: c.end_date ?? null, file_url: c.file_url ?? null, file_path: c.file_path ?? null, file_name: c.file_name ?? null, notes: c.notes ?? null });
         setUploadedFile(c.file_url ? { url: c.file_url, path: c.file_path!, name: c.file_name! } : null);
+        resetCsForm();
         setModalOpen(true);
     };
 
@@ -105,6 +146,69 @@ export function ContractsView({ initialContracts }: Props) {
         await deleteContract(id);
         setContracts(cs => cs.filter(c => c.id !== id));
     };
+
+    // ── ClickSign handlers ──
+    const handleSendClickSign = async () => {
+        if (!editing) { alert('Salve o contrato antes de enviar para assinatura.'); return; }
+        if (!editing.file_url) { alert('Anexe o PDF do contrato antes de enviar.'); return; }
+        const cleaned = signers
+            .map(s => ({
+                ...s,
+                name: s.name.trim(),
+                email: s.email.trim(),
+                phone_number: s.phone_number?.trim() || undefined,
+                documentation: s.documentation?.trim() || undefined,
+            }))
+            .filter(s => s.name && s.email);
+        if (!cleaned.length) { alert('Adicione pelo menos um signatário com nome e email.'); return; }
+
+        setIsSendingCs(true);
+        try {
+            const updated = await sendContractToClickSign({
+                contractId: editing.id,
+                signers: cleaned,
+                deadlineAt: csDeadline ? new Date(csDeadline + 'T23:59:59-03:00').toISOString() : undefined,
+                message: csMessage.trim() || undefined,
+                sequenceEnabled: csSequence,
+            });
+            setEditing(updated);
+            setContracts(cs => cs.map(c => c.id === updated.id ? updated : c));
+            alert('Contrato enviado para assinatura. Os signatários receberão um email do ClickSign.');
+        } catch (err: any) {
+            alert(`Erro ao enviar para ClickSign: ${err.message}`);
+        } finally { setIsSendingCs(false); }
+    };
+
+    const handleSyncClickSign = async () => {
+        if (!editing?.clicksign_document_key) return;
+        setIsSyncingCs(true);
+        try {
+            const updated = await syncContractFromClickSign(editing.id);
+            setEditing(updated);
+            setContracts(cs => cs.map(c => c.id === updated.id ? updated : c));
+        } catch (err: any) {
+            alert(`Erro ao atualizar status: ${err.message}`);
+        } finally { setIsSyncingCs(false); }
+    };
+
+    const handleCancelClickSign = async () => {
+        if (!editing?.clicksign_document_key) return;
+        if (!confirm('Cancelar este envio no ClickSign? Os signatários não poderão mais assinar.')) return;
+        setIsCancellingCs(true);
+        try {
+            const updated = await cancelContractClickSign(editing.id);
+            setEditing(updated);
+            setContracts(cs => cs.map(c => c.id === updated.id ? updated : c));
+        } catch (err: any) {
+            alert(`Erro ao cancelar: ${err.message}`);
+        } finally { setIsCancellingCs(false); }
+    };
+
+    const updateSigner = (i: number, patch: Partial<SignerDraft>) => {
+        setSigners(ss => ss.map((s, idx) => idx === i ? { ...s, ...patch } : s));
+    };
+    const addSigner = () => setSigners(ss => [...ss, { ...EMPTY_SIGNER }]);
+    const removeSigner = (i: number) => setSigners(ss => ss.length > 1 ? ss.filter((_, idx) => idx !== i) : ss);
 
     const counts = useMemo(() => {
         const total = contracts.length;
@@ -410,6 +514,50 @@ export function ContractsView({ initialContracts }: Props) {
                                 )}
                                 <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleUpload} />
                             </div>
+
+                            {/* ── ClickSign — assinatura eletrônica ── */}
+                            {editing && (
+                                <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="p-1.5 bg-blue-500/10 rounded-lg">
+                                            <PenLine size={14} className="text-blue-500" />
+                                        </div>
+                                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">Assinatura Eletrônica (ClickSign)</h3>
+                                    </div>
+
+                                    {editing.clicksign_document_key ? (
+                                        <ClickSignSentBlock
+                                            contract={editing}
+                                            onSync={handleSyncClickSign}
+                                            onCancel={handleCancelClickSign}
+                                            isSyncing={isSyncingCs}
+                                            isCancelling={isCancellingCs}
+                                        />
+                                    ) : (
+                                        <ClickSignSendBlock
+                                            signers={signers}
+                                            updateSigner={updateSigner}
+                                            addSigner={addSigner}
+                                            removeSigner={removeSigner}
+                                            csMessage={csMessage}
+                                            setCsMessage={setCsMessage}
+                                            csDeadline={csDeadline}
+                                            setCsDeadline={setCsDeadline}
+                                            csSequence={csSequence}
+                                            setCsSequence={setCsSequence}
+                                            onSend={handleSendClickSign}
+                                            isSending={isSendingCs}
+                                            hasFile={!!editing.file_url}
+                                        />
+                                    )}
+                                </div>
+                            )}
+                            {!editing && (
+                                <div className="pt-4 border-t border-gray-100 dark:border-[#222222] text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                    <PenLine size={13} className="text-gray-400" />
+                                    Salve o contrato e anexe o PDF para enviar para assinatura via ClickSign.
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-[#222222] shrink-0">
@@ -561,5 +709,260 @@ function ContractRow({ contract: c, onEdit, onDelete }: { contract: Contract; on
                 </button>
             </td>
         </tr>
+    );
+}
+
+/* ── ClickSign — bloco de envio (modo "ainda não enviado") ── */
+function ClickSignSendBlock({
+    signers, updateSigner, addSigner, removeSigner,
+    csMessage, setCsMessage, csDeadline, setCsDeadline, csSequence, setCsSequence,
+    onSend, isSending, hasFile,
+}: {
+    signers: SignerDraft[];
+    updateSigner: (i: number, patch: Partial<SignerDraft>) => void;
+    addSigner: () => void;
+    removeSigner: (i: number) => void;
+    csMessage: string; setCsMessage: (v: string) => void;
+    csDeadline: string; setCsDeadline: (v: string) => void;
+    csSequence: boolean; setCsSequence: (v: boolean) => void;
+    onSend: () => void; isSending: boolean; hasFile: boolean;
+}) {
+    return (
+        <div className="space-y-3">
+            {!hasFile && (
+                <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+                    <AlertTriangle size={13} /> Anexe o PDF do contrato acima antes de enviar para assinatura.
+                </div>
+            )}
+
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Signatários</p>
+                    <button type="button" onClick={addSigner} className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                        <Plus size={12} /> Adicionar
+                    </button>
+                </div>
+                {signers.map((s, i) => (
+                    <div key={i} className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-gray-500 uppercase">Signatário {i + 1}</span>
+                            {signers.length > 1 && (
+                                <button type="button" onClick={() => removeSigner(i)} className="text-gray-400 hover:text-red-500 transition-colors">
+                                    <X size={13} />
+                                </button>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="relative">
+                                <User size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Nome completo *"
+                                    value={s.name}
+                                    onChange={e => updateSigner(i, { name: e.target.value })}
+                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                />
+                            </div>
+                            <div className="relative">
+                                <Mail size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="email"
+                                    placeholder="email@exemplo.com *"
+                                    value={s.email}
+                                    onChange={e => updateSigner(i, { email: e.target.value })}
+                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                />
+                            </div>
+                            <div className="relative">
+                                <Phone size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="tel"
+                                    placeholder="+5511999999999"
+                                    value={s.phone_number || ''}
+                                    onChange={e => updateSigner(i, { phone_number: e.target.value })}
+                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                />
+                            </div>
+                            <div className="relative">
+                                <IdCard size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="CPF (opcional)"
+                                    value={s.documentation || ''}
+                                    onChange={e => updateSigner(i, { documentation: e.target.value })}
+                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                            <span className="font-semibold">Autenticação:</span>
+                            {(['email', 'whatsapp', 'sms'] as const).map(a => {
+                                const checked = s.auths.includes(a);
+                                return (
+                                    <label key={a} className="flex items-center gap-1 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={e => {
+                                                const next = e.target.checked
+                                                    ? Array.from(new Set([...s.auths, a]))
+                                                    : s.auths.filter(x => x !== a);
+                                                updateSigner(i, { auths: next.length ? next : ['email'] });
+                                            }}
+                                            className="accent-blue-500"
+                                        />
+                                        {a}
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Prazo (opcional)</label>
+                    <input
+                        type="date"
+                        value={csDeadline}
+                        onChange={e => setCsDeadline(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                    />
+                </div>
+                <div className="flex items-end">
+                    <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={csSequence}
+                            onChange={e => setCsSequence(e.target.checked)}
+                            className="accent-blue-500"
+                        />
+                        Assinatura sequencial (na ordem dos signatários)
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Mensagem para os signatários (opcional)</label>
+                <textarea
+                    rows={2}
+                    value={csMessage}
+                    onChange={e => setCsMessage(e.target.value)}
+                    placeholder="Olá! Segue o contrato para assinatura."
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white resize-none"
+                />
+            </div>
+
+            <button
+                type="button"
+                onClick={onSend}
+                disabled={isSending || !hasFile}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                {isSending
+                    ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    : <Send size={14} />}
+                {isSending ? 'Enviando…' : 'Enviar para Assinatura'}
+            </button>
+        </div>
+    );
+}
+
+/* ── ClickSign — bloco de status (modo "já enviado") ── */
+function ClickSignSentBlock({
+    contract: c, onSync, onCancel, isSyncing, isCancelling,
+}: {
+    contract: Contract;
+    onSync: () => void;
+    onCancel: () => void;
+    isSyncing: boolean;
+    isCancelling: boolean;
+}) {
+    const status = c.clicksign_status || 'running';
+    const statusCfg = CLICKSIGN_STATUS_LABEL[status] || { label: status, color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' };
+    const isFinished = status === 'closed' || status === 'auto_closed' || status === 'cancelled' || status === 'canceled';
+    const csSigners = c.clicksign_signers ?? [];
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusCfg.color}`}>
+                    <PenLine size={10} />
+                    {statusCfg.label}
+                </span>
+                {c.clicksign_url && (
+                    <a
+                        href={c.clicksign_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                        <ExternalLink size={11} /> Abrir no ClickSign
+                    </a>
+                )}
+            </div>
+
+            {csSigners.length > 0 && (
+                <div className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl divide-y divide-gray-200 dark:divide-[#222222]">
+                    {csSigners.map(s => (
+                        <div key={s.key} className="flex items-center gap-3 px-3 py-2 text-sm">
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${s.signed_at ? 'bg-emerald-500/20 text-emerald-600' : 'bg-amber-500/20 text-amber-600'}`}>
+                                {s.signed_at ? <CheckCircle size={13} /> : <Clock size={13} />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 dark:text-white truncate">{s.name}</p>
+                                <p className="text-xs text-gray-500 truncate">{s.email}</p>
+                            </div>
+                            <span className="text-[11px] text-gray-400 shrink-0">
+                                {s.signed_at ? `assinou ${new Date(s.signed_at).toLocaleDateString('pt-BR')}` : 'pendente'}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {c.clicksign_signed_url && (
+                <a
+                    href={c.clicksign_signed_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm font-semibold hover:bg-emerald-500/20 transition-colors"
+                >
+                    <Download size={13} /> Baixar PDF assinado
+                </a>
+            )}
+
+            <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={onSync}
+                    disabled={isSyncing}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 dark:bg-[#222222] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                >
+                    {isSyncing
+                        ? <div className="w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin" />
+                        : <RefreshCw size={13} />}
+                    Atualizar status
+                </button>
+                {!isFinished && (
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        disabled={isCancelling}
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                    >
+                        {isCancelling
+                            ? <div className="w-3.5 h-3.5 border-2 border-red-400/30 border-t-red-500 rounded-full animate-spin" />
+                            : <Ban size={13} />}
+                        Cancelar
+                    </button>
+                )}
+            </div>
+
+            <p className="text-[11px] text-gray-400">
+                Enviado em {c.clicksign_sent_at ? new Date(c.clicksign_sent_at).toLocaleString('pt-BR') : '—'}.
+            </p>
+        </div>
     );
 }

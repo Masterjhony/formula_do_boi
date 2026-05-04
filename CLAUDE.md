@@ -36,6 +36,7 @@ No test suite is configured. `playwright` is in devDependencies but no test runn
 - **Leilão server** — Optional external Python service proxied through `/api/leilao/[...path]` (`LEILAO_SERVER_URL`, default `http://localhost:8000`).
 - **GLM-4.7 (Zhipu AI)** — Called over HTTP (no SDK) at `https://open.bigmodel.cn/api/paas/v4/chat/completions`. Powers the in-app AI assistant and the WhatsApp `/ia` command via tool-calling against a fixed allow-list of Supabase tables.
 - **Asaas** — Brazilian payment processor; webhook validation only (`/api/asaas-webhook`).
+- **ClickSign** — Brazilian e-signature platform. Auth via `?access_token=<TOKEN>` query param. Thin client in [src/lib/clicksign.ts](src/lib/clicksign.ts) wraps `documents`, `signers`, `lists`, `notifications`. The admin contracts panel sends, polls, and cancels documents; ClickSign pings `/api/clicksign/webhook` on signature events to update `tactical_contracts`.
 
 ### Key Data Flows
 
@@ -62,7 +63,7 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 | `signup_verification_codes` | 6-digit signup codes (SHA-256 hash, expires_at, attempts). |
 | `tactical_tasks` | ERP/Admin Kanban with `checklists` and `attachments` JSONB. WhatsApp-origin columns: `whatsapp_group_id`, `whatsapp_group_name`, `whatsapp_sender`, `whatsapp_sender_name`. |
 | `tactical_task_attachments`, `tactical_task_comments`, `tactical_kanban_columns` | Companion tables for the Kanban. |
-| `tactical_contracts` | Contract management. |
+| `tactical_contracts` | Contract management (also stores ClickSign integration: `clicksign_document_key`, `clicksign_status`, `clicksign_signers` JSONB, `clicksign_signed_url`, etc — migration `database/add_clicksign_to_tactical_contracts.sql`). |
 | `tactical_members` | Team registry for the tactical plan. |
 | `tactical_objectives`, `tactical_key_results`, `tactical_task_kr_links` | OKR layer (`/web-admin/okr`). |
 | `tactical_risks` | Risk register; populated by the WhatsApp `/risco` command. |
@@ -196,6 +197,14 @@ All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
 | `/api/asaas-pix-test` | POST | Sandbox helper to issue a test PIX charge. |
 | `/api/checkout-semen` | POST | Public sêmen checkout: appends row to Google Sheets `Checkout-Semen` tab. |
 
+### ClickSign (e-signature, admin)
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/clicksign/send` | POST | Admin-only. Body `{ contractId, signers[], deadlineAt?, message?, sequenceEnabled? }`. Baixa o PDF de `tactical_contracts.file_url`, sobe para o ClickSign, cria signatários, vincula e dispara as notificações. Persiste `clicksign_*` no contrato. |
+| `/api/clicksign/sync/[contractId]` | POST | Admin-only. Busca o documento atual no ClickSign e atualiza status/signatários/PDF assinado no contrato local. |
+| `/api/clicksign/cancel/[contractId]` | POST | Admin-only. Cancela o documento no ClickSign e marca o contrato como `Cancelado`. |
+| `/api/clicksign/webhook` | POST, GET | Recebe eventos do ClickSign (assinatura, recusa, auto_close, cancel). Valida `Content-Hmac: sha256=<hex>` se `CLICKSIGN_HMAC_SECRET` estiver configurado. Atualiza `tactical_contracts` automaticamente. |
+
 ### External proxy
 | Route | Methods | Purpose |
 |-------|---------|---------|
@@ -206,6 +215,7 @@ All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
 | File | Purpose |
 |------|---------|
 | `whatsapp.ts` | Thin HTTP client for the VPS — `sendWelcomeMessage(phone, name)`. |
+| `clicksign.ts` | Thin HTTP client for ClickSign API v1: `sendDocumentForSignature`, `getDocument`, `cancelDocument`, `fileUrlToBase64DataUri`, `verifyWebhookHmac`. Auth via `?access_token=` query param. |
 | `genealogy-parser.ts` | PDF → genealogia_json. |
 | `avaliacao-genetica-parser.ts` | PDF → avaliacao_genetica_json. |
 | `auth-helpers.ts` | `requireAdmin()` and friends for API routes. |
@@ -252,6 +262,11 @@ R2_PREFIX                         # default: "libmedia/"
 # Asaas (payments)
 ASAAS_API_KEY                     # Production/sandbox API key
 ASAAS_SANDBOX                     # "true" to hit the sandbox
+
+# ClickSign (e-signature)
+CLICKSIGN_ACCESS_TOKEN            # token UUID gerado em Configurações → API
+CLICKSIGN_API_URL                 # default: https://app.clicksign.com/api/v1 (sandbox: https://sandbox.clicksign.com/api/v1)
+CLICKSIGN_HMAC_SECRET             # opcional; valida o cabeçalho Content-Hmac do webhook
 
 # External services
 LEILAO_SERVER_URL                 # default: http://localhost:8000
