@@ -163,7 +163,6 @@ export default function Footer() {
                                 <li><Link href="/top-criadores" className="hover:text-[#D4A85C] transition-colors">Top Criadores</Link></li>
                             )}
                             <li><Link href="/quem-somos" className="hover:text-[#D4A85C] transition-colors">Quem Somos</Link></li>
-                            <li><Link href="/venda-conosco" className="hover:text-[#D4A85C] transition-colors">Venda Conosco</Link></li>
                         </ul>
                     </div>
 

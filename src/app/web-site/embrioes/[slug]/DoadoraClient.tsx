@@ -408,7 +408,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                             Candidatar-me ao grupo VIP
                             <span aria-hidden style={{ marginLeft: 6 }}>→</span>
                         </Link>
-                        <Link href="/venda-conosco" className="fdb-btn-ghost-static">
+                        <Link href="/grupo-vip" className="fdb-btn-ghost-static">
                             Falar com curador
                         </Link>
                     </div>

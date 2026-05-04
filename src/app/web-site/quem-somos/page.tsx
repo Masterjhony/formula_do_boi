@@ -281,10 +281,10 @@ export default function QuemSomos() {
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                         <Link
-                            href="/venda-conosco"
+                            href="/grupo-vip"
                             className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-white/15 hover:border-brand-gold/40 text-white hover:text-brand-gold font-semibold uppercase tracking-widest text-sm rounded-lg transition-all hover:bg-white/5"
                         >
-                            Vender com a Fórmula
+                            Entrar no Grupo VIP
                         </Link>
                     </div>
                 </div>

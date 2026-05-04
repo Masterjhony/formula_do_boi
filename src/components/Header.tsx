@@ -12,7 +12,6 @@ const defaultNavItems = [
     { href: "/embrioes", label: "Embriões" },
     { href: "/agenda", label: "Leilões" },
     { href: "/grupo-vip", label: "Grupo VIP" },
-    { href: "/venda-conosco", label: "Contato" },
 ];
 
 export default function Header() {
@@ -50,7 +49,6 @@ export default function Header() {
             items.push(defaultNavItems[2]); // Embriões
             items.push(defaultNavItems[3]); // Leilões
             items.push(defaultNavItems[4]); // Grupo VIP
-            items.push(defaultNavItems[5]); // Contato
             return items;
         });
     };
@@ -165,26 +163,6 @@ export default function Header() {
                             </Link>
                         ))}
 
-                        <hr className="border-white/10 my-2" />
-
-                        {/* Mobile CTA */}
-                        <Link
-                            href="/venda-conosco"
-                            className="mt-2 text-center py-3.5"
-                            style={{
-                                background: "#A0792E",
-                                color: "#0A0A0A",
-                                fontFamily: "var(--font-mono)",
-                                fontSize: 12,
-                                letterSpacing: "0.16em",
-                                textTransform: "uppercase",
-                                fontWeight: 600,
-                                borderRadius: 2,
-                            }}
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            Solicitar proposta →
-                        </Link>
                     </div>
                 </div>
             )}

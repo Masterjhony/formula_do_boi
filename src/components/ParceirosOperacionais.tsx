@@ -95,7 +95,7 @@ export default function ParceirosOperacionais() {
                         title="Central Bela Vista"
                         copy="Parceria operacional para coleta, congelamento e distribuição de sêmen com rastreabilidade total e certificação MAPA. Os reprodutores Fórmula do Boi estão sob coleta contínua na Bela Vista — controle de qualidade mundial e logística direta para o Brasil inteiro."
                         ctaLabel="Falar sobre logística"
-                        ctaHref="/venda-conosco"
+                        ctaHref="/grupo-vip"
                         logo={<LogoBelaVista />}
                     />
                 </div>

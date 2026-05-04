@@ -6,7 +6,6 @@ import ParceirosOperacionais from "@/components/ParceirosOperacionais";
 import SemenDestaque from "@/components/SemenDestaque";
 import DoadoresDestaque from "@/components/DoadoresDestaque";
 import LeiloesSection from "@/components/LeiloesSection";
-import VendaConoscoSection from "@/components/VendaConoscoSection";
 import Footer from "@/components/Footer";
 import { getProductsServer } from "@/services/products.server";
 
@@ -37,9 +36,6 @@ export default async function Home() {
 
             {/* 7 — Próximos Leilões */}
             <LeiloesSection />
-
-            {/* 8 — Venda Conosco (B2B) */}
-            <VendaConoscoSection />
 
             <Footer />
         </main>
