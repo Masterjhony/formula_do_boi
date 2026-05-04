@@ -13,7 +13,7 @@ import { CRMQualificacaoView } from './CRMQualificacaoView';
 import { CRMPreferenciaisStrip } from './CRMPreferenciaisStrip';
 import { CRMFunnelView } from '@/components/admin/funil-vendas/CRMFunnelView';
 import {
-    BarChart2, LayoutGrid, List, AlertCircle, DollarSign,
+    BarChart2, LayoutGrid, AlertCircle, DollarSign,
     Plus, Maximize2, Minimize2, Settings, TrendingUp, ListChecks,
 } from 'lucide-react';
 
@@ -22,7 +22,7 @@ interface CRMDashboardClientProps {
     crmConfig: CRMConfig;
 }
 
-type ViewType = 'qualificacao' | 'grafico' | 'kanban' | 'todos' | 'prioridade_alta' | 'valor_alto' | 'funil' | 'configuracoes';
+type ViewType = 'qualificacao' | 'grafico' | 'kanban' | 'prioridade_alta' | 'valor_alto' | 'funil' | 'configuracoes';
 
 export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: CRMDashboardClientProps) {
     const [leads, setLeads] = useState<CRMLead[]>(initialLeads);
@@ -105,7 +105,6 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
         { id: 'qualificacao', label: 'Qualificação', icon: ListChecks, badge: qualificationCount },
         { id: 'grafico', label: 'Gráfico', icon: BarChart2 },
         { id: 'kanban', label: 'CRM Principal', icon: LayoutGrid },
-        { id: 'todos', label: 'Todos', icon: List },
         { id: 'prioridade_alta', label: 'Prioridade alta', icon: AlertCircle },
         { id: 'valor_alto', label: 'Valor > R$ 1000', icon: DollarSign },
         { id: 'funil', label: 'Funil de Vendas', icon: TrendingUp },
@@ -113,10 +112,11 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
     ] as const;
 
     let displayLeads = advancedLeads;
-    if (activeView === 'todos') {
-        displayLeads = advancedLeads;
-    } else if (activeView === 'prioridade_alta') {
-        displayLeads = advancedLeads.filter(l => l.prioridade === 'Alta');
+    if (activeView === 'prioridade_alta') {
+        displayLeads = leads.filter(l => {
+            const match = l.quantidade_animais?.match(/\d+/);
+            return match ? Number(match[0]) > 100 : false;
+        });
     } else if (activeView === 'valor_alto') {
         displayLeads = advancedLeads.filter(l => l.interesse?.includes('R$') || l.interesse?.toLowerCase().includes('touro'));
     }
@@ -228,7 +228,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                     </div>
                 )}
 
-                {(activeView === 'todos' || activeView === 'prioridade_alta' || activeView === 'valor_alto') && (
+                {(activeView === 'prioridade_alta' || activeView === 'valor_alto') && (
                     <CRMTable leads={displayLeads} onEditLead={handleEditLead} />
                 )}
 

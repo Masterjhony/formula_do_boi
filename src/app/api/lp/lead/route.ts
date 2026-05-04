@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
                 quantidade_animais: quantidade_cabecas,
                 estado: uf,
                 cidade,
-                source_page: 'lp.formuladoboi.com',
+                source_page: 'formuladoboi.com',
                 source:      attrSource,
                 medium:      attrMedium,
                 campaign:    attrCampaign,
