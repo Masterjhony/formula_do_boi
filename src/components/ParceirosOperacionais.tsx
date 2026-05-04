@@ -229,43 +229,31 @@ function ParceiroCard({
    TODO: substituir pela logo oficial quando entregue. */
 function LogoAceleradora() {
     return (
-        <div className="flex items-center gap-3" aria-label="Logo Aceleradora de Touros — placeholder">
-            <svg width="44" height="44" viewBox="0 0 64 64" fill="none" stroke={BRONZE} strokeWidth="1.4" aria-hidden>
-                {/* cabeça de boi estilizada */}
-                <path d="M14 28c0-9 7-16 18-16s18 7 18 16-7 16-18 16-18-7-18-16z" />
-                <path d="M10 22l4 4M54 22l-4 4" />
-                <circle cx="26" cy="30" r="1.5" fill={BRONZE} />
-                <circle cx="38" cy="30" r="1.5" fill={BRONZE} />
-                <path d="M28 38c1.5 1.5 4.5 1.5 6 0" />
-                {/* setas de aceleração */}
-                <path d="M16 52l8-4M24 56l8-4M32 52l8-4M40 56l8-4" strokeWidth="1.2" />
-            </svg>
-            <div className="text-left">
-                <div
-                    className="font-display"
-                    style={{
-                        fontSize: 16,
-                        fontWeight: 600,
-                        color: FG,
-                        letterSpacing: "0.04em",
-                        textTransform: "uppercase",
-                        lineHeight: 1,
-                    }}
-                >
-                    Aceleradora
-                </div>
-                <div
-                    style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 9.5,
-                        letterSpacing: "0.20em",
-                        textTransform: "uppercase",
-                        color: BRONZE_LIGHT,
-                        marginTop: 4,
-                    }}
-                >
-                    de Touros
-                </div>
+        <div className="text-center" aria-label="Aceleradora de Touros">
+            <div
+                style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10,
+                    letterSpacing: "0.32em",
+                    textTransform: "uppercase",
+                    color: BRONZE_LIGHT,
+                    marginBottom: 6,
+                }}
+            >
+                Programa
+            </div>
+            <div
+                className="font-display"
+                style={{
+                    fontSize: 22,
+                    fontWeight: 600,
+                    color: FG,
+                    letterSpacing: "0.02em",
+                    textTransform: "uppercase",
+                    lineHeight: 1,
+                }}
+            >
+                Aceleradora <span style={{ color: BRONZE_LIGHT }}>de Touros</span>
             </div>
         </div>
     );
@@ -273,46 +261,30 @@ function LogoAceleradora() {
 
 function LogoBelaVista() {
     return (
-        <div className="flex items-center gap-3" aria-label="Logo Central Bela Vista — placeholder">
-            <svg width="56" height="44" viewBox="0 0 80 60" fill="none" stroke={BRONZE} strokeWidth="1.4" aria-hidden>
-                {/* arco/sol */}
-                <path d="M14 30c0-12 11-22 26-22s26 10 26 22" strokeWidth="1.6" />
-                {/* 3 cabeças de boi alinhadas */}
-                <ellipse cx="22" cy="38" rx="8" ry="9" />
-                <ellipse cx="40" cy="38" rx="8" ry="9" />
-                <ellipse cx="58" cy="38" rx="8" ry="9" />
-                <circle cx="20" cy="36" r="1" fill={BRONZE} />
-                <circle cx="24" cy="36" r="1" fill={BRONZE} />
-                <circle cx="38" cy="36" r="1" fill={BRONZE} />
-                <circle cx="42" cy="36" r="1" fill={BRONZE} />
-                <circle cx="56" cy="36" r="1" fill={BRONZE} />
-                <circle cx="60" cy="36" r="1" fill={BRONZE} />
-            </svg>
-            <div className="text-left">
-                <div
-                    style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 9.5,
-                        letterSpacing: "0.32em",
-                        textTransform: "uppercase",
-                        color: BRONZE_LIGHT,
-                        marginBottom: 2,
-                    }}
-                >
-                    Central
-                </div>
-                <div
-                    className="font-display"
-                    style={{
-                        fontSize: 18,
-                        fontWeight: 600,
-                        color: FG,
-                        letterSpacing: "-0.005em",
-                        lineHeight: 1,
-                    }}
-                >
-                    Bela Vista
-                </div>
+        <div className="text-center" aria-label="Central Bela Vista">
+            <div
+                style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10,
+                    letterSpacing: "0.32em",
+                    textTransform: "uppercase",
+                    color: BRONZE_LIGHT,
+                    marginBottom: 6,
+                }}
+            >
+                Central
+            </div>
+            <div
+                className="font-display"
+                style={{
+                    fontSize: 22,
+                    fontWeight: 600,
+                    color: FG,
+                    letterSpacing: "0.02em",
+                    lineHeight: 1,
+                }}
+            >
+                Bela Vista
             </div>
         </div>
     );
