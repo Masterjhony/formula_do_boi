@@ -47,7 +47,7 @@ export interface TacticalTask {
     assignees?: string[];
     position: number;
     created_at: string;
-    checklists?: { id: string, title: string, completed: boolean }[];
+    checklists?: { id: string, title: string, completed: boolean, assignee?: string | null, due_date?: string | null }[];
     tactical_task_comments?: { count: number }[];
     tactical_task_attachments?: { count: number }[];
     // ICE Scoring

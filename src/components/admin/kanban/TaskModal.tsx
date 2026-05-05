@@ -28,7 +28,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
     const [startDate, setStartDate] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [assignees, setAssignees] = useState<string[]>([]);
-    const [checklists, setChecklists] = useState<{ id: string, title: string, completed: boolean }[]>([]);
+    const [checklists, setChecklists] = useState<{ id: string, title: string, completed: boolean, assignee?: string | null, due_date?: string | null }[]>([]);
     const [newChecklistTitle, setNewChecklistTitle] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
@@ -218,8 +218,12 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
 
     const addChecklistItem = () => {
         if (!newChecklistTitle.trim()) return;
-        setChecklists([...checklists, { id: Date.now().toString(), title: newChecklistTitle, completed: false }]);
+        setChecklists([...checklists, { id: Date.now().toString(), title: newChecklistTitle, completed: false, assignee: null, due_date: null }]);
         setNewChecklistTitle('');
+    };
+
+    const updateChecklistItem = (id: string, updates: Partial<{ assignee: string | null, due_date: string | null }>) => {
+        setChecklists(c => c.map(ci => ci.id === id ? { ...ci, ...updates } : ci));
     };
 
     const ScoreSlider = ({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) => (
@@ -427,20 +431,47 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                     </button>
                                 </div>
                                 <div className="space-y-2">
-                                    {checklists.map(check => (
-                                        <div key={check.id} className="flex items-start gap-3 group">
-                                            <button type="button" className="mt-1 flex-shrink-0" onClick={() => setChecklists(c => c.map(ci => ci.id === check.id ? { ...ci, completed: !ci.completed } : ci))}>
-                                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${check.completed ? 'bg-[#A0792E] border-[#A0792E] text-black' : 'border-gray-300 dark:border-gray-600'}`}>
-                                                    {check.completed && <CheckCircle2 size={14} />}
+                                    {checklists.map(check => {
+                                        const itemDueDate = check.due_date ? check.due_date.split('T')[0] : '';
+                                        const isItemOverdue = itemDueDate && !check.completed && new Date(itemDueDate) < new Date(new Date().toISOString().split('T')[0]);
+                                        return (
+                                            <div key={check.id} className="group bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-lg p-2.5 space-y-2">
+                                                <div className="flex items-start gap-3">
+                                                    <button type="button" className="mt-1 flex-shrink-0" onClick={() => setChecklists(c => c.map(ci => ci.id === check.id ? { ...ci, completed: !ci.completed } : ci))}>
+                                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${check.completed ? 'bg-[#A0792E] border-[#A0792E] text-black' : 'border-gray-300 dark:border-gray-600'}`}>
+                                                            {check.completed && <CheckCircle2 size={14} />}
+                                                        </div>
+                                                    </button>
+                                                    <span className={`flex-1 text-sm pt-1 transition-all ${check.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>{check.title}</span>
+                                                    <button type="button" onClick={() => setChecklists(c => c.filter(ci => ci.id !== check.id))}
+                                                        className="p-1 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all mt-0.5">
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                 </div>
-                                            </button>
-                                            <span className={`flex-1 text-sm pt-1 transition-all ${check.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>{check.title}</span>
-                                            <button type="button" onClick={() => setChecklists(c => c.filter(ci => ci.id !== check.id))}
-                                                className="p-1 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all mt-0.5">
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    ))}
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
+                                                    <select
+                                                        value={check.assignee || ''}
+                                                        onChange={e => updateChecklistItem(check.id, { assignee: e.target.value || null })}
+                                                        className="px-3 py-1.5 text-xs bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-md focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-700 dark:text-gray-300"
+                                                    >
+                                                        <option value="">— Responsável —</option>
+                                                        {members.map(m => (
+                                                            <option key={m.id} value={m.name}>{m.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="relative">
+                                                        <Calendar className={`absolute left-2.5 top-1/2 -translate-y-1/2 ${isItemOverdue ? 'text-red-500' : 'text-gray-400'}`} size={14} />
+                                                        <input
+                                                            type="date"
+                                                            value={itemDueDate}
+                                                            onChange={e => updateChecklistItem(check.id, { due_date: e.target.value || null })}
+                                                            className={`w-full pl-8 pr-2 py-1.5 text-xs bg-white dark:bg-[#1A1A1A] border rounded-md focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none ${isItemOverdue ? 'border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-400' : 'border-gray-200 dark:border-[#222222] text-gray-700 dark:text-gray-300'}`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </>
