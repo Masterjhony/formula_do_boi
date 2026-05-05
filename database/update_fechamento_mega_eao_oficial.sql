@@ -1,4 +1,11 @@
 -- ============================================================
+-- ⚠ OBSOLETO — NÃO RODAR (06/05/2026)
+-- Sobrescrito por database/revert_fechamento_mega_eao_vgv_intermediado.sql
+-- O card do Fechamento exibe vgv_total, e por convenção do projeto esse
+-- campo guarda o VGV intermediado pela Bula (= a "parte da empresa").
+-- Setar vgv_total como o total oficial (R$ 7M / R$ 17M) deixa o card do
+-- EAO destoante dos outros leilões. Mantemos o total oficial só em observacoes.
+-- ============================================================
 -- FECHAMENTO 6º Mega EAO 2026 — números OFICIAIS (anexo COMPARATIVO)
 -- Espelha o que `scripts/ajustar_fechamento_mega_eao_oficial.js` faz,
 -- mas em SQL idempotente (pode rodar quantas vezes precisar).

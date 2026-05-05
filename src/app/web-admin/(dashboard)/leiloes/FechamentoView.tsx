@@ -77,7 +77,6 @@ export type Fechamento = {
   lotes_catalogo?: LoteCatalogo[]
   distribuicao_empresa?: EmpresaDistribuicao[]
   comissao_assessoria: number; observacoes: string; created_at: string
-  receita_bula?: number | null; sobra_bruta?: number | null
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -86,17 +85,6 @@ const R = (v: number | null | undefined) =>
   v ? `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}` : 'R$ —'
 
 const PCT = (v: number) => `${(v * 100).toFixed(1)}%`
-
-// Parte que cai pra Bula × Fórmula em cada leilão.
-// Usa receita_bula quando o fechamento já registrou (caso ideal); senão
-// cai pro DEFAULT 1% sobre o VGV — taxa documentada nos contratos
-// IPB/Pérolas/EAO/MAFRA (ver scripts/ajustar_fechamento_mega_eao_oficial.js).
-// Quando o leilão tiver outra taxa, basta gravar receita_bula no fechamento.
-const PARTE_BULA_DEFAULT_PCT = 0.01
-function parteBula(f: { vgv_total: number; receita_bula?: number | null }): number {
-  if (f.receita_bula && f.receita_bula > 0) return Number(f.receita_bula)
-  return Math.round((f.vgv_total ?? 0) * PARTE_BULA_DEFAULT_PCT)
-}
 
 // Bula Assessoria / Bula Remates / Fórmula do Boi são tratados como um único grupo
 // nas agregações por empresa (diretiva 2026-05-05: "Pode somar Bula e Fórmula, sempre").
@@ -226,13 +214,8 @@ function FechamentoCard({ f, selected, onClick }: { f: Fechamento; selected: boo
               <MapPin size={9} /> <span className="truncate">{f.local}</span>
             </div>
           )}
-          <div className="flex flex-wrap gap-x-4 gap-y-1 items-baseline">
-            <span className="text-xs font-black text-[#A0792E]" title="Receita Bula × Fórmula (1% do VGV ou valor registrado em receita_bula)">
-              {R(parteBula(f))}
-            </span>
-            <span className="text-[10px] text-gray-400" title="Faturamento bruto do leilão (vgv_total)">
-              bruto {R(f.vgv_total)}
-            </span>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <span className="text-xs font-black text-[#A0792E]">{R(f.vgv_total)}</span>
             <span className="text-[10px] text-gray-500">
               {f.lotes_vendidos}/{f.lotes_ofertados} lotes <span className="font-semibold">{pct}%</span>
             </span>
