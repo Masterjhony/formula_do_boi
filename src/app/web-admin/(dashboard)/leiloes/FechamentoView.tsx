@@ -86,6 +86,41 @@ const R = (v: number | null | undefined) =>
 
 const PCT = (v: number) => `${(v * 100).toFixed(1)}%`
 
+// Bula Assessoria / Bula Remates / Fórmula do Boi são tratados como um único grupo
+// nas agregações por empresa (diretiva 2026-05-05: "Pode somar Bula e Fórmula, sempre").
+// Os registros individuais (linhas de assessor) preservam o nome real.
+const EMPRESA_BULA_FORMULA = 'Bula × Fórmula'
+function normalizeEmpresaGrupo(empresa: string | null | undefined): string {
+  const e = (empresa ?? '').trim()
+  if (!e) return ''
+  const lower = e.toLowerCase()
+  if (lower.startsWith('bula') || lower.startsWith('fórmula') || lower.startsWith('formula')) {
+    return EMPRESA_BULA_FORMULA
+  }
+  return e
+}
+
+function aggregateEmpresas(items: EmpresaDistribuicao[]): EmpresaDistribuicao[] {
+  const acc = new Map<string, EmpresaDistribuicao>()
+  for (const it of items) {
+    const key = normalizeEmpresaGrupo(it.empresa) || it.empresa
+    const cur = acc.get(key)
+    if (cur) {
+      cur.vgv += it.vgv
+      cur.transacoes += it.transacoes
+      cur.animais += it.animais
+    } else {
+      acc.set(key, { ...it, empresa: key })
+    }
+  }
+  const total = Array.from(acc.values()).reduce((s, e) => s + e.vgv, 0)
+  return Array.from(acc.values()).map(e => ({
+    ...e,
+    pct_total: total > 0 ? e.vgv / total : 0,
+    ticket_medio: e.animais > 0 ? e.vgv / e.animais : 0,
+  }))
+}
+
 const MES: Record<string, string> = {
   '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
   '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
@@ -304,8 +339,10 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
   const maxVgvEstado = f.por_estado.length ? Math.max(...f.por_estado.map(e => e.vgv)) : 1
 
   const EMPRESA_COLORS: Record<string, string> = {
+    [EMPRESA_BULA_FORMULA]: '#A0792E',
     'Bula Remates': '#A0792E',
-    'Fórmula do Boi': '#4A8FBF',
+    'Bula Assessoria': '#A0792E',
+    'Fórmula do Boi': '#A0792E',
   }
 
   const hasPerfil = !!f.perfil_genetico?.indices?.length
@@ -376,23 +413,31 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                 ))}
               </div>
 
-              {/* VGV por empresa */}
-              {(f.distribuicao_empresa?.length ? f.distribuicao_empresa : (() => {
-                const byEmpresa: Record<string, number> = {}
-                for (const a of f.por_assessor) byEmpresa[a.empresa] = (byEmpresa[a.empresa] || 0) + a.vgv
-                const total = Object.values(byEmpresa).reduce((s, v) => s + v, 0)
-                return Object.entries(byEmpresa).map(([empresa, vgv]) => ({
-                  empresa, vgv, pct_total: vgv / total, transacoes: 0, animais: 0, ticket_medio: 0,
-                }))
-              })()).length > 0 && (() => {
-                const empresas = f.distribuicao_empresa?.length ? f.distribuicao_empresa : (() => {
-                  const byEmpresa: Record<string, number> = {}
-                  for (const a of f.por_assessor) byEmpresa[a.empresa] = (byEmpresa[a.empresa] || 0) + a.vgv
-                  const total = Object.values(byEmpresa).reduce((s, v) => s + v, 0)
-                  return Object.entries(byEmpresa).map(([empresa, vgv]) => ({
-                    empresa, vgv, pct_total: vgv / total, transacoes: 0, animais: 0, ticket_medio: 0,
-                  }))
-                })()
+              {/* VGV por empresa — Bula × Fórmula somados em um único bucket (diretiva chefe) */}
+              {(() => {
+                const raw: EmpresaDistribuicao[] = f.distribuicao_empresa?.length
+                  ? f.distribuicao_empresa
+                  : f.por_assessor.map(a => ({
+                      empresa: a.empresa,
+                      vgv: a.vgv,
+                      transacoes: a.transacoes,
+                      animais: a.animais,
+                      ticket_medio: a.ticket_medio,
+                      pct_total: a.pct_total,
+                    }))
+                return aggregateEmpresas(raw).length > 0
+              })() && (() => {
+                const raw: EmpresaDistribuicao[] = f.distribuicao_empresa?.length
+                  ? f.distribuicao_empresa
+                  : f.por_assessor.map(a => ({
+                      empresa: a.empresa,
+                      vgv: a.vgv,
+                      transacoes: a.transacoes,
+                      animais: a.animais,
+                      ticket_medio: a.ticket_medio,
+                      pct_total: a.pct_total,
+                    }))
+                const empresas = aggregateEmpresas(raw)
                 const maxVgvE = Math.max(...empresas.map(e => e.vgv))
                 return (
                   <div>
@@ -1621,6 +1666,10 @@ export default function FechamentoView() {
   const [editItem, setEditItem] = useState<Fechamento | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [sortBy, setSortBy] = useState<SortKey>('recent')
+  const [filterDataInicio, setFilterDataInicio] = useState('')
+  const [filterDataFim, setFilterDataFim] = useState('')
+  const [filterLeilao, setFilterLeilao] = useState('')
+  const [filterAssessor, setFilterAssessor] = useState('')
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -1649,22 +1698,54 @@ export default function FechamentoView() {
     setSelected(null)
   }
 
-  // Aggregate KPIs
-  const totalVgv = items.reduce((s, f) => s + f.vgv_total, 0)
-  const totalAnimais = items.reduce((s, f) => s + f.animais_vendidos, 0)
-  const totalLotesVendidos = items.reduce((s, f) => s + f.lotes_vendidos, 0)
-  const totalLotesOfertados = items.reduce((s, f) => s + f.lotes_ofertados, 0)
+  // Listas pra preencher os selects de filtro — derivadas do conjunto completo
+  const uniqueLeiloes = useMemo(
+    () => Array.from(new Set(items.map(f => f.nome).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR')),
+    [items]
+  )
+  const uniqueAssessores = useMemo(() => {
+    const set = new Set<string>()
+    for (const f of items) for (const a of f.por_assessor ?? []) {
+      const nome = (a.nome ?? '').trim()
+      if (nome) set.add(nome)
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [items])
+
+  const filteredItems = useMemo(() => {
+    return items.filter(f => {
+      if (filterDataInicio && f.data < filterDataInicio) return false
+      if (filterDataFim    && f.data > filterDataFim)    return false
+      if (filterLeilao     && f.nome !== filterLeilao)   return false
+      if (filterAssessor) {
+        const has = (f.por_assessor ?? []).some(a => (a.nome ?? '').trim() === filterAssessor)
+        if (!has) return false
+      }
+      return true
+    })
+  }, [items, filterDataInicio, filterDataFim, filterLeilao, filterAssessor])
+
+  const hasActiveFilter = !!(filterDataInicio || filterDataFim || filterLeilao || filterAssessor)
+  const clearFilters = () => {
+    setFilterDataInicio(''); setFilterDataFim(''); setFilterLeilao(''); setFilterAssessor('')
+  }
+
+  // KPIs agregados — calculados sobre o conjunto filtrado
+  const totalVgv = filteredItems.reduce((s, f) => s + f.vgv_total, 0)
+  const totalAnimais = filteredItems.reduce((s, f) => s + f.animais_vendidos, 0)
+  const totalLotesVendidos = filteredItems.reduce((s, f) => s + f.lotes_vendidos, 0)
+  const totalLotesOfertados = filteredItems.reduce((s, f) => s + f.lotes_ofertados, 0)
   const coberturaMedia = totalLotesOfertados ? Math.round((totalLotesVendidos / totalLotesOfertados) * 100) : 0
   const ticketMedioGeral = totalAnimais ? Math.round(totalVgv / totalAnimais) : 0
 
   const sortedItems = useMemo(() => {
-    const arr = [...items]
+    const arr = [...filteredItems]
     if (sortBy === 'vgv') arr.sort((a, b) => b.vgv_total - a.vgv_total)
     else if (sortBy === 'cobertura') arr.sort((a, b) =>
       coveragePct(b.lotes_vendidos, b.lotes_ofertados) - coveragePct(a.lotes_vendidos, a.lotes_ofertados))
     else arr.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
     return arr
-  }, [items, sortBy])
+  }, [filteredItems, sortBy])
 
   return (
     <div className="space-y-6">
@@ -1672,7 +1753,11 @@ export default function FechamentoView() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Fechamento de Leilões</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{items.length} {items.length !== 1 ? 'leilões' : 'leilão'} com resultado registrado</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
+            {hasActiveFilter
+              ? `${filteredItems.length} de ${items.length} ${items.length !== 1 ? 'leilões' : 'leilão'} (filtro ativo)`
+              : `${items.length} ${items.length !== 1 ? 'leilões' : 'leilão'} com resultado registrado`}
+          </p>
         </div>
         <button
           onClick={() => { setEditItem(null); setShowForm(true) }}
@@ -1682,20 +1767,76 @@ export default function FechamentoView() {
         </button>
       </div>
 
-      {/* Aggregate KPIs */}
+      {/* Filtros — data, leilão e assessor */}
       {items.length > 0 && (
+        <div className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#0E0E0E] p-3">
+          <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+            <div className="flex flex-col gap-1 min-w-0 flex-1">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Data início</label>
+              <input
+                type="date"
+                value={filterDataInicio}
+                onChange={e => setFilterDataInicio(e.target.value)}
+                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+              />
+            </div>
+            <div className="flex flex-col gap-1 min-w-0 flex-1">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Data fim</label>
+              <input
+                type="date"
+                value={filterDataFim}
+                onChange={e => setFilterDataFim(e.target.value)}
+                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+              />
+            </div>
+            <div className="flex flex-col gap-1 min-w-0 flex-[1.5]">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Leilão</label>
+              <select
+                value={filterLeilao}
+                onChange={e => setFilterLeilao(e.target.value)}
+                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+              >
+                <option value="">Todos</option>
+                {uniqueLeiloes.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1 min-w-0 flex-1">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Assessor</label>
+              <select
+                value={filterAssessor}
+                onChange={e => setFilterAssessor(e.target.value)}
+                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+              >
+                <option value="">Todos</option>
+                {uniqueAssessores.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            {hasActiveFilter && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:text-[#A0792E] hover:border-[#A0792E] transition-colors"
+              >
+                <X size={12} /> Limpar
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Aggregate KPIs */}
+      {filteredItems.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <KpiCard icon={DollarSign} label="VGV Total" value={R(totalVgv)} gold />
           <KpiCard icon={BarChart3} label="Lotes Vendidos" value={`${totalLotesVendidos}/${totalLotesOfertados}`} />
           <KpiCard icon={Percent} label="Cobertura Média" value={`${coberturaMedia}%`} />
           <KpiCard icon={Hash} label="Animais Vendidos" value={totalAnimais.toLocaleString('pt-BR')} />
           <KpiCard icon={TrendingUp} label="Ticket Médio Geral" value={R(ticketMedioGeral)} />
-          <KpiCard icon={ShoppingCart} label="Leilões Fechados" value={items.length.toString()} />
+          <KpiCard icon={ShoppingCart} label="Leilões Fechados" value={filteredItems.length.toString()} />
         </div>
       )}
 
       {/* Charts */}
-      {!loading && items.length > 1 && <InsightsSection items={items} />}
+      {!loading && filteredItems.length > 1 && <InsightsSection items={filteredItems} />}
 
       {/* Content */}
       {loading ? (
@@ -1716,6 +1857,22 @@ export default function FechamentoView() {
             className="flex items-center gap-2 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] text-black rounded-xl font-semibold text-sm transition-colors"
           >
             <Plus size={15} /> Adicionar primeiro fechamento
+          </button>
+        </div>
+      ) : filteredItems.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+          <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-gray-200 dark:border-[#2A2A2A] flex items-center justify-center">
+            <AlertCircle size={28} className="text-gray-300 dark:text-gray-700" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-500">Nenhum fechamento corresponde aos filtros</p>
+            <p className="text-xs text-gray-400 mt-1">Ajuste os critérios ou limpe os filtros pra ver tudo</p>
+          </div>
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-[#2A2A2A] text-gray-600 dark:text-gray-300 hover:text-[#A0792E] hover:border-[#A0792E] rounded-lg font-semibold text-xs transition-colors"
+          >
+            <X size={13} /> Limpar filtros
           </button>
         </div>
       ) : (

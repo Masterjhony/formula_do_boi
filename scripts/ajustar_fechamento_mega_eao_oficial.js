@@ -11,7 +11,7 @@
 //   • MACHOS 2026 (03/05):    150,75 animais | R$ 46.922,06 média | R$ 7.073.500
 //       - Machos individuais: 142,75 | R$ 48.038,53 | R$ 6.857.500
 //       - Machos – MEGA:           8 | R$ 27.000,00 | R$   216.000
-//   • Equinos:                15 animais | R$ 17.706,67 | R$ 265.600
+//   • Equinos:                15 animais | R$ 17.706,67 | R$ 265.600  (NÃO contabilizado — diretiva do chefe 2026-05-05)
 //   • SOMATÓRIA MEGA EAO: R$ 25.021.300  | R$ 86.158,53 média
 //   • Compradores únicos (evento): 148
 //   • Estados (evento): 19 (AC, AL, BA, CE, DF, GO, MA, MG, MS, MT, PA, PB, PE, PI, PR, RJ, SE, SP, TO)
@@ -26,8 +26,9 @@
 //     (Fábio Omena + Douglas Bispo + Bulinha — este último intercompany).
 //   • receita_bula = 1% × VGV oficial por categoria (DEFAULT, REVISAR % com chefe).
 //   • sobra_bruta = receita_bula − comissao_assessoria.
-//   • Equinos NÃO geram fechamento próprio (sem intermediação Bula nos prints) — apenas
-//     conta a receber adicional pela receita Bula 1%.
+//   • Equinos: removidos do escopo financeiro por diretiva do chefe (WhatsApp 2026-05-05
+//     "Pode tirar esses equinos"). Bula não intermediou — não há receita.
+//     O DELETE da conta a receber está em database/remove_fechamento_mega_eao_equinos.sql.
 // ============================================================
 
 const fs = require('fs')
@@ -131,18 +132,6 @@ const RECEBER_TOUROS = {
   },
 }
 
-// ── NOVA CONTA A RECEBER — EQUINOS ──────────────────────────
-const RECEBER_EQUINOS = {
-  description: 'Receita Bula – EAO Agropecuária – 1% – 6º Mega EAO Equinos – Expozebu 2026',
-  transaction_date: '2026-05-03',
-  observacao:
-    'A receber da EAO Agropecuária (promotora). VGV OFICIAL Equinos R$ 265.600 × 1% (DEFAULT, REVISAR) = R$ 2.656. ' +
-    'Fonte: COMPARATIVO MEGA EAO EXPOZEBU 2026 (anexo oficial). 15 equinos vendidos | ticket médio R$ 17.706,67. ' +
-    'Sem fechamento dedicado: Bula não intermediou lotes de equinos; receita decorre apenas da assessoria 1% sobre o evento integral. ' +
-    'Data 2026-05-03 atribuída ao agrupador Mega EAO ExpoZebu — dia exato do leilão de equinos a confirmar.',
-  amount: 2656,
-}
-
 async function patchFechamento({ match, patch }) {
   const { data: existing, error: e1 } = await supa
     .from('bula_leilao_fechamento')
@@ -189,64 +178,6 @@ async function patchTransacao({ match, patch }) {
   console.log(`  Amount: R$ ${Number(existing.amount).toLocaleString('pt-BR')} → R$ ${patch.amount.toLocaleString('pt-BR')}`)
 }
 
-async function ensureContaEquinos() {
-  const { data: existing } = await supa
-    .from('erp_finance_transactions')
-    .select('id, amount')
-    .eq('description', RECEBER_EQUINOS.description)
-    .eq('transaction_date', RECEBER_EQUINOS.transaction_date)
-    .maybeSingle()
-
-  const { data: account } = await supa
-    .from('erp_finance_accounts')
-    .select('id')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle()
-  const { data: category } = await supa
-    .from('erp_finance_categories')
-    .select('id')
-    .eq('name', 'Recebimentos')
-    .eq('type', 'income')
-    .limit(1)
-    .maybeSingle()
-  if (!account?.id || !category?.id) {
-    console.error('⚠ Conta/Categoria não encontrada para Equinos.', { account, category })
-    return
-  }
-
-  if (existing) {
-    const { error } = await supa
-      .from('erp_finance_transactions')
-      .update({
-        amount: RECEBER_EQUINOS.amount,
-        observacao: RECEBER_EQUINOS.observacao,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', existing.id)
-    if (error) throw error
-    console.log(`✓ UPDATED conta a receber Equinos (id=${existing.id}): R$ ${Number(existing.amount).toLocaleString('pt-BR')} → R$ ${RECEBER_EQUINOS.amount.toLocaleString('pt-BR')}`)
-    return
-  }
-
-  const { data, error } = await supa
-    .from('erp_finance_transactions')
-    .insert([{
-      account_id: account.id,
-      category_id: category.id,
-      type: 'income',
-      amount: RECEBER_EQUINOS.amount,
-      description: RECEBER_EQUINOS.description,
-      observacao: RECEBER_EQUINOS.observacao,
-      transaction_date: RECEBER_EQUINOS.transaction_date,
-      status: 'pending',
-    }])
-    .select('id')
-    .single()
-  if (error) throw error
-  console.log(`✓ INSERTED conta a receber Equinos (id=${data.id}): R$ ${RECEBER_EQUINOS.amount.toLocaleString('pt-BR')}`)
-}
-
 async function resumoFinal() {
   console.log('\n═══ ESTADO FINAL — Fechamentos Mega EAO ═══')
   const { data: fech } = await supa
@@ -274,7 +205,9 @@ async function resumoFinal() {
   console.log(`\n  Total a RECEBER (receita Bula): R$ ${totalReceber.toLocaleString('pt-BR')}`)
   console.log(`  Total a PAGAR (comissões):       R$ ${totalPagar.toLocaleString('pt-BR')}`)
   console.log(`  SOBRA BRUTA Mega EAO 2026:       R$ ${(totalReceber - totalPagar).toLocaleString('pt-BR')}`)
-  console.log(`  Esperado: 1% × R$ 25.021.300 − R$ 12.048 = R$ ${(250213 - 12048).toLocaleString('pt-BR')}`)
+  // VGV oficial sem Equinos: R$ 17.682.200 (fêmeas) + R$ 7.073.500 (touros) = R$ 24.755.700
+  // Equinos R$ 265.600 ficam fora por diretiva do chefe (Bula não intermediou).
+  console.log(`  Esperado: 1% × R$ 24.755.700 − R$ 12.048 = R$ ${(247557 - 12048).toLocaleString('pt-BR')}`)
 }
 
 ;(async () => {
@@ -283,7 +216,6 @@ async function resumoFinal() {
     await patchFechamento(FECHAMENTO_TOUROS)
     await patchTransacao(RECEBER_FEMEAS)
     await patchTransacao(RECEBER_TOUROS)
-    await ensureContaEquinos()
     await resumoFinal()
     console.log('\n✓ Ajuste concluído. Lembrete: marcar nota nas observações foi feita; campos compradores_unicos/estados/lotes_vendidos/arrays JSONB permaneceram Bula-específicos.')
   } catch (e) {
