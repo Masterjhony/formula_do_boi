@@ -103,6 +103,13 @@
             padding: 0 24px;
             height: 80px;
         }
+        .site-header-link {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            transition: opacity .2s ease;
+        }
+        .site-header-link:hover { opacity: .85; }
         .site-header img {
             height: 52px;
             width: auto;
@@ -939,7 +946,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <!-- ===== HEADER ===== -->
     <header class="site-header">
-        <img src="/lp/logo-crop.png" alt="Fórmula do Boi">
+        <a href="/" aria-label="Voltar para a home da Fórmula do Boi" class="site-header-link">
+            <img src="/lp/logo-crop.png" alt="Fórmula do Boi">
+        </a>
     </header>
 
     <!-- ===== HERO ===== -->
