@@ -13,14 +13,23 @@ async function getLeiloesPublicos(): Promise<LeilaoPublico[]> {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    // Hoje em São Paulo (sem hora) — só mostramos leilões a partir de hoje.
+    const todayISO = new Date(
+        new Date().toLocaleString("en-CA", { timeZone: "America/Sao_Paulo" })
+    )
+        .toISOString()
+        .slice(0, 10);
+
     const [{ data: bula }, { data: crono }] = await Promise.all([
         supabase
             .from("bula_leiloes")
-            .select("id, nome, data, tipo, animais, img, horario, transmissao, modelo, leiloeira, status")
+            .select("id, nome, data, tipo, animais, img, horario, transmissao, modelo, leiloeira, status, catalogo_url")
+            .gte("data", todayISO)
             .order("data", { ascending: true }),
         supabase
             .from("cronograma_leiloes")
-            .select("id, nome, data, dia_semana, hora, raca, qtd_animais, presencial, leiloeira, criador")
+            .select("id, nome, data, dia_semana, hora, raca, qtd_animais, presencial, leiloeira, criador, catalogo_url")
+            .gte("data", todayISO)
             .order("data", { ascending: true }),
     ]);
 
@@ -55,6 +64,7 @@ async function getLeiloesPublicos(): Promise<LeilaoPublico[]> {
             modelo: b.modelo ?? match?.presencial ?? null,
             leiloeira: b.leiloeira ?? match?.leiloeira ?? null,
             status: b.status ?? null,
+            catalogo_url: b.catalogo_url ?? match?.catalogo_url ?? null,
             criador: match?.criador ?? null,
         });
     }
@@ -73,6 +83,7 @@ async function getLeiloesPublicos(): Promise<LeilaoPublico[]> {
             modelo: c.presencial ?? null,
             leiloeira: c.leiloeira ?? null,
             status: null,
+            catalogo_url: c.catalogo_url ?? null,
             criador: c.criador ?? null,
         });
     }

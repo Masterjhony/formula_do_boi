@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, CalendarDays, Tv, Users, Tag } from "lucide-react";
+import { ArrowRight, CalendarDays, FileText, Tv, Users, Tag } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -45,6 +45,7 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
     const isVirtual = ev.modelo?.toLowerCase() === "virtual";
     const isConfirmado = ev.status?.toLowerCase() === "confirmado";
     const hasImage = !!ev.img;
+    const hasCatalogo = !!ev.catalogo_url;
 
     const badges = (
         <>
@@ -60,6 +61,11 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
             {isConfirmado && (
                 <span className="flex-shrink-0 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/25 text-green-400">
                     Confirmado
+                </span>
+            )}
+            {hasCatalogo && (
+                <span className="flex-shrink-0 inline-flex items-center gap-1 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-brand-gold/15 border border-brand-gold/40 text-brand-gold">
+                    <FileText className="w-2.5 h-2.5" /> Catálogo
                 </span>
             )}
         </>
@@ -95,9 +101,23 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
         </div>
     );
 
+    const Wrapper = ({ children, className }: { children: React.ReactNode; className: string }) =>
+        hasCatalogo ? (
+            <a
+                href={ev.catalogo_url!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${className} cursor-pointer`}
+            >
+                {children}
+            </a>
+        ) : (
+            <div className={className}>{children}</div>
+        );
+
     if (hasImage) {
         return (
-            <div className="card-engraved group flex items-stretch rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300 overflow-hidden">
+            <Wrapper className="card-engraved group flex items-stretch rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300 overflow-hidden">
                 {/* Image panel */}
                 <div className="relative w-28 sm:w-36 flex-shrink-0 bg-[#0C0C0C] self-stretch flex items-center justify-center">
                     <img
@@ -125,12 +145,12 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
                     </div>
                     <div className="hidden sm:block w-1 h-12 rounded-full bg-brand-gold/0 group-hover:bg-brand-gold/40 transition-all duration-300 flex-shrink-0" />
                 </div>
-            </div>
+            </Wrapper>
         );
     }
 
     return (
-        <div className="card-engraved group grid grid-cols-[64px_1fr] sm:grid-cols-[64px_1fr_auto] items-center gap-4 sm:gap-6 p-5 rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300">
+        <Wrapper className="card-engraved group grid grid-cols-[64px_1fr] sm:grid-cols-[64px_1fr_auto] items-center gap-4 sm:gap-6 p-5 rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300">
             <div className="card-engraved flex flex-col items-center justify-center w-16 h-16 rounded-xl border border-brand-gold/20 bg-brand-gold/6 flex-shrink-0">
                 <span className="text-brand-gold font-black text-xl leading-none">{ev.dia}</span>
                 <span className="text-brand-gold/70 text-[10px] font-bold uppercase tracking-wider mt-0.5">{ev.mesAbrev}</span>
@@ -145,7 +165,7 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
                 {meta}
             </div>
             <div className="hidden sm:block w-1 h-12 rounded-full bg-brand-gold/0 group-hover:bg-brand-gold/40 transition-all duration-300" />
-        </div>
+        </Wrapper>
     );
 }
 
