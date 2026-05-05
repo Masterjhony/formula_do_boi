@@ -16,11 +16,17 @@ export async function middleware(request: NextRequest) {
     const isErpSubdomain = hostname.startsWith('erp.')
     const isBulaSubdomain = hostname.startsWith('adminbula.')
     const isLpSubdomain = hostname.startsWith('lp.')
-    const isRootDomain = hostname === 'formuladoboi.com' || hostname === 'www.formuladoboi.com'
 
     // Rewrite path based on subdomain
-    if (isLpSubdomain || isRootDomain) {
-        url.pathname = `/web-lp${url.pathname}`
+    if (isLpSubdomain) {
+        // lp.* foi consolidado em formuladoboi.com/grupo-vip — redireciona pra preservar SEO/links antigos
+        const protocol = request.headers.get('x-forwarded-proto') || 'http'
+        const newHost = hostname === 'lp.localhost:3000'
+            ? 'localhost:3000'
+            : hostname.replace(/^lp\./, '')
+        const trailing = url.pathname === '/' ? '' : url.pathname
+        const target = `${protocol}://${newHost}/grupo-vip${trailing}${url.search}`
+        return NextResponse.redirect(target, 301)
     } else if (isBulaSubdomain) {
         url.pathname = `/web-bula${url.pathname}`
     } else if (isAdminSubdomain) {
@@ -41,7 +47,7 @@ export async function middleware(request: NextRequest) {
 
             return NextResponse.redirect(`${protocol}://${newHost}${url.pathname.replace('/admin', '')}`)
         }
-        
+
         // If on site subdomain but trying to access /erp, redirect to erp subdomain
         if (url.pathname.startsWith('/erp')) {
             const protocol = request.headers.get('x-forwarded-proto') || 'http'
@@ -56,7 +62,13 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(`${protocol}://${newHost}${url.pathname.replace('/erp', '')}`)
         }
 
-        url.pathname = `/web-site${url.pathname}`
+        // /grupo-vip (e subpaths) servem a Landing Page de captura
+        if (url.pathname === '/grupo-vip' || url.pathname.startsWith('/grupo-vip/')) {
+            const subPath = url.pathname.slice('/grupo-vip'.length)
+            url.pathname = `/web-lp${subPath}`
+        } else {
+            url.pathname = `/web-site${url.pathname}`
+        }
     }
 
     // Handle auth and session updates

@@ -52,7 +52,7 @@ export async function generateMetadata(
             return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
         }
         if (url.endsWith('.mp4')) return null; // Can't use other videos as images
-        if (url.startsWith('/')) return `https://app.formuladoboi.com${url}`;
+        if (url.startsWith('/')) return `https://formuladoboi.com${url}`;
         return url;
     };
 
@@ -74,7 +74,7 @@ export async function generateMetadata(
 
     // 3. Fallback if still no image
     if (!previewImage) {
-        previewImage = 'https://app.formuladoboi.com/icon.png';
+        previewImage = 'https://formuladoboi.com/icon.png';
     }
 
     // fallback to a default image if still empty (optional)
@@ -89,7 +89,7 @@ export async function generateMetadata(
         openGraph: {
             title: `Lote ${product.id} | ${product.name} - Fórmula do Boi`,
             description: description,
-            url: `https://app.formuladoboi.com/lote/${product.id}`,
+            url: `https://formuladoboi.com/lote/${product.id}`,
             siteName: 'Fórmula do Boi',
             images: images,
             locale: 'pt_BR',
@@ -455,7 +455,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <PaywallLink
                                     isAuthenticated={isAuthenticated}
                                     redirectPath={redirectPath}
-                                    href={`https://wa.me/5531984143874?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Gostaria de mais informações. Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
+                                    href={`https://wa.me/5531984143874?text=${encodeURIComponent(`Olá, tenho interesse no animal ${product.name} (ID: ${product.id}). Gostaria de mais informações. Link: https://formuladoboi.com/lote/${product.id}`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="w-full py-4 bg-brand-gold hover:bg-yellow-600 text-brand-black font-bold text-lg rounded-lg uppercase tracking-wide transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
@@ -466,7 +466,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
                                 <PaywallLink
                                     isAuthenticated={isAuthenticated}
                                     redirectPath={redirectPath}
-                                    href={`https://wa.me/5531984143874?text=${encodeURIComponent(`Olá, tenho interesse em fazer uma proposta à vista no animal ${product.name} (ID: ${product.id}). Link: https://app.formuladoboi.com/lote/${product.id}`)}`}
+                                    href={`https://wa.me/5531984143874?text=${encodeURIComponent(`Olá, tenho interesse em fazer uma proposta à vista no animal ${product.name} (ID: ${product.id}). Link: https://formuladoboi.com/lote/${product.id}`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="w-full py-3 bg-white border-2 border-brand-black text-brand-black font-bold rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wide text-sm flex items-center justify-center"

@@ -27,11 +27,12 @@ graph TD
     subgraph Vercel ["Vercel — Next.js (App Router)"]
         direction TB
 
-        subgraph PublicSite ["app.formuladoboi.com — /web-site"]
-            Home[Home & Landing]
+        subgraph PublicSite ["formuladoboi.com — /web-site (marketplace)"]
+            Home[Home & Marketplace]
             Catalog[Catálogo de Bovinos]
             Embrioes[Catálogo de Embriões]
             ProductDetails[Detalhes do Lote]
+            GrupoVip["/grupo-vip → /web-lp\n(Landing Page de captura)"]
         end
 
         subgraph AdminPanel ["admin.formuladoboi.com — /web-admin"]
@@ -200,13 +201,18 @@ docker logs -f formula_boi_whatsapp
 
 `src/middleware.ts` intercepta todas as requisições e reescreve o path com base no hostname:
 
-| Hostname | Rewrite para |
+| Hostname / Path | Comportamento |
 |---|---|
-| `admin.*` | `/web-admin/*` |
-| `erp.*` | `/web-erp/*` |
-| qualquer outro | `/web-site/*` |
+| `admin.*` | rewrite → `/web-admin/*` |
+| `erp.*` | rewrite → `/web-erp/*` |
+| `adminbula.*` | rewrite → `/web-bula/*` |
+| `lp.*` | 301 redirect → `formuladoboi.com/grupo-vip${path}` |
+| `formuladoboi.com` / `www.*` / `app.*` | rewrite → `/web-site/*` (marketplace) |
+| `formuladoboi.com/grupo-vip[/...]` | rewrite → `/web-lp[/...]` (Landing Page de captura) |
 
 Na Vercel, cada domínio aponta para o mesmo deployment. O middleware faz o roteamento em runtime, sem builds separados.
+
+A LP foi consolidada sob `/grupo-vip` no domínio raiz após a migração: `formuladoboi.com` agora serve o marketplace (antigo `app.*`); o subdomínio `lp.*` permanece atrelado ao projeto na Vercel apenas para preservar links antigos via 301.
 
 ---
 

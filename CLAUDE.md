@@ -19,11 +19,12 @@ No test suite is configured. `playwright` is in devDependencies but no test runn
 
 | Subdomain | Route prefix | Purpose |
 |-----------|-------------|---------|
-| Root domain (`formuladoboi.com`, `www.*`) and `lp.*` | `/web-lp` | Landing page (lead capture, "Pag-zap" funnel) |
+| Root domain (`formuladoboi.com`, `www.*`) + `app.*` (legacy) | `/web-site` | Public marketplace (touros, matrizes, embriões, sêmen) |
+| `/grupo-vip[/...]` on the marketplace | `/web-lp[/...]` | Landing page (lead capture, "Pag-zap" funnel) — same content under `formuladoboi.com/grupo-vip` and `app.formuladoboi.com/grupo-vip` |
+| `lp.*` | (301 → `/grupo-vip`) | Legacy LP subdomain — middleware emits a permanent redirect to `formuladoboi.com/grupo-vip${path}` |
 | `admin.*` | `/web-admin` | CRM, products, analytics, WhatsApp, tactical plan, OKRs |
 | `erp.*` | `/web-erp` | Internal ERP (financeiro, contábil, estoque, leilões) |
 | `adminbula.*` | `/web-bula` | Bula auction platform (CRM, fechamentos, cronograma) |
-| Anything else (e.g. `app.*` legacy) | `/web-site` | Public marketplace (touros, matrizes, embriões, sêmen) |
 
 `/admin` and `/erp` paths on the marketplace subdomain are 302-redirected to `admin.*` / `erp.*`. API routes (`/api/*`) bypass the rewrite. The middleware also calls `updateSession()` from [src/utils/supabase/middleware.ts](src/utils/supabase/middleware.ts) to refresh Supabase auth cookies.
 
@@ -40,8 +41,8 @@ No test suite is configured. `playwright` is in devDependencies but no test runn
 
 ### Key Data Flows
 
-**Landing-page lead capture** (`lp.formuladoboi.com`):
-LP form → `POST /api/lp/lead` → applies UTM defaults → inserts into `crm_leads` → appends row to Google Sheets `Pag-zap` tab → triggers WhatsApp welcome.
+**Landing-page lead capture** (`formuladoboi.com/grupo-vip`):
+LP form → `POST /api/lp/lead` → applies UTM defaults → inserts into `crm_leads` → appends row to Google Sheets `Pag-zap` tab → triggers WhatsApp welcome. After submit, the browser is sent to `/grupo-vip/obrigado` (or `/obrigado` when accessed via the legacy `lp.*` subdomain — though that subdomain now 301-redirects to `/grupo-vip`).
 
 **Google-Sheets webhook lead** (legacy/external integrations):
 Sheet row → `POST /api/webhooks/google-sheets` (validates `x-webhook-secret`) → inserts to `crm_leads` → calls VPS `/send` → logs to `whatsapp_messages`.
@@ -92,11 +93,13 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 
 ## Page Routes
 
-### `/web-lp` (root domain + `lp.*`)
-- `/` (landing page form)
-- `/obrigado` (post-signup thank-you)
+### `/web-lp` (mounted at `/grupo-vip` on the marketplace)
+- `/grupo-vip` (landing page form)
+- `/grupo-vip/obrigado` (post-signup thank-you)
 
-### `/web-site` (legacy/non-matching subdomains)
+The route handler at [src/app/web-lp/route.ts](src/app/web-lp/route.ts) streams `public/lp/index.html` and injects the WhatsApp group link from `site_settings.whatsapp_group_link`. Middleware rewrites `/grupo-vip${sub}` → `/web-lp${sub}` on the root, www, and `app.*` hosts. The form submit detects the current path and redirects accordingly (`/grupo-vip/obrigado` under the new mount; bare `/obrigado` only on direct `/web-lp` hits — kept as a safety net).
+
+### `/web-site` (root domain `formuladoboi.com`, www + `app.*` legacy)
 `agenda`, `animais`, `atacante`, `auth`, `dashboard`, `embrioes`, `login`, `lote`, `matrizes`, `parceiros`, `pix-teste`, `quem-somos`, `rankings`, `semen`, `sertanejo`, `top-criadores`, `touros`, `venda-conosco`.
 
 ### `/web-admin` (`admin.*`)

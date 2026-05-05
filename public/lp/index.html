@@ -1524,7 +1524,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 console.warn('Falha ao enviar lead (nao-critico):', e);
             }
 
-            window.location.href = '/obrigado';
+            const basePath = window.location.pathname.replace(/\/+$/, '');
+            const isUnderGrupoVip = basePath === '/grupo-vip' || basePath.startsWith('/grupo-vip/');
+            window.location.href = isUnderGrupoVip ? '/grupo-vip/obrigado' : '/obrigado';
         }
 
         // Phone mask

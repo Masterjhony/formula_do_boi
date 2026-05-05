@@ -8,15 +8,20 @@ Plataforma completa para gestão e venda de genética bovina — marketplace pú
 
 | Ambiente | Produção | Local |
 |---|---|---|
-| Marketplace (público) | `app.formuladoboi.com` | `localhost:3000` |
+| Marketplace (público) | `formuladoboi.com` (e `www.*`, `app.*` legacy) | `localhost:3000` |
+| Landing Page (Grupo VIP) | `formuladoboi.com/grupo-vip` | `localhost:3000/grupo-vip` |
 | Painel Admin | `admin.formuladoboi.com` | `admin.localhost:3000` |
 | ERP | `erp.formuladoboi.com` | `erp.localhost:3000` |
+| Bula | `adminbula.formuladoboi.com` | `adminbula.localhost:3000` |
 | WhatsApp Server | `http://165.232.142.37:3001` (VPS DigitalOcean) | `localhost:3001` |
 
 O roteamento por subdomínio é feito via `src/middleware.ts`:
 - `admin.*` → `/web-admin`
 - `erp.*` → `/web-erp`
-- domínio raiz → `/web-site`
+- `adminbula.*` → `/web-bula`
+- `lp.*` → 301 redirect para `formuladoboi.com/grupo-vip` (legacy)
+- domínio raiz / `www.*` / `app.*` → `/web-site` (marketplace)
+- `/grupo-vip[/...]` no marketplace → `/web-lp[/...]` (Landing Page de captura)
 
 ---
 
@@ -84,12 +89,14 @@ O bot responde no próprio grupo confirmando a criação. O card aparece no Kanb
 ## Arquitetura de Serviços
 
 ```
-Vercel (Next.js)          DigitalOcean Droplet (165.232.142.37)
-┌────────────────┐         ┌──────────────────────┐
-│  app.*         │         │  whatsapp-server.js  │
-│  admin.*  ────────────▶  │  porta 3001          │
-│  erp.*         │  HTTP   │  Baileys WebSocket   │
-└────────────────┘         └──────────────────────┘
+Vercel (Next.js)             DigitalOcean Droplet (165.232.142.37)
+┌──────────────────────┐      ┌──────────────────────┐
+│  formuladoboi.com    │      │  whatsapp-server.js  │
+│   ├ /          → site│      │  porta 3001          │
+│   └ /grupo-vip → LP  │ ───▶ │  Baileys WebSocket   │
+│  admin.* / erp.* /   │ HTTP └──────────────────────┘
+│  adminbula.*         │
+└──────────────────────┘
         │                           │
         ▼                           ▼
    Supabase                    WhatsApp Web
@@ -197,7 +204,7 @@ Escaneie o novo QR em `http://admin.formuladoboi.com/whatsapp` (produção) ou `
 
 - **Conta**: `masterjhony` em `joaos-projects-4fb95c65`
 - **Projeto**: `formula_do_boii`
-- **URL de produção**: `https://app.formuladoboi.com`
+- **URL de produção**: `https://formuladoboi.com` (apex). `www.*` e `app.*` (legacy) também atendem o marketplace; `lp.*` 301-redireciona pra `formuladoboi.com/grupo-vip`.
 - **Deploy**: automático a cada `git push` para `main`
 
 #### Gerenciar via Vercel CLI

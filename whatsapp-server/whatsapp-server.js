@@ -47,7 +47,7 @@ if (!fs.existsSync(AUTH_DIR)) {
 // Flow config — carregada do Supabase, com fallback para padrão
 // =============================================================================
 let flowConfig = {
-  welcome_message: `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://app.formuladoboi.com`,
+  welcome_message: `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://formuladoboi.com`,
   options: [],
   flow_timeout_minutes: 60,
 };
@@ -816,7 +816,7 @@ async function _executeSend(phone, name) {
 
   // Monta a mensagem a partir da config, substituindo {nome} e {name}
   const template = flowConfig.welcome_message ||
-    `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://app.formuladoboi.com`;
+    `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://formuladoboi.com`;
 
   const messageText = template
     .replace(/\{nome\}/g, name)

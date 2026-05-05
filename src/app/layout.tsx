@@ -19,7 +19,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://app.formuladoboi.com'),
+  metadataBase: new URL('https://formuladoboi.com'),
   title: "Fórmula do Boi | Curadoria de Nelore PO",
   description: "Genética de elite. Precisão de dados. Curadoria de Nelore PO de alto padrão, sêmen top 0.1% e embriões FIV selecionados.",
   manifest: "/manifest.webmanifest",

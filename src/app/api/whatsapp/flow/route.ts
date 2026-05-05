@@ -10,7 +10,7 @@ function getSupabaseAdmin() {
 }
 
 const DEFAULT_CONFIG = {
-    welcome_message: `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://app.formuladoboi.com`,
+    welcome_message: `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://formuladoboi.com`,
     options: [] as { key: string; label: string; response: string }[],
     flow_timeout_minutes: 60,
 };
