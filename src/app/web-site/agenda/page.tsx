@@ -13,12 +13,15 @@ async function getLeiloesPublicos(): Promise<LeilaoPublico[]> {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Hoje em São Paulo (sem hora) — só mostramos leilões a partir de hoje.
-    const todayISO = new Date(
-        new Date().toLocaleString("en-CA", { timeZone: "America/Sao_Paulo" })
-    )
-        .toISOString()
-        .slice(0, 10);
+    // Hoje em São Paulo (YYYY-MM-DD) — só mostramos leilões a partir de hoje.
+    // Usa Intl.DateTimeFormat porque parsear o output de toLocaleString
+    // (que vem com vírgula) quebra com RangeError no build da Vercel.
+    const todayISO = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).format(new Date());
 
     const [{ data: bula }, { data: crono }] = await Promise.all([
         supabase
