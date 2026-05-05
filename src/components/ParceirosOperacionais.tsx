@@ -87,7 +87,7 @@ export default function ParceirosOperacionais() {
                         title="Aceleradora de Touros"
                         copy="Programa de aceleração de novos touros de elite. O Atacante da Matinha (RDM B 3224 MAT., MGTe 42,38 TOP 0,1%) é o lançamento atual da Aceleradora dentro da Fórmula do Boi — touro jovem com pré-reserva aberta na Procriar SP."
                         ctaLabel="Conhecer o Atacante"
-                        ctaHref="/atacante"
+                        ctaHref="/atacante-matinha"
                         logo={<LogoAceleradora />}
                     />
                     <ParceiroCard
