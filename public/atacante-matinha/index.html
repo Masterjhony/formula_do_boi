@@ -260,6 +260,11 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   font-family: var(--f-mono); font-size:10px; color: var(--gray-200);
   letter-spacing: 0.32em;
 }
+.brand-partner-logo{
+  height: 36px; width: 36px;
+  display: block; flex-shrink: 0;
+  border-radius: 50%;
+}
 .brand-cta{
   display:inline-flex; align-items:center; gap:8px;
   background: var(--bronze-500); color: var(--preto);
@@ -402,6 +407,128 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   animation: pulse-line 2.4s ease-in-out infinite;
 }
 @keyframes pulse-line{ 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+
+/* ============== VÍDEO PLAYER (após o CTA) ============== */
+.video-player-section{
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(160,121,46,0.10), transparent 60%),
+    var(--preto);
+  padding: 80px 6vw 100px;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+.video-player-title{
+  font-family: var(--f-display); font-weight: 500;
+  font-size: clamp(28px, 4vw, 48px);
+  letter-spacing: -0.02em; line-height: 1.05;
+  color: var(--branco); max-width: 760px;
+  margin-bottom: 36px;
+}
+.video-player-title i{ font-style: italic; color: var(--bronze-300); }
+.video-player-wrap{
+  position: relative;
+  max-width: 1080px; margin: 0 auto;
+  border: 1px solid var(--rule-2);
+  background: linear-gradient(180deg, rgba(20,17,15,0.6), rgba(10,10,10,0.6));
+  padding: 14px;
+}
+.video-player{
+  width: 100%; height: auto;
+  display: block; aspect-ratio: 16/9;
+  background: var(--ink);
+  object-fit: cover;
+}
+.video-corner{
+  position: absolute; width: 14px; height: 14px;
+  border-color: var(--bronze-500); pointer-events: none;
+}
+.video-corner.tl{ top: 0; left: 0; border-top: 1px solid; border-left: 1px solid; }
+.video-corner.tr{ top: 0; right: 0; border-top: 1px solid; border-right: 1px solid; }
+.video-corner.bl{ bottom: 0; left: 0; border-bottom: 1px solid; border-left: 1px solid; }
+.video-corner.br{ bottom: 0; right: 0; border-bottom: 1px solid; border-right: 1px solid; }
+.video-player-cap{
+  margin-top: 18px;
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--gray-200); text-align: center;
+}
+
+/* ============== GALERIA — fotos fundindo com o fundo escuro ============== */
+.gallery{
+  background:
+    linear-gradient(180deg, var(--preto), #0a0a0a 50%, var(--preto));
+  padding: 140px 6vw;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+  overflow: hidden;
+}
+.gallery-bg-glow{
+  position: absolute; inset: -100px -10vw auto auto;
+  width: 70vw; height: 70vw;
+  background: radial-gradient(circle, rgba(160,121,46,0.10), transparent 60%);
+  pointer-events: none;
+}
+.gallery-head{
+  max-width: 900px; margin-bottom: 60px;
+  position: relative; z-index: 2;
+}
+.gallery-title{
+  font-family: var(--f-display); font-weight: 500;
+  font-size: clamp(36px, 5vw, 64px);
+  letter-spacing: -0.025em; line-height: 1.05;
+  color: var(--branco);
+  margin-bottom: 14px;
+}
+.gallery-title i{ font-style: italic; color: var(--bronze-300); }
+.gallery-lede{
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--bronze-300);
+}
+.gallery-grid{
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-auto-rows: 220px;
+  gap: 16px;
+  position: relative; z-index: 2;
+}
+.gallery-item{
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  background: var(--ink);
+  grid-column: span 2;
+}
+.gallery-item-large{
+  grid-column: span 4;
+  grid-row: span 2;
+}
+.gallery-item img{
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  /* Brandbook §08 — tratamento warm shadows */
+  filter: brightness(0.92) contrast(1.20) saturate(0.90) sepia(0.04);
+  transition: filter .35s, transform .5s;
+}
+.gallery-item::after{
+  content:""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.92));
+  pointer-events: none;
+  opacity: 0.85; transition: opacity .35s;
+}
+.gallery-item:hover img{
+  filter: brightness(1) contrast(1.15) saturate(1) sepia(0);
+  transform: scale(1.03);
+}
+.gallery-item:hover::after{ opacity: 0.55; }
+.gallery-item figcaption{
+  position: absolute; left: 16px; right: 16px; bottom: 14px;
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--bronze-300); font-weight: 500;
+  z-index: 2;
+}
 
 /* ============== MARQUEE STATS ============== */
 .marquee{
@@ -1224,6 +1351,13 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
    Breakpoints: 1100px (tablet landscape) · 820px (tablet) · 560px (phone) · 380px (small phone)
    ===================================================================== */
 
+/* ---------- VIDEO + GALLERY @ TABLET ---------- */
+@media (max-width: 1024px){
+  .gallery-grid{ grid-template-columns: repeat(4, 1fr); grid-auto-rows: 200px; }
+  .gallery-item{ grid-column: span 2; }
+  .gallery-item-large{ grid-column: span 4; grid-row: span 1; grid-auto-rows: 280px; }
+}
+
 /* ---------- TABLET LANDSCAPE (≤1100px) ---------- */
 @media (max-width: 1100px){
   .manifesto-grid, .apresenta-grid, .carcass-grid{ grid-template-columns: 1fr; gap: 60px; }
@@ -1284,6 +1418,20 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .hero-img{ display: block; object-position: center 20%; }
   .hero-content{ padding: 0 5vw 56px; padding-top: 50vh; }
   .hero-rail, .hero-vlabel{ display:none; }
+
+  /* Vídeo player section mobile */
+  .video-player-section{ padding: 60px 5vw 70px; }
+  .video-player-title{ font-size: 24px; margin-bottom: 24px; }
+  .video-player-wrap{ padding: 8px; }
+
+  /* Galeria mobile */
+  .gallery{ padding: 90px 5vw; }
+  .gallery-head{ margin-bottom: 36px; }
+  .gallery-title{ font-size: 28px; }
+  .gallery-grid{ grid-template-columns: 1fr 1fr; grid-auto-rows: 180px; gap: 10px; }
+  .gallery-item, .gallery-item-large{ grid-column: span 1; grid-row: span 1; }
+  .gallery-item-large{ grid-column: span 2; grid-row: span 1; grid-auto-rows: 240px; }
+  .gallery-item figcaption{ font-size: 9px; letter-spacing: 0.14em; }
   .hero-eyebrow{ font-size: 10px; letter-spacing: 0.28em; margin-bottom: 18px; }
   .hero-eyebrow::before{ width: 28px; }
   .hero-h1{
@@ -1299,9 +1447,11 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 
   /* BRANDBAR */
   .brandbar-inner{ padding: 10px 18px; gap: 10px; }
-  .brand-lockup{ gap: 10px; }
-  .brand-logo{ height: 42px; }
-  .brand-x, .brand-partner{ display:none; }
+  .brand-lockup{ gap: 8px; }
+  .brand-logo{ height: 38px; }
+  .brand-x{ display: inline-block; padding: 0 2px; }
+  .brand-partner{ display:none; }
+  .brand-partner-logo{ height: 30px; width: 30px; display: block; }
   .brand-cta{ padding: 10px 14px; font-size: 11px; letter-spacing: 0.04em; }
   .brand-cta svg{ width: 12px; }
 
@@ -1475,6 +1625,12 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .reason h3{ font-size: 19px; }
   .reason p{ font-size: 14px; }
 
+  /* Galeria phone pequeno */
+  .gallery{ padding: 70px 20px; }
+  .gallery-grid{ grid-template-columns: 1fr; grid-auto-rows: 240px; }
+  .gallery-item, .gallery-item-large{ grid-column: span 1; }
+  .gallery-item-large{ grid-auto-rows: 280px; }
+
   /* Manifesto */
   .manifesto, .pedigree{ padding: 64px 20px; }
   .manifesto p{ font-size: 15px; line-height: 1.65; }
@@ -1487,7 +1643,8 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .footer-bottom{ font-size: 9px; letter-spacing: 0.18em; }
 
   /* Brandbar - logo reduzida */
-  .brand-logo{ height: 36px; }
+  .brand-logo{ height: 32px; }
+  .brand-partner-logo{ height: 26px; width: 26px; }
   .brand-cta{ padding: 9px 12px; font-size: 10px; }
 }
 
@@ -1531,7 +1688,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
       <!-- Logo OFICIAL horizontal Fórmula do Boi (Brandbook §04 · lockup vetorizado) -->
       <img class="brand-logo" src="/atacante-matinha/assets/brand/logo-bronze-tight.svg" alt="Fórmula do Boi" />
       <span class="brand-x">×</span>
-      <span class="brand-partner">Nelore Visual</span>
+      <img class="brand-partner-logo" src="/atacante-matinha/assets/brand/logo-nelore-visual.png" alt="Nelore Visual" />
     </div>
     <a href="#reservar" class="brand-cta">
       Reservar dose
@@ -1579,10 +1736,73 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   </div>
 </section>
 
+<!-- ===================== VÍDEO PLAYER ===================== -->
+<section class="video-player-section reveal" id="video-touro">
+  <div class="wrap">
+    <div class="kicker" style="margin-bottom:24px;">● Vídeo · Atacante Matinha</div>
+    <h2 class="video-player-title">Veja o touro <i>em movimento.</i></h2>
+    <div class="video-player-wrap">
+      <video
+        class="video-player"
+        controls
+        playsinline
+        preload="metadata"
+        poster="/atacante-matinha/assets/photos/atacante-01.jpeg">
+        <source src="/atacante-matinha/assets/atacante-video.mp4" type="video/mp4">
+        Seu navegador não suporta vídeo HTML5.
+      </video>
+      <div class="video-corner tl"></div>
+      <div class="video-corner tr"></div>
+      <div class="video-corner bl"></div>
+      <div class="video-corner br"></div>
+    </div>
+    <p class="video-player-cap">Foto/vídeo · Nelore Visual · JM Matos</p>
+  </div>
+</section>
+
 <!-- ===================== MARQUEE STATS ===================== -->
 <div class="marquee" aria-hidden="true">
   <div class="marquee-track" id="marqueeTrack"></div>
 </div>
+
+<!-- ===================== GALERIA DE FOTOS (fundindo com o fundo escuro) ===================== -->
+<section class="gallery reveal" id="galeria">
+  <div class="gallery-bg-glow" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="gallery-head">
+      <div class="kicker" style="margin-bottom:18px;">● Galeria · Nelore Visual</div>
+      <h2 class="gallery-title">Pelagem, <i>aprumo</i> e <i>presença</i> de elite.</h2>
+      <p class="gallery-lede">Crédito · JM Matos · Nelore Visual.</p>
+    </div>
+
+    <div class="gallery-grid">
+      <figure class="gallery-item gallery-item-large">
+        <img src="/atacante-matinha/assets/photos/atacante-05.jpeg" alt="Atacante Matinha — perfil lateral" loading="lazy" />
+        <figcaption>Perfil lateral · Aprumo &amp; estrutura</figcaption>
+      </figure>
+      <figure class="gallery-item">
+        <img src="/atacante-matinha/assets/photos/atacante-01.jpeg" alt="Atacante Matinha — 3/4 frontal" loading="lazy" />
+        <figcaption>3/4 frontal · Cabeça &amp; expressão</figcaption>
+      </figure>
+      <figure class="gallery-item">
+        <img src="/atacante-matinha/assets/photos/atacante-04.jpeg" alt="Atacante Matinha — frente" loading="lazy" />
+        <figcaption>Frente · Pelagem branca de tipicidade</figcaption>
+      </figure>
+      <figure class="gallery-item">
+        <img src="/atacante-matinha/assets/photos/atacante-02.jpeg" alt="Atacante Matinha — perfil em movimento" loading="lazy" />
+        <figcaption>Perfil em movimento · Conformação</figcaption>
+      </figure>
+      <figure class="gallery-item">
+        <img src="/atacante-matinha/assets/photos/atacante-06.jpeg" alt="Atacante Matinha — junto à cerca" loading="lazy" />
+        <figcaption>Repouso · Tranquilidade no campo</figcaption>
+      </figure>
+      <figure class="gallery-item">
+        <img src="/atacante-matinha/assets/photos/atacante-03.jpeg" alt="Atacante Matinha — posando" loading="lazy" />
+        <figcaption>Apresentação · Pose oficial</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
 
 <!-- ===================== VALUES STRIP (Brandbook §01 · Valores) ===================== -->
 <div class="values-strip" aria-label="Valores Fórmula do Boi">
