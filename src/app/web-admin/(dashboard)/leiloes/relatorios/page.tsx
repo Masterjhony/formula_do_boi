@@ -5,9 +5,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   BarChart3, Calendar, ChevronRight, Download, FileBarChart, Hash,
-  Layers, Loader2, MapPin, Percent, Sparkles, Target, TrendingDown,
-  TrendingUp, Trophy, Users, Activity, Funnel as FunnelIcon, DollarSign,
-  GitBranch, RadioTower, Tag, Briefcase,
+  Layers, Loader2, MapPin, Percent, Sparkles,
+  TrendingUp, Trophy, DollarSign,
+  RadioTower, Tag, Briefcase,
 } from 'lucide-react'
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ type Payload = {
 
 type ReportKey =
   | 'mensal' | 'comparativo' | 'comissoes' | 'assessor' | 'cobertura'
-  | 'categoria' | 'ranking' | 'leads' | 'conversao' | 'origem'
+  | 'categoria' | 'ranking'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -152,15 +152,6 @@ const REPORT_GROUPS: ReportGroup[] = [
       { key: 'assessor',  label: 'Assessor',  icon: Briefcase  },
       { key: 'cobertura', label: 'Cobertura', icon: RadioTower },
       { key: 'categoria', label: 'Categoria', icon: Tag        },
-    ],
-  },
-  {
-    id: 'funil',
-    label: 'Funil de leads',
-    items: [
-      { key: 'leads',     label: 'Leads',     icon: Users      },
-      { key: 'conversao', label: 'Conversão', icon: FunnelIcon },
-      { key: 'origem',    label: 'Origem',    icon: GitBranch  },
     ],
   },
 ]
@@ -583,9 +574,6 @@ function ReportRouter({ report, data, from, to }: { report: ReportKey; data: Pay
     case 'cobertura':   return <ReportCobertura data={data} period={period} />
     case 'categoria':   return <ReportCategoria data={data} period={period} />
     case 'ranking':     return <ReportRanking data={data} period={period} />
-    case 'leads':       return <ReportLeads data={data} period={period} />
-    case 'conversao':   return <ReportConversao data={data} period={period} />
-    case 'origem':      return <ReportOrigem data={data} period={period} />
   }
 }
 
@@ -1496,305 +1484,6 @@ function ReportRanking({ data, period }: { data: Payload; period: string }) {
                 value: PCT(cob), bar: cob,
               }
             })} />
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── 8) Leads ────────────────────────────────────────────────────────────────
-
-function ReportLeads({ data, period }: { data: Payload; period: string }) {
-  const total = data.leads.length
-  const ativos = data.leads.filter(l => !['Fechado', 'Perdido'].includes((l.status ?? '').trim())).length
-  const fechados = data.leads.filter(l => (l.status ?? '').trim() === 'Fechado').length
-  const perdidos = data.leads.filter(l => (l.status ?? '').trim() === 'Perdido').length
-  const quentes = data.leads.filter(l => (l.prioridade ?? '').toLowerCase().includes('alta') || (l.prioridade ?? '').toLowerCase().includes('quente')).length
-
-  const porStatus = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const l of data.leads) {
-      const k = (l.status ?? 'Sem Status').trim() || 'Sem Status'
-      map.set(k, (map.get(k) ?? 0) + 1)
-    }
-    return Array.from(map.entries()).map(([status, count]) => ({ status, count })).sort((a, b) => b.count - a.count)
-  }, [data])
-
-  const porInteresse = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const l of data.leads) {
-      const k = (l.interesse ?? '').trim() || 'Sem interesse declarado'
-      map.set(k, (map.get(k) ?? 0) + 1)
-    }
-    return Array.from(map.entries()).map(([k, count]) => ({ interesse: k, count })).sort((a, b) => b.count - a.count).slice(0, 8)
-  }, [data])
-
-  const porUf = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const l of data.leads) {
-      const k = (l.estado ?? '').trim() || '—'
-      if (k === '—') continue
-      map.set(k, (map.get(k) ?? 0) + 1)
-    }
-    return Array.from(map.entries()).map(([uf, count]) => ({ uf, count })).sort((a, b) => b.count - a.count).slice(0, 12)
-  }, [data])
-
-  const exportCsv = () => {
-    const rows: (string | number)[][] = [
-      ['Status', 'Quantidade', '%'],
-      ...porStatus.map(r => [r.status, r.count, total ? ((r.count / total) * 100).toFixed(2) : 0]),
-    ]
-    downloadCSV('relatorio-leads.csv', rows)
-  }
-
-  const maxStatus = Math.max(1, ...porStatus.map(s => s.count))
-
-  return (
-    <div className="rl-section">
-      <SectionHead
-        title="Relatório de"
-        emphasis="leads"
-        subtitle={`Demanda e intenção de compra · ${period}`}
-        onExport={exportCsv}
-      />
-
-      <div className="rl-grid rl-grid-5">
-        <Stat label="Leads no período" value={fmtNum(total)} gold />
-        <Stat label="Em pipeline" value={fmtNum(ativos)} sub="ativos" />
-        <Stat label="Quentes / Alta" value={fmtNum(quentes)} sub="prioridade alta" />
-        <Stat label="Fechados" value={fmtNum(fechados)} />
-        <Stat label="Perdidos" value={fmtNum(perdidos)} />
-      </div>
-
-      {total === 0 ? (
-        <Empty title="Sem leads no período" message="Ajuste o intervalo para incluir registros do CRM." />
-      ) : (
-        <div className="rl-bento">
-          <div className="rl-card rl-c6">
-            <div className="rl-card-head">
-              <div><h3>Distribuição por status</h3><div className="rl-sub">Ocupação atual do pipeline</div></div>
-              <Activity size={14} style={{ color: 'var(--dcl-gold)' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {porStatus.map(s => (
-                <div key={s.status} style={{ display: 'grid', gridTemplateColumns: '140px 1fr 70px', gap: 12, alignItems: 'center', padding: '6px 0' }}>
-                  <span style={{ color: 'var(--dcl-ink-2)', fontSize: 12.5 }}>{s.status}</span>
-                  <div className="rl-bar" style={{ height: 8 }}><span style={{ width: `${(s.count / maxStatus) * 100}%` }} /></div>
-                  <span className="rl-num" style={{ textAlign: 'right' }}>{fmtNum(s.count)} <span style={{ color: 'var(--dcl-ink-3)' }}>· {PCT(s.count / total)}</span></span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="rl-card rl-c6">
-            <div className="rl-card-head">
-              <div><h3>Por interesse</h3><div className="rl-sub">O que o lead disse buscar</div></div>
-              <Target size={14} style={{ color: 'var(--dcl-gold)' }} />
-            </div>
-            <RankList items={porInteresse.map(r => ({
-              key: r.interesse, primary: r.interesse, secondary: PCT(r.count / total),
-              value: fmtNum(r.count), bar: r.count,
-            }))} />
-          </div>
-          <div className="rl-card rl-c12">
-            <div className="rl-card-head">
-              <div><h3>Distribuição geográfica</h3><div className="rl-sub">Top 12 estados</div></div>
-              <MapPin size={14} style={{ color: 'var(--dcl-gold)' }} />
-            </div>
-            {porUf.length === 0 ? (
-              <p style={{ color: 'var(--dcl-ink-3)', fontSize: 12.5, margin: 0 }}>Leads sem estado preenchido.</p>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
-                {porUf.map(u => (
-                  <div key={u.uf} style={{
-                    background: 'var(--dcl-bg-card-2)', border: '1px solid var(--dcl-line)',
-                    borderRadius: 10, padding: '10px 12px',
-                  }}>
-                    <div style={{ color: 'var(--dcl-gold)', fontFamily: 'var(--font-mono), ui-monospace, monospace', fontSize: 14, fontWeight: 600 }}>{u.uf}</div>
-                    <div className="rl-num" style={{ marginTop: 4 }}>{fmtNum(u.count)} <span style={{ color: 'var(--dcl-ink-3)' }}>leads</span></div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── 9) Conversão (funil) ────────────────────────────────────────────────────
-
-const FUNNEL_STAGES = ['Lead', 'Qualificado', 'Proposta', 'Negociação', 'Fechado'] as const
-
-function ReportConversao({ data, period }: { data: Payload; period: string }) {
-  const counts = useMemo(() => {
-    const counters: Record<string, number> = Object.fromEntries(FUNNEL_STAGES.map(s => [s, 0]))
-    for (const l of data.leads) {
-      const s = (l.status ?? '').trim()
-      if (counters[s] != null) counters[s] += 1
-    }
-    return counters
-  }, [data])
-
-  const steps = FUNNEL_STAGES.map(s => ({ stage: s, count: counts[s] }))
-  const top = steps[0].count || 1
-  const fechados = counts['Fechado']
-  const totalLeads = data.leads.length
-
-  const valorPipeline = data.leads.reduce((s, l) => s + (l.valor_estimado || 0), 0)
-  const valorPonderado = data.leads.reduce((s, l) => s + (l.valor_estimado || 0) * ((l.probabilidade ?? 0) / 100), 0)
-
-  const exportCsv = () => {
-    const rows: (string | number)[][] = [
-      ['Etapa', 'Quantidade', 'Conversão (%)'],
-      ...steps.map(s => [s.stage, s.count, top ? ((s.count / top) * 100).toFixed(2) : 0]),
-    ]
-    downloadCSV('relatorio-conversao.csv', rows)
-  }
-
-  return (
-    <div className="rl-section">
-      <SectionHead
-        title="Funil de"
-        emphasis="conversão"
-        subtitle={`Visualização → interesse → contato → proposta → venda · ${period}`}
-        onExport={exportCsv}
-      />
-
-      <div className="rl-grid rl-grid-4">
-        <Stat label="Leads totais" value={fmtNum(totalLeads)} gold />
-        <Stat label="Conversão lead→fechado" value={top ? PCT(fechados / top) : '0%'} sub={`${fechados} fechados`} />
-        <Stat label="Pipeline em aberto" value={fmtBRLCompact(valorPipeline)} sub="valor estimado" />
-        <Stat label="Pipeline ponderado" value={fmtBRLCompact(valorPonderado)} sub="ajustado por probabilidade" />
-      </div>
-
-      {totalLeads === 0 ? (
-        <Empty title="Sem leads no período" message="Cadastre leads ou amplie o recorte para visualizar o funil." />
-      ) : (
-        <div className="rl-card">
-          <div className="rl-card-head">
-            <div><h3>Funil comercial</h3><div className="rl-sub">Volume e taxa de conversão por etapa</div></div>
-            <FunnelIcon size={14} style={{ color: 'var(--dcl-gold)' }} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 6 }}>
-            {steps.map((s, i) => {
-              const widthPct = top > 0 ? (s.count / top) * 100 : 0
-              const drop = i > 0 ? Math.max(0, steps[i - 1].count - s.count) : 0
-              const conv = i > 0 && steps[i - 1].count > 0 ? (s.count / steps[i - 1].count) : 1
-              return (
-                <div key={s.stage}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 6 }}>
-                    <span style={{ color: 'var(--dcl-ink)', fontSize: 13, fontWeight: 500 }}>{s.stage}</span>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-                      <span className="rl-num" style={{ fontSize: 14, color: 'var(--dcl-ink)' }}>{fmtNum(s.count)}</span>
-                      <span style={{ fontSize: 11, color: 'var(--dcl-ink-3)', fontFamily: 'var(--font-mono), ui-monospace, monospace' }}>
-                        {i === 0 ? '100,0%' : PCT(conv)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="rl-bar" style={{ height: 24, borderRadius: 8 }}>
-                    <span style={{ width: `${Math.max(2, widthPct)}%`, borderRadius: 8 }} />
-                  </div>
-                  {i > 0 && drop > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-                      <span style={{ fontSize: 10.5, color: 'var(--dcl-ink-4)' }}>
-                        <TrendingDown size={10} style={{ verticalAlign: -1, marginRight: 4 }} />
-                        {fmtNum(drop)} caíram nesta etapa
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── 10) Origem dos Leads ────────────────────────────────────────────────────
-
-function ReportOrigem({ data, period }: { data: Payload; period: string }) {
-  const total = data.leads.length
-
-  const porSource = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const l of data.leads) {
-      const k = (l.source ?? l.origem ?? '').trim() || 'Não informado'
-      map.set(k, (map.get(k) ?? 0) + 1)
-    }
-    return Array.from(map.entries()).map(([k, v]) => ({ key: k, count: v })).sort((a, b) => b.count - a.count)
-  }, [data])
-
-  const porMedium = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const l of data.leads) {
-      const k = (l.medium ?? '').trim() || 'Não informado'
-      map.set(k, (map.get(k) ?? 0) + 1)
-    }
-    return Array.from(map.entries()).map(([k, v]) => ({ key: k, count: v })).sort((a, b) => b.count - a.count)
-  }, [data])
-
-  const porCampaign = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const l of data.leads) {
-      const k = (l.campaign ?? '').trim() || 'Sem campanha'
-      map.set(k, (map.get(k) ?? 0) + 1)
-    }
-    return Array.from(map.entries()).map(([k, v]) => ({ key: k, count: v })).sort((a, b) => b.count - a.count).slice(0, 8)
-  }, [data])
-
-  const exportCsv = () => {
-    const rows: (string | number)[][] = [
-      ['Dimensão', 'Valor', 'Quantidade', '%'],
-      ...porSource.map(s => ['Source', s.key, s.count, total ? ((s.count / total) * 100).toFixed(2) : 0]),
-      ...porMedium.map(s => ['Medium', s.key, s.count, total ? ((s.count / total) * 100).toFixed(2) : 0]),
-      ...porCampaign.map(s => ['Campanha', s.key, s.count, total ? ((s.count / total) * 100).toFixed(2) : 0]),
-    ]
-    downloadCSV('relatorio-origem-leads.csv', rows)
-  }
-
-  return (
-    <div className="rl-section">
-      <SectionHead
-        title="Origem dos"
-        emphasis="leads"
-        subtitle={`De onde vem o cliente · ${period}`}
-        onExport={exportCsv}
-      />
-
-      {total === 0 ? (
-        <Empty title="Sem leads no período" />
-      ) : (
-        <div className="rl-bento">
-          <div className="rl-card rl-c4">
-            <div className="rl-card-head">
-              <div><h3>Source</h3><div className="rl-sub">UTM source / origem do lead</div></div>
-            </div>
-            <RankList items={porSource.slice(0, 10).map(s => ({
-              key: s.key, primary: s.key, secondary: PCT(s.count / total),
-              value: fmtNum(s.count), bar: s.count,
-            }))} />
-          </div>
-          <div className="rl-card rl-c4">
-            <div className="rl-card-head">
-              <div><h3>Medium</h3><div className="rl-sub">Tipo de tráfego</div></div>
-            </div>
-            <RankList items={porMedium.slice(0, 10).map(s => ({
-              key: s.key, primary: s.key, secondary: PCT(s.count / total),
-              value: fmtNum(s.count), bar: s.count,
-            }))} />
-          </div>
-          <div className="rl-card rl-c4">
-            <div className="rl-card-head">
-              <div><h3>Campanhas</h3><div className="rl-sub">Top 8 ativas</div></div>
-            </div>
-            <RankList items={porCampaign.map(s => ({
-              key: s.key, primary: s.key, secondary: PCT(s.count / total),
-              value: fmtNum(s.count), bar: s.count,
-            }))} />
           </div>
         </div>
       )}
