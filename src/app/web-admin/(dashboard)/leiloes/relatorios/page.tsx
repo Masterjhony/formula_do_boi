@@ -131,17 +131,38 @@ function matchFechamentoToCronograma(f: Fechamento, cronos: Cronograma[]): Crono
 
 // ── Section UI ──────────────────────────────────────────────────────────────
 
-const REPORTS: { key: ReportKey; label: string; icon: React.ElementType; tag: 'essencial' | 'importante' | 'extra' }[] = [
-  { key: 'mensal',      label: 'Fechamento Mensal',      icon: Calendar,    tag: 'essencial' },
-  { key: 'comparativo', label: 'Comparativo entre Leilões', icon: BarChart3, tag: 'essencial' },
-  { key: 'comissoes',   label: 'Comissões',              icon: DollarSign,  tag: 'essencial' },
-  { key: 'assessor',    label: 'Por Assessor',           icon: Briefcase,   tag: 'importante' },
-  { key: 'cobertura',   label: 'Cobertura de Leilões',   icon: RadioTower,  tag: 'essencial' },
-  { key: 'categoria',   label: 'Por Categoria',          icon: Tag,         tag: 'importante' },
-  { key: 'ranking',     label: 'Ranking de Leilões',     icon: Trophy,      tag: 'importante' },
-  { key: 'leads',       label: 'Leads',                  icon: Users,       tag: 'essencial' },
-  { key: 'conversao',   label: 'Conversão',              icon: FunnelIcon,  tag: 'essencial' },
-  { key: 'origem',      label: 'Origem dos Leads',       icon: GitBranch,   tag: 'importante' },
+type ReportItem = { key: ReportKey; label: string; icon: React.ElementType }
+type ReportGroup = { id: string; label: string; items: ReportItem[] }
+
+const REPORT_GROUPS: ReportGroup[] = [
+  {
+    id: 'fechamentos',
+    label: 'Fechamentos',
+    items: [
+      { key: 'mensal',      label: 'Mensal',       icon: Calendar  },
+      { key: 'comparativo', label: 'Comparativo',  icon: BarChart3 },
+      { key: 'ranking',     label: 'Ranking',      icon: Trophy    },
+    ],
+  },
+  {
+    id: 'comercial',
+    label: 'Comercial',
+    items: [
+      { key: 'comissoes', label: 'Comissões', icon: DollarSign },
+      { key: 'assessor',  label: 'Assessor',  icon: Briefcase  },
+      { key: 'cobertura', label: 'Cobertura', icon: RadioTower },
+      { key: 'categoria', label: 'Categoria', icon: Tag        },
+    ],
+  },
+  {
+    id: 'funil',
+    label: 'Funil de leads',
+    items: [
+      { key: 'leads',     label: 'Leads',     icon: Users      },
+      { key: 'conversao', label: 'Conversão', icon: FunnelIcon },
+      { key: 'origem',    label: 'Origem',    icon: GitBranch  },
+    ],
+  },
 ]
 
 // ── Page ────────────────────────────────────────────────────────────────────
@@ -190,24 +211,35 @@ export default function RelatoriosPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="rl-tabs">
-        {REPORTS.map(r => {
-          const Icon = r.icon
-          const active = report === r.key
-          return (
-            <button
-              key={r.key}
-              onClick={() => setReport(r.key)}
-              className={`rl-tab${active ? ' rl-tab-on' : ''}`}
-              data-tag={r.tag}
-            >
-              <Icon size={13} />
-              <span>{r.label}</span>
-            </button>
-          )
-        })}
-      </div>
+      {/* Nav grouped */}
+      <nav className="rl-nav" aria-label="Relatórios">
+        {REPORT_GROUPS.map((group, gi) => (
+          <div key={group.id} className="rl-nav-group">
+            <span className="rl-nav-group-label">
+              <span className="rl-nav-group-num">{String(gi + 1).padStart(2, '0')}</span>
+              {group.label}
+            </span>
+            <div className="rl-nav-pills">
+              {group.items.map(item => {
+                const Icon = item.icon
+                const active = report === item.key
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setReport(item.key)}
+                    className={`rl-pill${active ? ' rl-pill-on' : ''}`}
+                    aria-pressed={active}
+                  >
+                    <span className="rl-pill-ico"><Icon size={14} strokeWidth={1.7} /></span>
+                    <span className="rl-pill-label">{item.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
 
       {/* Body */}
       {loading || !data ? (
@@ -246,33 +278,116 @@ export default function RelatoriosPage() {
         }
         .rl-link:hover { background: rgba(212,168,92,0.14); border-color: rgba(212,168,92,0.45); }
 
-        .rl-tabs {
-          display: flex; gap: 4px; flex-wrap: wrap;
-          margin: 18px 0 22px;
-          padding: 5px;
-          background: var(--dcl-bg-card); border: 1px solid var(--dcl-line);
-          border-radius: 12px;
+        /* Grouped report nav */
+        .rl-nav {
+          display: flex; flex-wrap: wrap;
+          gap: 14px 28px;
+          margin: 20px 0 26px;
+          padding: 18px 20px 16px;
+          background:
+            radial-gradient(1100px 220px at 0% 0%, rgba(212,168,92,0.07), transparent 55%),
+            var(--dcl-bg-card);
+          border: 1px solid var(--dcl-line);
+          border-radius: 16px;
+          position: relative;
+          overflow: hidden;
         }
-        .rl-tab {
-          display: inline-flex; align-items: center; gap: 7px;
-          padding: 8px 12px; border-radius: 8px;
-          font-size: 12px; font-weight: 500; letter-spacing: -0.005em;
-          color: var(--dcl-ink-3);
-          transition: background .15s, color .15s, border-color .15s;
-          border: 1px solid transparent;
-          background: transparent;
-          cursor: pointer;
-          font-family: inherit;
-          white-space: nowrap;
+        .rl-nav::before {
+          content: '';
+          position: absolute; inset: 0;
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.02), transparent 40%);
+          pointer-events: none;
         }
-        .rl-tab:hover { color: var(--dcl-ink); background: var(--dcl-bg-card-2); }
-        .rl-tab.rl-tab-on {
+        .rl-nav-group {
+          display: flex; flex-direction: column; gap: 9px;
+          min-width: 0; position: relative;
+          padding-right: 24px;
+        }
+        .rl-nav-group + .rl-nav-group {
+          padding-left: 24px;
+          border-left: 1px solid var(--dcl-line-soft);
+        }
+        @media (max-width: 900px) {
+          .rl-nav { gap: 16px; padding: 16px; }
+          .rl-nav-group { padding-right: 0; }
+          .rl-nav-group + .rl-nav-group {
+            padding-left: 0; border-left: none;
+            padding-top: 14px; border-top: 1px solid var(--dcl-line-soft);
+            width: 100%;
+          }
+        }
+        .rl-nav-group-label {
+          display: inline-flex; align-items: center; gap: 8px;
+          font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
+          color: var(--dcl-ink-3); font-weight: 600;
+          padding-left: 2px;
+        }
+        .rl-nav-group-num {
+          font-family: var(--font-space-grotesk), system-ui, sans-serif;
+          font-style: italic; font-weight: 400;
+          font-size: 11px; letter-spacing: 0;
           color: var(--dcl-gold);
-          background: var(--dcl-gold-bg);
-          border-color: var(--dcl-gold-line);
-          box-shadow: 0 0 0 1px var(--dcl-gold-line) inset;
+          opacity: 0.85;
         }
-        .rl-tab[data-tag="essencial"] .rl-dot { background: var(--dcl-gold); }
+        .rl-nav-pills {
+          display: flex; gap: 6px; flex-wrap: wrap;
+        }
+        .rl-pill {
+          display: inline-flex; align-items: center; gap: 9px;
+          padding: 7px 12px 7px 7px; border-radius: 999px;
+          font-size: 12px; font-weight: 500; letter-spacing: -0.005em;
+          color: var(--dcl-ink-2);
+          background: var(--dcl-bg-card-2);
+          border: 1px solid var(--dcl-line);
+          cursor: pointer; font-family: inherit;
+          transition: color .18s ease, background .18s ease, border-color .18s ease,
+                      transform .18s ease, box-shadow .18s ease;
+          white-space: nowrap;
+          position: relative;
+        }
+        .rl-pill:hover {
+          color: var(--dcl-ink);
+          border-color: var(--dcl-line);
+          background: var(--dcl-bg-card);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px -8px rgba(0,0,0,0.5);
+        }
+        .rl-pill .rl-pill-ico {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 24px; height: 24px;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.04);
+          color: var(--dcl-ink-3);
+          transition: background .18s, color .18s;
+        }
+        :where(html:not(.dark)) .rl-pill .rl-pill-ico {
+          background: rgba(0,0,0,0.04);
+        }
+        .rl-pill:hover .rl-pill-ico { color: var(--dcl-ink); }
+        .rl-pill-label { line-height: 1; }
+
+        .rl-pill.rl-pill-on {
+          color: var(--dcl-gold);
+          background: linear-gradient(135deg, rgba(212,168,92,0.18), rgba(212,168,92,0.05));
+          border-color: var(--dcl-gold-line);
+          box-shadow:
+            0 0 0 1px rgba(212,168,92,0.25) inset,
+            0 8px 22px -10px rgba(212,168,92,0.45);
+          transform: translateY(-1px);
+        }
+        .rl-pill.rl-pill-on .rl-pill-ico {
+          background: rgba(212,168,92,0.22);
+          color: var(--dcl-gold);
+          box-shadow: 0 0 0 1px rgba(212,168,92,0.18) inset;
+        }
+        .rl-pill.rl-pill-on::after {
+          content: '';
+          position: absolute; left: 16px; right: 16px; bottom: -7px;
+          height: 2px; border-radius: 2px;
+          background: linear-gradient(90deg, transparent, var(--dcl-gold), transparent);
+          opacity: 0.55;
+        }
 
         .rl-loading {
           display: flex; flex-direction: column; align-items: center; gap: 12px;
