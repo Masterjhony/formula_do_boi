@@ -933,7 +933,7 @@ function ReserveDrawer({ open, onClose, prefill }: { open: boolean; onClose: () 
             `Doses: ${data.doses} (${data.type === "conv" ? "Convencional" : "Sexado"})\n` +
             `${data.notes ? "Obs: " + data.notes : ""}`
         );
-        setTimeout(() => window.open(`https://wa.me/5566999778899?text=${msg}`, "_blank"), 600);
+        setTimeout(() => window.open(`https://wa.me/5531975659900?text=${msg}`, "_blank"), 600);
     };
 
     if (!open) return null;
