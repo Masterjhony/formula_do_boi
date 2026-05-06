@@ -2842,6 +2842,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       landing_url: window.location.href,
     };
 
+    // Critério MQL: +100 vacas. Faixas que qualificam → /obrigado-mql (pixel dispara aqui).
+    // Demais → /obrigado (sem pixel). Mudanças no critério: edite a lista abaixo.
+    const MQL_QTD = ['51-200', '201-500', '501-1000', '1000+'];
+    const isMql = MQL_QTD.includes(String(data.qtd || ''));
+    const redirectTo = isMql
+      ? '/atacante-matinha/obrigado-mql'
+      : '/atacante-matinha/obrigado';
+
     try {
       const res = await fetch('/api/lead-atacante', {
         method: 'POST',
@@ -2849,7 +2857,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         body: JSON.stringify(payload),
       });
       if(!res.ok) throw new Error('server');
-      window.location.href = '/atacante-matinha/obrigado';
+      window.location.href = redirectTo;
     } catch(_) {
       if(submitBtn){ submitBtn.disabled = false; submitBtn.style.opacity = ''; }
       alert('Não foi possível enviar a pré-reserva. Tente novamente em instantes.');
