@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import Link from 'next/link'
 import {
   Plus, Edit2, Trash2, X, Loader2, AlertCircle, Save,
   MapPin, Users, TrendingUp, BarChart3, DollarSign,
   ChevronRight, Calendar, Target, Percent, Hash, Star,
   ArrowUp, ArrowDown, Minus, Dna, ShoppingCart, Briefcase, Activity,
+  Eye,
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -1558,6 +1560,14 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
             <p className="text-[10px] text-gray-400 mt-0.5">VGV agregado por profissional · todos os leilões</p>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href="/leiloes/vendas-por-assessor"
+              title="Ver relatório completo de Vendas por Assessor"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#A0792E]/30 bg-[#A0792E]/5 hover:bg-[#A0792E]/15 hover:border-[#A0792E]/60 text-[#A0792E] transition-colors"
+            >
+              <Eye size={12} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Relatório</span>
+            </Link>
             <Briefcase size={14} className="text-[#A0792E]" />
             <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#A0792E]/10 text-[#A0792E] font-bold">
               {topAssessores.length} {topAssessores.length === 1 ? 'assessor' : 'assessores'}

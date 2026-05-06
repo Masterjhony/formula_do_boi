@@ -1,10 +1,11 @@
 'use client'
 
 import '../../dashboard.css'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import {
-  BarChart3, Calendar, ChevronRight, Download, FileBarChart, Hash,
+  BarChart3, Calendar, ChevronRight, ChevronDown, Download, FileBarChart, Hash,
   Layers, Loader2, MapPin, Percent, Sparkles,
   TrendingUp, Trophy, DollarSign,
   RadioTower, Tag, Briefcase,
@@ -148,26 +149,64 @@ const REPORT_GROUPS: ReportGroup[] = [
     id: 'comercial',
     label: 'Comercial',
     items: [
-      { key: 'comissoes', label: 'Comissões', icon: DollarSign },
-      { key: 'assessor',  label: 'Assessor',  icon: Briefcase  },
-      { key: 'cobertura', label: 'Cobertura', icon: RadioTower },
-      { key: 'categoria', label: 'Categoria', icon: Tag        },
+      { key: 'assessor',  label: 'Vendas por Assessor', icon: Briefcase  },
+      { key: 'comissoes', label: 'Comissões',           icon: DollarSign },
+      { key: 'cobertura', label: 'Cobertura',           icon: RadioTower },
+      { key: 'categoria', label: 'Categoria',           icon: Tag        },
     ],
   },
 ]
 
 // ── Page ────────────────────────────────────────────────────────────────────
 
+const VALID_REPORTS: ReportKey[] = ['mensal', 'comparativo', 'comissoes', 'assessor', 'cobertura', 'categoria', 'ranking']
+
 export default function RelatoriosPage() {
+  // useSearchParams precisa estar dentro de Suspense (Next 16) para o build estático.
+  return (
+    <Suspense fallback={<div className="rl-loading"><Loader2 size={28} className="rl-spin" /><span>Carregando…</span></div>}>
+      <RelatoriosPageInner />
+    </Suspense>
+  )
+}
+
+function RelatoriosPageInner() {
   const today = new Date()
   const defaultFrom = new Date(today.getFullYear(), today.getMonth() - 5, 1).toISOString().slice(0, 10)
   const defaultTo = today.toISOString().slice(0, 10)
+
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const initialReport: ReportKey = (() => {
+    const r = searchParams.get('report')
+    return (r && (VALID_REPORTS as string[]).includes(r)) ? (r as ReportKey) : 'mensal'
+  })()
 
   const [from, setFrom] = useState(defaultFrom)
   const [to, setTo] = useState(defaultTo)
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<Payload | null>(null)
-  const [report, setReport] = useState<ReportKey>('mensal')
+  const [report, setReport] = useState<ReportKey>(initialReport)
+
+  // Sincroniza state ↔ URL: troca de aba atualiza ?report=, e link externo
+  // (ex: ícone de olho do FechamentoView) navega direto para a aba certa.
+  useEffect(() => {
+    const r = searchParams.get('report')
+    if (r && (VALID_REPORTS as string[]).includes(r) && r !== report) {
+      setReport(r as ReportKey)
+    }
+  }, [searchParams])
+
+  function changeReport(r: ReportKey) {
+    setReport(r)
+    const params = new URLSearchParams(searchParams.toString())
+    if (r === 'mensal') params.delete('report')
+    else params.set('report', r)
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -218,7 +257,7 @@ export default function RelatoriosPage() {
                   <button
                     key={item.key}
                     type="button"
-                    onClick={() => setReport(item.key)}
+                    onClick={() => changeReport(item.key)}
                     className={`rl-pill${active ? ' rl-pill-on' : ''}`}
                     aria-pressed={active}
                   >
@@ -1015,12 +1054,21 @@ function ReportComissoes({ data, period }: { data: Payload; period: string }) {
 
 // ── 4) Por Assessor ─────────────────────────────────────────────────────────
 
+type AssessorPerLeilao = {
+  fechamentoId: string; nome: string; data: string;
+  transacoes: number; animais: number; vgv: number;
+}
+
 function ReportAssessor({ data, period }: { data: Payload; period: string }) {
-  const assessores = useMemo(() => {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+
+  const { assessores, breakdownPorAssessor } = useMemo(() => {
     const map = new Map<string, {
       nome: string; empresa: string; transacoes: number;
       animais: number; vgv: number; leiloes: Set<string>;
     }>()
+    const breakdown = new Map<string, AssessorPerLeilao[]>()
+
     for (const f of data.fechamentos) {
       for (const a of f.por_assessor ?? []) {
         const key = a.nome
@@ -1030,39 +1078,78 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
         cur.animais += a.animais || 0
         cur.vgv += a.vgv || 0
         cur.leiloes.add(f.id)
-        // priorize empresa não vazia
         if (!cur.empresa && a.empresa) cur.empresa = a.empresa
         map.set(key, cur)
+
+        const list = breakdown.get(key) ?? []
+        list.push({
+          fechamentoId: f.id, nome: f.nome, data: f.data,
+          transacoes: a.transacoes || 0, animais: a.animais || 0, vgv: a.vgv || 0,
+        })
+        breakdown.set(key, list)
       }
     }
+
+    // Ordena breakdown de cada assessor por VGV desc
+    for (const [k, list] of breakdown) {
+      list.sort((a, b) => b.vgv - a.vgv)
+      breakdown.set(k, list)
+    }
+
     const arr = Array.from(map.values()).sort((a, b) => b.vgv - a.vgv)
     const total = arr.reduce((s, a) => s + a.vgv, 0)
-    return arr.map((a, i) => ({
-      ...a,
-      pos: i + 1,
-      pct: total > 0 ? a.vgv / total : 0,
-      ticket: a.animais > 0 ? a.vgv / a.animais : 0,
-      leiloesCount: a.leiloes.size,
-    }))
+    return {
+      assessores: arr.map((a, i) => ({
+        ...a,
+        pos: i + 1,
+        pct: total > 0 ? a.vgv / total : 0,
+        ticket: a.animais > 0 ? a.vgv / a.animais : 0,
+        leiloesCount: a.leiloes.size,
+      })),
+      breakdownPorAssessor: breakdown,
+    }
   }, [data])
 
   const totalVgv = assessores.reduce((s, a) => s + a.vgv, 0)
   const maxVgv = assessores[0]?.vgv ?? 1
+
+  function toggleExpand(nome: string) {
+    setExpanded(prev => {
+      const next = new Set(prev)
+      if (next.has(nome)) next.delete(nome)
+      else next.add(nome)
+      return next
+    })
+  }
 
   const exportCsv = () => {
     const rows: (string | number)[][] = [
       ['Posição', 'Assessor', 'Empresa', 'Leilões', 'Transações', 'Animais', 'VGV (R$)', 'Ticket médio', '% do total'],
       ...assessores.map(a => [a.pos, a.nome, a.empresa, a.leiloesCount, a.transacoes, a.animais, Math.round(a.vgv), Math.round(a.ticket), (a.pct * 100).toFixed(2)]),
     ]
-    downloadCSV('relatorio-por-assessor.csv', rows)
+    downloadCSV('vendas-por-assessor.csv', rows)
+  }
+
+  // Export detalhado: 1 linha por assessor × leilão (para conferência de bônus)
+  const exportCsvDetalhado = () => {
+    const rows: (string | number)[][] = [
+      ['Assessor', 'Empresa', 'Leilão', 'Data', 'Transações', 'Animais', 'VGV (R$)'],
+    ]
+    for (const a of assessores) {
+      const list = breakdownPorAssessor.get(a.nome) ?? []
+      for (const l of list) {
+        rows.push([a.nome, a.empresa, l.nome, l.data, l.transacoes, l.animais, Math.round(l.vgv)])
+      }
+    }
+    downloadCSV('vendas-por-assessor-detalhado.csv', rows)
   }
 
   return (
     <div className="rl-section">
       <SectionHead
-        title="Relatório"
+        title="Vendas"
         emphasis="por assessor"
-        subtitle={`Produtividade comercial agregada · ${period}`}
+        subtitle={`Base para pagamento de bônus · ${period}`}
         onExport={exportCsv}
       />
 
@@ -1079,15 +1166,21 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
         <div className="rl-table-wrap">
           <div className="rl-table-head">
             <div>
-              <h3>Ranking de assessores</h3>
+              <h3>Ranking · clique em um assessor para ver os leilões</h3>
               <div className="rl-sub">Comissão e pagamento ficam restritos ao ERP</div>
             </div>
-            <span className="rl-tag rl-tag-gold">{assessores.length} assessores</span>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button type="button" onClick={exportCsvDetalhado} className="rl-export" title="CSV detalhado: 1 linha por assessor × leilão">
+                <Download size={12} /> Detalhado (CSV)
+              </button>
+              <span className="rl-tag rl-tag-gold">{assessores.length} assessores</span>
+            </div>
           </div>
           <div className="rl-table-scroll">
             <table className="rl-table">
               <thead>
                 <tr>
+                  <th style={{ width: 32 }} aria-label="expandir"></th>
                   <th style={{ width: 50 }}>#</th>
                   <th>Assessor</th>
                   <th>Empresa</th>
@@ -1100,42 +1193,121 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
                 </tr>
               </thead>
               <tbody>
-                {assessores.map(a => (
-                  <tr key={a.nome}>
-                    <td>
-                      <span style={{
-                        fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontStyle: 'italic',
-                        fontSize: 18, color: a.pos <= 3 ? 'var(--dcl-gold)' : 'var(--dcl-ink-4)',
-                      }}>{a.pos}</span>
-                    </td>
-                    <td>
-                      <div style={{ color: 'var(--dcl-ink)', fontWeight: 500 }}>{a.nome}</div>
-                    </td>
-                    <td>
-                      <span className={`rl-tag ${normalizeEmpresaGrupo(a.empresa) === EMPRESA_BULA_FORMULA ? 'rl-tag-gold' : ''}`}>
-                        {normalizeEmpresaGrupo(a.empresa)}
-                      </span>
-                    </td>
-                    <td className="rl-num">{a.leiloesCount}</td>
-                    <td className="rl-num">{a.transacoes}</td>
-                    <td className="rl-num">{fmtNum(a.animais)}</td>
-                    <td className="rl-num rl-dim">{fmtBRL(a.ticket)}</td>
-                    <td className="rl-num rl-gold" style={{ fontWeight: 500 }}>{fmtBRL(a.vgv)}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div className="rl-bar" style={{ width: 80 }}>
-                          <span style={{ width: `${(a.vgv / maxVgv) * 100}%` }} />
-                        </div>
-                        <span className="rl-num" style={{ minWidth: 44, textAlign: 'right' }}>{PCT(a.pct)}</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {assessores.map(a => {
+                  const isOpen = expanded.has(a.nome)
+                  const breakdown = breakdownPorAssessor.get(a.nome) ?? []
+                  return (
+                    <Fragment key={a.nome}>
+                      <tr onClick={() => toggleExpand(a.nome)} style={{ cursor: 'pointer' }} className={isOpen ? 'rl-row-open' : undefined}>
+                        <td style={{ textAlign: 'center' }}>
+                          <ChevronDown
+                            size={14}
+                            style={{
+                              color: 'var(--dcl-ink-3)',
+                              transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                              transition: 'transform .15s',
+                            }}
+                          />
+                        </td>
+                        <td>
+                          <span style={{
+                            fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif', fontStyle: 'italic',
+                            fontSize: 18, color: a.pos <= 3 ? 'var(--dcl-gold)' : 'var(--dcl-ink-4)',
+                          }}>{a.pos}</span>
+                        </td>
+                        <td>
+                          <div style={{ color: 'var(--dcl-ink)', fontWeight: 500 }}>{a.nome}</div>
+                        </td>
+                        <td>
+                          <span className={`rl-tag ${normalizeEmpresaGrupo(a.empresa) === EMPRESA_BULA_FORMULA ? 'rl-tag-gold' : ''}`}>
+                            {normalizeEmpresaGrupo(a.empresa)}
+                          </span>
+                        </td>
+                        <td className="rl-num">{a.leiloesCount}</td>
+                        <td className="rl-num">{a.transacoes}</td>
+                        <td className="rl-num">{fmtNum(a.animais)}</td>
+                        <td className="rl-num rl-dim">{fmtBRL(a.ticket)}</td>
+                        <td className="rl-num rl-gold" style={{ fontWeight: 500 }}>{fmtBRL(a.vgv)}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div className="rl-bar" style={{ width: 80 }}>
+                              <span style={{ width: `${(a.vgv / maxVgv) * 100}%` }} />
+                            </div>
+                            <span className="rl-num" style={{ minWidth: 44, textAlign: 'right' }}>{PCT(a.pct)}</span>
+                          </div>
+                        </td>
+                      </tr>
+                      {isOpen && (
+                        <tr className="rl-row-detail">
+                          <td colSpan={10} style={{ padding: 0 }}>
+                            <div className="rl-detail-inner">
+                              <div className="rl-detail-head">
+                                <span>Leilões em que <strong>{a.nome}</strong> participou</span>
+                                <span className="rl-num">{breakdown.length} {breakdown.length === 1 ? 'leilão' : 'leilões'}</span>
+                              </div>
+                              <table className="rl-detail-table">
+                                <thead>
+                                  <tr>
+                                    <th>Leilão</th>
+                                    <th>Data</th>
+                                    <th style={{ textAlign: 'right' }}>Transações</th>
+                                    <th style={{ textAlign: 'right' }}>Animais</th>
+                                    <th style={{ textAlign: 'right' }}>VGV</th>
+                                    <th style={{ textAlign: 'right' }}>% do total do assessor</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {breakdown.map(l => (
+                                    <tr key={l.fechamentoId}>
+                                      <td>{l.nome}</td>
+                                      <td className="rl-dim" style={{ fontFamily: 'var(--font-mono), ui-monospace, monospace', fontSize: 11 }}>{l.data}</td>
+                                      <td className="rl-num">{l.transacoes}</td>
+                                      <td className="rl-num">{fmtNum(l.animais)}</td>
+                                      <td className="rl-num rl-gold">{fmtBRL(l.vgv)}</td>
+                                      <td className="rl-num rl-dim">{a.vgv > 0 ? PCT(l.vgv / a.vgv) : '—'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        .rl-row-open td { background: rgba(212,168,92,0.05); }
+        .rl-row-detail td { background: var(--dcl-bg-card-2); }
+        .rl-detail-inner { padding: 14px 18px 18px; }
+        .rl-detail-head {
+          display: flex; justify-content: space-between; align-items: center;
+          font-size: 11px; color: var(--dcl-ink-3); margin-bottom: 10px;
+          letter-spacing: 0.04em; text-transform: uppercase;
+        }
+        .rl-detail-head strong { color: var(--dcl-gold); font-weight: 500; }
+        .rl-detail-table {
+          width: 100%; border-collapse: collapse;
+          font-size: 12.5px;
+        }
+        .rl-detail-table th {
+          font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+          color: var(--dcl-ink-3); font-weight: 600;
+          padding: 6px 10px; text-align: left;
+          border-bottom: 1px solid var(--dcl-line);
+        }
+        .rl-detail-table td {
+          padding: 8px 10px; border-bottom: 1px solid var(--dcl-line-soft);
+          color: var(--dcl-ink-2);
+        }
+        .rl-detail-table tr:last-child td { border-bottom: none; }
+      `}</style>
     </div>
   )
 }

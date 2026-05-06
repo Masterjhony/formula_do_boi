@@ -8,7 +8,7 @@ import {
     LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar,
     MessageCircle, FileText, Sparkles, Gavel, Dna, Award,
     ImageIcon, Shield, ChevronDown, BarChart2, Target, BarChart3,
-    Megaphone, FileBarChart,
+    Megaphone, FileBarChart, Briefcase,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -39,6 +39,7 @@ const navConfig: NavEntry[] = [
         items: [
             { href: '/leiloes', label: 'Leilões', icon: Gavel },
             { href: '/leiloes/fechamento', label: 'Fechamento de Leilões', icon: BarChart3 },
+            { href: '/leiloes/vendas-por-assessor', label: 'Vendas por Assessor', icon: Briefcase },
             { href: '/leiloes/relatorios', label: 'Relatórios', icon: FileBarChart },
             { href: '/leiloes/equipe', label: 'Equipe', icon: Users },
         ],
