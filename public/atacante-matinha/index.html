@@ -1436,6 +1436,17 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   cursor: pointer;
   padding-right: 36px;
 }
+.select option{
+  background-color: var(--ink-2);
+  color: var(--branco);
+  padding: 8px 12px;
+}
+.select option:disabled{ color: var(--gray-600); }
+.select option:checked,
+.select option:hover{
+  background: linear-gradient(0deg, var(--bronze-700), var(--bronze-700)) !important;
+  color: var(--branco);
+}
 
 /* radio cards */
 .radio-group{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
