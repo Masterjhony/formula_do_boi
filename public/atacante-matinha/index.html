@@ -1574,27 +1574,60 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .pedi-lado-head{ font-size: 11px; letter-spacing: 0.28em; }
   .downloads-grid{ grid-template-columns: 1fr; gap: 12px; }
 
-  /* Cinema mode mobile — vira coluna vertical com linha conectora */
-  .pedi-cinema{ margin-top: 50px; }
-  .pedi-cin-row{ flex-direction: column; gap: 0; align-items: stretch; padding: 0; }
-  .pedi-row-pais, .pedi-row-avos{ padding: 0; }
-  .pedi-cin-card{ min-width: 0; max-width: none; width: 100%; padding: 18px 20px; }
-  .pedi-cin-card.touro{ min-width: 0; max-width: none; padding: 24px 24px; }
-  .pedi-cin-card.touro .pedi-cin-name{ font-size: 26px; }
-  .pedi-cin-card.touro .pedi-cin-metric-num{ font-size: 44px; }
+  /* Cinema Mode mobile — mantém o look do desktop:
+     Touro grande no topo → Pai/Mãe lado a lado → 4 Avós em grid 2x2
+     Conectores SVG verticais animados entre as gerações */
+  .pedi-cinema{ margin-top: 40px; }
 
-  /* No mobile substitui SVG por linhas verticais simples (mais cleanup) */
-  .pedi-cin-svg{ display: none; }
-  .pedi-cin-row + .pedi-cin-row{ margin-top: 14px; position: relative; }
-  .pedi-cin-row + .pedi-cin-row::before{
-    content:""; position: absolute;
-    left: 50%; top: -14px; height: 14px; width: 1px;
-    background: linear-gradient(180deg, transparent, var(--bronze-500));
+  /* Touro: full width, mantém destaque com glow bronze */
+  .pedi-row-touro{ padding: 0; justify-content: center; }
+  .pedi-cin-card.touro{
+    min-width: 0; max-width: none; width: 100%;
+    padding: 26px 22px;
   }
-  /* Avós empilham um após o outro com mini divisor */
-  .pedi-row-avos .pedi-cin-card + .pedi-cin-card{ margin-top: 12px; }
+  .pedi-cin-card.touro .pedi-cin-name{ font-size: 24px; }
+  .pedi-cin-card.touro .pedi-cin-metric-num{ font-size: 42px; }
 
-  .pedi-cin-kpis{ grid-template-columns: 1fr; margin-top: 50px; }
+  /* Pais: 2 colunas lado a lado */
+  .pedi-row-pais{
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; padding: 0;
+  }
+  .pedi-cin-card.pai, .pedi-cin-card.mae{
+    min-width: 0; max-width: none; width: 100%;
+    padding: 16px 14px;
+  }
+  .pedi-cin-card.pai .pedi-cin-name,
+  .pedi-cin-card.mae .pedi-cin-name{ font-size: 15px; }
+  .pedi-cin-card.pai .pedi-cin-metric-num,
+  .pedi-cin-card.mae .pedi-cin-metric-num{ font-size: 22px; }
+
+  /* Avós: grid 2x2 */
+  .pedi-row-avos{
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; padding: 0;
+  }
+  .pedi-cin-card.avo{
+    min-width: 0; max-width: none; width: 100%;
+    padding: 14px 12px;
+  }
+  .pedi-cin-card.avo .pedi-cin-name{ font-size: 13px; line-height: 1.25; }
+  .pedi-cin-card.avo .pedi-cin-metric-num{ font-size: 19px; }
+  .pedi-cin-card.avo .pedi-cin-tag{ font-size: 8px; letter-spacing: 0.22em; margin-bottom: 8px; }
+  .pedi-cin-card.avo .pedi-cin-reg{ font-size: 9px; margin-bottom: 12px; }
+  .pedi-cin-card.avo .pedi-cin-metric{ padding-top: 10px; }
+  .pedi-cin-card.avo .pedi-cin-metric-label{ font-size: 8px; letter-spacing: 0.18em; }
+
+  /* SVG conectores: ajusta paths para mobile (touro centro -> pais nas pontas, pais -> avós) */
+  .pedi-cin-svg{ height: 32px; }
+  .pedi-cin-svg-1{ display: block; }
+  .pedi-cin-svg-2{ display: block; }
+  /* No mobile vamos usar paths verticais novos via JS-set OU sobrescrever via path d em CSS (não suportado em todos browsers).
+     Solução robusta: 2 linhas verticais mais simples para garantir compatibilidade */
+  .pedi-cin-svg path{ stroke-width: 1.2; }
+
+  /* KPIs */
+  .pedi-cin-kpis{ grid-template-columns: 1fr; margin-top: 40px; }
   .pedi-cin-kpi{ border-right: none; border-bottom: 1px solid var(--rule-2); padding: 22px 24px; }
   .pedi-cin-kpi:last-child{ border-bottom: none; }
   .trio-indices{ grid-template-columns: 1fr; }
@@ -2017,7 +2050,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   </div>
 
   <div class="wrap" style="position:relative;z-index:2;">
-    <div class="kicker" style="margin-bottom:32px;">§§ 01 — Manifesto</div>
+    <div class="kicker" style="margin-bottom:32px;">Manifesto</div>
     <div class="manifesto-grid">
       <div>
         <h2>Eficiência, desempenho e <i>retorno consistente.</i></h2>
@@ -2036,7 +2069,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 <section class="apresenta reveal" id="touro">
   <div class="wrap apresenta-grid">
     <div>
-      <div class="kicker" style="margin-bottom:24px;">§§ 02 — Apresentamos</div>
+      <div class="kicker" style="margin-bottom:24px;">O Touro</div>
       <h2>Atacante <i>Matinha.</i></h2>
       <p class="apresenta-lede">RDM B 3224 MAT. · Um indivíduo diferenciado. Resultado direto no campo, na balança e no bolso.</p>
 
@@ -2096,7 +2129,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   <div class="wrap">
     <div class="aval-head">
       <div>
-        <div class="kicker" style="margin-bottom:24px;">§§ 04 — Avaliação Genética · ANCP · Abr/2026</div>
+        <div class="kicker" style="margin-bottom:24px;">Avaliação Genética · ANCP · Abr/2026</div>
         <h2>Direcionado para <i>crescimento</i> e carcaça.</h2>
       </div>
       <div class="aval-source">
@@ -2153,7 +2186,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 <!-- ===================== PEDIGREE ===================== -->
 <section class="pedigree reveal" id="linhagem">
   <div class="wrap">
-    <div class="kicker" style="margin-bottom:24px;">§§ 05 — Linhagem · Pedigree ANCP</div>
+    <div class="kicker" style="margin-bottom:24px;">Linhagem · Pedigree ANCP</div>
     <h2>Construído sobre <i>sangue selecionado.</i></h2>
     <p style="margin-top:18px;font-size:16px;color:var(--gray-200);max-width:680px;">Três gerações de matrizes e touros de elite. Consanguinidade controlada em <b style="color:var(--bronze-300)">5,13%</b>.</p>
 
@@ -2311,7 +2344,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 <!-- ===================== PERFIL COMPLETO ===================== -->
 <section class="perfil reveal" id="perfil">
   <div class="wrap">
-    <div class="kicker" style="margin-bottom:24px;">§§ 07 — Perfil Completo</div>
+    <div class="kicker" style="margin-bottom:24px;">Perfil Completo</div>
     <h2>Não só desempenho. Um touro <i>equilibrado.</i></h2>
     <p class="perfil-lede">Bons indicadores maternais e reprodutivos — construindo um rebanho funcional, produtivo e sustentável ao longo das gerações.</p>
 
@@ -2363,7 +2396,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 
   <div class="wrap" style="position:relative;z-index:2;">
     <div class="porque-head">
-      <div class="kicker" style="margin-bottom:24px;">§§ 09 — Por que agora</div>
+      <div class="kicker" style="margin-bottom:24px;">Por que agora</div>
       <h2>Acelere o <i>progresso genético</i> do seu plantel.</h2>
     </div>
     <div class="porque-grid">
@@ -2391,7 +2424,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 <section class="lead reveal" id="reservar">
   <div class="wrap">
     <div class="lead-head">
-      <div class="kicker" style="margin-bottom:24px;">§§ 10 — Pré-reserva &amp; Curadoria</div>
+      <div class="kicker" style="margin-bottom:24px;">Pré-reserva &amp; Curadoria</div>
       <h2>Solicite sua <i>curadoria.</i></h2>
       <p class="lead-lede">Queremos entender seu rebanho. Preencha o formulário em três etapas — nosso curador retorna em até 24h com proposta técnica e cronograma.</p>
     </div>
