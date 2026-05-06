@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="format-detection" content="telephone=no" />
-<meta name="description" content="Atacante Matinha · RDM B 3224 MAT. — Touro jovem Nelore PO. MGTe 42,38 · iABCZ 40,4 · IQG 50,32 · TOP 0,1%. Pré-reserva de sêmen aberta." />
-<title>Atacante Matinha · RDM B 3224 MAT. · Fórmula do Boi × Nelore Visual</title>
+<meta name="description" content="Atacante da Matinha · RDM B 3224 MAT. — Touro jovem Nelore PO. MGTe 42,38 · iABCZ 40,4 · IQG 50,32 · TOP 0,1%. Pré-reserva de sêmen aberta." />
+<title>Atacante da Matinha · RDM B 3224 MAT. · Fórmula do Boi × Nelore Visual</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -95,20 +95,8 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
    Pé:   © 2026 FÓRMULA DO BOI / CONFIDENCIAL · USO INTERNO / 0X / 11
    ============================================================ */
 .spread{ position: relative; }
-.spread-head, .spread-foot{
-  position: absolute; left: 0; right: 0;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 6vw;
-  font-family: var(--f-mono);
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--gray-600);
-  pointer-events: none;
-  z-index: 5;
-}
-.spread-head{ top: 0; border-bottom: 1px solid var(--rule); }
-.spread-foot{ bottom: 0; border-top: 1px solid var(--rule); }
+/* Brandbook ribbons (head/foot) ocultas — mantemos só o kicker §§ dentro da seção */
+.spread-head, .spread-foot{ display: none; }
 
 .spread-head .left, .spread-foot .left,
 .spread-head .center, .spread-foot .center,
@@ -133,8 +121,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 .spread-page{ color: var(--bronze-500); }
 .spread-slash{ color: var(--bronze-700); margin: 0 6px; }
 
-/* dá respiro pra que o conteúdo da seção não cole no head/foot */
-.spread > .wrap{ padding-top: 60px; padding-bottom: 60px; }
+/* (removido o respiro extra que existia para o head/foot) */
 
 /* ============================================================
    GRAFISMOS AUXILIARES (Brandbook §07)
@@ -408,6 +395,53 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 }
 @keyframes pulse-line{ 0%,100%{opacity:0.4;} 50%{opacity:1;} }
 
+/* ============== FOTOS INTEGRADAS COMO ELEMENTOS GRÁFICOS ============== */
+/* Foto sangrando lateralmente em algumas seções, fundindo com o preto via gradient */
+.manifesto-photo-bg, .porque-photo-bg, .perfil-photo-bg{
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: 50%;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+  /* Fade horizontal: lado esquerdo invisível (mistura no preto), direito ainda discreto */
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.85) 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.85) 100%);
+  /* Tratamento de foto §08 */
+  filter: brightness(0.55) contrast(1.20) saturate(0.75) sepia(0.05);
+  z-index: 1;
+}
+.manifesto-photo-bg::after, .porque-photo-bg::after, .perfil-photo-bg::after{
+  content:""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, var(--preto) 0%, transparent 40%, transparent 70%, rgba(0,0,0,0.6) 100%);
+}
+
+/* Variantes de posicionamento */
+.porque-photo-bg{ left: 0; right: auto;
+  mask-image: linear-gradient(270deg, transparent 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.85) 100%);
+  -webkit-mask-image: linear-gradient(270deg, transparent 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.85) 100%);
+}
+
+/* Faixa de foto cinematográfica antes do form (full-bleed estreita) */
+.cinemastrip{
+  position: relative; height: 360px; overflow: hidden;
+  background-size: cover; background-position: center 35%;
+  border-bottom: 1px solid var(--rule);
+  filter: brightness(0.65) contrast(1.20) saturate(0.78) sepia(0.05);
+}
+.cinemastrip::before{
+  content:""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, var(--preto) 0%, transparent 30%, transparent 70%, var(--preto) 100%);
+}
+.cinemastrip-quote{
+  position: absolute; left: 6vw; right: 6vw; bottom: 36px;
+  font-family: var(--f-display); font-weight: 500;
+  font-size: clamp(20px, 2.2vw, 30px);
+  line-height: 1.3; letter-spacing: -0.01em;
+  color: var(--branco); max-width: 720px;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.6);
+}
+.cinemastrip-quote i{ font-style: italic; color: var(--bronze-300); }
+
 /* ============== VÍDEO PLAYER (após o CTA) ============== */
 .video-player-section{
   background:
@@ -560,6 +594,8 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     var(--preto);
   padding: 160px 6vw;
   border-bottom: 1px solid var(--rule);
+  position: relative;
+  overflow: hidden;
 }
 .manifesto-grid{
   display:grid; grid-template-columns: 1fr 1.3fr; gap: 100px;
@@ -806,7 +842,166 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   line-height: 1; color: var(--branco); max-width: 900px;
 }
 .pedigree h2 i{ font-style:italic; color: var(--bronze-300); }
-/* Pedigree V2 — ordem genealógica correta (Touro → Paternal → Maternal) */
+/* ============== PEDIGREE CINEMA MODE ==============
+   Cards conectados por linhas SVG animadas (stroke-dashoffset)
+   Touro centro → Pai/Mãe → 4 avós · scrollytelling reveal */
+.pedi-cinema{
+  margin-top: 70px;
+  position: relative;
+  display: flex; flex-direction: column;
+  align-items: stretch;
+}
+.pedi-cin-row{
+  display: flex; justify-content: center;
+  gap: 24px; position: relative;
+  z-index: 2;
+}
+.pedi-row-touro{ justify-content: center; }
+.pedi-row-pais{ justify-content: space-between; padding: 0 12%; }
+.pedi-row-avos{ justify-content: space-between; gap: 14px; }
+
+.pedi-cin-card{
+  position: relative;
+  padding: 22px 24px;
+  background:
+    linear-gradient(180deg, rgba(20,17,15,0.9), rgba(10,10,10,0.85));
+  border: 1px solid var(--rule);
+  min-width: 200px; max-width: 320px;
+  flex: 1;
+  /* glow border efeito glassmorphism leve */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  /* Reveal animation start state */
+  opacity: 0;
+  transform: translateY(24px) scale(0.96);
+  transition: opacity .8s ease, transform .8s ease, border-color .25s, background .25s;
+}
+.pedi-cin-card.touro{
+  min-width: 360px; max-width: 460px;
+  padding: 32px 36px;
+  border: 1px solid var(--bronze-500);
+  background:
+    linear-gradient(135deg, rgba(160,121,46,0.16), rgba(20,17,15,0.85));
+  box-shadow: 0 30px 80px -20px rgba(160,121,46,0.35);
+}
+.pedi-cin-card::before{
+  content:""; position: absolute; inset: 0;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--bronze-500), transparent 50%) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0; transition: opacity .3s;
+  pointer-events: none;
+}
+.pedi-cin-card:hover::before{ opacity: 1; }
+.pedi-cin-card:hover{
+  border-color: var(--bronze-500);
+  background: linear-gradient(180deg, rgba(160,121,46,0.10), rgba(20,17,15,0.85));
+}
+
+.pedi-cin-tag{
+  font-family: var(--f-mono); font-size: 9px;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--bronze-300); font-weight: 600;
+  margin-bottom: 12px;
+}
+.pedi-cin-card.touro .pedi-cin-tag{ font-size: 10px; }
+.pedi-cin-name{
+  font-family: var(--f-display); font-weight: 600;
+  font-size: 18px; color: var(--branco);
+  letter-spacing: -0.01em; line-height: 1.2;
+  margin-bottom: 4px;
+}
+.pedi-cin-card.touro .pedi-cin-name{
+  font-size: 32px; line-height: 1.05;
+}
+.pedi-cin-card.touro .accent{ color: var(--bronze-300); font-style: italic; font-weight: 500; }
+.pedi-cin-reg{
+  font-family: var(--f-mono); font-size: 10px;
+  color: var(--gray-200); letter-spacing: 0.06em;
+  margin-bottom: 18px;
+}
+.pedi-cin-metric{ border-top: 1px solid var(--rule); padding-top: 14px; }
+.pedi-cin-metric-num{
+  font-family: var(--f-display); font-weight: 600;
+  font-size: 28px; color: var(--bronze-500);
+  line-height: 1; letter-spacing: -0.02em;
+}
+.pedi-cin-card.touro .pedi-cin-metric-num{ font-size: 56px; }
+.pedi-cin-metric-label{
+  font-family: var(--f-mono); font-size: 9px;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--bronze-300); margin-top: 6px; font-weight: 500;
+}
+
+/* ===== Linhas SVG animadas ===== */
+.pedi-cin-svg{
+  width: 100%; height: 80px; display: block;
+  margin: -1px 0; pointer-events: none;
+}
+.pedi-cin-svg .cin-line{
+  fill: none;
+  stroke: var(--bronze-500);
+  stroke-width: 1;
+  stroke-linecap: square;
+  /* Path se desenha quando .pedi-cinema.in */
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  transition: stroke-dashoffset 1.2s ease 0.3s;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 4px rgba(160,121,46,0.4));
+}
+
+/* ===== Reveal: quando o container entra na viewport ===== */
+.pedi-cinema.in .pedi-cin-card{
+  opacity: 1; transform: translateY(0) scale(1);
+}
+.pedi-cinema.in .pedi-cin-card.touro{ transition-delay: 0.1s; }
+.pedi-cinema.in .pedi-row-pais .pedi-cin-card{ transition-delay: 0.7s; }
+.pedi-cinema.in .pedi-row-avos .pedi-cin-card:nth-child(1){ transition-delay: 1.4s; }
+.pedi-cinema.in .pedi-row-avos .pedi-cin-card:nth-child(2){ transition-delay: 1.5s; }
+.pedi-cinema.in .pedi-row-avos .pedi-cin-card:nth-child(3){ transition-delay: 1.6s; }
+.pedi-cinema.in .pedi-row-avos .pedi-cin-card:nth-child(4){ transition-delay: 1.7s; }
+.pedi-cinema.in .pedi-cin-svg-1 .cin-line{ stroke-dashoffset: 0; transition-delay: 0.5s; }
+.pedi-cinema.in .pedi-cin-svg-2 .cin-line{ stroke-dashoffset: 0; transition-delay: 1.1s; }
+
+/* ===== Highlight de lineage no hover ===== */
+.pedi-cinema:has([data-side="paterno"]:hover){
+}
+.pedi-cinema:has([data-side="paterno"]:hover) [data-side="materno"],
+.pedi-cinema:has([data-side="materno"]:hover) [data-side="paterno"]{
+  opacity: 0.35;
+}
+
+/* ===== KPIs ===== */
+.pedi-cin-kpis{
+  margin-top: 80px;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--rule-2);
+  background: linear-gradient(135deg, rgba(160,121,46,0.04), rgba(20,17,15,0.4));
+}
+.pedi-cin-kpi{
+  padding: 30px 24px;
+  border-right: 1px solid var(--rule-2);
+  text-align: center;
+}
+.pedi-cin-kpi:last-child{ border-right: none; }
+.pedi-cin-kpi-num{
+  font-family: var(--f-display); font-weight: 600;
+  font-size: clamp(40px, 5vw, 64px);
+  color: var(--bronze-500); letter-spacing: -0.02em;
+  line-height: 1;
+}
+.pedi-cin-kpi-num .cents{ font-size: 0.55em; color: var(--bronze-300); }
+.pedi-cin-kpi-label{
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--gray-200); margin-top: 12px; font-weight: 500;
+}
+
+/* Pedigree V2 — legacy (mantido só por segurança) */
 .pedi-tree-v2{ margin-top: 80px; display: flex; flex-direction: column; align-items: center; }
 .pedi-touro{ width: 100%; max-width: 540px; }
 .pedi-connector{
@@ -1091,6 +1286,8 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   background:
     linear-gradient(180deg, var(--preto), var(--bronze-900) 60%, var(--preto));
   border-bottom: 1px solid var(--rule);
+  position: relative;
+  overflow: hidden;
 }
 .porque-head{ margin-bottom: 80px; max-width: 1000px; }
 .porque h2{
@@ -1376,6 +1573,30 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .pedi-lados{ grid-template-columns: 1fr; gap: 28px; }
   .pedi-lado-head{ font-size: 11px; letter-spacing: 0.28em; }
   .downloads-grid{ grid-template-columns: 1fr; gap: 12px; }
+
+  /* Cinema mode mobile — vira coluna vertical com linha conectora */
+  .pedi-cinema{ margin-top: 50px; }
+  .pedi-cin-row{ flex-direction: column; gap: 0; align-items: stretch; padding: 0; }
+  .pedi-row-pais, .pedi-row-avos{ padding: 0; }
+  .pedi-cin-card{ min-width: 0; max-width: none; width: 100%; padding: 18px 20px; }
+  .pedi-cin-card.touro{ min-width: 0; max-width: none; padding: 24px 24px; }
+  .pedi-cin-card.touro .pedi-cin-name{ font-size: 26px; }
+  .pedi-cin-card.touro .pedi-cin-metric-num{ font-size: 44px; }
+
+  /* No mobile substitui SVG por linhas verticais simples (mais cleanup) */
+  .pedi-cin-svg{ display: none; }
+  .pedi-cin-row + .pedi-cin-row{ margin-top: 14px; position: relative; }
+  .pedi-cin-row + .pedi-cin-row::before{
+    content:""; position: absolute;
+    left: 50%; top: -14px; height: 14px; width: 1px;
+    background: linear-gradient(180deg, transparent, var(--bronze-500));
+  }
+  /* Avós empilham um após o outro com mini divisor */
+  .pedi-row-avos .pedi-cin-card + .pedi-cin-card{ margin-top: 12px; }
+
+  .pedi-cin-kpis{ grid-template-columns: 1fr; margin-top: 50px; }
+  .pedi-cin-kpi{ border-right: none; border-bottom: 1px solid var(--rule-2); padding: 22px 24px; }
+  .pedi-cin-kpi:last-child{ border-bottom: none; }
   .trio-indices{ grid-template-columns: 1fr; }
   .trio-cell{ border-right: none; border-bottom: 1px solid var(--rule-2); flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 22px; }
   .trio-cell:last-child{ border-bottom: none; }
@@ -1393,12 +1614,8 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .section{ padding: 80px 5vw; }
   .manifesto, .apresenta, .aval, .pedigree, .carcass, .perfil, .pacotes, .porque, .lead{ padding: 80px 5vw; }
 
-  /* Spread frame compacto: esconde "BRAND GUIDELINES V1.0" no centro,
-     mantém apenas bullet + § §  0X de um lado e 0X/11 do outro */
-  .spread-head, .spread-foot{ padding: 10px 5vw; font-size: 8px; letter-spacing: 0.22em; }
-  .spread-head .center, .spread-foot .center{ display: none; }
-  .spread-mark{ font-size: 8px; letter-spacing: 0.28em; }
-  .spread > .wrap{ padding-top: 50px; padding-bottom: 50px; }
+  /* Spread frame ocultas no mobile */
+  .spread-head, .spread-foot{ display: none; }
 
   /* Statement: tipografia reduzida */
   .statement{ padding: 70px 5vw; }
@@ -1424,14 +1641,20 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .video-player-title{ font-size: 24px; margin-bottom: 24px; }
   .video-player-wrap{ padding: 8px; }
 
-  /* Galeria mobile */
-  .gallery{ padding: 90px 5vw; }
-  .gallery-head{ margin-bottom: 36px; }
-  .gallery-title{ font-size: 28px; }
-  .gallery-grid{ grid-template-columns: 1fr 1fr; grid-auto-rows: 180px; gap: 10px; }
-  .gallery-item, .gallery-item-large{ grid-column: span 1; grid-row: span 1; }
-  .gallery-item-large{ grid-column: span 2; grid-row: span 1; grid-auto-rows: 240px; }
-  .gallery-item figcaption{ font-size: 9px; letter-spacing: 0.14em; }
+  /* Foto integrada vira full-bleed atrás do conteúdo no mobile */
+  .manifesto-photo-bg, .porque-photo-bg{
+    width: 100%; right: 0; left: 0;
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.35) 70%, rgba(0,0,0,0.5) 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.35) 70%, rgba(0,0,0,0.5) 100%);
+    filter: brightness(0.4) contrast(1.20) saturate(0.75) sepia(0.05);
+  }
+  .manifesto-photo-bg::after, .porque-photo-bg::after{
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.85) 100%);
+  }
+
+  /* Cinemastrip mobile */
+  .cinemastrip{ height: 280px; }
+  .cinemastrip-quote{ font-size: 18px; left: 5vw; right: 5vw; bottom: 28px; }
   .hero-eyebrow{ font-size: 10px; letter-spacing: 0.28em; margin-bottom: 18px; }
   .hero-eyebrow::before{ width: 28px; }
   .hero-h1{
@@ -1567,7 +1790,6 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   }
   .lead{ padding: 64px 20px 80px; }
   .footer{ padding: 50px 20px 32px; padding-bottom: max(32px, env(safe-area-inset-bottom)); }
-  .spread-head, .spread-foot{ padding: 9px 18px; }
   .statement{ padding: 56px 20px; }
   .statement-quote{ font-size: 15px; }
   .statement-attr{ font-size: 9px; letter-spacing: 0.24em; }
@@ -1703,7 +1925,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="/atacante-matinha/assets/hero-cover.png">
     <source src="/atacante-matinha/assets/atacante-video.mp4" type="video/mp4">
   </video>
-  <img class="hero-img" src="/atacante-matinha/assets/portrait-square.png" alt="Atacante Matinha — RDM B 3224 MAT." />
+  <img class="hero-img" src="/atacante-matinha/assets/photos/atacante-04.jpeg" alt="Atacante da Matinha — RDM B 3224 MAT." />
   <div class="hero-overlay"></div>
   <div class="hero-rail left"></div>
   <div class="hero-rail right"></div>
@@ -1715,7 +1937,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     <div class="hero-tagline">Genética de elite. <span>Precisão de dados.</span></div>
     <h1 class="hero-h1">
       <span class="stack">Atacante</span>
-      <span class="stack accent">Matinha.</span>
+      <span class="stack accent">da Matinha.</span>
     </h1>
     <div class="hero-foot">
       <p class="hero-lede">
@@ -1739,7 +1961,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 <!-- ===================== VÍDEO PLAYER ===================== -->
 <section class="video-player-section reveal" id="video-touro">
   <div class="wrap">
-    <div class="kicker" style="margin-bottom:24px;">● Vídeo · Atacante Matinha</div>
+    <div class="kicker" style="margin-bottom:24px;">● Vídeo · Atacante da Matinha</div>
     <h2 class="video-player-title">Veja o touro <i>em movimento.</i></h2>
     <div class="video-player-wrap">
       <video
@@ -1764,45 +1986,6 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 <div class="marquee" aria-hidden="true">
   <div class="marquee-track" id="marqueeTrack"></div>
 </div>
-
-<!-- ===================== GALERIA DE FOTOS (fundindo com o fundo escuro) ===================== -->
-<section class="gallery reveal" id="galeria">
-  <div class="gallery-bg-glow" aria-hidden="true"></div>
-  <div class="wrap">
-    <div class="gallery-head">
-      <div class="kicker" style="margin-bottom:18px;">● Galeria · Nelore Visual</div>
-      <h2 class="gallery-title">Pelagem, <i>aprumo</i> e <i>presença</i> de elite.</h2>
-      <p class="gallery-lede">Crédito · JM Matos · Nelore Visual.</p>
-    </div>
-
-    <div class="gallery-grid">
-      <figure class="gallery-item gallery-item-large">
-        <img src="/atacante-matinha/assets/photos/atacante-05.jpeg" alt="Atacante Matinha — perfil lateral" loading="lazy" />
-        <figcaption>Perfil lateral · Aprumo &amp; estrutura</figcaption>
-      </figure>
-      <figure class="gallery-item">
-        <img src="/atacante-matinha/assets/photos/atacante-01.jpeg" alt="Atacante Matinha — 3/4 frontal" loading="lazy" />
-        <figcaption>3/4 frontal · Cabeça &amp; expressão</figcaption>
-      </figure>
-      <figure class="gallery-item">
-        <img src="/atacante-matinha/assets/photos/atacante-04.jpeg" alt="Atacante Matinha — frente" loading="lazy" />
-        <figcaption>Frente · Pelagem branca de tipicidade</figcaption>
-      </figure>
-      <figure class="gallery-item">
-        <img src="/atacante-matinha/assets/photos/atacante-02.jpeg" alt="Atacante Matinha — perfil em movimento" loading="lazy" />
-        <figcaption>Perfil em movimento · Conformação</figcaption>
-      </figure>
-      <figure class="gallery-item">
-        <img src="/atacante-matinha/assets/photos/atacante-06.jpeg" alt="Atacante Matinha — junto à cerca" loading="lazy" />
-        <figcaption>Repouso · Tranquilidade no campo</figcaption>
-      </figure>
-      <figure class="gallery-item">
-        <img src="/atacante-matinha/assets/photos/atacante-03.jpeg" alt="Atacante Matinha — posando" loading="lazy" />
-        <figcaption>Apresentação · Pose oficial</figcaption>
-      </figure>
-    </div>
-  </div>
-</section>
 
 <!-- ===================== VALUES STRIP (Brandbook §01 · Valores) ===================== -->
 <div class="values-strip" aria-label="Valores Fórmula do Boi">
@@ -1831,6 +2014,9 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     </div>
   </div>
 
+  <!-- Foto fundindo no fundo escuro (right-side bleed) -->
+  <div class="manifesto-photo-bg" aria-hidden="true" style="background-image:url('/atacante-matinha/assets/photos/atacante-05.jpeg');"></div>
+
   <!-- Padrão topografia (Brandbook §07.05) -->
   <div class="bg-topo" aria-hidden="true">
     <svg viewBox="0 0 1200 600" preserveAspectRatio="none">
@@ -1845,14 +2031,14 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     </svg>
   </div>
 
-  <div class="wrap">
+  <div class="wrap" style="position:relative;z-index:2;">
     <div class="kicker" style="margin-bottom:32px;">§§ 01 — Manifesto</div>
     <div class="manifesto-grid">
       <div>
         <h2>Eficiência, desempenho e <i>retorno consistente.</i></h2>
       </div>
       <div>
-        <p>O <b style="color:var(--bronze-300)">B3224 MAT.</b> chega como um dos grandes destaques da nova geração Nelore, criado na Nelore Visual. Não é apenas um bom animal — é um indivíduo diferenciado, entregando resultado no campo, na balança e no bolso.</p>
+        <p>O <b style="color:var(--bronze-300)">Atacante da Matinha</b> chega como um dos grandes destaques da nova geração Nelore, criado na Nelore Visual. Não é apenas um bom animal — é um indivíduo diferenciado, entregando resultado no campo, na balança e no bolso.</p>
         <p style="margin-top:18px;color:var(--gray-200);">Curadoria de genética PO. Avaliação ANCP completa. Sêmen convencional e sexado disponíveis em pré-reserva.</p>
       </div>
     </div>
@@ -1901,15 +2087,15 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     </div>
 
     <div>
-      <div class="id-img" style="background-image:url('/atacante-matinha/assets/portrait-square.png');">
+      <div class="id-img" style="background-image:url('/atacante-matinha/assets/photos/atacante-04.jpeg');">
         <span class="corner tl"></span><span class="corner tr"></span>
         <span class="corner bl"></span><span class="corner br"></span>
         <div class="id-img-cap">
           <div>
             <div class="label">Foto · Nelore Visual</div>
-            <div class="name">Atacante Matinha</div>
+            <div class="name">Atacante da Matinha</div>
           </div>
-          <div class="pageno">02 / 09</div>
+          <div class="pageno">JM Matos</div>
         </div>
       </div>
 
@@ -2019,68 +2205,112 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     <h2>Construído sobre <i>sangue selecionado.</i></h2>
     <p style="margin-top:18px;font-size:16px;color:var(--gray-200);max-width:680px;">Três gerações de matrizes e touros de elite. Consanguinidade controlada em <b style="color:var(--bronze-300)">5,13%</b>.</p>
 
-    <div class="pedi-tree-v2">
-      <!-- Touro: full width no topo -->
-      <div class="pedi-touro">
-        <div class="pedi-node big">
-          <span class="corner tl"></span><span class="corner tr"></span>
-          <span class="corner bl"></span><span class="corner br"></span>
-          <div class="pedi-side">01 · Touro</div>
-          <div class="pedi-name">Atacante Matinha</div>
-          <div class="pedi-mat">RDM B 3224 MAT.</div>
-          <div class="pedi-stats"><span class="mgte">MGTe 42,38</span><span class="top">· TOP 0,1%</span></div>
-        </div>
+    <!-- ============== PEDIGREE CINEMA MODE ============== -->
+    <div class="pedi-cinema" data-pedigree>
+      <!-- TOURO (geração 0) -->
+      <div class="pedi-cin-row pedi-row-touro">
+        <article class="pedi-cin-card touro" data-side="touro">
+          <div class="pedi-cin-tag">Touro</div>
+          <div class="pedi-cin-name">Atacante <span class="accent">da Matinha</span></div>
+          <div class="pedi-cin-reg">RDM B 3224 MAT.</div>
+          <div class="pedi-cin-metric">
+            <div class="pedi-cin-metric-num">42,38</div>
+            <div class="pedi-cin-metric-label">MGTe · TOP 0,1%</div>
+          </div>
+        </article>
       </div>
 
-      <!-- Conector vertical -->
-      <div class="pedi-connector" aria-hidden="true"></div>
+      <!-- CONECTOR Touro → Pais (SVG animado) -->
+      <svg class="pedi-cin-svg pedi-cin-svg-1" viewBox="0 0 1000 80" preserveAspectRatio="none" aria-hidden="true">
+        <path class="cin-line" d="M500,0 V40 H180 V80" />
+        <path class="cin-line" d="M500,0 V40 H820 V80" />
+      </svg>
 
-      <!-- Lados: Paternal | Maternal -->
-      <div class="pedi-lados">
-        <!-- LADO PATERNAL -->
-        <div class="pedi-lado">
-          <div class="pedi-lado-head">Lado Paterno</div>
-          <div class="pedi-node">
-            <div class="pedi-side">Pai</div>
-            <div class="pedi-name">HITLER MAT.</div>
-            <div class="pedi-mat">RDM A6962</div>
-            <div class="pedi-stats"><span class="mgte">MGTe 39,27</span><span class="top">· TOP 0,1%</span></div>
+      <!-- PAIS (geração 1) -->
+      <div class="pedi-cin-row pedi-row-pais">
+        <article class="pedi-cin-card pai" data-side="paterno" data-gen="1">
+          <div class="pedi-cin-tag">Pai</div>
+          <div class="pedi-cin-name">Hitler MAT.</div>
+          <div class="pedi-cin-reg">RDM A6962</div>
+          <div class="pedi-cin-metric">
+            <div class="pedi-cin-metric-num">39,27</div>
+            <div class="pedi-cin-metric-label">MGTe · TOP 0,1%</div>
           </div>
-          <div class="pedi-node">
-            <div class="pedi-side">Avô paterno</div>
-            <div class="pedi-name">REM HORUS GEN ADT</div>
-            <div class="pedi-mat">REMP 602</div>
-            <div class="pedi-stats"><span class="mgte">MGTe 34,28</span><span class="top">· TOP 0,1%</span></div>
+        </article>
+        <article class="pedi-cin-card mae" data-side="materno" data-gen="1">
+          <div class="pedi-cin-tag">Mãe</div>
+          <div class="pedi-cin-name">Garta MAT.</div>
+          <div class="pedi-cin-reg">RDM A5372</div>
+          <div class="pedi-cin-metric">
+            <div class="pedi-cin-metric-num">33,02</div>
+            <div class="pedi-cin-metric-label">MGTe · TOP 0,5%</div>
           </div>
-          <div class="pedi-node">
-            <div class="pedi-side">Avó paterna</div>
-            <div class="pedi-name">ENDIRA MAT.</div>
-            <div class="pedi-mat">RDM A2167</div>
-            <div class="pedi-stats"><span class="mgte">MGTe 27,73</span><span class="top">· TOP 5%</span></div>
+        </article>
+      </div>
+
+      <!-- CONECTOR Pais → Avós (SVG animado) -->
+      <svg class="pedi-cin-svg pedi-cin-svg-2" viewBox="0 0 1000 80" preserveAspectRatio="none" aria-hidden="true">
+        <!-- Lado paterno -->
+        <path class="cin-line" d="M180,0 V40 H80 V80" />
+        <path class="cin-line" d="M180,0 V40 H300 V80" />
+        <!-- Lado materno -->
+        <path class="cin-line" d="M820,0 V40 H700 V80" />
+        <path class="cin-line" d="M820,0 V40 H920 V80" />
+      </svg>
+
+      <!-- AVÓS (geração 2) -->
+      <div class="pedi-cin-row pedi-row-avos">
+        <article class="pedi-cin-card avo" data-side="paterno" data-gen="2">
+          <div class="pedi-cin-tag">Avô paterno</div>
+          <div class="pedi-cin-name">REM Horus GEN ADT</div>
+          <div class="pedi-cin-reg">REMP 602</div>
+          <div class="pedi-cin-metric">
+            <div class="pedi-cin-metric-num">34,28</div>
+            <div class="pedi-cin-metric-label">MGTe · TOP 0,1%</div>
           </div>
+        </article>
+        <article class="pedi-cin-card avo" data-side="paterno" data-gen="2">
+          <div class="pedi-cin-tag">Avó paterna</div>
+          <div class="pedi-cin-name">Endira MAT.</div>
+          <div class="pedi-cin-reg">RDM A2167</div>
+          <div class="pedi-cin-metric">
+            <div class="pedi-cin-metric-num">27,73</div>
+            <div class="pedi-cin-metric-label">MGTe · TOP 5%</div>
+          </div>
+        </article>
+        <article class="pedi-cin-card avo" data-side="materno" data-gen="2">
+          <div class="pedi-cin-tag">Avô materno</div>
+          <div class="pedi-cin-name">REM Hermoso FIV</div>
+          <div class="pedi-cin-reg">REMP 816</div>
+          <div class="pedi-cin-metric">
+            <div class="pedi-cin-metric-num">30,90</div>
+            <div class="pedi-cin-metric-label">MGTe · TOP 1%</div>
+          </div>
+        </article>
+        <article class="pedi-cin-card avo" data-side="materno" data-gen="2">
+          <div class="pedi-cin-tag">Avó materna</div>
+          <div class="pedi-cin-name">Cora MAT.</div>
+          <div class="pedi-cin-reg">RDM A307</div>
+          <div class="pedi-cin-metric">
+            <div class="pedi-cin-metric-num">23,76</div>
+            <div class="pedi-cin-metric-label">MGTe · TOP 12%</div>
+          </div>
+        </article>
+      </div>
+
+      <!-- KPIs resumo abaixo -->
+      <div class="pedi-cin-kpis">
+        <div class="pedi-cin-kpi">
+          <div class="pedi-cin-kpi-num">5,13<span class="cents">%</span></div>
+          <div class="pedi-cin-kpi-label">Consanguinidade controlada</div>
         </div>
-
-        <!-- LADO MATERNAL -->
-        <div class="pedi-lado">
-          <div class="pedi-lado-head">Lado Materno</div>
-          <div class="pedi-node">
-            <div class="pedi-side">Mãe</div>
-            <div class="pedi-name">GARTA MAT.</div>
-            <div class="pedi-mat">RDM A5372</div>
-            <div class="pedi-stats"><span class="mgte">MGTe 33,02</span><span class="top">· TOP 0,5%</span></div>
-          </div>
-          <div class="pedi-node">
-            <div class="pedi-side">Avô materno</div>
-            <div class="pedi-name">REM HERMOSO FIV</div>
-            <div class="pedi-mat">REMP 816</div>
-            <div class="pedi-stats"><span class="mgte">MGTe 30,90</span><span class="top">· TOP 1%</span></div>
-          </div>
-          <div class="pedi-node">
-            <div class="pedi-side">Avó materna</div>
-            <div class="pedi-name">CORA MAT.</div>
-            <div class="pedi-mat">RDM A307</div>
-            <div class="pedi-stats"><span class="mgte">MGTe 23,76</span><span class="top">· TOP 12%</span></div>
-          </div>
+        <div class="pedi-cin-kpi">
+          <div class="pedi-cin-kpi-num">4<span class="cents">/7</span></div>
+          <div class="pedi-cin-kpi-label">Ancestrais TOP 1% da raça</div>
+        </div>
+        <div class="pedi-cin-kpi">
+          <div class="pedi-cin-kpi-num">3<span class="cents"></span></div>
+          <div class="pedi-cin-kpi-label">Gerações de seleção genômica</div>
         </div>
       </div>
     </div>
@@ -2121,6 +2351,14 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     <div class="center"><span>CONFIDENCIAL · USO INTERNO</span><span class="spread-rule">/</span><span>GENEALOGIA</span></div>
     <div class="right"><span class="spread-page">06</span><span class="spread-slash">/</span><span>11</span></div>
   </div>
+</section>
+
+<!-- ===================== FAIXA CINEMATOGRÁFICA (foto integrada full-bleed) ===================== -->
+<section class="cinemastrip reveal" style="background-image:url('/atacante-matinha/assets/photos/atacante-07.jpeg');" aria-label="Atacante da Matinha · Pelagem branca de tipicidade">
+  <p class="cinemastrip-quote">
+    Genética que se vê <i>no campo.</i><br>
+    E se mede no <i>frigorífico.</i>
+  </p>
 </section>
 
 <!-- ===================== PERFIL COMPLETO ===================== -->
@@ -2184,13 +2422,10 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 
 <!-- ===================== POR QUE AGORA ===================== -->
 <section class="porque reveal spread" id="porque">
-  <div class="spread-head">
-    <div class="left"><span class="spread-bullet"></span><span class="spread-mark">F Ó R M U L A   D O   B O I</span></div>
-    <div class="center"><span>BRAND GUIDELINES V1.0</span><span class="spread-rule">/</span><span class="spread-section">§§ 09 — MOMENTO DE INVESTIR</span></div>
-    <div class="right"><span class="spread-page">10</span><span class="spread-slash">/</span><span>11</span></div>
-  </div>
+  <!-- Foto fundindo no fundo escuro (left-side bleed) -->
+  <div class="porque-photo-bg" aria-hidden="true" style="background-image:url('/atacante-matinha/assets/photos/atacante-02.jpeg');"></div>
 
-  <div class="wrap">
+  <div class="wrap" style="position:relative;z-index:2;">
     <div class="porque-head">
       <div class="kicker" style="margin-bottom:24px;">§§ 09 — Por que agora</div>
       <h2>Acelere o <i>progresso genético</i> do seu plantel.</h2>
@@ -2437,7 +2672,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
         <img src="/atacante-matinha/assets/brand/bull-bronze.svg" alt="Fórmula do Boi" />
         <span class="name">Fórmula do Boi × Nelore Visual</span>
       </div>
-      <p class="footer-tagline">Curadoria de genética Nelore PO. Aceleradora de Touros 2026 · Lançamento Atacante Matinha — RDM B 3224 MAT.</p>
+      <p class="footer-tagline">Curadoria de genética Nelore PO. Aceleradora de Touros 2026 · Lançamento Atacante da Matinha — RDM B 3224 MAT.</p>
     </div>
     <div>
       <h4>Navegação</h4>
@@ -2467,7 +2702,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 </footer>
 
 <!-- ===================== FLOATING WHATSAPP ===================== -->
-<a href="https://wa.me/5567999999999?text=Ol%C3%A1%2C%20vim%20pelo%20site%20do%20Atacante%20Matinha." target="_blank" rel="noopener" class="wa-float" aria-label="Falar no WhatsApp">
+<a href="https://wa.me/5567999999999?text=Ol%C3%A1%2C%20vim%20pelo%20site%20do%20Atacante%20da%20Matinha." target="_blank" rel="noopener" class="wa-float" aria-label="Falar no WhatsApp">
   <svg viewBox="0 0 24 24"><path d="M20.5 3.5A11.7 11.7 0 0 0 12.1 0C5.5 0 .2 5.3.2 11.9c0 2.1.6 4.2 1.6 6L0 24l6.3-1.6c1.7.9 3.7 1.4 5.7 1.4h.1c6.6 0 11.9-5.3 11.9-11.9 0-3.2-1.2-6.2-3.5-8.4Zm-8.4 18.4h-.1c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.2-.4a9.7 9.7 0 0 1-1.5-5.2c0-5.4 4.4-9.8 9.9-9.8a9.7 9.7 0 0 1 9.8 9.8c0 5.4-4.4 9.8-9.9 9.8Zm5.4-7.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-1.7-.9-2.9-1.6-4.1-3.5-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-1-2.3c-.2-.6-.5-.5-.7-.5H8c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1.1 2.8 1.2 3c.1.2 2.1 3.2 5 4.5 1.8.7 2.5.8 3.4.7.6-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.2-.3-.3-.6-.4Z"/></svg>
 </a>
 
@@ -2506,6 +2741,17 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     });
   }, { threshold: 0.12 });
   els.forEach(el => io.observe(el));
+
+  /* Pedigree Cinema Mode — observer dedicado pro reveal sequencial */
+  const pedi = document.querySelector('[data-pedigree]');
+  if(pedi){
+    const pedIo = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if(e.isIntersecting){ e.target.classList.add('in'); pedIo.unobserve(e.target); }
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -10% 0px' });
+    pedIo.observe(pedi);
+  }
 })();
 
 /* ============== WHATSAPP MASK ============== */
@@ -2583,7 +2829,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     const fd = new FormData(form);
     const data = Object.fromEntries(fd.entries());
     data._ts = new Date().toISOString();
-    data._lote = 'RDM B 3224 MAT. (Atacante Matinha)';
+    data._lote = 'RDM B 3224 MAT. (Atacante da Matinha)';
 
     // Persistência local (caso não haja backend)
     try {
@@ -2607,7 +2853,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 
     // Monta mensagem WhatsApp pré-preenchida
     const msg = encodeURIComponent(
-      '*Pré-reserva · Atacante Matinha · RDM B 3224 MAT.*\n' +
+      '*Pré-reserva · Atacante da Matinha · RDM B 3224 MAT.*\n' +
       '\nNome: ' + (data.nome || '-') +
       '\nFazenda: ' + (data.fazenda || '-') +
       '\nCidade: ' + (data.cidade || '-') +
