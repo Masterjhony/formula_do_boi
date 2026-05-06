@@ -32,13 +32,16 @@ Servidor dedicado para automacao de mensagens WhatsApp via [Baileys](https://git
 
 ## Endpoints
 
-| Metodo | Path           | Descricao                                                  |
-|--------|----------------|------------------------------------------------------------|
-| GET    | /status        | Retorna `{status, qr}` — status da conexao                |
-| POST   | /send          | Enfileira mensagem. Body: `{phone, name}`                  |
-| GET    | /queue         | Retorna tamanho da fila e status de processamento          |
-| GET    | /config        | Retorna config do fluxo em memória + contagem de pendentes |
-| POST   | /reload-config | Força recarga da config do Supabase                        |
+| Metodo | Path             | Descricao                                                                |
+|--------|------------------|--------------------------------------------------------------------------|
+| GET    | /status          | Retorna `{status, qr}` — status da conexao                               |
+| POST   | /send            | Enfileira welcome. Body: `{phone, name}`                                 |
+| POST   | /send-direct     | Enfileira mensagem livre. Body: `{phone, message, meta?}`                |
+| POST   | /campaign-send   | Enfileira lote de uma campanha. Body: `{campaign_id, recipients[]}`      |
+| POST   | /add-to-group    | Adiciona número ao grupo da LP. Body: `{phone}`                          |
+| GET    | /queue           | Retorna tamanho da fila e status de processamento                        |
+| GET    | /config          | Retorna config legada do fluxo em memória                                |
+| POST   | /reload-config   | Força recarga da config do Supabase                                      |
 
 ### Status possiveis
 
@@ -132,6 +135,58 @@ O servidor implementa reconexao automatica com as seguintes garantias:
 - **`socketGeneration`** — Contador que invalida event handlers de sockets antigos, impedindo que fantasmas disparem reconexoes.
 - **Backoff exponencial** — Delays de 5s, 10s, 20s, 40s, ate 60s entre tentativas de reconexao.
 - **`--restart unless-stopped`** — Docker reinicia o container automaticamente em caso de crash.
+
+## Central WhatsApp (admin.formuladoboi.com/whatsapp)
+
+A partir de **2026-05-06** o servidor encaminha **todas** as mensagens individuais recebidas para o Next.js classificar e responder. O fluxo é:
+
+```
+Lead manda mensagem  →  Baileys (VPS)  ──POST /api/whatsapp/inbound──►  Next.js
+                                                                          │
+                                                                          ├ Encontra/Cria lead em crm_leads
+                                                                          ├ Classifica intenção (opt-out, humano,
+                                                                          │   interesse 1-7, palavra-chave)
+                                                                          ├ Atualiza CRM (interesse_principal,
+                                                                          │   handoff_humano, optout_whatsapp,
+                                                                          │   contact_history)
+                                                                          ├ Loga em whatsapp_messages (direction=inbound)
+                                                                          └ Devolve resposta a enviar (ou silent:true)
+                                                                          
+                       Baileys envia a resposta ────────────────────────►  WhatsApp
+```
+
+### Comportamento por intenção
+
+| Mensagem do lead              | Ação                                                                                    |
+|-------------------------------|-----------------------------------------------------------------------------------------|
+| `1`-`6` ou palavra-chave      | Marca `interesse_principal`, promove `Lead→Qualificado`, responde com triagem-{interesse} |
+| `7` / "consultor" / "humano"  | Liga `handoff_humano = true`, responde com template `consultor-handoff`                  |
+| `PARAR` / "sair" / "cancelar" | Liga `optout_whatsapp = true`, insere em `whatsapp_optouts`, confirma com `optout-confirmacao` |
+| `VOLTAR` / "reativar"         | Desliga opt-out, manda menu novamente                                                    |
+| Texto livre (lead novo)       | Envia welcome com menu (uma vez) e aguarda                                               |
+| Lead em `handoff_humano=true` | Silêncio total (humano cuida pela inbox)                                                 |
+| Lead em `optout=true`         | Silêncio total                                                                            |
+
+Todos os templates moram em `whatsapp_templates` (slugs `welcome-default`, `triagem-touros`, `triagem-matrizes`, `triagem-embrioes`, `triagem-semen`, `triagem-leiloes`, `triagem-venda-genetica`, `consultor-handoff`, `follow-up-3d`, `aviso-leilao`, `optout-confirmacao`). São editáveis em `/whatsapp` → aba **Templates**.
+
+### Campanhas (broadcasts segmentados)
+
+`/api/whatsapp/central/campaigns/[id]/send` resolve o segmento contra `crm_leads` (sempre excluindo `optout_whatsapp=true`), materializa em `whatsapp_campaign_recipients` e POSTa lotes para o VPS via `/campaign-send`. O VPS processa em fila (4s entre envios) e POSTa um callback por destinatário em `/api/whatsapp/campaign-callback`, que atualiza o status e os contadores da campanha.
+
+## Trocando o número conectado (sócio)
+
+Quando trocar o número que aparece como bot da Fórmula do Boi:
+
+```bash
+ssh root@165.232.142.37
+docker stop formula_boi_whatsapp
+rm -rf /opt/whatsapp-auth/*       # IMPORTANTE: zera a sessão antiga
+docker start formula_boi_whatsapp
+```
+
+Em seguida, abra `https://admin.formuladoboi.com/whatsapp` → aba **Conexão** e escaneie o QR pelo celular do novo número. A sessão fica persistida no volume — não precisa repetir até que o número desconecte ou faça logout.
+
+> **Nota:** o número antigo deve ser desvinculado pelo próprio aparelho dele (Aparelhos Conectados → remover) para evitar confusão de notificações.
 
 ## Comando de grupo: /tarefa
 

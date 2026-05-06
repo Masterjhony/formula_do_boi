@@ -6,11 +6,20 @@
  * Docker volume em /data/auth — zero latência, zero corrupção.
  *
  * Expõe:
- *   GET  /status         → retorna {status, qr}
- *   POST /send           → recebe {phone, name} e adiciona à fila de envio
- *   GET  /queue          → retorna tamanho da fila
- *   GET  /config         → retorna a configuração de fluxo atual
- *   POST /reload-config  → força recarga da config do Supabase
+ *   GET  /status          → retorna {status, qr}
+ *   POST /send            → recebe {phone, name} e adiciona à fila de envio (welcome)
+ *   POST /send-direct     → recebe {phone, message, meta?} e enfileira mensagem livre
+ *   POST /campaign-send   → recebe {campaign_id, recipients[]} e dispara campanha
+ *   POST /add-to-group    → adiciona número ao grupo da LP
+ *   GET  /queue           → retorna tamanho da fila
+ *   GET  /config          → retorna a configuração de fluxo atual
+ *   POST /reload-config   → força recarga da config do Supabase
+ *
+ * Fluxo conversacional (Central WhatsApp):
+ *   Toda mensagem recebida em chat individual é encaminhada para
+ *   `${NEXT_JS_URL}/api/whatsapp/inbound`. O Next.js classifica o interesse,
+ *   atualiza o CRM e devolve a resposta a ser enviada (ou silêncio quando o
+ *   lead pediu handoff humano / fez opt-out).
  */
 
 const http = require('http');
@@ -29,8 +38,9 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_P
 const NEXT_JS_URL = process.env.NEXT_JS_URL || '';
 const GROUP_TASK_SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || '';
 const LP_GROUP_INVITE_CODE = process.env.LP_GROUP_INVITE_CODE || 'JYxJPWfkoHHLZfosHlywN9';
-let lpGroupJid = process.env.LP_GROUP_JID || null; // resolvido no startup se não definido
+let lpGroupJid = process.env.LP_GROUP_JID || null;
 
+// Comandos de grupo
 const GROUP_TASK_PREFIX = '/tarefa';
 const GROUP_DECISION_PREFIX = '/decisao';
 const GROUP_RISK_PREFIX = '/risco';
@@ -38,13 +48,12 @@ const GROUP_AI_PREFIX = '/ia';
 const PROB_MAP = { '1': 'baixa', '2': 'media', '3': 'alta' };
 const IMPACT_MAP = { '1': 'baixo', '2': 'medio', '3': 'alto' };
 
-// Garante que o diretório de auth existe
 if (!fs.existsSync(AUTH_DIR)) {
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 }
 
 // =============================================================================
-// Flow config — carregada do Supabase, com fallback para padrão
+// Flow config (mantido para compatibilidade com /api/whatsapp/flow legado)
 // =============================================================================
 let flowConfig = {
   welcome_message: `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://formuladoboi.com`,
@@ -77,38 +86,13 @@ async function loadFlowConfig() {
   }
 }
 
-// Recarrega a cada 5 minutos como fallback
 setInterval(loadFlowConfig, 5 * 60 * 1000);
 
 // =============================================================================
-// Estado de conversa — aguardando resposta do lead
-// Map<phone_number_only, { expires_at: Date }>
-// =============================================================================
-const pendingReplies = new Map();
-
-function trackPendingReply(phone) {
-  const timeoutMins = Number(flowConfig.flow_timeout_minutes) || 60;
-  if (!Array.isArray(flowConfig.options) || flowConfig.options.length === 0) return;
-  if (timeoutMins <= 0) return;
-  pendingReplies.set(phone, {
-    expires_at: new Date(Date.now() + timeoutMins * 60 * 1000),
-  });
-}
-
-// Limpa entradas expiradas a cada 10 minutos
-setInterval(() => {
-  const now = new Date();
-  for (const [phone, state] of pendingReplies) {
-    if (state.expires_at < now) pendingReplies.delete(phone);
-  }
-}, 10 * 60 * 1000);
-
-// =============================================================================
 // Estado de criação de tarefas via grupo — fluxo multi-step
-// Map<`${senderJid}::${groupJid}`, PendingTaskState>
 // =============================================================================
 const pendingGroupTasks = new Map();
-const GROUP_TASK_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutos
+const GROUP_TASK_TIMEOUT_MS = 10 * 60 * 1000;
 
 setInterval(() => {
   const now = Date.now();
@@ -194,53 +178,32 @@ async function createGroupTask(groupJid, state, dueDate) {
 
 async function createGroupDecision(groupJid, state) {
   const { decision, reason, sender_name } = state;
-
-  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
-    console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados.');
-    return;
-  }
-
-  console.log(`[Grupo] Criando decisão "${decision}" por ${sender_name}`);
+  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) return;
 
   try {
     const body = { decision };
     if (reason) body.reason = reason;
-
     const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/group-decision`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-webhook-secret': GROUP_TASK_SECRET,
-      },
+      headers: { 'Content-Type': 'application/json', 'x-webhook-secret': GROUP_TASK_SECRET },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(10000),
     });
 
     if (res.ok) {
       const reasonText = reason ? `\n📝 Motivo: *${reason}*` : '';
-      await sendGroupMsg(groupJid,
-        `📒 Decisão registrada por *${sender_name}*:\n"${decision}"${reasonText}`
-      );
+      await sendGroupMsg(groupJid, `📒 Decisão registrada por *${sender_name}*:\n"${decision}"${reasonText}`);
     } else {
-      const err = await res.text();
-      console.error(`[Grupo] Erro ao criar decisão (${res.status}): ${err}`);
       await sendGroupMsg(groupJid, `❌ Não foi possível registrar a decisão. Tente novamente.`);
     }
   } catch (e) {
     console.error('[Grupo] Falha ao chamar API decision:', e.message);
-    await sendGroupMsg(groupJid, `❌ Não foi possível registrar a decisão. Tente novamente.`);
   }
 }
 
 async function createGroupRisk(groupJid, state) {
   const { title, probability, impact, mitigation, sender_name } = state;
-
-  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
-    console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados.');
-    return;
-  }
-
-  console.log(`[Grupo] Criando risco "${title}" por ${sender_name}`);
+  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) return;
 
   const probLabels = { 'baixa': 'Baixa', 'media': 'Média', 'alta': 'Alta' };
   const impactLabels = { 'baixo': 'Baixo', 'medio': 'Médio', 'alto': 'Alto' };
@@ -248,13 +211,9 @@ async function createGroupRisk(groupJid, state) {
   try {
     const body = { title, probability, impact };
     if (mitigation) body.mitigation = mitigation;
-
     const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/group-risk`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-webhook-secret': GROUP_TASK_SECRET,
-      },
+      headers: { 'Content-Type': 'application/json', 'x-webhook-secret': GROUP_TASK_SECRET },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(10000),
     });
@@ -264,54 +223,66 @@ async function createGroupRisk(groupJid, state) {
       await sendGroupMsg(groupJid,
         `⚠️ Risco registrado por *${sender_name}*:\n"${title}"\n🎲 Probabilidade: *${probLabels[probability] || probability}*\n💥 Impacto: *${impactLabels[impact] || impact}*${mitigationText}`
       );
-    } else {
-      const err = await res.text();
-      console.error(`[Grupo] Erro ao criar risco (${res.status}): ${err}`);
-      await sendGroupMsg(groupJid, `❌ Não foi possível registrar o risco. Tente novamente.`);
     }
   } catch (e) {
     console.error('[Grupo] Falha ao chamar API risk:', e.message);
-    await sendGroupMsg(groupJid, `❌ Não foi possível registrar o risco. Tente novamente.`);
   }
 }
 
 async function askGroupAI(groupJid, question, senderName) {
-  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
-    console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — IA ignorada.');
-    return;
-  }
-
+  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) return;
   console.log(`[Grupo IA] Pergunta de ${senderName}: "${question}"`);
   await sendGroupMsg(groupJid, `🤖 Processando pergunta de *${senderName}*...`);
-
   try {
     const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/group-ai`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-webhook-secret': GROUP_TASK_SECRET,
-      },
+      headers: { 'Content-Type': 'application/json', 'x-webhook-secret': GROUP_TASK_SECRET },
       body: JSON.stringify({ question, sender_name: senderName }),
       signal: AbortSignal.timeout(55000),
     });
-
     if (res.ok) {
       const json = await res.json();
       const answer = json.answer || 'Não consegui processar a pergunta.';
       await sendGroupMsg(groupJid, `🤖 *IA Fórmula do Boi*\n\n${answer}`);
     } else {
-      const err = await res.text();
-      console.error(`[Grupo IA] Erro (${res.status}): ${err}`);
       await sendGroupMsg(groupJid, `❌ Não foi possível processar a pergunta. Tente novamente.`);
     }
   } catch (e) {
     console.error('[Grupo IA] Falha ao chamar API:', e.message);
-    await sendGroupMsg(groupJid, `❌ Não foi possível processar a pergunta. Tente novamente.`);
   }
 }
 
 // =============================================================================
-// Estado global — UM único socket, gerenciado de forma estrita
+// Central WhatsApp — encaminha mensagens individuais para o Next.js classificar
+// =============================================================================
+async function notifyInboundToNextJs({ phone, name, body, message_id }) {
+  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+    console.warn('[Inbound] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados.');
+    return null;
+  }
+  try {
+    const res = await fetch(`${NEXT_JS_URL}/api/whatsapp/inbound`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': GROUP_TASK_SECRET,
+      },
+      body: JSON.stringify({ phone, name, body, message_id }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) {
+      console.error(`[Inbound] /api/whatsapp/inbound respondeu ${res.status}`);
+      return null;
+    }
+    return await res.json();
+  } catch (e) {
+    console.error('[Inbound] Falha ao chamar API:', e.message);
+    return null;
+  }
+}
+
+// =============================================================================
+// Estado global do socket
 // =============================================================================
 let sock = null;
 let socketGeneration = 0;
@@ -347,15 +318,15 @@ async function runMsgQueue() {
   if (queueRunning) return;
   queueRunning = true;
   while (msgQueue.length > 0) {
-    const { phone, name, message } = msgQueue.shift();
+    const item = msgQueue.shift();
     try {
-      if (message) {
-        await _executeSendDirect(phone, message);
-      } else {
-        await _executeSend(phone, name);
+      if (item.kind === 'welcome') {
+        await _executeSend(item.phone, item.name);
+      } else if (item.kind === 'direct') {
+        await _executeSendDirect(item.phone, item.message, item.meta);
       }
     } catch (err) {
-      console.error(`[Queue] Falha ao enviar para ${phone}:`, err.message);
+      console.error(`[Queue] Falha ao enviar para ${item.phone}:`, err.message);
     }
     if (msgQueue.length > 0) {
       await new Promise(r => setTimeout(r, QUEUE_DELAY_MS));
@@ -365,21 +336,17 @@ async function runMsgQueue() {
 }
 
 function enqueueSend(phone, name) {
-  if (msgQueue.length >= 200) {
-    throw new Error('Fila de envio cheia (max 200).');
-  }
-  msgQueue.push({ phone, name });
+  if (msgQueue.length >= 500) throw new Error('Fila de envio cheia (max 500).');
+  msgQueue.push({ kind: 'welcome', phone, name });
   const position = msgQueue.length;
   const estimatedSeconds = (position - 1) * (QUEUE_DELAY_MS / 1000);
   runMsgQueue();
   return { queued: true, position, estimatedSeconds };
 }
 
-function enqueueSendDirect(phone, message) {
-  if (msgQueue.length >= 200) {
-    throw new Error('Fila de envio cheia (max 200).');
-  }
-  msgQueue.push({ phone, message });
+function enqueueSendDirect(phone, message, meta = null) {
+  if (msgQueue.length >= 500) throw new Error('Fila de envio cheia (max 500).');
+  msgQueue.push({ kind: 'direct', phone, message, meta });
   const position = msgQueue.length;
   const estimatedSeconds = (position - 1) * (QUEUE_DELAY_MS / 1000);
   runMsgQueue();
@@ -387,7 +354,7 @@ function enqueueSendDirect(phone, message) {
 }
 
 // =============================================================================
-// Inicializar/Reconectar o Baileys
+// Bootstrap do socket
 // =============================================================================
 async function startSocket() {
   if (sock) {
@@ -420,7 +387,6 @@ async function startSocket() {
       }
     }
 
-    // Auth state em arquivos locais — leitura/escrita em microssegundos
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
 
     if (myGen !== socketGeneration) {
@@ -459,7 +425,6 @@ async function startSocket() {
 
     sock.ev.on('connection.update', (update) => {
       if (myGen !== socketGeneration) return;
-
       const { connection, lastDisconnect, qr } = update;
 
       if (qr) {
@@ -485,9 +450,7 @@ async function startSocket() {
           console.log('[WA] Logout. Limpando auth para novo QR...');
           try {
             const files = fs.readdirSync(AUTH_DIR);
-            for (const f of files) {
-              fs.unlinkSync(path.join(AUTH_DIR, f));
-            }
+            for (const f of files) fs.unlinkSync(path.join(AUTH_DIR, f));
             console.log('[WA] Auth limpo.');
           } catch (e) {
             console.error('[WA] Erro ao limpar auth:', e.message);
@@ -504,7 +467,6 @@ async function startSocket() {
         currentQr = null;
         reconnectAttempts = 0;
         console.log(`[WA] Conectado (gen=${myGen})`);
-        // Resolve o JID do grupo da LP a partir do código de convite (uma vez)
         if (!lpGroupJid && LP_GROUP_INVITE_CODE) {
           sock.groupGetInviteInfo(LP_GROUP_INVITE_CODE)
             .then(info => {
@@ -517,269 +479,38 @@ async function startSocket() {
     });
 
     // -----------------------------------------------------------------
-    // Ouvir mensagens recebidas — fluxo individual + comando de grupos
+    // Mensagens recebidas
     // -----------------------------------------------------------------
     sock.ev.on('messages.upsert', async ({ messages: msgs, type }) => {
       if (myGen !== socketGeneration) return;
       if (type !== 'notify') return;
 
       for (const msg of msgs) {
-        // Ignorar mensagens próprias
         if (msg.key.fromMe) continue;
-
         const remoteJid = msg.key.remoteJid;
         if (!remoteJid) continue;
         if (remoteJid === 'status@broadcast') continue;
 
-        // Extrair texto da mensagem
         const text = (
           msg.message?.conversation ||
           msg.message?.extendedTextMessage?.text ||
           ''
         ).trim();
-
         if (!text) continue;
 
-        // -----------------------------------------------------------------
-        // Mensagens de GRUPO — fluxo multi-step de criação de tarefas
-        // -----------------------------------------------------------------
+        // ──────────────────────────────────────────────────────
+        // Mensagens de GRUPO — comandos /tarefa, /decisao, /risco, /ia
+        // ──────────────────────────────────────────────────────
         if (remoteJid.endsWith('@g.us')) {
-          const lower = text.toLowerCase();
-          const senderJid = msg.key.participant || '';
-          const sender = senderJid.replace('@s.whatsapp.net', '');
-          const senderName = msg.pushName || sender;
-          const taskKey = `${senderJid}::${remoteJid}`;
-
-          const skipWords = ['pular', 'nao', 'não', 'nenhum', '-', 'sem'];
-
-          // /ia — pergunta à IA (não bloqueia fluxos pendentes)
-          if (lower.startsWith(GROUP_AI_PREFIX)) {
-            const question = text.slice(GROUP_AI_PREFIX.length).trim();
-            if (!question) {
-              await sendGroupMsg(remoteJid, '⚠️ Use: /ia <sua pergunta>\nEx: /ia quantos leads novos temos essa semana?');
-              continue;
-            }
-            // Não bloqueia — roda em paralelo sem await no loop
-            askGroupAI(remoteJid, question, senderName);
-            continue;
-          }
-
-          // /tarefa sempre inicia novo fluxo (cancela pendente anterior se houver)
-          if (lower.startsWith(GROUP_TASK_PREFIX)) {
-            const title = text.slice(GROUP_TASK_PREFIX.length).trim();
-            if (!title) {
-              await sendGroupMsg(remoteJid, '⚠️ Use: /tarefa <descrição da tarefa>');
-              continue;
-            }
-
-            if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
-              console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — tarefa ignorada.');
-              continue;
-            }
-
-            pendingGroupTasks.set(taskKey, {
-              flow_type: 'task',
-              step: 'etapa',
-              title,
-              group_id: remoteJid,
-              sender,
-              sender_name: senderName,
-              expires_at: Date.now() + GROUP_TASK_TIMEOUT_MS,
-            });
-
-            await sendGroupMsg(remoteJid,
-              `📋 *Tarefa:* "${title}"\n\nEm qual etapa ficará?\n1️⃣ Idéias\n2️⃣ A fazer\n3️⃣ Em andamento`
-            );
-            continue;
-          }
-
-          // /decisao inicia fluxo de registro de decisão
-          if (lower.startsWith(GROUP_DECISION_PREFIX)) {
-            const decision = text.slice(GROUP_DECISION_PREFIX.length).trim();
-            if (!decision) {
-              await sendGroupMsg(remoteJid, '⚠️ Use: /decisao <texto da decisão>');
-              continue;
-            }
-
-            if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
-              console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — decisão ignorada.');
-              continue;
-            }
-
-            pendingGroupTasks.set(taskKey, {
-              flow_type: 'decision',
-              step: 'motivo',
-              decision,
-              sender,
-              sender_name: senderName,
-              expires_at: Date.now() + GROUP_TASK_TIMEOUT_MS,
-            });
-
-            await sendGroupMsg(remoteJid,
-              `📒 *Decisão:* "${decision}"\n\nQual o motivo?\n(Digite o motivo ou responda *pular*)`
-            );
-            continue;
-          }
-
-          // /risco inicia fluxo de registro de risco
-          if (lower.startsWith(GROUP_RISK_PREFIX)) {
-            const title = text.slice(GROUP_RISK_PREFIX.length).trim();
-            if (!title) {
-              await sendGroupMsg(remoteJid, '⚠️ Use: /risco <título do risco>');
-              continue;
-            }
-
-            if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
-              console.warn('[Grupo] NEXT_JS_URL ou WHATSAPP_GROUP_TASK_SECRET não configurados — risco ignorado.');
-              continue;
-            }
-
-            pendingGroupTasks.set(taskKey, {
-              flow_type: 'risk',
-              step: 'probabilidade',
-              title,
-              sender,
-              sender_name: senderName,
-              expires_at: Date.now() + GROUP_TASK_TIMEOUT_MS,
-            });
-
-            await sendGroupMsg(remoteJid,
-              `⚠️ *Risco:* "${title}"\n\nQual a probabilidade?\n1️⃣ Baixa\n2️⃣ Média\n3️⃣ Alta`
-            );
-            continue;
-          }
-
-          // Continuar fluxo pendente para este remetente neste grupo
-          const pending = pendingGroupTasks.get(taskKey);
-          if (!pending) continue;
-
-          if (pending.expires_at < Date.now()) {
-            pendingGroupTasks.delete(taskKey);
-            continue;
-          }
-
-          // Renovar timeout a cada interação
-          pending.expires_at = Date.now() + GROUP_TASK_TIMEOUT_MS;
-
-          // ── Fluxo: tarefa ──
-          if (pending.flow_type === 'task') {
-            if (pending.step === 'etapa') {
-              const etapa = ETAPA_MAP[text.trim()];
-              if (!etapa) {
-                await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.');
-                continue;
-              }
-              pending.step = 'responsavel';
-              pending.status = etapa;
-              await sendGroupMsg(remoteJid,
-                `👤 Quem é o responsável?\n(Digite o nome ou responda *pular*)`
-              );
-              continue;
-            }
-
-            if (pending.step === 'responsavel') {
-              pending.assignee = skipWords.includes(lower.trim()) ? null : text.trim();
-              pending.step = 'prazo';
-              await sendGroupMsg(remoteJid,
-                `📅 Qual o prazo?\n(Ex: *25/04* ou *sem prazo*)`
-              );
-              continue;
-            }
-
-            if (pending.step === 'prazo') {
-              const dueDate = parseDueDate(text);
-              if (text.trim() && !skipWords.includes(lower.trim()) && lower !== 'sem prazo' && !dueDate) {
-                await sendGroupMsg(remoteJid,
-                  '⚠️ Formato inválido. Use *dd/mm* (ex: 25/04) ou *sem prazo*.'
-                );
-                continue;
-              }
-              pendingGroupTasks.delete(taskKey);
-              await createGroupTask(remoteJid, pending, dueDate);
-              continue;
-            }
-          }
-
-          // ── Fluxo: decisão ──
-          if (pending.flow_type === 'decision') {
-            if (pending.step === 'motivo') {
-              pending.reason = skipWords.includes(lower.trim()) ? null : text.trim();
-              pendingGroupTasks.delete(taskKey);
-              await createGroupDecision(remoteJid, pending);
-              continue;
-            }
-          }
-
-          // ── Fluxo: risco ──
-          if (pending.flow_type === 'risk') {
-            if (pending.step === 'probabilidade') {
-              const prob = PROB_MAP[text.trim()];
-              if (!prob) {
-                await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.');
-                continue;
-              }
-              pending.probability = prob;
-              pending.step = 'impacto';
-              await sendGroupMsg(remoteJid,
-                `💥 Qual o impacto?\n1️⃣ Baixo\n2️⃣ Médio\n3️⃣ Alto`
-              );
-              continue;
-            }
-
-            if (pending.step === 'impacto') {
-              const imp = IMPACT_MAP[text.trim()];
-              if (!imp) {
-                await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.');
-                continue;
-              }
-              pending.impact = imp;
-              pending.step = 'mitigacao';
-              await sendGroupMsg(remoteJid,
-                `🛡️ Qual a mitigação?\n(Digite a ação ou responda *pular*)`
-              );
-              continue;
-            }
-
-            if (pending.step === 'mitigacao') {
-              pending.mitigation = skipWords.includes(lower.trim()) ? null : text.trim();
-              pendingGroupTasks.delete(taskKey);
-              await createGroupRisk(remoteJid, pending);
-              continue;
-            }
-          }
-
+          await handleGroupMessage(msg, remoteJid, text);
           continue;
         }
 
-        // -----------------------------------------------------------------
-        // Mensagens INDIVIDUAIS — fluxo de resposta de leads
-        // -----------------------------------------------------------------
-        const phone = remoteJid.replace('@s.whatsapp.net', '');
-
-        // Verificar se este contato está aguardando resposta
-        const pending = pendingReplies.get(phone);
-        if (!pending) continue;
-        if (pending.expires_at < new Date()) {
-          pendingReplies.delete(phone);
-          continue;
-        }
-
-        // Encontrar opção correspondente
-        const options = Array.isArray(flowConfig.options) ? flowConfig.options : [];
-        const option = options.find(o => String(o.key).trim() === text);
-
-        if (option?.response) {
-          try {
-            if (currentStatus === 'connected' && sock) {
-              await sock.sendMessage(remoteJid, { text: option.response });
-              console.log(`[Fluxo] Resposta enviada para ${phone} (opção ${option.key})`);
-            }
-          } catch (e) {
-            console.error(`[Fluxo] Erro ao enviar resposta para ${phone}:`, e.message);
-          }
-          // Remover do estado pendente após responder
-          pendingReplies.delete(phone);
-        }
+        // ──────────────────────────────────────────────────────
+        // Mensagens INDIVIDUAIS — Central WhatsApp
+        //   Encaminha tudo para o Next.js classificar e responder.
+        // ──────────────────────────────────────────────────────
+        await handleIndividualMessage(remoteJid, text, msg);
       }
     });
 
@@ -794,7 +525,176 @@ async function startSocket() {
 }
 
 // =============================================================================
-// Formatar numero brasileiro
+// Handlers de mensagem (extraídos para clareza)
+// =============================================================================
+
+async function handleGroupMessage(msg, remoteJid, text) {
+  const lower = text.toLowerCase();
+  const senderJid = msg.key.participant || '';
+  const sender = senderJid.replace('@s.whatsapp.net', '');
+  const senderName = msg.pushName || sender;
+  const taskKey = `${senderJid}::${remoteJid}`;
+  const skipWords = ['pular', 'nao', 'não', 'nenhum', '-', 'sem'];
+
+  if (lower.startsWith(GROUP_AI_PREFIX)) {
+    const question = text.slice(GROUP_AI_PREFIX.length).trim();
+    if (!question) {
+      await sendGroupMsg(remoteJid, '⚠️ Use: /ia <sua pergunta>\nEx: /ia quantos leads novos temos essa semana?');
+      return;
+    }
+    askGroupAI(remoteJid, question, senderName);
+    return;
+  }
+
+  if (lower.startsWith(GROUP_TASK_PREFIX)) {
+    const title = text.slice(GROUP_TASK_PREFIX.length).trim();
+    if (!title) {
+      await sendGroupMsg(remoteJid, '⚠️ Use: /tarefa <descrição da tarefa>');
+      return;
+    }
+    if (!NEXT_JS_URL || !GROUP_TASK_SECRET) return;
+    pendingGroupTasks.set(taskKey, {
+      flow_type: 'task', step: 'etapa', title,
+      group_id: remoteJid, sender, sender_name: senderName,
+      expires_at: Date.now() + GROUP_TASK_TIMEOUT_MS,
+    });
+    await sendGroupMsg(remoteJid,
+      `📋 *Tarefa:* "${title}"\n\nEm qual etapa ficará?\n1️⃣ Idéias\n2️⃣ A fazer\n3️⃣ Em andamento`
+    );
+    return;
+  }
+
+  if (lower.startsWith(GROUP_DECISION_PREFIX)) {
+    const decision = text.slice(GROUP_DECISION_PREFIX.length).trim();
+    if (!decision) {
+      await sendGroupMsg(remoteJid, '⚠️ Use: /decisao <texto da decisão>');
+      return;
+    }
+    if (!NEXT_JS_URL || !GROUP_TASK_SECRET) return;
+    pendingGroupTasks.set(taskKey, {
+      flow_type: 'decision', step: 'motivo', decision,
+      sender, sender_name: senderName,
+      expires_at: Date.now() + GROUP_TASK_TIMEOUT_MS,
+    });
+    await sendGroupMsg(remoteJid, `📒 *Decisão:* "${decision}"\n\nQual o motivo?\n(Digite o motivo ou responda *pular*)`);
+    return;
+  }
+
+  if (lower.startsWith(GROUP_RISK_PREFIX)) {
+    const title = text.slice(GROUP_RISK_PREFIX.length).trim();
+    if (!title) {
+      await sendGroupMsg(remoteJid, '⚠️ Use: /risco <título do risco>');
+      return;
+    }
+    if (!NEXT_JS_URL || !GROUP_TASK_SECRET) return;
+    pendingGroupTasks.set(taskKey, {
+      flow_type: 'risk', step: 'probabilidade', title,
+      sender, sender_name: senderName,
+      expires_at: Date.now() + GROUP_TASK_TIMEOUT_MS,
+    });
+    await sendGroupMsg(remoteJid, `⚠️ *Risco:* "${title}"\n\nQual a probabilidade?\n1️⃣ Baixa\n2️⃣ Média\n3️⃣ Alta`);
+    return;
+  }
+
+  // Continuar fluxo pendente
+  const pending = pendingGroupTasks.get(taskKey);
+  if (!pending) return;
+  if (pending.expires_at < Date.now()) {
+    pendingGroupTasks.delete(taskKey);
+    return;
+  }
+  pending.expires_at = Date.now() + GROUP_TASK_TIMEOUT_MS;
+
+  if (pending.flow_type === 'task') {
+    if (pending.step === 'etapa') {
+      const etapa = ETAPA_MAP[text.trim()];
+      if (!etapa) { await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.'); return; }
+      pending.step = 'responsavel'; pending.status = etapa;
+      await sendGroupMsg(remoteJid, `👤 Quem é o responsável?\n(Digite o nome ou responda *pular*)`);
+      return;
+    }
+    if (pending.step === 'responsavel') {
+      pending.assignee = skipWords.includes(text.toLowerCase().trim()) ? null : text.trim();
+      pending.step = 'prazo';
+      await sendGroupMsg(remoteJid, `📅 Qual o prazo?\n(Ex: *25/04* ou *sem prazo*)`);
+      return;
+    }
+    if (pending.step === 'prazo') {
+      const dueDate = parseDueDate(text);
+      const lower2 = text.toLowerCase().trim();
+      if (text.trim() && !skipWords.includes(lower2) && lower2 !== 'sem prazo' && !dueDate) {
+        await sendGroupMsg(remoteJid, '⚠️ Formato inválido. Use *dd/mm* (ex: 25/04) ou *sem prazo*.');
+        return;
+      }
+      pendingGroupTasks.delete(taskKey);
+      await createGroupTask(remoteJid, pending, dueDate);
+      return;
+    }
+  }
+
+  if (pending.flow_type === 'decision' && pending.step === 'motivo') {
+    pending.reason = skipWords.includes(text.toLowerCase().trim()) ? null : text.trim();
+    pendingGroupTasks.delete(taskKey);
+    await createGroupDecision(remoteJid, pending);
+    return;
+  }
+
+  if (pending.flow_type === 'risk') {
+    if (pending.step === 'probabilidade') {
+      const prob = PROB_MAP[text.trim()];
+      if (!prob) { await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.'); return; }
+      pending.probability = prob; pending.step = 'impacto';
+      await sendGroupMsg(remoteJid, `💥 Qual o impacto?\n1️⃣ Baixo\n2️⃣ Médio\n3️⃣ Alto`);
+      return;
+    }
+    if (pending.step === 'impacto') {
+      const imp = IMPACT_MAP[text.trim()];
+      if (!imp) { await sendGroupMsg(remoteJid, '⚠️ Responda com *1*, *2* ou *3*.'); return; }
+      pending.impact = imp; pending.step = 'mitigacao';
+      await sendGroupMsg(remoteJid, `🛡️ Qual a mitigação?\n(Digite a ação ou responda *pular*)`);
+      return;
+    }
+    if (pending.step === 'mitigacao') {
+      pending.mitigation = skipWords.includes(text.toLowerCase().trim()) ? null : text.trim();
+      pendingGroupTasks.delete(taskKey);
+      await createGroupRisk(remoteJid, pending);
+      return;
+    }
+  }
+}
+
+async function handleIndividualMessage(remoteJid, text, msg) {
+  const phone = remoteJid.replace('@s.whatsapp.net', '');
+  const senderName = msg.pushName || phone;
+  const messageId = msg.key.id || null;
+
+  console.log(`[Inbound] ${phone} (${senderName}): "${text.slice(0, 80)}"`);
+
+  const result = await notifyInboundToNextJs({
+    phone,
+    name: senderName,
+    body: text,
+    message_id: messageId,
+  });
+
+  // Next.js diz qual é a próxima resposta a enviar (ou silêncio)
+  if (!result) return;
+  if (result.silent) {
+    console.log(`[Inbound] ${phone} → silent (handoff/optout/ignore)`);
+    return;
+  }
+  if (result.reply && currentStatus === 'connected' && sock) {
+    try {
+      await sock.sendMessage(remoteJid, { text: result.reply });
+      console.log(`[Inbound] ${phone} → resposta enviada (${result.bot_step || 'reply'})`);
+    } catch (e) {
+      console.error(`[Inbound] Erro ao responder ${phone}:`, e.message);
+    }
+  }
+}
+
+// =============================================================================
+// Helpers de envio
 // =============================================================================
 function formatBRNumber(phone) {
   let cleaned = phone.toString().replace(/\D/g, '');
@@ -803,9 +703,6 @@ function formatBRNumber(phone) {
   return `55${cleaned}@s.whatsapp.net`;
 }
 
-// =============================================================================
-// Envio direto
-// =============================================================================
 async function _executeSend(phone, name) {
   if (currentStatus !== 'connected' || !sock) {
     throw new Error(`WhatsApp nao conectado. Status: ${currentStatus}`);
@@ -814,13 +711,30 @@ async function _executeSend(phone, name) {
   const formattedPhone = formatBRNumber(phone);
   if (!formattedPhone) throw new Error(`Numero invalido: ${phone}`);
 
-  // Monta a mensagem a partir da config, substituindo {nome} e {name}
-  const template = flowConfig.welcome_message ||
-    `Olá {nome}! Seja bem vindo(a)! 🎉\n\nGostaríamos de te apresentar a *Fórmula do Boi*!\n\nAcesse nosso Marketplace e confira nossas ofertas exclusivas:\n👉 https://formuladoboi.com`;
+  // A mensagem de boas-vindas agora vem do Next.js (template welcome-default).
+  // Mantemos fallback no flowConfig para não quebrar fluxos antigos.
+  let messageText = null;
+  if (NEXT_JS_URL && GROUP_TASK_SECRET) {
+    try {
+      const r = await fetch(`${NEXT_JS_URL}/api/whatsapp/render-welcome`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-webhook-secret': GROUP_TASK_SECRET },
+        body: JSON.stringify({ phone, name }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (r.ok) {
+        const data = await r.json();
+        if (data?.body) messageText = data.body;
+      }
+    } catch (e) {
+      console.warn('[Welcome] Falha ao renderizar via Next.js, usando fallback:', e.message);
+    }
+  }
 
-  const messageText = template
-    .replace(/\{nome\}/g, name)
-    .replace(/\{name\}/g, name);
+  if (!messageText) {
+    const template = flowConfig.welcome_message;
+    messageText = template.replace(/\{nome\}/g, name).replace(/\{name\}/g, name);
+  }
 
   const result = await sock.onWhatsApp(formattedPhone);
   if (!result || result.length === 0 || !result[0].exists) {
@@ -830,18 +744,10 @@ async function _executeSend(phone, name) {
 
   const jid = result[0].jid || formattedPhone;
   const msgResult = await sock.sendMessage(jid, { text: messageText });
-  console.log(`[Queue] Enviado para ${jid} (${name}) — id: ${msgResult?.key?.id}`);
-
-  // Marcar como aguardando resposta se houver opções configuradas
-  const cleanPhone = phone.toString().replace(/\D/g, '');
-  trackPendingReply(cleanPhone.startsWith('55') ? cleanPhone.substring(2) : cleanPhone);
-
+  console.log(`[Queue] Welcome enviado para ${jid} (${name}) — id: ${msgResult?.key?.id}`);
   return { sent: true };
 }
 
-// =============================================================================
-// Adiciona número diretamente ao grupo da LP (bot precisa ser admin)
-// =============================================================================
 async function _executeAddToGroup(phone) {
   if (currentStatus !== 'connected' || !sock) {
     throw new Error(`WhatsApp nao conectado. Status: ${currentStatus}`);
@@ -849,7 +755,6 @@ async function _executeAddToGroup(phone) {
   if (!lpGroupJid) {
     throw new Error('JID do grupo ainda nao resolvido. Aguarde a conexao ou defina LP_GROUP_JID.');
   }
-
   const formattedPhone = formatBRNumber(phone);
   if (!formattedPhone) throw new Error(`Numero invalido: ${phone}`);
 
@@ -861,16 +766,11 @@ async function _executeAddToGroup(phone) {
     console.log(`[LP] ${formattedPhone} adicionado ao grupo ${lpGroupJid}`);
     return { added: true };
   }
-
-  // 403 = privacidade bloqueou; 408 = não está no WA; 409 = já é membro
   console.warn(`[LP] Não foi possível adicionar ${formattedPhone} ao grupo. Status: ${status}`);
   return { added: false, status };
 }
 
-// =============================================================================
-// Envio direto com mensagem customizada (sem usar o flow config)
-// =============================================================================
-async function _executeSendDirect(phone, message) {
+async function _executeSendDirect(phone, message, meta) {
   if (currentStatus !== 'connected' || !sock) {
     throw new Error(`WhatsApp nao conectado. Status: ${currentStatus}`);
   }
@@ -881,6 +781,14 @@ async function _executeSendDirect(phone, message) {
   const result = await sock.onWhatsApp(formattedPhone);
   if (!result || result.length === 0 || !result[0].exists) {
     console.log(`[Queue] ${formattedPhone} nao esta no WhatsApp.`);
+    if (meta?.report_url && NEXT_JS_URL && GROUP_TASK_SECRET) {
+      fetch(meta.report_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-webhook-secret': GROUP_TASK_SECRET },
+        body: JSON.stringify({ ...meta, status: 'falhou', error: 'not_on_whatsapp' }),
+        signal: AbortSignal.timeout(5000),
+      }).catch(() => {});
+    }
     return { sent: false, reason: 'not_on_whatsapp' };
   }
 
@@ -888,129 +796,128 @@ async function _executeSendDirect(phone, message) {
   const msgResult = await sock.sendMessage(jid, { text: message });
   console.log(`[Queue] Mensagem direta enviada para ${jid} — id: ${msgResult?.key?.id}`);
 
+  if (meta?.report_url && NEXT_JS_URL && GROUP_TASK_SECRET) {
+    fetch(meta.report_url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-webhook-secret': GROUP_TASK_SECRET },
+      body: JSON.stringify({ ...meta, status: 'enviado', message_id: msgResult?.key?.id }),
+      signal: AbortSignal.timeout(5000),
+    }).catch(() => {});
+  }
+
   return { sent: true };
 }
 
 // =============================================================================
-// Servidor HTTP
+// HTTP server
 // =============================================================================
+async function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', c => { body += c; });
+    req.on('end', () => {
+      try { resolve(JSON.parse(body || '{}')); } catch (e) { reject(e); }
+    });
+    req.on('error', reject);
+  });
+}
+
 async function handleRequest(req, res) {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   res.setHeader('Content-Type', 'application/json');
 
-  if (req.method === 'GET' && url.pathname === '/status') {
-    let qrDataUrl = null;
-    if (currentQr) {
-      try {
-        const QRCode = require('qrcode');
-        qrDataUrl = await QRCode.toDataURL(currentQr);
-      } catch { qrDataUrl = currentQr; }
+  try {
+    if (req.method === 'GET' && url.pathname === '/status') {
+      let qrDataUrl = null;
+      if (currentQr) {
+        try {
+          const QRCode = require('qrcode');
+          qrDataUrl = await QRCode.toDataURL(currentQr);
+        } catch { qrDataUrl = currentQr; }
+      }
+      res.writeHead(200);
+      res.end(JSON.stringify({ status: currentStatus, qr: qrDataUrl }));
+      return;
     }
-    res.writeHead(200);
-    res.end(JSON.stringify({ status: currentStatus, qr: qrDataUrl }));
-    return;
-  }
 
-  if (req.method === 'POST' && url.pathname === '/send') {
-    let body = '';
-    req.on('data', chunk => { body += chunk; });
-    req.on('end', () => {
-      try {
-        const { phone, name } = JSON.parse(body);
-        if (!phone || !name) {
-          res.writeHead(400);
-          res.end(JSON.stringify({ error: 'phone e name sao obrigatorios' }));
-          return;
-        }
-        const result = enqueueSend(phone, name);
-        res.writeHead(200);
-        res.end(JSON.stringify({ success: true, sent: true, ...result }));
-      } catch (error) {
-        res.writeHead(500);
-        res.end(JSON.stringify({ error: error.message }));
+    if (req.method === 'POST' && url.pathname === '/send') {
+      const { phone, name } = await readJsonBody(req);
+      if (!phone || !name) {
+        res.writeHead(400); res.end(JSON.stringify({ error: 'phone e name sao obrigatorios' })); return;
       }
-    });
-    return;
-  }
+      const result = enqueueSend(phone, name);
+      res.writeHead(200); res.end(JSON.stringify({ success: true, sent: true, ...result })); return;
+    }
 
-  if (req.method === 'POST' && url.pathname === '/add-to-group') {
-    let body = '';
-    req.on('data', chunk => { body += chunk; });
-    req.on('end', async () => {
-      try {
-        const { phone } = JSON.parse(body);
-        if (!phone) {
-          res.writeHead(400);
-          res.end(JSON.stringify({ error: 'phone e obrigatorio' }));
-          return;
-        }
-        const result = await _executeAddToGroup(phone);
-        res.writeHead(200);
-        res.end(JSON.stringify({ success: true, ...result }));
-      } catch (error) {
-        res.writeHead(500);
-        res.end(JSON.stringify({ error: error.message }));
+    if (req.method === 'POST' && url.pathname === '/send-direct') {
+      const { phone, message, meta } = await readJsonBody(req);
+      if (!phone || !message) {
+        res.writeHead(400); res.end(JSON.stringify({ error: 'phone e message sao obrigatorios' })); return;
       }
-    });
-    return;
-  }
+      const result = enqueueSendDirect(phone, message, meta);
+      res.writeHead(200); res.end(JSON.stringify({ success: true, ...result })); return;
+    }
 
-  if (req.method === 'POST' && url.pathname === '/send-direct') {
-    let body = '';
-    req.on('data', chunk => { body += chunk; });
-    req.on('end', () => {
-      try {
-        const { phone, message } = JSON.parse(body);
-        if (!phone || !message) {
-          res.writeHead(400);
-          res.end(JSON.stringify({ error: 'phone e message sao obrigatorios' }));
-          return;
-        }
-        const result = enqueueSendDirect(phone, message);
-        res.writeHead(200);
-        res.end(JSON.stringify({ success: true, ...result }));
-      } catch (error) {
-        res.writeHead(500);
-        res.end(JSON.stringify({ error: error.message }));
+    if (req.method === 'POST' && url.pathname === '/campaign-send') {
+      const { campaign_id, recipients } = await readJsonBody(req);
+      if (!campaign_id || !Array.isArray(recipients)) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ error: 'campaign_id e recipients[] são obrigatórios' }));
+        return;
       }
-    });
-    return;
-  }
+      const queued = [];
+      const reportUrl = `${NEXT_JS_URL}/api/whatsapp/campaign-callback`;
+      for (const r of recipients) {
+        if (!r.phone || !r.message) continue;
+        try {
+          const meta = {
+            report_url: reportUrl,
+            campaign_id,
+            recipient_id: r.recipient_id || null,
+            phone: r.phone,
+          };
+          const q = enqueueSendDirect(r.phone, r.message, meta);
+          queued.push({ recipient_id: r.recipient_id, ...q });
+        } catch (e) {
+          queued.push({ recipient_id: r.recipient_id, error: e.message });
+        }
+      }
+      res.writeHead(200); res.end(JSON.stringify({ queued: queued.length, items: queued })); return;
+    }
 
-  if (req.method === 'GET' && url.pathname === '/queue') {
-    res.writeHead(200);
-    res.end(JSON.stringify({
-      queueSize: msgQueue.length,
-      processing: queueRunning,
-      delayBetweenSendsMs: QUEUE_DELAY_MS,
-    }));
-    return;
-  }
+    if (req.method === 'POST' && url.pathname === '/add-to-group') {
+      const { phone } = await readJsonBody(req);
+      if (!phone) { res.writeHead(400); res.end(JSON.stringify({ error: 'phone e obrigatorio' })); return; }
+      const result = await _executeAddToGroup(phone);
+      res.writeHead(200); res.end(JSON.stringify({ success: true, ...result })); return;
+    }
 
-  if (req.method === 'GET' && url.pathname === '/config') {
-    res.writeHead(200);
-    res.end(JSON.stringify({
-      ...flowConfig,
-      pending_replies: pendingReplies.size,
-    }));
-    return;
-  }
+    if (req.method === 'GET' && url.pathname === '/queue') {
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        queueSize: msgQueue.length,
+        processing: queueRunning,
+        delayBetweenSendsMs: QUEUE_DELAY_MS,
+      }));
+      return;
+    }
 
-  if (req.method === 'POST' && url.pathname === '/reload-config') {
-    loadFlowConfig()
-      .then(() => {
-        res.writeHead(200);
-        res.end(JSON.stringify({ success: true }));
-      })
-      .catch(e => {
-        res.writeHead(500);
-        res.end(JSON.stringify({ error: e.message }));
-      });
-    return;
-  }
+    if (req.method === 'GET' && url.pathname === '/config') {
+      res.writeHead(200);
+      res.end(JSON.stringify({ ...flowConfig }));
+      return;
+    }
 
-  res.writeHead(404);
-  res.end(JSON.stringify({ error: 'Not found' }));
+    if (req.method === 'POST' && url.pathname === '/reload-config') {
+      await loadFlowConfig();
+      res.writeHead(200); res.end(JSON.stringify({ success: true })); return;
+    }
+
+    res.writeHead(404); res.end(JSON.stringify({ error: 'Not found' }));
+  } catch (error) {
+    console.error('[HTTP] Erro:', error.message);
+    res.writeHead(500); res.end(JSON.stringify({ error: error.message }));
+  }
 }
 
 // =============================================================================
@@ -1027,9 +934,7 @@ async function main() {
   useMultiFileAuthState = baileys.useMultiFileAuthState;
   fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
 
-  // Carrega config do Supabase antes de iniciar o socket
   await loadFlowConfig();
-
   await startSocket();
 
   const server = http.createServer(handleRequest);

@@ -70,7 +70,7 @@ const navConfig: NavEntry[] = [
         label: 'Administração', icon: Shield,
         items: [
             { href: '/users', label: 'Usuários & Permissões', icon: Shield },
-            { href: '/whatsapp', label: 'Automação WhatsApp', icon: MessageCircle },
+            { href: '/whatsapp', label: 'Central WhatsApp', icon: MessageCircle },
             { href: '/settings', label: 'Configurações', icon: Settings },
         ],
     },

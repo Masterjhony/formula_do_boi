@@ -56,10 +56,14 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 | Table | Purpose |
 |-------|---------|
 | `products` | Livestock catalog (touros, matrizes, embriões, sêmen). `details`, `genealogia_json`, `avaliacao_genetica_json` are JSONB. |
-| `crm_leads` | Sales pipeline. `position` drives Kanban ordering. UTM/attribution fields (`source`, `medium`, `campaign`, `utm_content`, `utm_term`, `gclid`, `fbclid`, `referrer`, `landing_url`) are populated by `/api/lp/lead`. |
+| `crm_leads` | Sales pipeline. `position` drives Kanban ordering. UTM/attribution fields (`source`, `medium`, `campaign`, `utm_content`, `utm_term`, `gclid`, `fbclid`, `referrer`, `landing_url`) are populated by `/api/lp/lead`. **Central WhatsApp** adiciona: `interesse_principal`, `tags_whatsapp` (JSONB), `last_whatsapp_at`, `handoff_humano`, `handoff_at`, `handoff_responsavel`, `optout_whatsapp`, `optout_at`. |
 | `profiles` | User roles (`admin` / `user`); references `auth.users`. |
 | `breeders` | Breeder registry. |
-| `whatsapp_messages` | WhatsApp send log (status, phone, lead_id FK). |
+| `whatsapp_messages` | Log conversacional. Colunas-chave: `direction` (inbound/outbound), `body`, `origin` (lp\|webhook\|manual\|campanha\|central-bot), `bot_step`, `campaign_id`, `template_id`, `lead_id`. |
+| `whatsapp_templates` | Biblioteca de mensagens prontas da Central (slug único, body com `{nome}`, category, archived, usage_count). |
+| `whatsapp_campaigns` | Campanhas/listas de transmissão segmentadas. `segment` (JSONB) traz filtros aplicados a `crm_leads`. Status: `rascunho\|enviando\|concluida\|cancelada\|erro`. |
+| `whatsapp_campaign_recipients` | Destinatários materializados ao disparar a campanha. Status: `pendente\|enviado\|falhou\|optout`. |
+| `whatsapp_optouts` | Cache rápido de opt-outs por número (PK = phone). Espelhado em `crm_leads.optout_whatsapp`. |
 | `site_settings` | Feature flags and configuration (key/JSONB). Key `whatsapp_flow` stores the automation flow config. |
 | `signup_verification_codes` | 6-digit signup codes (SHA-256 hash, expires_at, attempts). |
 | `tactical_tasks` | ERP/Admin Kanban with `checklists` and `attachments` JSONB. WhatsApp-origin columns: `whatsapp_group_id`, `whatsapp_group_name`, `whatsapp_sender`, `whatsapp_sender_name`. |
@@ -136,7 +140,20 @@ Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeir
 |-------|---------|---------|
 | `/api/whatsapp/status` | GET | Proxies VPS `/status` — returns `{status, qr}`. |
 | `/api/whatsapp/messages` | GET | Last 50 messages + today's count + conversations from `whatsapp_messages`. |
-| `/api/whatsapp/flow` | GET, PUT | Reads/saves WhatsApp flow config in `site_settings`; PUT also calls `/reload-config` on the VPS. |
+| `/api/whatsapp/flow` | GET, PUT | Legado. A Central WhatsApp usa `whatsapp_templates` (slug `welcome-default`) como fonte do welcome. |
+| `/api/whatsapp/inbound` | POST | **Central WhatsApp** — VPS encaminha toda inbound individual aqui. Classifica intenção, atualiza `crm_leads`, loga `whatsapp_messages`, devolve `{reply, bot_step}` ou `{silent: true}`. |
+| `/api/whatsapp/render-welcome` | POST | Renderiza template `welcome-default` para o VPS antes de disparar; respeita opt-out. |
+| `/api/whatsapp/campaign-callback` | POST | Callback do VPS por destinatário — atualiza `whatsapp_campaign_recipients` e contadores. |
+| `/api/whatsapp/central/inbox` | GET | Lista de conversas (uma por número) com filtros `todos\|aguardando\|handoff\|optout\|interesse`. |
+| `/api/whatsapp/central/thread/[phone]` | GET, POST | Histórico completo + lead vinculado / envio manual (bloqueado se opt-out). |
+| `/api/whatsapp/central/lead-action` | POST | Ações rápidas no lead (`handoff_on/off`, `optout_on/off`, `set_interesse`). |
+| `/api/whatsapp/central/templates` | GET, POST | CRUD da biblioteca de templates. |
+| `/api/whatsapp/central/templates/[id]` | PUT, DELETE | Atualiza ou arquiva template. |
+| `/api/whatsapp/central/campaigns` | GET, POST | Lista e cria campanhas em rascunho. |
+| `/api/whatsapp/central/campaigns/[id]` | GET, DELETE | Detalhe + recipients (até 100). DELETE só em rascunho. |
+| `/api/whatsapp/central/campaigns/[id]/send` | POST | Resolve segmento → materializa em `whatsapp_campaign_recipients` → POST `/campaign-send` no VPS. |
+| `/api/whatsapp/central/campaigns/preview` | POST | Pré-visualiza público (count + amostra) sem materializar. |
+| `/api/whatsapp/central/metrics` | GET | Métricas operacionais (novos contatos 7d, opt-outs, distribuição de interesse). |
 | `/api/whatsapp/group-task` | POST | `/tarefa <desc>` from a group → creates `tactical_tasks` card with WhatsApp origin fields. |
 | `/api/whatsapp/group-decision` | POST | `/decisao <desc>` from a group → inserts into `tactical_decisions`. |
 | `/api/whatsapp/group-risk` | POST | `/risco <title>` from a group → inserts into `tactical_risks` with default `media`/`medio`. |
