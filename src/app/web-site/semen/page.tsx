@@ -14,8 +14,10 @@ export const metadata: Metadata = {
 export default async function SemenPage() {
     const products = await getProductsServer(true);
     
-    // Filter products for only "Sêmen" category
-    const semenProducts = products.filter(p => p.category === 'Sêmen');
+    // Filter products for only "Sêmen" category. Sertanejo Terra Brava está desativado.
+    const semenProducts = products.filter(
+        p => p.category === 'Sêmen' && !p.name?.toUpperCase().includes('SERTANEJO')
+    );
     
     return <SemenClient products={semenProducts} />;
 }
