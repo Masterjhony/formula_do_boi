@@ -262,6 +262,175 @@
 .dcl-divider { height: 1px; background: var(--dcl-line-soft); margin: 14px 0; }
 
 /* =================================================================
+   Mobile responsiveness — refinamentos progressivos.
+   Mantém estética premium do brandbook em telas estreitas e evita
+   sobreposições (especialmente o hero countdown × título).
+   ================================================================= */
+@media (max-width: 900px) {
+  .dcl-card-head { flex-wrap: wrap; }
+  .dcl-card-head .dcl-row { flex-wrap: wrap; }
+  .dcl-chart-stats { gap: 18px; }
+  .dcl-chart-stats .dcl-s:last-child { margin-left: 0 !important; width: 100%; }
+  .dcl-chart-stats .dcl-chart-legend { margin-top: 4px !important; }
+}
+
+@media (max-width: 768px) {
+  .dcl-pagehead { margin-bottom: 16px; gap: 10px; }
+  .dcl-pagehead h1 { font-size: 24px; margin-bottom: 4px; }
+  .dcl-pagehead .dcl-sub { font-size: 12px; }
+  .dcl-status-pill { padding: 5px 10px; font-size: 11px; }
+
+  .dcl-bento { gap: 12px; margin-bottom: 12px; }
+  .dcl-card { padding: 14px 14px; border-radius: 12px; }
+  .dcl-card-head { margin-bottom: 12px; gap: 8px; }
+  .dcl-card-head h3 { font-size: 13px; }
+  .dcl-card-head .dcl-sub { font-size: 11px; }
+
+  .dcl-kpi { padding: 14px 14px 12px; min-height: 92px; }
+  .dcl-kpi-val { font-size: 19px; }
+  .dcl-kpi-label { font-size: 10px; }
+  .dcl-kpi-delta { font-size: 10.5px; }
+  .dcl-spark { width: 50px; height: 18px; right: 8px; bottom: 8px; }
+
+  .dcl-chart-stats .dcl-s .dcl-n { font-size: 18px; }
+  .dcl-chart-stats .dcl-s .dcl-l { font-size: 10.5px; }
+
+  .dcl-agenda-row {
+    grid-template-columns: 44px 1fr;
+    column-gap: 12px;
+    row-gap: 8px;
+    padding: 12px 0;
+  }
+  .dcl-agenda-row > .dcl-agenda-bars {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+  .dcl-agenda-date .dcl-d { font-size: 22px; }
+  .dcl-agenda-date .dcl-m { font-size: 9.5px; }
+  .dcl-agenda-title { font-size: 13px; }
+  .dcl-agenda-meta { font-size: 11px; gap: 8px; }
+  .dcl-bar-mini { width: 64px; }
+
+  .dcl-region-row {
+    grid-template-columns: 92px 1fr 72px;
+    gap: 10px;
+  }
+  .dcl-region-row .dcl-n { font-size: 12px; }
+  .dcl-region-row .dcl-v { font-size: 11px; }
+
+  .dcl-rank-row { grid-template-columns: 22px 1fr auto; gap: 10px; padding: 9px 0; }
+  .dcl-rank-pos { font-size: 17px; }
+  .dcl-rank-name { font-size: 12.5px; }
+  .dcl-rank-meta { font-size: 10.5px; gap: 6px; }
+  .dcl-rank-v { font-size: 12px; }
+
+  .dcl-feed-item { grid-template-columns: 22px 1fr auto; gap: 10px; padding: 10px 0; }
+  .dcl-feed-text { font-size: 12px; line-height: 1.4; }
+  .dcl-feed-time { font-size: 10px; }
+
+  .dcl-task-title { font-size: 12.5px; }
+  .dcl-task-meta { font-size: 10.5px; gap: 6px; }
+
+  .dcl-funnel-step { padding: 6px 0 2px; }
+  .dcl-fn-bar { height: 22px; }
+  .dcl-fn-label { font-size: 12px; }
+  .dcl-fn-label .dcl-cnt { font-size: 13px; }
+
+  .dcl-ai-body { font-size: 12.5px; }
+  .dcl-ai-body p:first-child { font-size: 13px; }
+}
+
+@media (max-width: 640px) {
+  .dcl-hero {
+    grid-template-columns: 84px 1fr;
+    grid-template-areas:
+      "date body"
+      "countdown countdown";
+    column-gap: 14px;
+    row-gap: 14px;
+    padding: 16px 16px 14px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+  .dcl-hero::before {
+    -webkit-mask-image: radial-gradient(420px 220px at 100% 100%, #000, transparent 70%);
+            mask-image: radial-gradient(420px 220px at 100% 100%, #000, transparent 70%);
+    background-size: 22px 22px;
+  }
+  .dcl-date-block {
+    grid-area: date;
+    width: 84px;
+    padding: 8px 6px;
+    border-radius: 12px;
+  }
+  .dcl-date-block .dcl-day { font-size: 44px; line-height: 0.95; }
+  .dcl-date-block .dcl-wk,
+  .dcl-date-block .dcl-mo { font-size: 9.5px; letter-spacing: 0.1em; }
+
+  .dcl-hero-body { grid-area: body; min-width: 0; }
+  .dcl-hero-tags { gap: 6px; margin-bottom: 6px; }
+  .dcl-tag { font-size: 9.5px; padding: 3px 7px; letter-spacing: 0.08em; }
+  .dcl-hero-title {
+    font-size: 20px;
+    line-height: 1.18;
+    margin-bottom: 6px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .dcl-hero-title .dcl-sub {
+    font-size: 13px;
+    display: block;
+    margin-top: 2px;
+  }
+  .dcl-hero-meta { font-size: 11.5px; gap: 6px 8px; }
+  .dcl-hero-meta .dcl-dot { display: none; }
+
+  .dcl-countdown {
+    grid-area: countdown;
+    gap: 6px;
+    width: 100%;
+  }
+  .dcl-cd-cell {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 4px;
+    border-radius: 9px;
+  }
+  .dcl-cd-cell .dcl-n { font-size: 18px; }
+  .dcl-cd-cell .dcl-l { font-size: 8.5px; letter-spacing: 0.1em; }
+
+  .dcl-kpi-row { gap: 10px; margin-bottom: 16px; }
+  .dcl-kpi-val { font-size: 17px; }
+
+  .dcl-chart-stats { gap: 12px; }
+  .dcl-chart-stats .dcl-s .dcl-n { font-size: 16px; }
+}
+
+@media (max-width: 380px) {
+  .dcl-hero {
+    grid-template-columns: 72px 1fr;
+    column-gap: 12px;
+    padding: 14px 14px 12px;
+  }
+  .dcl-date-block { width: 72px; }
+  .dcl-date-block .dcl-day { font-size: 36px; }
+  .dcl-hero-title { font-size: 18px; }
+  .dcl-cd-cell .dcl-n { font-size: 16px; }
+  .dcl-cd-cell { padding: 7px 3px; }
+  .dcl-pagehead h1 { font-size: 22px; }
+
+  .dcl-region-row {
+    grid-template-columns: 1fr auto;
+    column-gap: 10px;
+    row-gap: 4px;
+  }
+  .dcl-region-row .dcl-bar {
+    grid-column: 1 / -1;
+    height: 5px;
+  }
+}
+
+/* =================================================================
    Light mode — next-themes adiciona a classe `light` no <html>.
    Mantemos os tokens semânticos e apenas trocamos a paleta.
    ================================================================= */
