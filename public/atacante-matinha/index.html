@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-K5285LW7');</script>
+<!-- End Google Tag Manager -->
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#000000" />
@@ -1935,6 +1942,10 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
 </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K5285LW7"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
 <!-- ===================== STICKY BRANDBAR ===================== -->
 <header class="brandbar">
@@ -2774,60 +2785,64 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     btn.addEventListener('click', () => go(btn.dataset.prev));
   });
 
-  form.addEventListener('submit', (e) => {
+  function getUtmParams(){
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        utm_source: params.get('utm_source') || 'site',
+        utm_medium: params.get('utm_medium') || 'organic',
+        utm_campaign: params.get('utm_campaign') || 'atacante-matinha',
+        utm_content: params.get('utm_content') || '',
+        utm_term: params.get('utm_term') || '',
+        gclid: params.get('gclid') || '',
+        fbclid: params.get('fbclid') || '',
+      };
+    } catch(_) { return {}; }
+  }
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if(!validateStep(3)) return;
 
-    // Coleta dos dados
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if(submitBtn){ submitBtn.disabled = true; submitBtn.style.opacity = '0.7'; }
+
     const fd = new FormData(form);
     const data = Object.fromEntries(fd.entries());
-    data._ts = new Date().toISOString();
-    data._lote = 'RDM B 3224 MAT. (Atacante da Matinha)';
+    const utm = getUtmParams();
 
-    // Persistência local (caso não haja backend)
+    const payload = {
+      nome: data.nome,
+      whatsapp: data.whatsapp,
+      email: data.email,
+      cidade: data.cidade,
+      fazenda: data.fazenda,
+      origem: data.origem,
+      po: data.po,
+      qtd: data.qtd,
+      foco: data.foco,
+      doses: data.doses,
+      invest: data.invest,
+      tipo: data.tipo,
+      estacao: data.estacao,
+      mensagem: data.mensagem,
+      ...utm,
+      referrer: document.referrer || '',
+      landing_url: window.location.href,
+    };
+
     try {
-      const all = JSON.parse(localStorage.getItem('atacante_leads') || '[]');
-      all.push(data);
-      localStorage.setItem('atacante_leads', JSON.stringify(all));
-    } catch(_){}
-
-    // Envia para o backend Fórmula do Boi se disponível
-    fetch('/api/lp/lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome: data.nome, email: data.email, telefone: data.whatsapp,
-        cidade: data.cidade, fazenda: data.fazenda, mensagem: data.mensagem,
-        origem: data.origem, source: 'lp_atacante_matinha',
-        campaign: 'aceleradora-2026',
-        utm_content: data.po + '|' + data.qtd + '|' + data.foco + '|' + data.doses + '|' + data.invest + '|' + data.tipo + '|' + data.estacao,
-      })
-    }).catch(()=>{});
-
-    // Monta mensagem WhatsApp pré-preenchida
-    const msg = encodeURIComponent(
-      '*Pré-reserva · Atacante da Matinha · RDM B 3224 MAT.*\n' +
-      '\nNome: ' + (data.nome || '-') +
-      '\nFazenda: ' + (data.fazenda || '-') +
-      '\nCidade: ' + (data.cidade || '-') +
-      '\nE-mail: ' + (data.email || '-') +
-      '\n' +
-      '\nPerfil: ' + (data.po || '-') +
-      '\nRebanho: ' + (data.qtd || '-') +
-      '\nFoco: ' + (data.foco || '-') +
-      '\n' +
-      '\nDoses pretendidas: ' + (data.doses || '-') +
-      '\nInvestimento: ' + (data.invest || '-') +
-      '\nTipo de sêmen: ' + (data.tipo || '-') +
-      '\nEstação reprodutiva: ' + (data.estacao || '-') +
-      '\n' +
-      (data.mensagem ? ('\nMensagem: ' + data.mensagem) : '') +
-      '\n\nEnviado pela LP Aceleradora 2026.'
-    );
-    document.getElementById('waLink').href =
-      'https://wa.me/5567999999999?text=' + msg;
-
-    go('success');
+      const res = await fetch('/api/lead-atacante', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if(!res.ok) throw new Error('server');
+      window.location.href = '/atacante-matinha/obrigado';
+    } catch(_) {
+      if(submitBtn){ submitBtn.disabled = false; submitBtn.style.opacity = ''; }
+      alert('Não foi possível enviar a pré-reserva. Tente novamente em instantes.');
+    }
   });
 })();
 </script>
