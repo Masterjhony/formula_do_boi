@@ -19,12 +19,20 @@ export interface LeilaoAnexo {
     url: string
 }
 
+export interface LeilaoTaskResp {
+    nome: string
+    ini: string
+    /** ID do membro em leiloes_equipe quando escolhido pelo dropdown.
+     *  Opcional para retrocompat com checklists já preenchidas com texto livre. */
+    membro_id?: string | null
+}
+
 export interface LeilaoTask {
     id: string
     nome: string
     ini: string
     fim: string
-    resp: { nome: string; ini: string }
+    resp: LeilaoTaskResp
     subs: LeilaoSubtask[]
     /** Status de conclusão (usado quando a task é um item plano, sem subs). */
     done?: boolean

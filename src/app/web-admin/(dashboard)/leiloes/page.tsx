@@ -248,6 +248,8 @@ const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 dark:border
 
 const GROUP_COLORS = ['#4A8FBF', '#C8A96E', '#6B8F5C', '#A0792E', '#A864AE', '#D4707A']
 
+type EquipeOption = { id: string; nome: string; iniciais: string; cor: string; empresa: string }
+
 function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t: LeilaoGrupo[]) => void }) {
   const [groups, setGroups] = useState<LeilaoGrupo[]>(leilao.tasks ?? [])
   const [saving, setSaving] = useState(false)
@@ -261,6 +263,14 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
   const [editingTask, setEditingTask] = useState<string | null>(null) // task.id
   const [newAnexoLbl, setNewAnexoLbl] = useState('')
   const [newAnexoUrl, setNewAnexoUrl] = useState('')
+  const [equipe, setEquipe] = useState<EquipeOption[]>([])
+
+  useEffect(() => {
+    fetch('/api/leiloes/equipe', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : [])
+      .then((rows: EquipeOption[]) => setEquipe((rows ?? []).filter(m => 'ativo' in m ? (m as unknown as { ativo: boolean }).ativo : true)))
+      .catch(() => setEquipe([]))
+  }, [])
 
   const persist = async (next: LeilaoGrupo[]) => {
     setGroups(next); setSaving(true)
@@ -408,11 +418,24 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
                                 {task.nome}
                               </p>
                               <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] text-gray-400">
-                                {task.resp?.nome && (
-                                  <span className="inline-flex items-center gap-1">
-                                    <Users size={9} /> {task.resp.nome}
-                                  </span>
-                                )}
+                                {task.resp?.nome && (() => {
+                                  const m = task.resp?.membro_id ? equipe.find(x => x.id === task.resp.membro_id) : undefined
+                                  return (
+                                    <span className="inline-flex items-center gap-1">
+                                      {m ? (
+                                        <span
+                                          className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold text-white"
+                                          style={{ background: m.cor }}
+                                        >
+                                          {m.iniciais}
+                                        </span>
+                                      ) : (
+                                        <Users size={9} />
+                                      )}
+                                      {task.resp.nome}
+                                    </span>
+                                  )
+                                })()}
                                 {task.fim && (
                                   <span className="inline-flex items-center gap-1">
                                     <Clock size={9} /> {task.fim}
@@ -458,15 +481,28 @@ function ChecklistPanel({ leilao, onUpdate }: { leilao: BulaLeilao; onUpdate: (t
                                 <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Responsável</label>
                                 <input
                                   type="text"
+                                  list={`equipe-options-${task.id}`}
                                   defaultValue={task.resp?.nome || ''}
                                   onBlur={e => {
                                     const nome = e.target.value.trim()
                                     if (nome === (task.resp?.nome || '')) return
-                                    patchTask(gi, ti, { resp: { nome, ini: nome ? nome[0].toUpperCase() : '' } })
+                                    const match = equipe.find(m => m.nome.toLowerCase() === nome.toLowerCase())
+                                    patchTask(gi, ti, {
+                                      resp: match
+                                        ? { nome: match.nome, ini: match.iniciais, membro_id: match.id }
+                                        : { nome, ini: nome ? nome[0].toUpperCase() : '', membro_id: null },
+                                    })
                                   }}
-                                  placeholder="Nome do responsável"
+                                  placeholder={equipe.length ? 'Selecione ou digite' : 'Nome do responsável'}
                                   className="w-full px-2 py-1.5 text-xs rounded-md border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
                                 />
+                                <datalist id={`equipe-options-${task.id}`}>
+                                  {equipe.map(m => (
+                                    <option key={m.id} value={m.nome}>
+                                      {m.empresa ? `${m.nome} — ${m.empresa}` : m.nome}
+                                    </option>
+                                  ))}
+                                </datalist>
                               </div>
                               <div>
                                 <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Prazo</label>
