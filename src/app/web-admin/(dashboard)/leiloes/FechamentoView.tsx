@@ -387,7 +387,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-6 py-5 [scrollbar-gutter:stable]">
 
           {/* ── RESUMO ── */}
           {tab === 'resumo' && (
