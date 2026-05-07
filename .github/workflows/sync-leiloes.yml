@@ -1,0 +1,45 @@
+name: Sincronizar agenda de leilões
+
+# Sincroniza textos (cronograma_leiloes) e capas (bula_leiloes) a partir da
+# planilha pública do Google Sheets "ESCALA LEILÕES 2026".
+#
+# Disparos:
+#   • cron a cada 6 horas
+#   • workflow_dispatch (manual no admin pelo botão em /web-admin/leiloes,
+#     ou pela aba Actions do GitHub)
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: sync-leiloes
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet openpyxl requests
+
+      - name: Sincronizar texto (cronograma_leiloes)
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/sync_cronograma_from_sheets.py
+
+      - name: Sincronizar capas (bula_leiloes)
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/upload_leilao_images.py

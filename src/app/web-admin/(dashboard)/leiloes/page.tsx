@@ -7,7 +7,7 @@ import {
   Check, Link2, Loader2, BookOpen, Clock, MapPin, ChevronDown, ChevronUp,
   AlertCircle, CheckCircle2, Circle, FileText, ChevronRight,
   Save, ImageIcon, Upload, LayoutGrid, Table2, DollarSign,
-  Search, SlidersHorizontal, Download,
+  Search, SlidersHorizontal, Download, RefreshCw,
 } from 'lucide-react'
 import type { BulaLeilao, LeilaoGrupo, LeilaoTask } from '@/lib/bula/types'
 
@@ -1392,6 +1392,32 @@ export default function LeiloesPage() {
   const [editBula, setEditBula] = useState<(BulaLeilao & { catalogo_url?: string }) | null>(null)
   const [editCrono, setEditCrono] = useState<DbLeilao | null>(null)
 
+  // Sync from Google Sheets (workflow_dispatch via GitHub API)
+  const [syncing, setSyncing] = useState(false)
+  const handleSyncSheets = async () => {
+    if (syncing) return
+    if (!confirm(
+      'Disparar sincronização da planilha do Google Sheets?\n\n'
+      + 'Isso vai puxar os textos (cronograma) e as capas (bula) da planilha '
+      + 'pública. Leva ~1 minuto. A página atualiza automaticamente em 90s.'
+    )) return
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/admin/sync-leiloes-sheets', { method: 'POST' })
+      const body = await res.json().catch(() => ({}))
+      if (res.ok) {
+        alert(body.message || 'Sincronização disparada.')
+        setTimeout(() => fetchAll(), 90_000)
+      } else {
+        alert(`Falha: ${body.error || res.statusText}`)
+      }
+    } catch (err) {
+      alert(`Erro ao disparar sincronização: ${(err as Error).message}`)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
@@ -1567,6 +1593,16 @@ export default function LeiloesPage() {
           )}
 
           <div className="flex-1" />
+
+          <button
+            onClick={handleSyncSheets}
+            disabled={syncing}
+            title="Sincronizar agenda e capas a partir da planilha do Google Sheets"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border border-gray-200 dark:border-[#2A2A2A] text-gray-600 dark:text-gray-300 hover:border-[#A0792E] hover:text-[#A0792E] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          >
+            {syncing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+            {syncing ? 'Sincronizando…' : 'Sincronizar planilha'}
+          </button>
 
           <button
             onClick={() => exportLeiloesCSV(filtered)}
