@@ -46,7 +46,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                         <div
                             className="relative overflow-hidden order-first lg:order-first"
                             style={{
-                                aspectRatio: "16/9",
+                                aspectRatio: "4/5",
                                 background: `linear-gradient(135deg, ${INK} 0%, #1F1A0E 100%)`,
                                 border: "1px solid rgba(212,168,92,0.30)",
                                 borderRadius: 4,
@@ -56,7 +56,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 <img
                                     src={doadora.foto}
                                     alt={`Doadora ${nome} — Nelore PO Fêmea`}
-                                    className="absolute inset-0 w-full h-full object-cover"
+                                    className="absolute inset-0 w-full h-full object-contain"
                                 />
                             ) : doadora.video ? (
                                 <video
@@ -67,7 +67,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                     playsInline
                                     controls
                                     preload="metadata"
-                                    className="absolute inset-0 w-full h-full object-cover"
+                                    className="absolute inset-0 w-full h-full object-contain"
                                 />
                             ) : (
                                 <DoadoraPlaceholder rgd={doadora.rgd} />
