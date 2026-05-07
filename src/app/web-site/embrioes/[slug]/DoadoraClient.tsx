@@ -40,13 +40,13 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                         maskImage: "radial-gradient(ellipse at top, black 0%, transparent 70%)",
                     }}
                 />
-                <div className="container mx-auto px-4 py-14 md:py-20 relative" style={{ maxWidth: 1200 }}>
-                    <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10 md:gap-14 items-center">
+                <div className="container mx-auto px-4 py-10 md:py-14 relative" style={{ maxWidth: 1400 }}>
+                    <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 md:gap-10 items-start">
                         {/* Foto / placeholder bronze */}
                         <div
                             className="relative overflow-hidden order-first lg:order-first"
                             style={{
-                                aspectRatio: "4/5",
+                                aspectRatio: "16/9",
                                 background: `linear-gradient(135deg, ${INK} 0%, #1F1A0E 100%)`,
                                 border: "1px solid rgba(212,168,92,0.30)",
                                 borderRadius: 4,
@@ -56,7 +56,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 <img
                                     src={doadora.foto}
                                     alt={`Doadora ${nome} — Nelore PO Fêmea`}
-                                    className="absolute inset-0 w-full h-full object-contain"
+                                    className="absolute inset-0 w-full h-full object-cover"
                                 />
                             ) : doadora.video ? (
                                 <video
@@ -67,7 +67,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                     playsInline
                                     controls
                                     preload="metadata"
-                                    className="absolute inset-0 w-full h-full object-contain"
+                                    className="absolute inset-0 w-full h-full object-cover"
                                 />
                             ) : (
                                 <DoadoraPlaceholder rgd={doadora.rgd} />
