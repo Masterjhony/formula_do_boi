@@ -13,6 +13,7 @@
 import "@xyflow/react/dist/style.css"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { createPortal } from "react-dom"
 import {
     ReactFlow,
     Background,
@@ -516,18 +517,13 @@ export function FluxoTab({ templates }: Props) {
         )
     }
 
-    return (
+    const editor = (
         <div
-            className={`bg-card text-card-foreground border overflow-hidden flex flex-col ${
+            className={`text-card-foreground border overflow-hidden flex flex-col ${
                 fullscreen
-                    ? "fixed inset-0 z-[100] rounded-none"
-                    : "rounded-xl"
+                    ? "fixed inset-0 z-[9999] rounded-none bg-white dark:bg-[#0A0A0A]"
+                    : "flex-1 min-h-0 rounded-xl bg-card"
             }`}
-            style={
-                fullscreen
-                    ? undefined
-                    : { height: "calc(100vh - 220px)", minHeight: 640 }
-            }
         >
             <div className="px-5 py-3 border-b flex items-center gap-3 flex-wrap">
                 <div className="flex-1 min-w-0">
@@ -639,6 +635,13 @@ export function FluxoTab({ templates }: Props) {
             </div>
         </div>
     )
+
+    // Em fullscreen, renderiza no body via Portal pra escapar de qualquer
+    // stacking context da árvore (navbar do admin, max-w wrappers, etc).
+    if (fullscreen && typeof document !== "undefined") {
+        return createPortal(editor, document.body)
+    }
+    return editor
 }
 
 /* ─── Palette ────────────────────────────────────────────────────── */

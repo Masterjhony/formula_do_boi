@@ -34,11 +34,23 @@ export default function CentralWhatsAppPage() {
             setTemplates(data.templates ?? [])
         }
     }
-    useEffect(() => { fetchTemplates() }, [])
+
+    useEffect(() => {
+        let cancelled = false
+        ;(async () => {
+            const res = await fetch(`/api/whatsapp/central/templates`)
+            if (!res.ok || cancelled) return
+            const data = await res.json()
+            if (!cancelled) setTemplates(data.templates ?? [])
+        })()
+        return () => { cancelled = true }
+    }, [])
+
+    const isFluxo = tab === "fluxo"
 
     return (
-        <div className="max-w-[1400px] mx-auto p-4 md:p-6 space-y-5">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div className="h-full flex flex-col min-h-0">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3 shrink-0">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
                         <QrCode className="h-6 w-6 text-primary" />
@@ -51,7 +63,7 @@ export default function CentralWhatsAppPage() {
                 </div>
             </div>
 
-            <div className="border-b flex flex-wrap gap-1">
+            <div className="border-b flex flex-wrap gap-1 shrink-0 mb-3">
                 {TABS.map(t => {
                     const Icon = t.icon
                     const active = tab === t.id
@@ -72,9 +84,11 @@ export default function CentralWhatsAppPage() {
                 })}
             </div>
 
-            <div>
+            {/* O Fluxo é o único tab que precisa flex-1 + min-h-0 (preenche viewport).
+             * Os demais ficam no fluxo normal pra não quebrar suas premissas de altura/scroll. */}
+            <div className={isFluxo ? "flex-1 min-h-0 flex flex-col" : "space-y-5 pb-5"}>
                 {tab === "inbox"     && <InboxTab templates={templates} />}
-                {tab === "fluxo"     && <FluxoTab templates={templates} onTemplatesChanged={fetchTemplates} />}
+                {isFluxo             && <FluxoTab templates={templates} onTemplatesChanged={fetchTemplates} />}
                 {tab === "templates" && <TemplatesTab templates={templates} onChange={fetchTemplates} />}
                 {tab === "campanhas" && <CampaignsTab templates={templates} />}
                 {tab === "metricas"  && <MetricsTab />}
