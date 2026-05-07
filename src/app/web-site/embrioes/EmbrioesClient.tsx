@@ -171,7 +171,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                                         <div
                                             className="relative overflow-hidden"
                                             style={{
-                                                aspectRatio: "4/5",
+                                                aspectRatio: "16/9",
                                                 background: `linear-gradient(135deg, ${INK} 0%, #1F1A0E 100%)`,
                                                 borderBottom: "1px solid rgba(212,168,92,0.18)",
                                             }}
@@ -184,7 +184,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                                                     loop
                                                     playsInline
                                                     preload="metadata"
-                                                    className="absolute inset-0 w-full h-full object-contain"
+                                                    className="absolute inset-0 w-full h-full object-cover"
                                                 />
                                             ) : (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
