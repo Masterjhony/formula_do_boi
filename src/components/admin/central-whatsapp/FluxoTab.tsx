@@ -48,6 +48,8 @@ import {
     CheckCircle2,
     X,
     Sparkles,
+    Maximize2,
+    Minimize2,
 } from "lucide-react"
 import type {
     ActionKind,
@@ -324,6 +326,17 @@ export function FluxoTab({ templates }: Props) {
     const [validation, setValidation] = useState<{ errors: string[]; warnings: string[] } | null>(null)
     const [feedback, setFeedback] = useState<{ type: "ok" | "err"; msg: string } | null>(null)
     const [dirty, setDirty] = useState(false)
+    const [fullscreen, setFullscreen] = useState(false)
+
+    // ESC sai do modo tela cheia
+    useEffect(() => {
+        if (!fullscreen) return
+        function onKey(e: KeyboardEvent) {
+            if (e.key === "Escape") setFullscreen(false)
+        }
+        window.addEventListener("keydown", onKey)
+        return () => window.removeEventListener("keydown", onKey)
+    }, [fullscreen])
 
     // Carrega o grafo
     useEffect(() => {
@@ -504,7 +517,18 @@ export function FluxoTab({ templates }: Props) {
     }
 
     return (
-        <div className="bg-card text-card-foreground rounded-xl border overflow-hidden flex flex-col">
+        <div
+            className={`bg-card text-card-foreground border overflow-hidden flex flex-col ${
+                fullscreen
+                    ? "fixed inset-0 z-[100] rounded-none"
+                    : "rounded-xl"
+            }`}
+            style={
+                fullscreen
+                    ? undefined
+                    : { height: "calc(100vh - 220px)", minHeight: 640 }
+            }
+        >
             <div className="px-5 py-3 border-b flex items-center gap-3 flex-wrap">
                 <div className="flex-1 min-w-0">
                     <h3 className="font-semibold flex items-center gap-2">
@@ -516,6 +540,14 @@ export function FluxoTab({ templates }: Props) {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setFullscreen(f => !f)}
+                        className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-md border hover:bg-muted"
+                        title={fullscreen ? "Sair do modo tela cheia (Esc)" : "Modo tela cheia"}
+                    >
+                        {fullscreen ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+                        {fullscreen ? "Sair tela cheia" : "Tela cheia"}
+                    </button>
                     <button
                         onClick={handleReset}
                         disabled={resetting}
@@ -562,7 +594,7 @@ export function FluxoTab({ templates }: Props) {
                 </div>
             ) : null}
 
-            <div className="relative" style={{ height: 720 }}>
+            <div className="relative flex-1 min-h-0">
                 <ReactFlow
                     nodes={rfNodes}
                     edges={rfEdges}
