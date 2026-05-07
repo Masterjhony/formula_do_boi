@@ -49,7 +49,7 @@ export default function CentralWhatsAppPage() {
     const isFluxo = tab === "fluxo"
 
     return (
-        <div className="h-full min-h-[600px] flex flex-col">
+        <div className="flex-1 min-h-[600px] flex flex-col">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3 shrink-0">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">

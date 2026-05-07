@@ -591,36 +591,41 @@ export function FluxoTab({ templates }: Props) {
             ) : null}
 
             <div className="relative flex-1 min-h-0">
-                <ReactFlow
-                    nodes={rfNodes}
-                    edges={rfEdges}
-                    nodeTypes={NODE_TYPES}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onConnect={onConnect}
-                    onNodeClick={(_, n) => setSelectedId(n.id)}
-                    onPaneClick={() => setSelectedId(null)}
-                    fitView
-                    fitViewOptions={{ padding: 0.18 }}
-                    minZoom={0.3}
-                    maxZoom={2}
-                    proOptions={{ hideAttribution: true }}
-                >
-                    <Background variant={BackgroundVariant.Dots} gap={18} size={1} />
-                    <Controls position="bottom-left" />
-                    <MiniMap
-                        position="bottom-right"
-                        zoomable
-                        pannable
-                        nodeColor={n => {
-                            const t = n.type as NodeType
-                            return NODE_THEME[t]?.ring.replace("ring-", "").replace("-400", "") ? "#94a3b8" : "#cbd5e1"
-                        }}
-                    />
-                    <Panel position="top-left">
-                        <Palette onAdd={addNode} />
-                    </Panel>
-                </ReactFlow>
+                {/* Wrapper absolute inset-0: dá ao ReactFlow dimensões explícitas
+                 * desde a primeira medição (sem isso, em layout flex o fitView
+                 * roda com viewport 0x0 e os nós ficam fora da tela). */}
+                <div className="absolute inset-0">
+                    <ReactFlow
+                        nodes={rfNodes}
+                        edges={rfEdges}
+                        nodeTypes={NODE_TYPES}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        onNodeClick={(_, n) => setSelectedId(n.id)}
+                        onPaneClick={() => setSelectedId(null)}
+                        fitView
+                        fitViewOptions={{ padding: 0.18 }}
+                        minZoom={0.3}
+                        maxZoom={2}
+                        proOptions={{ hideAttribution: true }}
+                    >
+                        <Background variant={BackgroundVariant.Dots} gap={18} size={1} />
+                        <Controls position="bottom-left" />
+                        <MiniMap
+                            position="bottom-right"
+                            zoomable
+                            pannable
+                            nodeColor={n => {
+                                const t = n.type as NodeType
+                                return NODE_THEME[t]?.ring.replace("ring-", "").replace("-400", "") ? "#94a3b8" : "#cbd5e1"
+                            }}
+                        />
+                        <Panel position="top-left">
+                            <Palette onAdd={addNode} />
+                        </Panel>
+                    </ReactFlow>
+                </div>
 
                 {selectedNode && (
                     <SidePanel
