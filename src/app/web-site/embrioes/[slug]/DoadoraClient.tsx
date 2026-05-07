@@ -46,7 +46,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                         <div
                             className="relative overflow-hidden order-first lg:order-first"
                             style={{
-                                aspectRatio: "4/5",
+                                aspectRatio: "16/9",
                                 background: `linear-gradient(135deg, ${INK} 0%, #1F1A0E 100%)`,
                                 border: "1px solid rgba(212,168,92,0.30)",
                                 borderRadius: 4,
