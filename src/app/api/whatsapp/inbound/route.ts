@@ -312,7 +312,11 @@ export async function POST(req: NextRequest) {
             .update({ optout_whatsapp: false, optout_at: null })
             .eq('id', lead.id)
         void supabase.from('whatsapp_optouts').delete().eq('phone', phone)
-        const reply = `Que ótimo, ${firstName(lead.nome)}! Você voltou a receber nossas comunicações. ✅\n\nSe quiser, me diz seu interesse principal:\n1️⃣ Touros 2️⃣ Matrizes 3️⃣ Embriões 4️⃣ Sêmen\n5️⃣ Leilões 6️⃣ Vender genética 7️⃣ Falar com consultor`
+        const tplBody = await fetchTemplateBody(supabase, 'resubscribe-msg')
+        const reply = renderTemplate(
+            tplBody ?? `Que ótimo, {nome}! Você voltou a receber nossas comunicações. ✅\n\nSe quiser, me diz seu interesse principal:\n1️⃣ Touros 2️⃣ Matrizes 3️⃣ Embriões 4️⃣ Sêmen\n5️⃣ Leilões 6️⃣ Vender genética 7️⃣ Falar com consultor`,
+            { nome: firstName(lead.nome) || senderName }
+        )
         void logMessage(supabase, {
             phone, name: lead.nome, body: reply, direction: 'outbound',
             lead_id: lead.id, origin: 'central-bot', bot_step: 'resubscribe',

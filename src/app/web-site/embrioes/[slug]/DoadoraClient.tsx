@@ -58,6 +58,17 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                     alt={`Doadora ${nome} — Nelore PO Fêmea`}
                                     className="absolute inset-0 w-full h-full object-cover"
                                 />
+                            ) : doadora.video ? (
+                                <video
+                                    src={doadora.video}
+                                    autoPlay
+                                    muted
+                                    loop
+                                    playsInline
+                                    controls
+                                    preload="metadata"
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                />
                             ) : (
                                 <DoadoraPlaceholder rgd={doadora.rgd} />
                             )}

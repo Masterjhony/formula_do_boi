@@ -2,19 +2,21 @@
 
 import { useEffect, useState } from "react"
 import {
-    QrCode, Inbox, MessageSquare, Megaphone, BarChart3, Plug,
+    QrCode, Inbox, MessageSquare, Megaphone, BarChart3, Plug, Workflow,
 } from "lucide-react"
 import { ConexaoTab } from "@/components/admin/central-whatsapp/ConexaoTab"
 import { InboxTab } from "@/components/admin/central-whatsapp/InboxTab"
 import { TemplatesTab } from "@/components/admin/central-whatsapp/TemplatesTab"
 import { CampaignsTab } from "@/components/admin/central-whatsapp/CampaignsTab"
 import { MetricsTab } from "@/components/admin/central-whatsapp/MetricsTab"
+import { FluxoTab } from "@/components/admin/central-whatsapp/FluxoTab"
 import type { Template } from "@/components/admin/central-whatsapp/types"
 
-type Tab = "inbox" | "templates" | "campanhas" | "metricas" | "conexao"
+type Tab = "inbox" | "fluxo" | "templates" | "campanhas" | "metricas" | "conexao"
 
 const TABS: { id: Tab; label: string; icon: typeof Inbox }[] = [
     { id: "inbox",     label: "Inbox",     icon: Inbox },
+    { id: "fluxo",     label: "Fluxo",     icon: Workflow },
     { id: "templates", label: "Templates", icon: MessageSquare },
     { id: "campanhas", label: "Campanhas", icon: Megaphone },
     { id: "metricas",  label: "Métricas",  icon: BarChart3 },
@@ -72,6 +74,7 @@ export default function CentralWhatsAppPage() {
 
             <div>
                 {tab === "inbox"     && <InboxTab templates={templates} />}
+                {tab === "fluxo"     && <FluxoTab templates={templates} onTemplatesChanged={fetchTemplates} />}
                 {tab === "templates" && <TemplatesTab templates={templates} onChange={fetchTemplates} />}
                 {tab === "campanhas" && <CampaignsTab templates={templates} />}
                 {tab === "metricas"  && <MetricsTab />}

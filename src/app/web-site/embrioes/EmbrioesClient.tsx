@@ -167,42 +167,54 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                                             transition: "border-color 200ms ease, transform 200ms ease",
                                         }}
                                     >
-                                        {/* Imagem placeholder */}
+                                        {/* Imagem placeholder ou vídeo */}
                                         <div
-                                            className="relative"
+                                            className="relative overflow-hidden"
                                             style={{
                                                 aspectRatio: "4/5",
                                                 background: `linear-gradient(135deg, ${INK} 0%, #1F1A0E 100%)`,
                                                 borderBottom: "1px solid rgba(212,168,92,0.18)",
                                             }}
                                         >
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <svg
-                                                    width="64"
-                                                    height="64"
-                                                    viewBox="0 0 64 64"
-                                                    fill="none"
-                                                    stroke={BRONZE_LIGHT}
-                                                    strokeWidth="1"
-                                                    style={{ opacity: 0.5, marginBottom: 12 }}
-                                                    aria-hidden
-                                                >
-                                                    <path d="M14 34c0-8 6-14 14-14h8c8 0 14 6 14 14v8c0 4-3 8-8 8H22c-5 0-8-4-8-8z" />
-                                                    <path d="M22 50v6M42 50v6M28 50v6M36 50v6" />
-                                                    <path d="M14 28l-4-4M50 28l4-4" />
-                                                </svg>
-                                                <div
-                                                    className="font-display"
-                                                    style={{
-                                                        fontSize: 22,
-                                                        fontWeight: 500,
-                                                        color: BRONZE_LIGHT,
-                                                        letterSpacing: "-0.015em",
-                                                    }}
-                                                >
-                                                    {d.rgd}
+                                            {d.video ? (
+                                                <video
+                                                    src={d.video}
+                                                    autoPlay
+                                                    muted
+                                                    loop
+                                                    playsInline
+                                                    preload="metadata"
+                                                    className="absolute inset-0 w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                    <svg
+                                                        width="64"
+                                                        height="64"
+                                                        viewBox="0 0 64 64"
+                                                        fill="none"
+                                                        stroke={BRONZE_LIGHT}
+                                                        strokeWidth="1"
+                                                        style={{ opacity: 0.5, marginBottom: 12 }}
+                                                        aria-hidden
+                                                    >
+                                                        <path d="M14 34c0-8 6-14 14-14h8c8 0 14 6 14 14v8c0 4-3 8-8 8H22c-5 0-8-4-8-8z" />
+                                                        <path d="M22 50v6M42 50v6M28 50v6M36 50v6" />
+                                                        <path d="M14 28l-4-4M50 28l4-4" />
+                                                    </svg>
+                                                    <div
+                                                        className="font-display"
+                                                        style={{
+                                                            fontSize: 22,
+                                                            fontWeight: 500,
+                                                            color: BRONZE_LIGHT,
+                                                            letterSpacing: "-0.015em",
+                                                        }}
+                                                    >
+                                                        {d.rgd}
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
 
                                             {/* Badge top */}
                                             <span
