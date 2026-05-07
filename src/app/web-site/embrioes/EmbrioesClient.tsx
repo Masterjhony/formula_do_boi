@@ -184,7 +184,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                                                     loop
                                                     playsInline
                                                     preload="metadata"
-                                                    className="absolute inset-0 w-full h-full object-cover"
+                                                    className="absolute inset-0 w-full h-full object-contain"
                                                 />
                                             ) : (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
