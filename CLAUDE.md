@@ -84,7 +84,7 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 
 ### Notable Implementation Details
 
-- **WhatsApp flow builder**: admin can edit the welcome message (supports `{nome}` variable), define numbered menu options, and configure reply timeout — stored in `site_settings.whatsapp_flow`, applied to the VPS live via `POST /reload-config`.
+- **WhatsApp flow engine (Central)**: a data-driven flow graph drives every Central WhatsApp inbound. Stored in `site_settings.whatsapp_flow_v2` as JSON (nodes + edges). The engine in [src/lib/whatsapp-flow-engine.ts](src/lib/whatsapp-flow-engine.ts) interprets it: node types are `start`, `classify` (5 outputs by classification kind), `condition` (true/false), `action` (apply_optout / apply_resubscribe / apply_handoff / apply_interest / add_tag), `send_template` (slug fixed or dynamic `triagem_by_interesse`), `silence` (terminal silent), `end` (terminal reply). Visual editor at admin `/whatsapp` → tab "Fluxo" uses `@xyflow/react`; saving validates and writes back. If the row doesn't exist, `buildDefaultGraph()` is used as fallback — it mirrors the previous hardcoded behavior. `/api/whatsapp/flow` (legacy `whatsapp_flow` key) is deprecated for the Central but remains for backward compatibility.
 - **WhatsApp group commands**: members of a connected group (`@g.us`) can run `/tarefa`, `/decisao`, `/risco`, and `/ia`. The VPS detects the prefix in `messages.upsert` (ignoring `fromMe`), POSTs to the corresponding Next.js endpoint with `x-webhook-secret`, and replies in the group on success/failure. See [WhatsApp Group Commands](#whatsapp-group-commands) below.
 - **AI assistant (GLM-4.7)**: same model is shared by the in-app `/web-admin/ia` page (`/api/ai/chat`) and the WhatsApp `/ia` command (`/api/whatsapp/group-ai`). Both use tool-calling against an 8-table allow-list (`products`, `crm_leads`, `profiles`, `tactical_tasks`, `tactical_contracts`, `whatsapp_messages`, `site_settings`, `breeders`).
 - **Genealogy / Genetic Evaluation parsing**: [src/lib/genealogy-parser.ts](src/lib/genealogy-parser.ts) and [src/lib/avaliacao-genetica-parser.ts](src/lib/avaliacao-genetica-parser.ts) parse PDFs via `pdf-parse` and back the batch endpoints under `/api/parse-*`.
@@ -154,6 +154,7 @@ Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeir
 | `/api/whatsapp/central/campaigns/[id]/send` | POST | Resolve segmento → materializa em `whatsapp_campaign_recipients` → POST `/campaign-send` no VPS. |
 | `/api/whatsapp/central/campaigns/preview` | POST | Pré-visualiza público (count + amostra) sem materializar. |
 | `/api/whatsapp/central/metrics` | GET | Métricas operacionais (novos contatos 7d, opt-outs, distribuição de interesse). |
+| `/api/whatsapp/central/flow` | GET, PUT, DELETE | Grafo do fluxo da Central (`FlowGraphV2` em `site_settings.whatsapp_flow_v2`). PUT valida via `validateGraph()`. DELETE reseta para o default em código. |
 | `/api/whatsapp/group-task` | POST | `/tarefa <desc>` from a group → creates `tactical_tasks` card with WhatsApp origin fields. |
 | `/api/whatsapp/group-decision` | POST | `/decisao <desc>` from a group → inserts into `tactical_decisions`. |
 | `/api/whatsapp/group-risk` | POST | `/risco <title>` from a group → inserts into `tactical_risks` with default `media`/`medio`. |

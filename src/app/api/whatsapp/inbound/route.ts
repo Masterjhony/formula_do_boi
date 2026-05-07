@@ -1,82 +1,36 @@
 /**
  * /api/whatsapp/inbound — recebe mensagens individuais do VPS e:
  *   1. Encontra (ou cria) o lead correspondente no CRM
- *   2. Classifica a intenção (opt-out, humano, interesse, desconhecido)
- *   3. Atualiza crm_leads + log de mensagens
- *   4. Devolve a próxima resposta do bot ao VPS, ou pede silêncio
+ *   2. Registra a inbound em whatsapp_messages
+ *   3. Carrega o grafo do fluxo (site_settings.whatsapp_flow_v2 ou default em código)
+ *   4. Executa o interpretador do grafo (src/lib/whatsapp-flow-engine.ts)
+ *   5. Devolve a próxima resposta do bot ao VPS, ou pede silêncio
  *
  * Autenticação: header `x-webhook-secret` deve bater com `WHATSAPP_GROUP_TASK_SECRET`.
  * O VPS espera resposta JSON: `{ silent?: true } | { reply: string, bot_step?: string }`.
+ *
+ * A lógica de classificação, gates e envio está toda no grafo. Para mudar
+ * o comportamento do bot, edite o grafo via /api/whatsapp/central/flow ou
+ * pela aba "Fluxo" da Central WhatsApp.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { normalizePhone, phoneVariants } from '@/lib/whatsapp-central'
 import {
-    classifyMessage,
-    INTERESSES,
-    normalizePhone,
-    phoneVariants,
-    renderTemplate,
-    firstName,
-    type Interesse,
-    type Classification,
-} from '@/lib/whatsapp-central'
+    runFlow,
+    buildDefaultGraph,
+    type FlowGraphV2,
+    type LeadShape,
+} from '@/lib/whatsapp-flow-engine'
 
 export const maxDuration = 30
-
-type ContactEntry = {
-    id: string
-    type: string
-    date: string
-    notes?: string | null
-    by?: string | null
-}
-
-type LeadShape = {
-    id: string
-    nome: string
-    telefone: string | null
-    interesse_principal: string | null
-    handoff_humano: boolean | null
-    handoff_at: string | null
-    optout_whatsapp: boolean | null
-    contact_history: ContactEntry[] | null
-    contact_count: number | null
-    tags_whatsapp: string[] | null
-    stage: string | null
-    status: string | null
-    notes: string | null
-}
 
 function getSupabase() {
     return createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
-}
-
-function ok(payload: unknown) {
-    return NextResponse.json(payload)
-}
-
-function silent(reason: string) {
-    return ok({ silent: true, reason })
-}
-
-async function fetchTemplateBody(supabase: ReturnType<typeof getSupabase>, slug: string): Promise<string | null> {
-    const { data } = await supabase
-        .from('whatsapp_templates')
-        .select('id, body, usage_count')
-        .eq('slug', slug)
-        .eq('archived', false)
-        .single()
-    if (!data) return null
-    void supabase
-        .from('whatsapp_templates')
-        .update({ usage_count: (data.usage_count ?? 0) + 1 })
-        .eq('id', data.id)
-        .then(() => {})
-    return data.body
 }
 
 async function findLeadByPhone(
@@ -130,112 +84,34 @@ async function createLeadFromInbound(
     return lead as LeadShape
 }
 
-async function logMessage(
+function logInbound(
     supabase: ReturnType<typeof getSupabase>,
-    args: {
-        phone: string
-        name: string
-        body: string
-        direction: 'inbound' | 'outbound'
-        lead_id?: string | null
-        origin: string
-        bot_step?: string | null
-    }
+    args: { phone: string; name: string; body: string; lead_id: string | null }
 ) {
     void supabase.from('whatsapp_messages').insert({
         phone: args.phone,
         name: args.name,
-        status: args.direction === 'inbound' ? 'received' : 'sent',
+        status: 'received',
         body: args.body,
-        direction: args.direction,
-        origin: args.origin,
-        lead_id: args.lead_id ?? null,
-        bot_step: args.bot_step ?? null,
+        direction: 'inbound',
+        origin: 'central-inbound',
+        lead_id: args.lead_id,
     }).then(({ error }) => {
-        if (error) console.warn('[Inbound] Erro ao logar mensagem:', error.message)
+        if (error) console.warn('[Inbound] log inbound:', error.message)
     })
 }
 
-async function appendContactHistory(
-    supabase: ReturnType<typeof getSupabase>,
-    lead: LeadShape,
-    entry: { type: string; notes: string; by?: string | null }
-) {
-    const history: ContactEntry[] = Array.isArray(lead.contact_history) ? [...lead.contact_history] : []
-    history.unshift({
-        id: crypto.randomUUID(),
-        type: entry.type,
-        date: new Date().toISOString(),
-        notes: entry.notes,
-        by: entry.by ?? 'bot',
-    })
-    await supabase
-        .from('crm_leads')
-        .update({
-            contact_history: history,
-            contact_count: history.length,
-            ultimo_contato: new Date().toISOString(),
-            last_whatsapp_at: new Date().toISOString(),
-        })
-        .eq('id', lead.id)
-}
-
-async function applyOptOut(
-    supabase: ReturnType<typeof getSupabase>,
-    phone: string,
-    lead: LeadShape | null
-) {
-    void supabase.from('whatsapp_optouts').upsert({
-        phone,
-        lead_id: lead?.id ?? null,
-        reason: 'user_request',
-    }, { onConflict: 'phone' })
-    if (lead) {
-        await supabase
-            .from('crm_leads')
-            .update({
-                optout_whatsapp: true,
-                optout_at: new Date().toISOString(),
-                handoff_humano: true,
-                handoff_at: new Date().toISOString(),
-            })
-            .eq('id', lead.id)
+async function loadGraph(supabase: ReturnType<typeof getSupabase>): Promise<FlowGraphV2> {
+    const { data } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'whatsapp_flow_v2')
+        .single()
+    const stored = data?.value as FlowGraphV2 | undefined
+    if (stored && stored.version === 2 && Array.isArray(stored.nodes) && Array.isArray(stored.edges)) {
+        return stored
     }
-}
-
-async function applyHandoff(
-    supabase: ReturnType<typeof getSupabase>,
-    lead: LeadShape
-) {
-    await supabase
-        .from('crm_leads')
-        .update({
-            handoff_humano: true,
-            handoff_at: new Date().toISOString(),
-        })
-        .eq('id', lead.id)
-}
-
-async function applyInteresse(
-    supabase: ReturnType<typeof getSupabase>,
-    lead: LeadShape,
-    interesse: Interesse
-) {
-    const tags = new Set(lead.tags_whatsapp ?? [])
-    tags.add(`whatsapp:${interesse}`)
-    const interesseLabel = INTERESSES.find(i => i.id === interesse)?.label || interesse
-
-    const update: Record<string, unknown> = {
-        interesse_principal: interesse,
-        interesse: interesseLabel,
-        tags_whatsapp: [...tags],
-        last_whatsapp_at: new Date().toISOString(),
-    }
-    // Promove o lead pra "Qualificado" se ainda estava em "Lead" e ele já se identificou.
-    if ((lead.status ?? '') === 'Lead') {
-        update.status = 'Qualificado'
-    }
-    await supabase.from('crm_leads').update(update).eq('id', lead.id)
+    return buildDefaultGraph()
 }
 
 export async function POST(req: NextRequest) {
@@ -260,140 +136,32 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getSupabase()
-    let lead = await findLeadByPhone(supabase, phone)
 
-    // Lead novo (não veio de LP/sheets antes) → cria com origem whatsapp-central
+    let lead = await findLeadByPhone(supabase, phone)
     if (!lead) {
         lead = await createLeadFromInbound(supabase, phone, senderName)
     }
 
-    // Sempre registra a inbound — mesmo quando vamos ficar em silêncio
-    void logMessage(supabase, {
+    // Registra a inbound (sempre, mesmo se cair em silêncio)
+    logInbound(supabase, {
         phone,
         name: senderName || lead?.nome || phone,
         body: text,
-        direction: 'inbound',
         lead_id: lead?.id ?? null,
-        origin: 'central-inbound',
     })
 
     if (lead) {
-        await supabase
+        void supabase
             .from('crm_leads')
             .update({ last_whatsapp_at: new Date().toISOString() })
             .eq('id', lead.id)
     }
 
-    const classification: Classification = classifyMessage(text)
+    const graph = await loadGraph(supabase)
+    const result = await runFlow(graph, { phone, senderName, text, lead })
 
-    // ── Opt-out ──────────────────────────────────────────────
-    if (classification.kind === 'optout') {
-        await applyOptOut(supabase, phone, lead)
-        const tplBody = await fetchTemplateBody(supabase, 'optout-confirmacao')
-        const reply = renderTemplate(tplBody ?? 'Tudo certo, você foi removido(a) da nossa lista.', {
-            nome: firstName(lead?.nome) || senderName || '',
-        })
-        if (lead) {
-            void logMessage(supabase, {
-                phone, name: lead.nome, body: reply, direction: 'outbound',
-                lead_id: lead.id, origin: 'central-bot', bot_step: 'optout',
-            })
-            await appendContactHistory(supabase, lead, {
-                type: 'whatsapp', notes: 'Lead solicitou opt-out via WhatsApp', by: 'bot',
-            })
-        }
-        return ok({ reply, bot_step: 'optout' })
+    if ('silent' in result) {
+        return NextResponse.json({ silent: true, reason: result.reason })
     }
-
-    // ── Re-subscribe ─────────────────────────────────────────
-    if (classification.kind === 'resubscribe' && lead) {
-        await supabase
-            .from('crm_leads')
-            .update({ optout_whatsapp: false, optout_at: null })
-            .eq('id', lead.id)
-        void supabase.from('whatsapp_optouts').delete().eq('phone', phone)
-        const tplBody = await fetchTemplateBody(supabase, 'resubscribe-msg')
-        const reply = renderTemplate(
-            tplBody ?? `Que ótimo, {nome}! Você voltou a receber nossas comunicações. ✅\n\nSe quiser, me diz seu interesse principal:\n1️⃣ Touros 2️⃣ Matrizes 3️⃣ Embriões 4️⃣ Sêmen\n5️⃣ Leilões 6️⃣ Vender genética 7️⃣ Falar com consultor`,
-            { nome: firstName(lead.nome) || senderName }
-        )
-        void logMessage(supabase, {
-            phone, name: lead.nome, body: reply, direction: 'outbound',
-            lead_id: lead.id, origin: 'central-bot', bot_step: 'resubscribe',
-        })
-        return ok({ reply, bot_step: 'resubscribe' })
-    }
-
-    // ── Lead em opt-out: silêncio total ──────────────────────
-    if (lead?.optout_whatsapp) {
-        return silent('lead_optout')
-    }
-
-    // ── Lead em handoff humano: silêncio (humano cuida) ──────
-    if (lead?.handoff_humano) {
-        return silent('lead_handoff')
-    }
-
-    // ── Pedido explícito de humano ────────────────────────────
-    if (classification.kind === 'human' && lead) {
-        await applyHandoff(supabase, lead)
-        const tplBody = await fetchTemplateBody(supabase, 'consultor-handoff')
-        const reply = renderTemplate(tplBody ?? 'Vou te encaminhar pra um consultor agora.', {
-            nome: firstName(lead.nome) || senderName,
-        })
-        void logMessage(supabase, {
-            phone, name: lead.nome, body: reply, direction: 'outbound',
-            lead_id: lead.id, origin: 'central-bot', bot_step: 'handoff',
-        })
-        await appendContactHistory(supabase, lead, {
-            type: 'whatsapp', notes: 'Lead pediu falar com consultor (handoff)', by: 'bot',
-        })
-        return ok({ reply, bot_step: 'handoff' })
-    }
-
-    // ── Interesse identificado ────────────────────────────────
-    if (classification.kind === 'interest' && lead) {
-        await applyInteresse(supabase, lead, classification.interesse)
-        const interesseDef = INTERESSES.find(i => i.id === classification.interesse)
-        const slug = interesseDef?.triagem_template_slug
-        const tplBody = slug ? await fetchTemplateBody(supabase, slug) : null
-        const reply = renderTemplate(
-            tplBody ?? `Anotado! Vou repassar para o time comercial.`,
-            { nome: firstName(lead.nome) || senderName }
-        )
-        void logMessage(supabase, {
-            phone, name: lead.nome, body: reply, direction: 'outbound',
-            lead_id: lead.id, origin: 'central-bot', bot_step: `triagem-${classification.interesse}`,
-        })
-        await appendContactHistory(supabase, lead, {
-            type: 'whatsapp',
-            notes: `Interesse identificado: ${interesseDef?.label || classification.interesse}`,
-            by: 'bot',
-        })
-        return ok({ reply, bot_step: `triagem-${classification.interesse}` })
-    }
-
-    // ── Não classificou: registra mas fica em silêncio para não fazer
-    //    spam; o atendente humano cuida pela inbox.
-    if (lead && !lead.interesse_principal) {
-        // Lead inbound novo SEM interesse identificado → manda welcome com menu uma única vez
-        const alreadySentMenu = (lead.tags_whatsapp ?? []).includes('whatsapp:menu_enviado')
-        if (!alreadySentMenu) {
-            const tplBody = await fetchTemplateBody(supabase, 'welcome-default')
-            const reply = renderTemplate(tplBody ?? '', { nome: firstName(lead.nome) || senderName })
-            const tags = new Set(lead.tags_whatsapp ?? [])
-            tags.add('whatsapp:menu_enviado')
-            await supabase
-                .from('crm_leads')
-                .update({ tags_whatsapp: [...tags] })
-                .eq('id', lead.id)
-            void logMessage(supabase, {
-                phone, name: lead.nome, body: reply, direction: 'outbound',
-                lead_id: lead.id, origin: 'central-bot', bot_step: 'welcome',
-            })
-            return ok({ reply, bot_step: 'welcome' })
-        }
-    }
-
-    return silent('unknown_intent')
+    return NextResponse.json({ reply: result.reply, bot_step: result.bot_step })
 }

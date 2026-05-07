@@ -41,7 +41,7 @@ id, title, client_name, value, status, signed_at, created_at
 id, phone, lead_id, status (sent/failed/queued), message, created_at
 
 ### site_settings — Configurações do sistema
-key, value (JSONB) — inclui chave 'whatsapp_flow' com o fluxo de automação
+key, value (JSONB) — inclui chaves 'whatsapp_flow_v2' (grafo do fluxo da Central WhatsApp), 'whatsapp_flow' (legado, ainda usado por /api/whatsapp/flow)
 
 ### breeders — Criadores de gado
 id, name, farm_name, city, state, phone, email, created_at
