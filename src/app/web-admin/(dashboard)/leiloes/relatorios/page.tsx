@@ -639,7 +639,8 @@ function ReportPDFBrandbook({ data, period }: { data: Payload; period: string })
   async function handleDownload(f: Fechamento) {
     setBusy(f.id)
     try {
-      await generateFechamentoPDF(f)
+      const outros = data.fechamentos.filter(x => x.id !== f.id)
+      await generateFechamentoPDF(f, outros)
     } catch (e) {
       console.error('Erro ao gerar PDF:', e)
       alert('Erro ao gerar o PDF. Verifique o console.')
