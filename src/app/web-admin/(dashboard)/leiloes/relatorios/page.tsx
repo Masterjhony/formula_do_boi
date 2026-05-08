@@ -5,11 +5,12 @@ import { Fragment, Suspense, useCallback, useEffect, useMemo, useState } from 'r
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import {
-  BarChart3, Calendar, ChevronRight, ChevronDown, Download, FileBarChart, Hash,
+  BarChart3, Calendar, ChevronRight, ChevronDown, Download, FileBarChart, FileText, Hash,
   Layers, Loader2, MapPin, Percent, Sparkles,
   TrendingUp, Trophy, DollarSign,
   RadioTower, Tag, Briefcase,
 } from 'lucide-react'
+import { generateFechamentoPDF } from '@/lib/fechamento-pdf'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -60,7 +61,7 @@ type Payload = {
 
 type ReportKey =
   | 'mensal' | 'comparativo' | 'comissoes' | 'assessor' | 'cobertura'
-  | 'categoria' | 'ranking'
+  | 'categoria' | 'ranking' | 'pdf'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -143,6 +144,7 @@ const REPORT_GROUPS: ReportGroup[] = [
       { key: 'mensal',      label: 'Mensal',       icon: Calendar  },
       { key: 'comparativo', label: 'Comparativo',  icon: BarChart3 },
       { key: 'ranking',     label: 'Ranking',      icon: Trophy    },
+      { key: 'pdf',         label: 'PDF Brandbook', icon: FileText },
     ],
   },
   {
@@ -159,7 +161,7 @@ const REPORT_GROUPS: ReportGroup[] = [
 
 // ── Page ────────────────────────────────────────────────────────────────────
 
-const VALID_REPORTS: ReportKey[] = ['mensal', 'comparativo', 'comissoes', 'assessor', 'cobertura', 'categoria', 'ranking']
+const VALID_REPORTS: ReportKey[] = ['mensal', 'comparativo', 'comissoes', 'assessor', 'cobertura', 'categoria', 'ranking', 'pdf']
 
 export default function RelatoriosPage() {
   // useSearchParams precisa estar dentro de Suspense (Next 16) para o build estático.
@@ -613,7 +615,200 @@ function ReportRouter({ report, data, from, to }: { report: ReportKey; data: Pay
     case 'cobertura':   return <ReportCobertura data={data} period={period} />
     case 'categoria':   return <ReportCategoria data={data} period={period} />
     case 'ranking':     return <ReportRanking data={data} period={period} />
+    case 'pdf':         return <ReportPDFBrandbook data={data} period={period} />
   }
+}
+
+// ── PDF Brandbook (relatórios oficiais por leilão) ──────────────────────────
+function ReportPDFBrandbook({ data, period }: { data: Payload; period: string }) {
+  const [busy, setBusy] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+
+  const list = useMemo(() => {
+    const q = normalize(search)
+    const items = [...data.fechamentos].sort((a, b) => (b.data || '').localeCompare(a.data || ''))
+    if (!q) return items
+    return items.filter(f =>
+      normalize(f.nome).includes(q) ||
+      normalize(f.local).includes(q)
+    )
+  }, [data.fechamentos, search])
+
+  const totalVgv = list.reduce((s, f) => s + (f.vgv_total || 0), 0)
+
+  async function handleDownload(f: Fechamento) {
+    setBusy(f.id)
+    try {
+      await generateFechamentoPDF(f)
+    } catch (e) {
+      console.error('Erro ao gerar PDF:', e)
+      alert('Erro ao gerar o PDF. Verifique o console.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div className="rl-section">
+      <SectionHead
+        title="Relatórios"
+        emphasis="brandbook"
+        subtitle={`PDF oficial por leilão — visual seguindo Brandbook V1.0 · ${period}`}
+      />
+
+      <div className="rl-grid rl-grid-4">
+        <Stat label="Leilões disponíveis" value={String(list.length)} sub="no recorte" gold />
+        <Stat label="VGV consolidado" value={fmtBRLCompact(totalVgv)} />
+        <Stat label="Identidade visual" value="Bronze · Preto" sub="Brandbook V1.0" />
+        <Stat label="Formato" value="A4 · vertical" sub="capa + 5 seções" />
+      </div>
+
+      <div className="pdfb-toolbar">
+        <div className="pdfb-search">
+          <FileText size={14} />
+          <input
+            type="text"
+            placeholder="Buscar por nome ou local..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="pdfb-help">
+          Cada PDF inclui: capa preta+bronze, síntese, por assessor, por estado, compradores, lances detalhados.
+        </div>
+      </div>
+
+      {list.length === 0 ? (
+        <Empty title="Sem fechamentos no período" message="Ajuste o intervalo de datas ou a busca para visualizar relatórios." />
+      ) : (
+        <div className="pdfb-grid">
+          {list.map(f => {
+            const cobertura = f.lotes_ofertados ? Math.round((f.lotes_vendidos / f.lotes_ofertados) * 100) : 0
+            const assessores = Array.isArray(f.por_assessor) ? f.por_assessor : []
+            const isBusy = busy === f.id
+            return (
+              <div key={f.id} className="pdfb-card">
+                <div className="pdfb-card-spine" />
+                <div className="pdfb-card-head">
+                  <span className="pdfb-date">
+                    <Calendar size={11} />
+                    {(() => { const [y, m, d] = f.data.slice(0, 10).split('-'); return `${d}/${m}/${y}` })()}
+                  </span>
+                  {f.local && <span className="pdfb-local"><MapPin size={11} /> {f.local}</span>}
+                </div>
+                <h4 className="pdfb-name">{f.nome}</h4>
+
+                <div className="pdfb-kpis">
+                  <div className="pdfb-kpi">
+                    <div className="pdfb-kpi-v">{fmtBRLCompact(f.vgv_total)}</div>
+                    <div className="pdfb-kpi-l">VGV</div>
+                  </div>
+                  <div className="pdfb-kpi">
+                    <div className="pdfb-kpi-v">{f.lotes_vendidos}<span className="pdfb-kpi-of"> / {f.lotes_ofertados || '—'}</span></div>
+                    <div className="pdfb-kpi-l">Lotes · {cobertura}%</div>
+                  </div>
+                  <div className="pdfb-kpi">
+                    <div className="pdfb-kpi-v">{f.compradores_unicos || 0}</div>
+                    <div className="pdfb-kpi-l">Compradores</div>
+                  </div>
+                </div>
+
+                <div className="pdfb-card-foot">
+                  <div className="pdfb-pills">
+                    {assessores.slice(0, 3).map((a, i) => (
+                      <span key={i} className="pdfb-pill" title={`${a.nome} · ${a.empresa}`}>
+                        {(a.empresa || '').includes('Fórmula') ? 'F' : 'B'}·{(a.nome || '').split(' ')[0]}
+                      </span>
+                    ))}
+                    {assessores.length > 3 && <span className="pdfb-pill pdfb-pill-more">+{assessores.length - 3}</span>}
+                  </div>
+                  <button
+                    type="button"
+                    className="pdfb-btn"
+                    disabled={isBusy}
+                    onClick={() => handleDownload(f)}
+                  >
+                    {isBusy ? <Loader2 size={13} className="rl-spin" /> : <Download size={13} />}
+                    {isBusy ? 'Gerando…' : 'Baixar PDF'}
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <style jsx global>{`
+        .pdfb-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin: 4px 0 16px; flex-wrap:wrap; }
+        .pdfb-search {
+          display:inline-flex; align-items:center; gap:8px;
+          background: var(--dcl-bg-card); border:1px solid var(--dcl-line);
+          border-radius: 10px; padding: 8px 12px; min-width: 320px;
+          color: var(--dcl-gold);
+        }
+        .pdfb-search input {
+          background: transparent; border: 0; outline: none;
+          color: var(--dcl-ink); font-family: inherit; font-size: 13px;
+          width: 100%;
+        }
+        .pdfb-help { font-size: 11px; color: var(--dcl-ink-3); max-width: 540px; line-height:1.5; }
+
+        .pdfb-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:14px; }
+
+        .pdfb-card {
+          position: relative; overflow: hidden;
+          background: var(--dcl-bg-card); border: 1px solid var(--dcl-line);
+          border-radius: 12px; padding: 18px 18px 16px;
+          transition: all 0.15s;
+        }
+        .pdfb-card:hover { border-color: var(--dcl-gold); transform: translateY(-1px); }
+        .pdfb-card-spine {
+          position:absolute; top:0; left:0; bottom:0; width: 3px;
+          background: linear-gradient(180deg, var(--dcl-gold) 0%, transparent 100%);
+        }
+        .pdfb-card-head { display:flex; align-items:center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        .pdfb-date {
+          display:inline-flex; align-items:center; gap:5px;
+          background: rgba(212,168,92,0.10); color: var(--dcl-gold);
+          font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+          padding: 4px 9px; border-radius: 6px;
+        }
+        .pdfb-local {
+          display:inline-flex; align-items:center; gap:4px;
+          font-size: 11px; color: var(--dcl-ink-3);
+        }
+        .pdfb-name { font-size: 15px; font-weight: 600; color: var(--dcl-ink); margin: 0 0 14px; line-height: 1.3; }
+
+        .pdfb-kpis {
+          display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+          padding: 10px 0; margin-bottom: 14px;
+          border-top: 1px solid var(--dcl-line); border-bottom: 1px solid var(--dcl-line);
+        }
+        .pdfb-kpi-v { font-size: 14px; font-weight: 600; color: var(--dcl-gold); font-feature-settings: 'tnum'; line-height: 1.2; }
+        .pdfb-kpi-of { font-weight: 400; color: var(--dcl-ink-3); }
+        .pdfb-kpi-l { font-size: 10px; color: var(--dcl-ink-3); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 3px; }
+
+        .pdfb-card-foot { display:flex; align-items:center; justify-content:space-between; gap: 10px; }
+        .pdfb-pills { display:flex; gap: 4px; flex-wrap: wrap; }
+        .pdfb-pill {
+          font-size: 10px; font-weight: 500;
+          padding: 3px 7px; border-radius: 10px;
+          background: rgba(255,255,255,0.04); border: 1px solid var(--dcl-line);
+          color: var(--dcl-ink-2);
+        }
+        .pdfb-pill-more { color: var(--dcl-gold); border-color: rgba(212,168,92,0.4); }
+        .pdfb-btn {
+          display:inline-flex; align-items:center; gap: 6px;
+          background: var(--dcl-gold); color: #0a0a0a;
+          border: 0; border-radius: 8px;
+          padding: 8px 14px; font-size: 12px; font-weight: 600; font-family: inherit;
+          cursor: pointer; transition: all 0.15s;
+        }
+        .pdfb-btn:hover:not(:disabled) { background: #d4b782; }
+        .pdfb-btn:disabled { opacity: 0.6; cursor: wait; }
+      `}</style>
+    </div>
+  )
 }
 
 // ── 1) Fechamento Mensal ────────────────────────────────────────────────────
