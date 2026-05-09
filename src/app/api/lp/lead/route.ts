@@ -44,6 +44,11 @@ export async function POST(request: NextRequest) {
         const attrContent  = utm_content  || null;
         const attrTerm     = utm_term     || null;
 
+        // MQL: critério canônico replicado do quiz (`public/lp/index.html`).
+        // Mantemos a lista aqui para o servidor não confiar no client.
+        const MQL_QCABECAS = new Set(['100-300', '300-500', '500+']);
+        const isMql = MQL_QCABECAS.has(quantidade_cabecas);
+
         const notesLines = [
             `Momento na pecuária: ${momento_pecuaria}`,
             `Quantidade de cabeças: ${quantidade_cabecas}`,
@@ -62,7 +67,10 @@ export async function POST(request: NextRequest) {
                 status: 'Lead',
                 position,
                 notes: notesLines.join('\n'),
+                momento_pecuaria: momento_pecuaria || null,
                 quantidade_animais: quantidade_cabecas,
+                is_mql: isMql,
+                data_entrada: new Date().toISOString(),
                 estado: uf,
                 cidade,
                 source_page: 'formuladoboi.com',

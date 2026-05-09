@@ -31,16 +31,29 @@ export interface CRMLead {
     funnel_id?: string | null;
     valor_estimado?: number | null;
     probabilidade?: number | null;
-    // Campos da integração Google Sheets
+    // Campos da integração Google Sheets / LP
     instagram?: string | null;
     estado?: string | null;
     cidade?: string | null;
     o_que_busca?: string | null;
     quantidade_animais?: string | null;
+    momento_pecuaria?: string | null;
+    intencao_investimento?: string | null;
+    assessoria?: string | null;
+    is_mql?: boolean | null;
     source_page?: string | null;
     source?: string | null;
     medium?: string | null;
     campaign?: string | null;
+    utm_content?: string | null;
+    utm_term?: string | null;
+    gclid?: string | null;
+    fbclid?: string | null;
+    referrer?: string | null;
+    landing_url?: string | null;
+    email?: string | null;
+    notes?: string | null;
+    origem?: string | null;
     data_entrada?: string | null;
     extra_data?: Record<string, any> | null;
     // Qualificação / Contatos

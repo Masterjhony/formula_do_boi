@@ -90,6 +90,18 @@ export async function POST(request: NextRequest) {
                 }
             }
 
+            // MQL — mesma regra canônica do quiz (≥100 cabeças).
+            // Aceita as faixas em código novo ('100-300', '300-500', '500+')
+            // e também as variantes "100 a 300" / "300 a 500" / "500 ou mais"
+            // que aparecem na planilha Leads-GP, além de números crus ≥ 100.
+            const qtd = String(lead.quantidade_animais ?? '').trim();
+            const MQL_FAIXAS = new Set([
+                '100-300', '300-500', '500+',
+                '100 a 300', '300 a 500', '500 ou mais',
+            ]);
+            const numericMatch = qtd.match(/^(\d+)\s*$/);
+            const isMql = MQL_FAIXAS.has(qtd) || (numericMatch ? Number(numericMatch[1]) >= 100 : false);
+
             const record = {
                 nome: nomeFormatado,
                 status: 'Lead',
@@ -98,13 +110,21 @@ export async function POST(request: NextRequest) {
                 empresa: lead.nome_fazenda || lead.empresa || null,
                 estado: estado || null,
                 cidade: cidade || null,
-                interesse: lead.momento_pecuaria || lead.interesse || null,
+                // momento_pecuaria → coluna estruturada (PERFIL na Pag-zap / "Momento Pecuária" na Leads-GP)
+                momento_pecuaria: lead.momento_pecuaria || null,
+                // interesse → mantém compatibilidade com payloads antigos que mandavam só `interesse`
+                interesse: lead.interesse || lead.momento_pecuaria || null,
                 o_que_busca: lead.o_que_busca || null,
-                quantidade_animais: lead.quantidade_animais || null,
+                quantidade_animais: qtd || null,
+                is_mql: isMql,
+                intencao_investimento: lead.intencao_investimento || null,
+                assessoria: lead.assessoria || null,
                 source_page: lead.page || lead.source_page || null,
                 source: lead.source || null,
                 medium: lead.medium || null,
                 campaign: lead.campaign || null,
+                utm_content: lead.utm_content || null,
+                utm_term: lead.term || lead.utm_term || null,
                 data_entrada: dataEntrada,
                 responsavel: 'Matheus Amormino',
                 position: currentMaxPosition,

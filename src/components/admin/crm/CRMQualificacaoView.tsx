@@ -7,7 +7,22 @@ import { isQualificationStage } from '@/lib/crm-types';
 import {
     ChevronRight, Phone, Instagram, MapPin, Beef, Search,
     AlertCircle, ArrowRight, Loader2, Check, ListChecks, Sparkles,
+    Crown, Mail,
 } from 'lucide-react';
+
+// Rótulos amigáveis para os enums de "momento na pecuária" vindos do quiz
+// (`public/lp/index.html`) — exibidos como badge na lista da qualificação.
+const MOMENTO_LABELS: Record<string, string> = {
+    'nao-trabalho-quero-aprender': 'Quer aprender',
+    'pecuaria-de-corte':           'Corte',
+    'corte-e-po':                  'Corte + P.O.',
+    'criador-renomado-po':         'Criador P.O.',
+};
+
+function momentoLabel(v?: string | null): string | null {
+    if (!v) return null;
+    return MOMENTO_LABELS[v] ?? v;
+}
 
 interface CRMQualificacaoViewProps {
     leads: CRMLead[];
@@ -63,14 +78,18 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                     l.telefone?.includes(search) ||
                     l.cidade?.toLowerCase().includes(q) ||
                     l.estado?.toLowerCase().includes(q) ||
-                    l.o_que_busca?.toLowerCase().includes(q)
+                    l.o_que_busca?.toLowerCase().includes(q) ||
+                    l.momento_pecuaria?.toLowerCase().includes(q)
                 );
             })
             .sort((a, b) => {
-                // ordena: mais incompletos no topo, depois mais recentes
+                // 1) MQLs no topo — prioridade de atendimento.
+                if (!!a.is_mql !== !!b.is_mql) return a.is_mql ? -1 : 1;
+                // 2) Dentro do mesmo grupo, mais incompletos primeiro (ainda dependem da equipe pra ficarem prontos).
                 const ma = missingFieldsCount(a);
                 const mb = missingFieldsCount(b);
                 if (ma !== mb) return mb - ma;
+                // 3) Empate → mais recentes primeiro.
                 const da = a.data_entrada || a.created_at;
                 const db = b.data_entrada || b.created_at;
                 return (db || '').localeCompare(da || '');
@@ -83,7 +102,8 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
         const semInteresse = all.filter(l => !fieldFilled(l, 'o_que_busca')).length;
         const semLocal = all.filter(l => !fieldFilled(l, 'estado') && !fieldFilled(l, 'cidade')).length;
         const completos = all.filter(l => missingFieldsCount(l) === 0).length;
-        return { total: all.length, semAnimais, semInteresse, semLocal, completos };
+        const mqls = all.filter(l => !!l.is_mql).length;
+        return { total: all.length, semAnimais, semInteresse, semLocal, completos, mqls };
     }, [leads, qualificationStageNames]);
 
     const updateDraft = (leadId: string, patch: Partial<CRMLead>) => {
@@ -132,9 +152,10 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
     return (
         <div className="flex flex-col gap-4 pb-2">
             {/* Header / KPIs */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                 {[
                     { label: 'Aguardando qualificação', value: stats.total, icon: ListChecks, color: 'text-[#A0792E]', bg: 'bg-[#A0792E]/10' },
+                    { label: 'MQLs (≥100 cab.)', value: stats.mqls, icon: Crown, color: 'text-fuchsia-600 dark:text-fuchsia-400', bg: 'bg-fuchsia-500/10' },
                     { label: 'Sem cabeçinhas', value: stats.semAnimais, icon: Beef, color: 'text-rose-500', bg: 'bg-rose-500/10' },
                     { label: 'Sem interesse', value: stats.semInteresse, icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
                     { label: 'Sem localização', value: stats.semLocal, icon: MapPin, color: 'text-blue-500', bg: 'bg-blue-500/10' },
@@ -189,20 +210,33 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                         const isMoving = qualifyingId === lead.id;
                         const lDraft = draft[lead.id] || {};
                         const dt = lead.data_entrada || lead.created_at;
+                        const isMql = !!lead.is_mql;
+
+                        // MQL ganha visual de prioridade — borda dourada e fundo levemente
+                        // âmbar — para o operador identificar de relance quem atender primeiro.
+                        const cardBorder = isMql
+                            ? 'border-[#A0792E]/60 bg-gradient-to-r from-[#A0792E]/[0.06] to-transparent ring-1 ring-[#A0792E]/30'
+                            : ready
+                                ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/[0.04]'
+                                : 'border-gray-200 dark:border-[#222] bg-white dark:bg-[#1A1A1A]';
 
                         return (
                             <div
                                 key={lead.id}
-                                className={`rounded-2xl border p-4 transition-all ${
-                                    ready
-                                        ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/[0.04]'
-                                        : 'border-gray-200 dark:border-[#222] bg-white dark:bg-[#1A1A1A]'
-                                }`}
+                                className={`rounded-2xl border p-4 transition-all ${cardBorder}`}
                             >
                                 {/* Top row */}
                                 <div className="flex items-start justify-between gap-3 mb-3">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
+                                            {isMql && (
+                                                <span
+                                                    className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black shadow-sm"
+                                                    title="Marketing Qualified Lead — ≥100 cabeças. Prioridade de atendimento."
+                                                >
+                                                    <Crown size={10} /> MQL
+                                                </span>
+                                            )}
                                             <button
                                                 type="button"
                                                 onClick={() => onOpenLead(lead)}
@@ -219,6 +253,11 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                                                     {missing.length} dado{missing.length > 1 ? 's' : ''} faltando
                                                 </span>
                                             )}
+                                            {momentoLabel(lead.momento_pecuaria) && (
+                                                <span className="inline-flex items-center text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300">
+                                                    {momentoLabel(lead.momento_pecuaria)}
+                                                </span>
+                                            )}
                                             {lead.source && (
                                                 <span className="inline-flex items-center text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#222] text-gray-500 dark:text-gray-400">
                                                     {lead.source}
@@ -229,8 +268,14 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                                             {(lead.celular || lead.telefone) && (
                                                 <span className="inline-flex items-center gap-1"><Phone size={11} /> {lead.celular || lead.telefone}</span>
                                             )}
+                                            {lead.email && (
+                                                <span className="inline-flex items-center gap-1 truncate max-w-[220px]"><Mail size={11} /> {lead.email}</span>
+                                            )}
                                             {lead.instagram && (
                                                 <span className="inline-flex items-center gap-1"><Instagram size={11} /> {lead.instagram}</span>
+                                            )}
+                                            {lead.empresa && (
+                                                <span className="inline-flex items-center gap-1 text-gray-400 truncate max-w-[200px]">{lead.empresa}</span>
                                             )}
                                             {dt && (
                                                 <span className="inline-flex items-center gap-1 text-gray-400">
@@ -253,7 +298,7 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                                 </div>
 
                                 {/* Quick fill grid */}
-                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+                                <div className="grid grid-cols-2 md:grid-cols-6 gap-2.5">
                                     <Field
                                         label="Celular / WhatsApp"
                                         value={lDraft.celular ?? lead.celular ?? ''}
@@ -285,7 +330,17 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                                         label="Cabeçinhas"
                                         value={lDraft.quantidade_animais ?? lead.quantidade_animais ?? ''}
                                         onChange={v => updateDraft(lead.id, { quantidade_animais: v })}
-                                        onBlur={v => v !== (lead.quantidade_animais || '') && persistField(lead, { quantidade_animais: v || null })}
+                                        onBlur={v => {
+                                            if (v === (lead.quantidade_animais || '')) return;
+                                            // Recalcula MQL pela mesma regra canônica do quiz/webhook.
+                                            const MQL_FAIXAS = new Set(['100-300','300-500','500+','100 a 300','300 a 500','500 ou mais']);
+                                            const num = v.match(/^(\d+)\s*$/);
+                                            const isMqlNow = MQL_FAIXAS.has(v) || (num ? Number(num[1]) >= 100 : false);
+                                            persistField(lead, {
+                                                quantidade_animais: v || null,
+                                                is_mql: isMqlNow,
+                                            });
+                                        }}
                                         placeholder="500"
                                         inputCls={inputCls}
                                         missing={!fieldFilled(lead, 'quantidade_animais')}
@@ -298,6 +353,19 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                                         placeholder="Touros, matrizes…"
                                         inputCls={inputCls}
                                         missing={!fieldFilled(lead, 'o_que_busca')}
+                                    />
+                                    <SelectField
+                                        label="Momento"
+                                        value={lDraft.momento_pecuaria ?? lead.momento_pecuaria ?? ''}
+                                        onChange={v => persistField(lead, { momento_pecuaria: v || null })}
+                                        options={[
+                                            { value: '', label: '—' },
+                                            { value: 'nao-trabalho-quero-aprender', label: 'Quer aprender' },
+                                            { value: 'pecuaria-de-corte', label: 'Corte' },
+                                            { value: 'corte-e-po', label: 'Corte + P.O.' },
+                                            { value: 'criador-renomado-po', label: 'Criador P.O.' },
+                                        ]}
+                                        inputCls={inputCls}
                                     />
                                 </div>
 
@@ -351,6 +419,33 @@ function Field({
                 placeholder={placeholder}
                 className={`${inputCls} ${missing ? 'border-amber-500/40' : ''}`}
             />
+        </div>
+    );
+}
+
+function SelectField({
+    label, value, onChange, options, inputCls,
+}: {
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    options: { value: string; label: string }[];
+    inputCls: string;
+}) {
+    return (
+        <div>
+            <label className="block text-[9px] font-bold uppercase tracking-wider mb-1 text-gray-400">
+                {label}
+            </label>
+            <select
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                className={inputCls}
+            >
+                {options.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+            </select>
         </div>
     );
 }
