@@ -6,7 +6,6 @@ import DashboardClient, {
     type VgvPoint,
     type FunnelStep,
     type FeedItem,
-    type TaskItem,
     type RegionItem,
     type LeilaoTopItem,
     type CompradorItem,
@@ -61,17 +60,6 @@ function timeAgo(iso: string | null | undefined): string {
     return `${days}d`;
 }
 
-function formatDue(due: string | null | undefined): string {
-    const d = daysFromNow(due);
-    if (d == null) return 'Sem prazo';
-    if (d < 0) return `Atrasada ${Math.abs(d)} dia${Math.abs(d) === 1 ? '' : 's'}`;
-    if (d === 0) return 'Hoje';
-    if (d === 1) return 'Amanhã';
-    if (d < 7) return `Em ${d} dias`;
-    const [, m, dd] = (due as string).split('-').map(Number);
-    return `${String(dd).padStart(2, '0')}/${MONTH_ABBR[(m || 1) - 1]}`;
-}
-
 // ───────────────────────────────────────────────────────────────────────────
 
 export default async function AdminDashboard() {
@@ -79,16 +67,12 @@ export default async function AdminDashboard() {
 
     const [
         { data: leads },
-        { data: tasks },
         { data: leiloes },
         { data: fechamentos },
     ] = await Promise.all([
         supabase.from('crm_leads')
             .select('id, nome, status, prioridade, data_estimada_fechamento, created_at')
             .order('created_at', { ascending: false }),
-        supabase.from('tactical_tasks')
-            .select('id, title, status, priority, due_date, created_at')
-            .order('position', { ascending: true }),
         supabase.from('bula_leiloes')
             .select('id, nome, data, tipo, animais, expectativa, meta_bula, realizado_bula, status, horario, modelo, leiloeira, local, transmissao')
             .order('data', { ascending: true }),
@@ -287,30 +271,22 @@ export default async function AdminDashboard() {
         return out;
     })();
 
-    // ── Tarefas ─────────────────────────────────────────────────────────────
-    const allTasks = tasks ?? [];
-    const totalTasks = allTasks.length;
-    const tasksByStatus: Record<string, number> = {};
-    for (const t of allTasks) tasksByStatus[t.status || 'Sem status'] = (tasksByStatus[t.status || 'Sem status'] || 0) + 1;
-    const completedTasks = tasksByStatus['Completa'] || 0;
-    const pendingTasks = totalTasks - completedTasks;
-    const overdueTasks = allTasks.filter(t => {
-        const d = daysFromNow(t.due_date);
-        return d !== null && d < 0 && t.status !== 'Completa';
-    }).length;
-    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-    const topTasks: TaskItem[] = allTasks
-        .filter(t => t.status !== 'Completa')
-        .slice(0, 6)
-        .map((t, i) => ({
-            id: String(t.id ?? i),
-            title: t.title || 'Tarefa sem título',
-            due: formatDue(t.due_date),
-            prio: t.priority === 'Alta' ? 'hi' : t.priority === 'Média' ? 'md' : 'lo',
-            status: t.status || '—',
-            done: t.status === 'Completa',
-        }));
+    // ── Performance dos fechamentos ─────────────────────────────────────────
+    const totalLotesVendidos = allFechamentos.reduce((s, f) => s + (Number(f.lotes_vendidos) || 0), 0);
+    const totalLotesOfertados = allFechamentos.reduce((s, f) => s + (Number(f.lotes_ofertados) || 0), 0);
+    const totalAnimaisVendidos = allFechamentos.reduce((s, f) => s + (Number(f.animais_vendidos) || 0), 0);
+    const totalCompradoresUnicos = allFechamentos.reduce((s, f) => s + (Number(f.compradores_unicos) || 0), 0);
+    const maiorLanceGeral = allFechamentos.reduce((m, f) => Math.max(m, Number(f.maior_lance) || 0), 0);
+    const ticketMedioGeral = totalLotesVendidos > 0 ? totalVgvFechado / totalLotesVendidos : 0;
+    const taxaConversaoLotes = totalLotesOfertados > 0 ? (totalLotesVendidos / totalLotesOfertados) * 100 : 0;
+    const estadosUnicos = new Set<string>();
+    for (const f of allFechamentos) {
+        for (const u of ((f.por_estado ?? []) as Array<{ uf?: string }>)) {
+            const uf = (u.uf || '').trim().toUpperCase();
+            if (uf) estadosUnicos.add(uf);
+        }
+    }
+    const totalEstadosUnicos = estadosUnicos.size;
 
     // ── Feed ────────────────────────────────────────────────────────────────
     const feed: FeedItem[] = [];
@@ -359,9 +335,7 @@ export default async function AdminDashboard() {
             activeLeads,
             hotLeads,
             totalLeads,
-            pendingTasks,
-            overdueTasks,
-            completionRate,
+            ticketMedio: ticketMedioGeral,
             vgvSpark,
             metaSpark,
             leadsSpark,
@@ -369,7 +343,16 @@ export default async function AdminDashboard() {
         vgv: vgvSeries,
         funnel,
         feed: feedTop,
-        tasks: topTasks,
+        performance: {
+            ticketMedio: ticketMedioGeral,
+            maiorLance: maiorLanceGeral,
+            lotesVendidos: totalLotesVendidos,
+            lotesOfertados: totalLotesOfertados,
+            taxaConversao: taxaConversaoLotes,
+            animaisVendidos: totalAnimaisVendidos,
+            compradoresUnicos: totalCompradoresUnicos,
+            estadosUnicos: totalEstadosUnicos,
+        },
         regions: topUFs,
         rankings: {
             topLeiloes,

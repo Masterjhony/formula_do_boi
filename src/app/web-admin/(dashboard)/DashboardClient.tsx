@@ -6,8 +6,8 @@ import {
     Gavel, Target, Trophy, PhoneCall, ListTodo,
     Filter, ArrowRight, Download, MoreHorizontal,
     Sparkles, CheckCircle2, Clock, MapPin,
-    TrendingUp, TrendingDown, Plus, Users, MessageSquare,
-    Medal,
+    TrendingUp, TrendingDown, Users, MessageSquare,
+    Medal, BarChart3,
 } from 'lucide-react';
 import './dashboard.css';
 
@@ -53,13 +53,15 @@ export type FeedItem = {
     when: string;
 };
 
-export type TaskItem = {
-    id: string;
-    title: string;
-    due: string;
-    prio: 'hi' | 'md' | 'lo';
-    status: string;
-    done: boolean;
+export type PerformanceData = {
+    ticketMedio: number;
+    maiorLance: number;
+    lotesVendidos: number;
+    lotesOfertados: number;
+    taxaConversao: number;
+    animaisVendidos: number;
+    compradoresUnicos: number;
+    estadosUnicos: number;
 };
 
 export type RegionItem = { uf: string; estado: string; vgv: number; lotes: number; pct: number };
@@ -82,9 +84,7 @@ export type DashboardProps = {
         activeLeads: number;
         hotLeads: number;
         totalLeads: number;
-        pendingTasks: number;
-        overdueTasks: number;
-        completionRate: number;
+        ticketMedio: number;
         vgvSpark: number[];
         metaSpark: number[];
         leadsSpark: number[];
@@ -92,7 +92,7 @@ export type DashboardProps = {
     vgv: VgvPoint[];
     funnel: FunnelStep[];
     feed: FeedItem[];
-    tasks: TaskItem[];
+    performance: PerformanceData;
     regions: RegionItem[];
     rankings: {
         topLeiloes: LeilaoTopItem[];
@@ -226,13 +226,13 @@ function Hero({ data }: { data: ProximoLeilao | null }) {
 // ─── KPIs ───────────────────────────────────────────────────────────────────
 
 function KPIs({ k }: { k: DashboardProps['kpi'] }) {
-    const GOLD = '#D4A85C', GREEN = '#5db87a', RED = '#e26a5b', BLUE = '#6a8fd4', VIOLET = '#9b86c4';
+    const GOLD = '#D4A85C', GREEN = '#5db87a', BLUE = '#6a8fd4', VIOLET = '#9b86c4';
     const items = [
         { label: 'Próx. leilões', val: String(k.upcomingCount), unit: '', delta: `${k.confirmedCount} confirmado${k.confirmedCount === 1 ? '' : 's'}`, dir: 'up' as const, icon: <Gavel size={12} />, spark: k.metaSpark, color: GOLD, tone: 'gold', href: '/leiloes' },
         { label: 'Meta confirmada', val: fmtBRLCompact(k.totalMetaBula), unit: '', delta: `${fmtNum(k.totalAnimaisUpcoming)} animais`, dir: 'up' as const, icon: <Target size={12} />, spark: k.metaSpark, color: GREEN, tone: 'green', href: '/leiloes' },
         { label: 'VGV fechado', val: fmtBRLCompact(k.totalVgvFechado), unit: '', delta: `${k.totalFechamentos} fechamentos`, dir: 'up' as const, icon: <Trophy size={12} />, spark: k.vgvSpark, color: GOLD, tone: 'gold', href: '/leiloes/fechamento' },
+        { label: 'Ticket médio', val: fmtBRLCompact(k.ticketMedio), unit: '', delta: 'Por lote vendido', dir: 'up' as const, icon: <BarChart3 size={12} />, spark: k.vgvSpark, color: VIOLET, tone: 'violet', href: '/leiloes/fechamento' },
         { label: 'Leads ativos', val: fmtNum(k.activeLeads), unit: '', delta: `${k.hotLeads} quente${k.hotLeads === 1 ? '' : 's'}`, dir: 'up' as const, icon: <PhoneCall size={12} />, spark: k.leadsSpark, color: BLUE, tone: 'blue', href: '/leads' },
-        { label: 'Tarefas', val: String(k.pendingTasks), unit: '', delta: k.overdueTasks > 0 ? `${k.overdueTasks} em atraso` : `${k.completionRate}% concluído`, dir: k.overdueTasks > 0 ? 'dn' as const : 'up' as const, icon: <ListTodo size={12} />, spark: k.leadsSpark, color: k.overdueTasks > 0 ? RED : VIOLET, tone: k.overdueTasks > 0 ? 'red' : 'violet', href: '/tactical-plan' },
     ];
     return (
         <div className="dcl-kpi-row">
@@ -536,35 +536,45 @@ function ActivityFeed({ items }: { items: FeedItem[] }) {
     );
 }
 
-// ─── Tasks ──────────────────────────────────────────────────────────────────
+// ─── Performance ────────────────────────────────────────────────────────────
 
-function Tasks({ items, pending, overdue }: { items: TaskItem[]; pending: number; overdue: number }) {
-    const prioLabel: Record<TaskItem['prio'], string> = { hi: 'Alta', md: 'Média', lo: 'Baixa' };
+function Performance({ p }: { p: PerformanceData }) {
+    const conv = Math.max(0, Math.min(100, p.taxaConversao));
+    const stats: { label: string; value: string }[] = [
+        { label: 'Animais vendidos', value: fmtNum(p.animaisVendidos) },
+        { label: 'Compradores únicos', value: fmtNum(p.compradoresUnicos) },
+        { label: 'Estados alcançados', value: fmtNum(p.estadosUnicos) },
+        { label: 'Maior lance', value: fmtBRLCompact(p.maiorLance) },
+    ];
     return (
         <div className="dcl-card dcl-col-3">
             <div className="dcl-card-head">
                 <div>
-                    <h3>Tarefas</h3>
-                    <span className="dcl-sub">{pending} pendentes · {overdue} em atraso</span>
+                    <h3>Performance</h3>
+                    <span className="dcl-sub">Histórico de fechamentos</span>
                 </div>
-                <Link href="/tactical-plan" className="dcl-link-btn"><Plus size={14} /></Link>
+                <BarChart3 size={14} style={{ color: 'var(--dcl-gold)' }} />
             </div>
-            {items.length === 0 ? (
-                <div style={{ color: 'var(--dcl-ink-3)', fontSize: 13 }}>Sem tarefas pendentes.</div>
-            ) : items.map(t => (
-                <div key={t.id} className={`dcl-task${t.done ? ' dcl-done' : ''}`}>
-                    <div className="dcl-task-box" />
-                    <div>
-                        <div className="dcl-task-title">{t.title}</div>
-                        <div className="dcl-task-meta">
-                            <span>{t.due}</span>
-                            <span>·</span>
-                            <span>{t.status}</span>
-                        </div>
-                    </div>
-                    <span className={`dcl-prio dcl-${t.prio}`}>{prioLabel[t.prio]}</span>
+            <div style={{ marginBottom: 14 }}>
+                <div className="dcl-mono" style={{ fontSize: 11, color: 'var(--dcl-ink-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                    Conversão de lotes
                 </div>
-            ))}
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <div className="dcl-mono" style={{ fontSize: 22, color: 'var(--dcl-ink)', fontWeight: 500 }}>{conv.toFixed(1)}%</div>
+                    <div style={{ fontSize: 11, color: 'var(--dcl-ink-3)' }}>{fmtNum(p.lotesVendidos)} de {fmtNum(p.lotesOfertados)} lotes</div>
+                </div>
+                <div style={{ position: 'relative', height: 6, borderRadius: 99, background: 'var(--dcl-bg-card-2)', overflow: 'hidden', marginTop: 8 }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${conv}%`, background: 'linear-gradient(90deg,#6a8fd4,#D4A85C)', borderRadius: 99 }} />
+                </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {stats.map(s => (
+                    <div key={s.label} style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--dcl-bg-card-2)', border: '1px solid var(--dcl-line)' }}>
+                        <div style={{ fontSize: 10.5, color: 'var(--dcl-ink-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{s.label}</div>
+                        <div className="dcl-mono" style={{ fontSize: 14, color: 'var(--dcl-ink)' }}>{s.value}</div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
@@ -731,7 +741,7 @@ export default function DashboardClient(props: DashboardProps) {
 
             <div className="dcl-bento">
                 <ActivityFeed items={props.feed} />
-                <Tasks items={props.tasks} pending={props.kpi.pendingTasks} overdue={props.kpi.overdueTasks} />
+                <Performance p={props.performance} />
                 <RegionPanel regions={props.regions} />
             </div>
 
