@@ -1,7 +1,8 @@
 import { createClient } from '@/utils/supabase/server';
 import {
-    Users, Target, MessageSquare, ArrowRight, TrendingUp, CheckCircle2,
-    Sparkles, ChevronRight, Send, Activity, Trophy, Lightbulb, BarChart3,
+    Users, Target, MessageSquare, ArrowRight, TrendingUp, TrendingDown, CheckCircle2,
+    Sparkles, ChevronRight, Activity, Trophy, Lightbulb, BarChart3,
+    Crown, Zap, MapPin, Megaphone, Hourglass, Flame, Calendar,
 } from 'lucide-react';
 import Link from 'next/link';
 import { FunnelChart } from '@/components/charts/FunnelChart';
@@ -17,12 +18,15 @@ const BRAND = {
 } as const;
 
 const FUNNEL_PIPELINE = ['Lead', 'Qualificado', 'Proposta', 'Negociação', 'Fechado'];
+const STALLED_STAGES = ['Qualificado', 'Proposta', 'Negociação'];
+const STALLED_DAYS = 30;
 
 const card = 'rounded-2xl border border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#0A0A0A]';
 const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400';
 const dataCls = 'font-mono tabular-nums';
 
 const fmtPct = (v: number) => `${v.toFixed(0)}%`;
+const fmtSignedPct = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(0)}%`;
 
 const fmtBRL = (v: number) => {
     if (!v) return 'R$ 0';
@@ -36,6 +40,8 @@ const fmtDateBR = (d: string) => {
     return `${day}/${m}/${y.slice(2)}`;
 };
 
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
 interface Comprador { fazenda: string; comprador?: string; cidade?: string; uf?: string; lotes: number; animais: number; vgv: number }
 interface Fechamento {
     id: string; nome: string; data: string;
@@ -44,21 +50,72 @@ interface Fechamento {
     compradores: Comprador[] | null;
 }
 
+// Rótulos amigáveis pros enums do quiz (`public/lp/index.html`)
+const MOMENTO_LABELS: Record<string, string> = {
+    'nao-trabalho-quero-aprender': 'Quer aprender',
+    'pecuaria-de-corte':           'Corte',
+    'corte-e-po':                  'Corte + P.O.',
+    'criador-renomado-po':         'Criador P.O.',
+};
+
+// ── Sparkline server-side (pure SVG) ─────────────────────────────────────────
+function Sparkline({ data, color, height = 44 }: { data: number[]; color: string; height?: number }) {
+    if (data.length === 0) return null;
+    const max = Math.max(...data, 1);
+    const w = 100;
+    const stepX = data.length > 1 ? w / (data.length - 1) : 0;
+    const points = data.map((v, i) => `${(i * stepX).toFixed(2)},${(height - (v / max) * height).toFixed(2)}`).join(' ');
+    const lastX = (data.length - 1) * stepX;
+    const lastY = height - (data[data.length - 1] / max) * height;
+    const id = `spk-${Math.random().toString(36).slice(2, 9)}`;
+    return (
+        <svg viewBox={`0 0 ${w} ${height}`} className="w-full" preserveAspectRatio="none" style={{ height }}>
+            <defs>
+                <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+                    <stop offset="100%" stopColor={color} stopOpacity="0" />
+                </linearGradient>
+            </defs>
+            <polygon points={`0,${height} ${points} ${w},${height}`} fill={`url(#${id})`} />
+            <polyline
+                points={points}
+                fill="none"
+                stroke={color}
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+            />
+            <circle cx={lastX} cy={lastY} r="1.6" fill={color} />
+        </svg>
+    );
+}
+
 export default async function VendasMarketingPage() {
     const supabase = await createClient();
+
+    const now = new Date();
+    const start7d   = new Date(now.getTime() -   7 * 86400000);
+    const start30d  = new Date(now.getTime() -  30 * 86400000);
+    const start60d  = new Date(now.getTime() -  60 * 86400000);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const [
         { data: leads },
         { data: whatsappMessages },
         { data: fechamentosRaw },
     ] = await Promise.all([
-        supabase.from('crm_leads')
-            .select('id, nome, status, prioridade, data_estimada_fechamento, created_at, valor_estimado, origem, source')
-            .order('created_at', { ascending: false }),
+        supabase.from('crm_leads').select(`
+            id, nome, status, prioridade, data_estimada_fechamento, created_at, updated_at,
+            valor_estimado, origem, source, medium, campaign,
+            is_mql, momento_pecuaria, quantidade_animais,
+            estado, cidade, responsavel, celular, telefone
+        `).order('created_at', { ascending: false }),
         supabase.from('whatsapp_messages')
-            .select('id, status, created_at')
+            .select('id, status, direction, created_at')
+            .gte('created_at', start60d.toISOString())
             .order('created_at', { ascending: false })
-            .limit(500),
+            .limit(2000),
         supabase.from('bula_leilao_fechamento')
             .select('id, nome, data, vgv_total, comissao_assessoria, receita_bula, sobra_bruta, compradores')
             .order('data', { ascending: false })
@@ -68,11 +125,7 @@ export default async function VendasMarketingPage() {
     const allLeads = leads ?? [];
     const totalLeads = allLeads.length;
 
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const start30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const start7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
+    // ───── Janelas temporais ─────
     const leadsMonth = allLeads.filter(l => new Date(l.created_at) >= startOfMonth).length;
     const leads7d = allLeads.filter(l => new Date(l.created_at) >= start7d).length;
     const leads30d = allLeads.filter(l => new Date(l.created_at) >= start30d).length;
@@ -83,6 +136,16 @@ export default async function VendasMarketingPage() {
     }).length;
     const trendDelta = prevWindow30 > 0 ? ((leads30d - prevWindow30) / prevWindow30) * 100 : 0;
 
+    // ───── Sparkline 30d (leads/dia) ─────
+    const dailyLeads30d: number[] = Array.from({ length: 30 }, () => 0);
+    const todayMid = startOfDay(now).getTime();
+    for (const l of allLeads) {
+        const d = startOfDay(new Date(l.created_at)).getTime();
+        const idx = 29 - Math.floor((todayMid - d) / 86400000);
+        if (idx >= 0 && idx < 30) dailyLeads30d[idx] += 1;
+    }
+
+    // ───── Status / pipeline ─────
     const closedLeads = allLeads.filter(l => l.status === 'Fechado').length;
     const lostLeads = allLeads.filter(l => l.status === 'Perdido').length;
     const activeLeads = totalLeads - closedLeads - lostLeads;
@@ -99,30 +162,109 @@ export default async function VendasMarketingPage() {
         return diff >= 0 && diff <= 7;
     }).length;
 
-    // ── Funnel: counts per stage ──
+    // ───── MQL ─────
+    const mqlAll = allLeads.filter(l => !!l.is_mql);
+    const mql30d = mqlAll.filter(l => new Date(l.created_at) >= start30d).length;
+    const mqlShare = leads30d > 0 ? (mql30d / leads30d) * 100 : 0;
+    const mqlClosed = mqlAll.filter(l => l.status === 'Fechado').length;
+    const mqlLost   = mqlAll.filter(l => l.status === 'Perdido').length;
+    const mqlActive = mqlAll.length - mqlClosed - mqlLost;
+    const mqlConv = mqlAll.length > 0 ? (mqlClosed / mqlAll.length) * 100 : 0;
+
+    // ───── Velocity (lead → fechado, em dias) ─────
+    const closedWithDates = allLeads.filter(l => l.status === 'Fechado' && l.created_at && l.updated_at);
+    const velocityDays = closedWithDates.length > 0
+        ? closedWithDates.reduce((s, l) => {
+            const days = (new Date(l.updated_at).getTime() - new Date(l.created_at).getTime()) / 86400000;
+            return s + Math.max(days, 0);
+        }, 0) / closedWithDates.length
+        : 0;
+
+    // ───── Funil tradicional (status canônicos) ─────
     const funnelCounts = FUNNEL_PIPELINE.map(s => allLeads.filter(l => l.status === s).length);
     const funnelTop = funnelCounts[0] || 1;
 
-    // ── Origem ──
-    const leadsByOrigem: Record<string, number> = {};
+    // ───── Funil de aquisição (Lead → MQL → Negociação → Fechado) ─────
+    const negociacaoOuPlus = allLeads.filter(l => ['Negociação', 'Proposta', 'Fechado'].includes(l.status)).length;
+    const acquisitionFunnel = [
+        { label: 'Captados', count: totalLeads },
+        { label: 'MQL', count: mqlAll.length },
+        { label: 'Em negociação', count: negociacaoOuPlus },
+        { label: 'Cliente', count: closedLeads },
+    ];
+
+    // ───── Aging — leads parados > 30d em etapas intermediárias ─────
+    const stalledByStage: Record<string, number> = Object.fromEntries(STALLED_STAGES.map(s => [s, 0]));
+    const stalledMs = STALLED_DAYS * 86400000;
     for (const l of allLeads) {
-        const o = (l.origem || l.source || 'Direta') as string;
-        leadsByOrigem[o] = (leadsByOrigem[o] || 0) + 1;
+        if (!STALLED_STAGES.includes(l.status)) continue;
+        const ref = new Date(l.updated_at || l.created_at).getTime();
+        if (nowMs - ref >= stalledMs) {
+            stalledByStage[l.status] += 1;
+        }
     }
-    const topOrigens = Object.entries(leadsByOrigem).sort(([, a], [, b]) => b - a).slice(0, 5);
+    const totalStalled = Object.values(stalledByStage).reduce((s, n) => s + n, 0);
 
-    const recentLeads = allLeads.slice(0, 6);
+    // ───── Canais & campanhas ─────
+    const channelCounts: Record<string, number> = {};
+    for (const l of allLeads) {
+        const k = (l.source || l.origem || 'direta').toString().toLowerCase();
+        channelCounts[k] = (channelCounts[k] || 0) + 1;
+    }
+    const topChannels = Object.entries(channelCounts).sort(([, a], [, b]) => b - a).slice(0, 5);
+    const channelsTotal = topChannels.reduce((s, [, n]) => s + n, 0) || 1;
 
-    // ── WhatsApp ──
+    const campaignCounts: Record<string, number> = {};
+    for (const l of allLeads) {
+        const c = (l.campaign || '').toString().trim();
+        if (!c || c === '(not set)' || c === '(historical-no-utm)') continue;
+        campaignCounts[c] = (campaignCounts[c] || 0) + 1;
+    }
+    const topCampaigns = Object.entries(campaignCounts).sort(([, a], [, b]) => b - a).slice(0, 5);
+    const maxCampaign = topCampaigns[0]?.[1] || 1;
+
+    // ───── Audiência — momento_pecuaria ─────
+    const momentoCounts: Record<string, number> = {};
+    let momentoTotal = 0;
+    for (const l of allLeads) {
+        const k = (l.momento_pecuaria || '').toString();
+        if (!k) continue;
+        momentoCounts[k] = (momentoCounts[k] || 0) + 1;
+        momentoTotal += 1;
+    }
+    const momentoSorted = Object.entries(momentoCounts).sort(([, a], [, b]) => b - a);
+
+    // ───── Geo — Top UFs ─────
+    const ufCounts: Record<string, number> = {};
+    for (const l of allLeads) {
+        const k = (l.estado || '').toString().toUpperCase().trim();
+        if (!k || k.length > 2) continue;
+        ufCounts[k] = (ufCounts[k] || 0) + 1;
+    }
+    const topUFs = Object.entries(ufCounts).sort(([, a], [, b]) => b - a).slice(0, 6);
+    const maxUF = topUFs[0]?.[1] || 1;
+
+    // ───── WhatsApp engagement ─────
     const allWpp = whatsappMessages ?? [];
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
     const wppToday = allWpp.filter(m => m.created_at >= todayStart).length;
     const wpp30d = allWpp.filter(m => new Date(m.created_at) >= start30d).length;
+    const wpp7d = allWpp.filter(m => new Date(m.created_at) >= start7d).length;
+    const wppOut30 = allWpp.filter(m => new Date(m.created_at) >= start30d && (m.direction === 'outbound' || !m.direction)).length;
+    const wppIn30  = allWpp.filter(m => new Date(m.created_at) >= start30d && m.direction === 'inbound').length;
     const wppSentRate = allWpp.length > 0
         ? (allWpp.filter(m => m.status === 'sent').length / allWpp.length) * 100
         : 0;
+    const wppReplyRate = wppOut30 > 0 ? (wppIn30 / wppOut30) * 100 : 0;
 
-    // ── Fechamentos: ROI por leilão ──
+    const dailyWpp30d: number[] = Array.from({ length: 30 }, () => 0);
+    for (const m of allWpp) {
+        const d = startOfDay(new Date(m.created_at)).getTime();
+        const idx = 29 - Math.floor((todayMid - d) / 86400000);
+        if (idx >= 0 && idx < 30) dailyWpp30d[idx] += 1;
+    }
+
+    // ───── Fechamentos / ROI ─────
     const fechamentos = (fechamentosRaw ?? []) as Fechamento[];
     const roiData = fechamentos
         .filter(f => f.vgv_total > 0)
@@ -138,7 +280,7 @@ export default async function VendasMarketingPage() {
     const totalInvestido = roiData.reduce((s, r) => s + r.investido, 0);
     const roiMedio = totalInvestido > 0 ? (totalReceita / totalInvestido) * 100 : 0;
 
-    // ── Buyer profile (compradores agregados) ──
+    // ───── Top compradores ─────
     const buyerMap = new Map<string, { name: string; vgv: number; lotes: number; animais: number; leiloes: number; uf: string }>();
     for (const f of fechamentos) {
         for (const c of (f.compradores ?? [])) {
@@ -154,33 +296,43 @@ export default async function VendasMarketingPage() {
     const topBuyers = [...buyerMap.values()].sort((a, b) => b.vgv - a.vgv).slice(0, 5);
     const maxBuyerVgv = topBuyers[0]?.vgv || 1;
 
-    // ── Insights derivados ──
+    // ───── Hot leads — MQL ainda em qualificação/negociação, sem fechamento ─────
+    const hotLeads = mqlAll
+        .filter(l => l.status !== 'Fechado' && l.status !== 'Perdido')
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+
+    const recentLeads = allLeads.slice(0, 6);
+
+    // ───── Insights derivados ─────
     const insights: { kind: 'positive' | 'attention' | 'opportunity'; title: string; body: string; cta: string; href: string }[] = [];
+
+    if (mqlAll.length > 0 && mqlConv >= 25) {
+        insights.push({
+            kind: 'positive',
+            title: `MQLs convertem ${fmtPct(mqlConv)}`,
+            body: `${mqlClosed} de ${mqlAll.length} MQLs viraram cliente — ${(mqlConv / Math.max(conversionRate, 1)).toFixed(1)}× a conversão geral. Priorize captação no perfil ≥100 cabeças.`,
+            cta: 'Ver MQLs',
+            href: '/crm',
+        });
+    }
 
     if (closingSoon > 0) {
         insights.push({
-            kind: 'positive',
+            kind: 'opportunity',
             title: `${closingSoon} ${closingSoon === 1 ? 'lead' : 'leads'} fecha${closingSoon === 1 ? '' : 'ndo'} em 7 dias`,
-            body: `Pipeline de ${fmtBRL(pipelineValue)} em valor estimado. Priorize atendimento desses contatos.`,
+            body: `Pipeline de ${fmtBRL(pipelineValue)}. Priorize esses contatos hoje.`,
             cta: 'Abrir CRM',
             href: '/crm',
         });
     }
 
-    if (conversionRate < 15 && totalLeads > 20) {
+    if (totalStalled >= 5) {
         insights.push({
             kind: 'attention',
-            title: 'Taxa de conversão abaixo de 15%',
-            body: `Apenas ${closedLeads} de ${totalLeads} leads fecharam. Revise critérios de qualificação ou processo comercial.`,
-            cta: 'Ver funil',
-            href: '/crm',
-        });
-    } else if (conversionRate >= 25) {
-        insights.push({
-            kind: 'positive',
-            title: `Conversão sólida em ${fmtPct(conversionRate)}`,
-            body: `${closedLeads} fechamentos sobre ${totalLeads} leads totais — performance acima da média do setor.`,
-            cta: 'Ver detalhes',
+            title: `${totalStalled} leads parados há +${STALLED_DAYS} dias`,
+            body: `Sem movimento em Qualificado/Proposta/Negociação. Cadência de contato está quebrando o pipeline.`,
+            cta: 'Revisar pipeline',
             href: '/crm',
         });
     }
@@ -188,15 +340,15 @@ export default async function VendasMarketingPage() {
     if (trendDelta >= 20) {
         insights.push({
             kind: 'positive',
-            title: `Captação em alta · +${trendDelta.toFixed(0)}%`,
+            title: `Captação acelerando · ${fmtSignedPct(trendDelta)}`,
             body: `${leads30d} leads nos últimos 30d versus ${prevWindow30} no período anterior.`,
-            cta: 'Ver origem',
+            cta: 'Ver canais',
             href: '/crm',
         });
     } else if (trendDelta <= -20 && prevWindow30 > 5) {
         insights.push({
             kind: 'attention',
-            title: `Captação em queda · ${trendDelta.toFixed(0)}%`,
+            title: `Captação em queda · ${fmtSignedPct(trendDelta)}`,
             body: `${leads30d} leads versus ${prevWindow30} no período anterior. Avalie investimento em mídia.`,
             cta: 'Revisar campanhas',
             href: '/crm',
@@ -217,7 +369,7 @@ export default async function VendasMarketingPage() {
         insights.push({
             kind: 'opportunity',
             title: 'Pipeline equilibrado',
-            body: `${activeLeads} leads em negociação distribuídos entre as etapas. Mantenha cadência de contatos.`,
+            body: `${activeLeads} leads em negociação. Mantenha cadência de contatos.`,
             cta: 'Abrir CRM',
             href: '/crm',
         });
@@ -234,8 +386,8 @@ export default async function VendasMarketingPage() {
                     </div>
                     <div>
                         <p className={labelCls}>§ Vendas & Marketing</p>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Visão geral</h1>
-                        <p className="text-sm text-gray-500 mt-0.5">Pipeline comercial, ROI de leilões e captação digital.</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Painel de Growth</h1>
+                        <p className="text-sm text-gray-500 mt-0.5">Aquisição, conversão, monetização e engajamento — uma página, contexto completo.</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -250,65 +402,361 @@ export default async function VendasMarketingPage() {
                 </div>
             </div>
 
-            {/* Hero KPIs */}
+            {/* Hero KPIs — pivotados pra growth */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {([
                     {
-                        label: 'Pipeline ativo', value: activeLeads.toLocaleString('pt-BR'), sub: `${leads7d} novos em 7d · ${leadsMonth} no mês`,
+                        label: 'Leads · 30d',
+                        value: leads30d.toLocaleString('pt-BR'),
+                        deltaPct: trendDelta,
+                        sub: `${leads7d} em 7d · ${leadsMonth} no mês · ${prevWindow30} no período anterior`,
                         icon: Users, accent: BRAND.BRONZE, big: true,
                     },
                     {
-                        label: 'Pipeline em valor', value: fmtBRL(pipelineValue), sub: `${closingSoon} fechando em 7d`,
-                        icon: Target, accent: BRAND.BRONZE_PALE,
+                        label: 'MQLs · 30d',
+                        value: mql30d.toLocaleString('pt-BR'),
+                        sub: `${fmtPct(mqlShare)} dos novos · ${mqlActive} no pipeline · ≥100 cab.`,
+                        icon: Crown, accent: BRAND.BRONZE_PALE,
                     },
                     {
-                        label: 'Conversão', value: fmtPct(conversionRate), sub: `${closedLeads} fechados · ${lostLeads} perdidos`,
+                        label: 'Conversão MQL → Cliente',
+                        value: mqlAll.length > 0 ? fmtPct(mqlConv) : '—',
+                        sub: mqlAll.length > 0
+                            ? `${mqlClosed}/${mqlAll.length} MQLs · ${fmtPct(conversionRate)} geral`
+                            : 'Sem MQLs ainda',
                         icon: CheckCircle2, accent: BRAND.TECH_GREEN,
                     },
                     {
-                        label: 'WhatsApp 30d', value: wpp30d.toLocaleString('pt-BR'), sub: `${wppToday} hoje · ${fmtPct(wppSentRate)} entrega`,
-                        icon: MessageSquare, accent: BRAND.TECH_BLUE,
+                        label: 'Velocity · Lead → Fechado',
+                        value: closedLeads > 0 ? `${velocityDays.toFixed(0)}d` : '—',
+                        sub: closedLeads > 0
+                            ? `Média de ${closedLeads} fechamentos · pipeline ${fmtBRL(pipelineValue)}`
+                            : 'Sem fechamentos no histórico',
+                        icon: Zap, accent: BRAND.TECH_BLUE,
                     },
-                ]).map(({ label, value, sub, icon: Icon, accent, big }) => (
-                    <div key={label} className={`${card} p-5 relative overflow-hidden transition-all hover:shadow-md`}
-                        style={big ? { borderColor: `${accent}4D`, background: `linear-gradient(135deg, ${accent}10, transparent 60%)` } : undefined}>
-                        <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                                style={{ backgroundColor: `${accent}1F`, color: accent }}>
-                                <Icon className="w-4 h-4" />
+                ]).map(({ label, value, sub, icon: Icon, accent, big, deltaPct }) => {
+                    const TrendIcon = (deltaPct ?? 0) >= 0 ? TrendingUp : TrendingDown;
+                    const deltaColor = (deltaPct ?? 0) >= 0 ? BRAND.TECH_GREEN : BRAND.LOSS;
+                    return (
+                        <div key={label} className={`${card} p-5 relative overflow-hidden transition-all hover:shadow-md`}
+                            style={big ? { borderColor: `${accent}4D`, background: `linear-gradient(135deg, ${accent}10, transparent 60%)` } : undefined}>
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                                    style={{ backgroundColor: `${accent}1F`, color: accent }}>
+                                    <Icon className="w-4 h-4" />
+                                </div>
+                                <span className={labelCls}>{label}</span>
+                                {deltaPct !== undefined && prevWindow30 > 0 && (
+                                    <span className="ml-auto inline-flex items-center gap-0.5 text-[10px] font-black px-1.5 py-0.5 rounded"
+                                        style={{ color: deltaColor, backgroundColor: `${deltaColor}14` }}>
+                                        <TrendIcon size={10} />
+                                        {fmtSignedPct(deltaPct)}
+                                    </span>
+                                )}
                             </div>
-                            <span className={labelCls}>{label}</span>
+                            <p className={`text-3xl font-black text-gray-900 dark:text-white leading-none ${dataCls}`}>{value}</p>
+                            <p className="text-[11px] text-gray-500 mt-2">{sub}</p>
                         </div>
-                        <p className={`text-3xl font-black text-gray-900 dark:text-white leading-none ${dataCls}`}>{value}</p>
-                        <p className="text-[11px] text-gray-500 mt-2">{sub}</p>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
-            {/* Conversion Funnel + Buyer Profile */}
-            <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
+            {/* Tendência diária + Insights */}
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
+                <div className={`${card} p-5`}>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <Calendar size={14} style={{ color: BRAND.BRONZE }} />
+                            <div>
+                                <p className={labelCls}>Tendência diária · 30 dias</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                                    Pico:{' '}
+                                    <span className={`${dataCls} text-[#A0792E]`}>
+                                        {Math.max(...dailyLeads30d)}
+                                    </span>
+                                    {' '}leads/dia · Média:{' '}
+                                    <span className={dataCls}>
+                                        {(dailyLeads30d.reduce((s, n) => s + n, 0) / 30).toFixed(1)}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <span className="text-[10px] uppercase tracking-wider font-bold" style={{ color: BRAND.BRONZE }}>
+                            {leads30d} no período
+                        </span>
+                    </div>
+                    <Sparkline data={dailyLeads30d} color={BRAND.BRONZE} height={56} />
+                    <div className="flex justify-between mt-2 text-[9px] text-gray-400 font-mono">
+                        <span>30d atrás</span>
+                        <span>15d</span>
+                        <span>hoje</span>
+                    </div>
+                </div>
 
-                {/* Funil de Conversão */}
+                <div className="flex flex-col gap-3">
+                    {insights.slice(0, 3).map((ins, i) => {
+                        const accent = ins.kind === 'positive' ? BRAND.TECH_GREEN : ins.kind === 'attention' ? BRAND.LOSS : BRAND.BRONZE;
+                        const Icon = ins.kind === 'positive' ? TrendingUp : ins.kind === 'attention' ? Activity : Lightbulb;
+                        return (
+                            <Link key={i} href={ins.href} className={`${card} p-3 group transition-all hover:shadow-md flex items-start gap-2.5`}
+                                style={{ borderColor: `${accent}4D` }}>
+                                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${accent}1F`, color: accent }}>
+                                    <Icon size={13} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[11px] font-bold text-gray-900 dark:text-white leading-tight">{ins.title}</p>
+                                    <p className="text-[10px] text-gray-500 leading-relaxed mt-0.5">{ins.body}</p>
+                                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider mt-1.5" style={{ color: accent }}>
+                                        {ins.cta} <ArrowRight size={9} />
+                                    </span>
+                                </div>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Funil de Aquisição — Captados → MQL → Negociação → Cliente */}
+            <div className={`${card} p-5`}>
+                <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+                    <div>
+                        <p className={labelCls}>Funil de aquisição · histórico completo</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                            <span className={`${dataCls} text-[#A0792E]`}>{totalLeads}</span> leads captados ·
+                            {' '}<span className={`${dataCls}`} style={{ color: BRAND.BRONZE_PALE }}>{mqlAll.length}</span> qualificados como MQL ·
+                            {' '}<span className={`${dataCls}`} style={{ color: BRAND.TECH_GREEN }}>{closedLeads}</span> clientes
+                        </p>
+                    </div>
+                    <span className="text-[10px] px-2.5 py-1 rounded-full" style={{ backgroundColor: `${BRAND.LOSS}1F`, color: BRAND.LOSS }}>
+                        <span className={dataCls}>{lostLeads}</span> perdidos
+                    </span>
+                </div>
+                <FunnelChart stages={acquisitionFunnel} />
+            </div>
+
+            {/* Funil tradicional CRM + Aging */}
+            <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
                 <div className={`${card} p-5`}>
                     <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
                         <div>
-                            <p className={labelCls}>Funil de conversão</p>
+                            <p className={labelCls}>Pipeline comercial</p>
                             <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
                                 {totalLeads} leads · <span className={`${dataCls} text-[#A0792E]`}>{conversionRate.toFixed(0)}%</span> fecham
                             </p>
                         </div>
-                        <span className="text-[10px] px-2.5 py-1 rounded-full" style={{ backgroundColor: `${BRAND.LOSS}1F`, color: BRAND.LOSS }}>
-                            <span className={dataCls}>{lostLeads}</span> perdidos
+                        <span className={`text-[10px] px-2.5 py-1 rounded-full ${dataCls}`}
+                            style={{ backgroundColor: `${BRAND.BRONZE}14`, color: BRAND.BRONZE }}>
+                            {activeLeads} ativos
                         </span>
                     </div>
-
                     <FunnelChart
                         stages={FUNNEL_PIPELINE.map((stage, i) => ({ label: stage, count: funnelCounts[i] }))}
                         totalForPct={totalLeads || funnelTop}
                     />
                 </div>
 
-                {/* Top Compradores (perfil) */}
+                {/* Aging — leads parados */}
+                <div className={`${card} p-5`}>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <Hourglass size={14} style={{ color: BRAND.LOSS }} />
+                            <div>
+                                <p className={labelCls}>Aging do funil</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                                    Sem movimento há +{STALLED_DAYS}d
+                                </p>
+                            </div>
+                        </div>
+                        <span className={`text-[10px] font-bold ${dataCls}`} style={{ color: BRAND.LOSS }}>
+                            {totalStalled} parados
+                        </span>
+                    </div>
+                    {totalStalled === 0 ? (
+                        <div className="py-8 text-center">
+                            <CheckCircle2 size={20} className="mx-auto mb-2 opacity-40" style={{ color: BRAND.TECH_GREEN }} />
+                            <p className="text-xs text-gray-400">Pipeline saudável — nenhum lead estagnado.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {STALLED_STAGES.map(stage => {
+                                const count = stalledByStage[stage] || 0;
+                                const stageTotal = allLeads.filter(l => l.status === stage).length;
+                                const pct = stageTotal > 0 ? (count / stageTotal) * 100 : 0;
+                                return (
+                                    <div key={stage}>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{stage}</span>
+                                            <span className="flex items-center gap-1.5 text-[10px] text-gray-500">
+                                                <span className={`${dataCls} font-bold`} style={{ color: count > 0 ? BRAND.LOSS : BRAND.TECH_GREEN }}>
+                                                    {count}
+                                                </span>
+                                                <span className={dataCls}>/ {stageTotal}</span>
+                                                <span className={`${dataCls}`}>({pct.toFixed(0)}%)</span>
+                                            </span>
+                                        </div>
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                            <div className="h-full rounded-full transition-all duration-700"
+                                                style={{ width: `${pct}%`, backgroundColor: pct > 30 ? BRAND.LOSS : BRAND.BRONZE, opacity: 0.85 }} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Aquisição — Canais + Campanhas + Audiência */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                {/* Canais */}
+                <div className={`${card} overflow-hidden flex flex-col`}>
+                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center gap-2">
+                        <Activity size={14} style={{ color: BRAND.BRONZE }} />
+                        <div>
+                            <p className={labelCls}>Canais</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Captação por origem</p>
+                        </div>
+                    </div>
+                    <div className="p-5 flex-1 space-y-2.5">
+                        {topChannels.length === 0 ? (
+                            <p className="text-xs text-gray-400 italic">Sem dados de canal.</p>
+                        ) : (
+                            topChannels.map(([source, count]) => {
+                                const pct = (count / channelsTotal) * 100;
+                                return (
+                                    <div key={source}>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-[180px]">
+                                                {source}
+                                            </span>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`text-xs font-bold ${dataCls}`} style={{ color: BRAND.BRONZE }}>{count}</span>
+                                                <span className={`text-[9px] text-gray-500 ${dataCls}`}>({pct.toFixed(0)}%)</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                            <div className="h-full rounded-full"
+                                                style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+
+                {/* Campanhas */}
+                <div className={`${card} overflow-hidden flex flex-col`}>
+                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center gap-2">
+                        <Megaphone size={14} style={{ color: BRAND.BRONZE_PALE }} />
+                        <div>
+                            <p className={labelCls}>Top campanhas</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Por volume de leads</p>
+                        </div>
+                    </div>
+                    <div className="p-5 flex-1 space-y-2.5">
+                        {topCampaigns.length === 0 ? (
+                            <p className="text-xs text-gray-400 italic">Sem campanhas com UTM marcadas.</p>
+                        ) : (
+                            topCampaigns.map(([cmp, count]) => {
+                                const pct = (count / maxCampaign) * 100;
+                                return (
+                                    <div key={cmp}>
+                                        <div className="flex justify-between items-center mb-1 gap-2">
+                                            <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate flex-1" title={cmp}>
+                                                {cmp}
+                                            </span>
+                                            <span className={`text-xs font-bold ${dataCls}`} style={{ color: BRAND.BRONZE }}>{count}</span>
+                                        </div>
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                            <div className="h-full rounded-full"
+                                                style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_PALE}, ${BRAND.BRONZE})` }} />
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+
+                {/* Audiência — momento_pecuaria */}
+                <div className={`${card} overflow-hidden flex flex-col`}>
+                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center gap-2">
+                        <Sparkles size={14} style={{ color: BRAND.TECH_BLUE }} />
+                        <div>
+                            <p className={labelCls}>Audiência</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Momento na pecuária</p>
+                        </div>
+                    </div>
+                    <div className="p-5 flex-1 space-y-2.5">
+                        {momentoSorted.length === 0 ? (
+                            <p className="text-xs text-gray-400 italic">Aguardando coleta de dados.</p>
+                        ) : (
+                            momentoSorted.map(([key, count]) => {
+                                const pct = momentoTotal > 0 ? (count / momentoTotal) * 100 : 0;
+                                const label = MOMENTO_LABELS[key] ?? key;
+                                return (
+                                    <div key={key}>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-[160px]">{label}</span>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`text-xs font-bold ${dataCls}`} style={{ color: BRAND.TECH_BLUE }}>{count}</span>
+                                                <span className={`text-[9px] text-gray-500 ${dataCls}`}>({pct.toFixed(0)}%)</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                            <div className="h-full rounded-full"
+                                                style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.TECH_BLUE}, ${BRAND.BRONZE})` }} />
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Geografia + Top Compradores */}
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-4">
+                {/* Top UFs */}
+                <div className={`${card} p-5`}>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <MapPin size={14} style={{ color: BRAND.BRONZE }} />
+                            <div>
+                                <p className={labelCls}>Geografia</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Top UFs por captação</p>
+                            </div>
+                        </div>
+                        <span className={`text-[10px] ${dataCls} text-gray-500`}>
+                            {Object.keys(ufCounts).length} estados
+                        </span>
+                    </div>
+                    {topUFs.length === 0 ? (
+                        <p className="text-xs text-gray-400 italic">Sem geolocalização registrada.</p>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-x-5 gap-y-2.5">
+                            {topUFs.map(([uf, count]) => {
+                                const pct = (count / maxUF) * 100;
+                                return (
+                                    <div key={uf}>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className={`text-xs font-bold text-gray-800 dark:text-gray-200 ${dataCls}`}>{uf}</span>
+                                            <span className={`text-[10px] ${dataCls}`} style={{ color: BRAND.BRONZE }}>{count}</span>
+                                        </div>
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                            <div className="h-full rounded-full"
+                                                style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* Top Compradores */}
                 <div className={`${card} p-5`}>
                     <div className="flex items-center justify-between mb-4">
                         <div>
@@ -319,7 +767,7 @@ export default async function VendasMarketingPage() {
                     </div>
 
                     {topBuyers.length === 0 ? (
-                        <div className="py-8 text-center">
+                        <div className="py-6 text-center">
                             <p className="text-xs text-gray-400">Sem fechamentos registrados</p>
                             <Link href="/leiloes" className="inline-flex items-center gap-1 mt-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: BRAND.BRONZE }}>
                                 Cadastrar leilão <ArrowRight size={10} />
@@ -331,13 +779,11 @@ export default async function VendasMarketingPage() {
                                 <div key={b.name} className="space-y-1.5">
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="flex items-center gap-2 min-w-0">
-                                            <span
-                                                className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0"
+                                            <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0"
                                                 style={{
                                                     backgroundColor: i === 0 ? BRAND.BRONZE : i === 1 ? '#C8C8C8' : i === 2 ? BRAND.BRONZE_DEEP : `${BRAND.BRONZE}1F`,
                                                     color: i === 0 ? '#000' : i === 2 ? '#fff' : i === 1 ? '#1A1A1A' : BRAND.BRONZE,
-                                                }}
-                                            >
+                                                }}>
                                                 {i + 1}
                                             </span>
                                             <div className="min-w-0">
@@ -352,16 +798,12 @@ export default async function VendasMarketingPage() {
                                         </span>
                                     </div>
                                     <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
-                                        <div
-                                            className="h-full rounded-full transition-all duration-700"
+                                        <div className="h-full rounded-full transition-all duration-700"
                                             style={{
                                                 width: `${(b.vgv / maxBuyerVgv) * 100}%`,
-                                                background: i === 0
-                                                    ? `linear-gradient(90deg, ${BRAND.BRONZE}, ${BRAND.BRONZE_PALE})`
-                                                    : BRAND.BRONZE,
+                                                background: i === 0 ? `linear-gradient(90deg, ${BRAND.BRONZE}, ${BRAND.BRONZE_PALE})` : BRAND.BRONZE,
                                                 opacity: 1 - i * 0.12,
-                                            }}
-                                        />
+                                            }} />
                                     </div>
                                 </div>
                             ))}
@@ -403,7 +845,6 @@ export default async function VendasMarketingPage() {
                                         <p className={`text-[9px] text-gray-500 ${dataCls}`}>{fmtDateBR(r.data)}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        {/* VGV */}
                                         <div className="flex items-center gap-2">
                                             <div className="flex-1 h-3 rounded-sm bg-gray-50 dark:bg-[#111] overflow-hidden">
                                                 <div className="h-full rounded-sm transition-all duration-700"
@@ -413,7 +854,6 @@ export default async function VendasMarketingPage() {
                                                 {fmtBRL(r.vgv_total)}
                                             </span>
                                         </div>
-                                        {/* Investido vs Retorno (só se > 0) */}
                                         {(r.investido > 0 || r.retorno > 0) && (
                                             <>
                                                 <div className="flex items-center gap-2">
@@ -467,42 +907,101 @@ export default async function VendasMarketingPage() {
                 </div>
             )}
 
-            {/* Insights automáticos */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {insights.slice(0, 3).map((ins, i) => {
-                    const accent = ins.kind === 'positive' ? BRAND.TECH_GREEN : ins.kind === 'attention' ? BRAND.LOSS : BRAND.BRONZE;
-                    const Icon = ins.kind === 'positive' ? TrendingUp : ins.kind === 'attention' ? Activity : Lightbulb;
-                    return (
-                        <Link
-                            key={i}
-                            href={ins.href}
-                            className={`${card} p-4 group transition-all hover:shadow-md flex flex-col gap-2`}
-                            style={{ borderColor: `${accent}4D` }}
-                        >
-                            <div className="flex items-start gap-2">
-                                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${accent}1F`, color: accent }}>
-                                    <Icon size={13} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className={labelCls}>Insight automático</p>
-                                    <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5 leading-tight">{ins.title}</p>
-                                </div>
+            {/* WhatsApp engagement */}
+            <div className={`${card} p-5`}>
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                    <div className="flex items-center gap-2">
+                        <MessageSquare size={14} style={{ color: BRAND.TECH_GREEN }} />
+                        <div>
+                            <p className={labelCls}>WhatsApp · Engajamento 30d</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                                <span className={`${dataCls} text-[#A0792E]`}>{wpp30d}</span> mensagens · {wppToday} hoje · {wpp7d} em 7d
+                            </p>
+                        </div>
+                    </div>
+                    <Link href="/whatsapp" className="text-[10px] font-bold uppercase tracking-wider hover:opacity-80 transition-opacity flex items-center gap-1"
+                        style={{ color: BRAND.TECH_GREEN }}>
+                        Abrir Central <ArrowRight size={10} />
+                    </Link>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-5">
+                    <div>
+                        <Sparkline data={dailyWpp30d} color={BRAND.TECH_GREEN} height={56} />
+                        <div className="flex justify-between mt-2 text-[9px] text-gray-400 font-mono">
+                            <span>30d atrás</span>
+                            <span>15d</span>
+                            <span>hoje</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                        {[
+                            { label: 'Disparados (out)', value: wppOut30, color: BRAND.BRONZE },
+                            { label: 'Recebidos (in)',  value: wppIn30,  color: BRAND.TECH_BLUE },
+                            { label: 'Taxa de entrega', value: fmtPct(wppSentRate), color: BRAND.TECH_GREEN, isText: true },
+                            { label: 'Taxa de resposta', value: fmtPct(wppReplyRate), color: BRAND.BRONZE_PALE, isText: true },
+                        ].map(({ label, value, color, isText }) => (
+                            <div key={label} className="rounded-xl border border-gray-100 dark:border-[#1A1A1A] p-3">
+                                <p className={`${labelCls} mb-1`}>{label}</p>
+                                <p className={`text-xl font-black ${dataCls}`} style={{ color }}>
+                                    {isText ? value : Number(value).toLocaleString('pt-BR')}
+                                </p>
                             </div>
-                            <p className="text-[11px] text-gray-500 leading-relaxed flex-1">{ins.body}</p>
-                            <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: accent }}>
-                                {ins.cta}
-                                <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
-                            </div>
-                        </Link>
-                    );
-                })}
+                        ))}
+                    </div>
+                </div>
             </div>
 
-            {/* Leads recentes + Origem */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Hot leads + Leads recentes */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+                {/* Hot leads — MQL ativos */}
+                <div className={`${card} overflow-hidden flex flex-col`}>
+                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Flame size={14} style={{ color: BRAND.LOSS }} />
+                            <div>
+                                <p className={labelCls}>Hot leads</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">MQLs ativos · prioridade máxima</p>
+                            </div>
+                        </div>
+                        <Link href="/crm" className="text-[10px] font-bold uppercase tracking-wider hover:opacity-80 transition-opacity flex items-center gap-1" style={{ color: BRAND.BRONZE }}>
+                            Ver todos <ArrowRight size={10} />
+                        </Link>
+                    </div>
+                    {hotLeads.length === 0 ? (
+                        <div className="p-10 text-center text-gray-400">
+                            <Crown className="w-7 h-7 mx-auto mb-2 opacity-30" />
+                            <p className="text-xs">Nenhum MQL ativo no momento.</p>
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-gray-100 dark:divide-[#1E1E1E]">
+                            {hotLeads.map(l => {
+                                const created = new Date(l.created_at);
+                                const diasAtras = Math.floor((now.getTime() - created.getTime()) / 86400000);
+                                return (
+                                    <Link href="/crm" key={l.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-[#111] transition-colors group">
+                                        <div className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
+                                            style={{ background: `linear-gradient(135deg, ${BRAND.BRONZE}, ${BRAND.BRONZE_PALE})`, color: '#000' }}>
+                                            <Crown size={14} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{l.nome || 'Sem nome'}</p>
+                                            <p className={`text-[10px] text-gray-500 truncate ${dataCls}`}>
+                                                {[l.status, l.quantidade_animais && `${l.quantidade_animais} cab.`, l.estado, diasAtras === 0 ? 'hoje' : `${diasAtras}d`].filter(Boolean).join(' · ')}
+                                            </p>
+                                        </div>
+                                        <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" style={{ color: BRAND.BRONZE }} />
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
 
                 {/* Leads recentes */}
-                <div className={`${card} lg:col-span-2 overflow-hidden flex flex-col`}>
+                <div className={`${card} overflow-hidden flex flex-col`}>
                     <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Sparkles size={14} style={{ color: BRAND.BRONZE }} />
@@ -515,11 +1014,10 @@ export default async function VendasMarketingPage() {
                             Ver todos <ArrowRight size={10} />
                         </Link>
                     </div>
-
                     {recentLeads.length === 0 ? (
                         <div className="p-10 text-center text-gray-400">
                             <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                            <p className="text-xs">Nenhum lead cadastrado ainda</p>
+                            <p className="text-xs">Nenhum lead cadastrado ainda.</p>
                         </div>
                     ) : (
                         <div className="divide-y divide-gray-100 dark:divide-[#1E1E1E]">
@@ -536,9 +1034,15 @@ export default async function VendasMarketingPage() {
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{l.nome || 'Sem nome'}</p>
                                             <p className={`text-[10px] text-gray-500 truncate ${dataCls}`}>
-                                                {[l.status, l.origem, diasAtras === 0 ? 'hoje' : `${diasAtras}d`].filter(Boolean).join(' · ')}
+                                                {[l.status, l.source || l.origem, diasAtras === 0 ? 'hoje' : `${diasAtras}d`].filter(Boolean).join(' · ')}
                                             </p>
                                         </div>
+                                        {l.is_mql && (
+                                            <span className="inline-flex items-center gap-0.5 text-[8px] font-black uppercase px-1.5 py-0.5 rounded"
+                                                style={{ background: `linear-gradient(90deg, ${BRAND.BRONZE}, ${BRAND.BRONZE_PALE})`, color: '#000' }}>
+                                                <Crown size={8} /> MQL
+                                            </span>
+                                        )}
                                         {l.prioridade && (
                                             <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border"
                                                 style={{ color: prioColor, borderColor: `${prioColor}40`, backgroundColor: `${prioColor}10` }}>
@@ -552,52 +1056,18 @@ export default async function VendasMarketingPage() {
                         </div>
                     )}
                 </div>
-
-                {/* Origem */}
-                <div className={`${card} overflow-hidden flex flex-col`}>
-                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center gap-2">
-                        <Activity size={14} style={{ color: BRAND.BRONZE }} />
-                        <div>
-                            <p className={labelCls}>Origem</p>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Captação por canal</p>
-                        </div>
-                    </div>
-                    <div className="p-5 flex-1 space-y-2.5">
-                        {topOrigens.length === 0 ? (
-                            <p className="text-xs text-gray-400 italic">Sem dados de origem</p>
-                        ) : (
-                            topOrigens.map(([origem, count]) => {
-                                const pct = totalLeads > 0 ? (count / totalLeads) * 100 : 0;
-                                return (
-                                    <div key={origem}>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-[140px]">{origem}</span>
-                                            <div className="flex items-center gap-1.5">
-                                                <span className={`text-xs font-bold ${dataCls}`} style={{ color: BRAND.BRONZE }}>{count}</span>
-                                                <span className={`text-[9px] text-gray-500 ${dataCls}`}>({pct.toFixed(0)}%)</span>
-                                            </div>
-                                        </div>
-                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
-                                            <div className="h-full rounded-full" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                </div>
             </div>
 
-            {/* Módulos do sistema (atalhos discretos) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Atalhos discretos para módulos */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Link href="/crm" className={`${card} p-4 group flex items-center gap-3 transition-all hover:shadow-md`}>
                     <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
                         style={{ backgroundColor: `${BRAND.BRONZE}14`, color: BRAND.BRONZE }}>
                         <Users className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-900 dark:text-white">CRM · Pipeline de vendas</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Kanban, qualificação e atividades por responsável</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">CRM · Pipeline</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Kanban, qualificação, MQLs</p>
                     </div>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" style={{ color: BRAND.BRONZE }} />
                 </Link>
@@ -605,13 +1075,25 @@ export default async function VendasMarketingPage() {
                 <Link href="/whatsapp" className={`${card} p-4 group flex items-center gap-3 transition-all hover:shadow-md`}>
                     <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
                         style={{ backgroundColor: `${BRAND.TECH_GREEN}14`, color: BRAND.TECH_GREEN }}>
-                        <Send className="w-5 h-5" />
+                        <MessageSquare className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-900 dark:text-white">Automação WhatsApp</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Fluxos de boas-vindas e disparos por gatilho</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">Central WhatsApp</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Inbox, templates e campanhas</p>
                     </div>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" style={{ color: BRAND.TECH_GREEN }} />
+                </Link>
+
+                <Link href="/leiloes" className={`${card} p-4 group flex items-center gap-3 transition-all hover:shadow-md`}>
+                    <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
+                        style={{ backgroundColor: `${BRAND.TECH_BLUE}14`, color: BRAND.TECH_BLUE }}>
+                        <Target className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">Leilões & Fechamentos</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">VGV, ROI, top compradores</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" style={{ color: BRAND.TECH_BLUE }} />
                 </Link>
             </div>
 
