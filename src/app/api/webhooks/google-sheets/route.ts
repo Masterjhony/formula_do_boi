@@ -102,10 +102,15 @@ export async function POST(request: NextRequest) {
             const numericMatch = qtd.match(/^(\d+)\s*$/);
             const isMql = MQL_FAIXAS.has(qtd) || (numericMatch ? Number(numericMatch[1]) >= 100 : false);
 
+            const phone = lead.celular || lead.telefone || null;
             const record = {
                 nome: nomeFormatado,
                 status: 'Lead',
-                telefone: lead.celular || lead.telefone || null,
+                // Grava o número nas duas colunas: `telefone` para compat com queries
+                // legadas e `celular` para o input "Celular / WhatsApp" da Qualificação
+                // poder editar inline (ele lê `celular`).
+                telefone: phone,
+                celular: phone,
                 instagram: lead.instagram || null,
                 empresa: lead.nome_fazenda || lead.empresa || null,
                 estado: estado || null,

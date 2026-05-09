@@ -61,7 +61,11 @@ export async function POST(request: NextRequest) {
             .insert({
                 nome,
                 email,
+                // Mantemos `telefone` por compatibilidade com relatórios/queries antigos,
+                // mas o componente de Qualificação edita inline em `celular`. Gravar nos
+                // dois evita o input "Celular / WhatsApp" aparecer vazio.
                 telefone: tel.replace(/\D/g, ''),
+                celular:  tel.replace(/\D/g, ''),
                 origem: 'landing-page',
                 stage: 'novo',
                 status: 'Lead',
