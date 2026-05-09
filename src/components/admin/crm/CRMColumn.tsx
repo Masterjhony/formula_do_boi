@@ -1,10 +1,11 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CRMCard } from './CRMCard';
 import { CRMLead } from '@/app/web-admin/actions/crm-leads';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil } from 'lucide-react';
 
 interface CRMColumnProps {
     id: string;
@@ -12,9 +13,10 @@ interface CRMColumnProps {
     leads: CRMLead[];
     onLeadClick: (lead: CRMLead) => void;
     onAddLead: (status: string) => void;
+    onRename?: (oldName: string, newName: string) => Promise<void>;
 }
 
-export function CRMColumn({ id, title, leads, onLeadClick, onAddLead }: CRMColumnProps) {
+export function CRMColumn({ id, title, leads, onLeadClick, onAddLead, onRename }: CRMColumnProps) {
     const { setNodeRef } = useDroppable({
         id: id,
         data: {
@@ -22,6 +24,18 @@ export function CRMColumn({ id, title, leads, onLeadClick, onAddLead }: CRMColum
             status: id,
         },
     });
+
+    const [editing, setEditing] = useState(false);
+    const [draft, setDraft] = useState(title);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        setDraft(title);
+    }, [title]);
+
+    useEffect(() => {
+        if (editing) inputRef.current?.select();
+    }, [editing]);
 
     const columnColors: Record<string, string> = {
         'Sem Status': 'bg-gray-500/10 text-gray-500 border-gray-500/20',
@@ -35,16 +49,60 @@ export function CRMColumn({ id, title, leads, onLeadClick, onAddLead }: CRMColum
     };
 
     const headerColor = columnColors[title] || columnColors['default'];
+    const canRename = !!onRename;
+
+    const commit = async () => {
+        const next = draft.trim();
+        setEditing(false);
+        if (!onRename || !next || next === title) {
+            setDraft(title);
+            return;
+        }
+        await onRename(title, next);
+    };
+
+    const cancel = () => {
+        setDraft(title);
+        setEditing(false);
+    };
 
     return (
         <div
             ref={setNodeRef}
             className="flex-1 min-w-[320px] flex flex-col gap-4 bg-gray-50 dark:bg-[#111111] p-4 rounded-2xl border border-gray-200 dark:border-[#222222]"
         >
-            <div className="flex items-center justify-between pointer-events-none">
-                <div className={`px-3 py-1 rounded-full text-xs font-bold border flex w-full justify-between items-center ${headerColor}`}>
-                    <span>{title}</span>
-                    <span className="opacity-70 text-[10px] bg-white/20 px-2 py-0.5 rounded-full">{leads.length}</span>
+            <div className="flex items-center justify-between">
+                <div className={`group/title px-3 py-1 rounded-full text-xs font-bold border flex w-full justify-between items-center gap-2 ${headerColor}`}>
+                    {editing ? (
+                        <input
+                            ref={inputRef}
+                            value={draft}
+                            onChange={e => setDraft(e.target.value)}
+                            onBlur={commit}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                if (e.key === 'Escape') cancel();
+                            }}
+                            className="flex-1 bg-transparent border-b border-current/40 outline-none text-xs font-bold uppercase tracking-wide"
+                        />
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => canRename && setEditing(true)}
+                            disabled={!canRename}
+                            title={canRename ? 'Clique para renomear etapa' : undefined}
+                            className={`flex items-center gap-1.5 truncate ${canRename ? 'cursor-text hover:opacity-80' : 'cursor-default'}`}
+                        >
+                            <span className="truncate">{title}</span>
+                            {canRename && (
+                                <Pencil
+                                    size={11}
+                                    className="opacity-0 group-hover/title:opacity-60 transition-opacity shrink-0"
+                                />
+                            )}
+                        </button>
+                    )}
+                    <span className="opacity-70 text-[10px] bg-white/20 px-2 py-0.5 rounded-full shrink-0">{leads.length}</span>
                 </div>
             </div>
 

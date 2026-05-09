@@ -2,19 +2,16 @@
 
 import { useMemo, useState } from 'react';
 import { CRMLead, updateLead, createLead, moveLead, deleteLead } from '@/app/web-admin/actions/crm-leads';
+import { renameStage } from '@/app/web-admin/actions/crm-config';
 import type { CRMConfig } from '@/lib/crm-types';
 import { isQualificationStage } from '@/lib/crm-types';
 import { CRMKanbanBoard } from './CRMKanbanBoard';
 import { CRMModal } from './CRMModal';
-import { CRMChart } from './CRMChart';
-import { CRMTable } from './CRMTable';
 import { CRMSettingsView } from './CRMSettingsView';
 import { CRMQualificacaoView } from './CRMQualificacaoView';
 import { CRMPreferenciaisStrip } from './CRMPreferenciaisStrip';
-import { CRMFunnelView } from '@/components/admin/funil-vendas/CRMFunnelView';
 import {
-    BarChart2, LayoutGrid, AlertCircle, DollarSign,
-    Plus, Maximize2, Minimize2, Settings, TrendingUp, ListChecks,
+    LayoutGrid, Plus, Maximize2, Minimize2, Settings, ListChecks,
 } from 'lucide-react';
 
 interface CRMDashboardClientProps {
@@ -22,7 +19,7 @@ interface CRMDashboardClientProps {
     crmConfig: CRMConfig;
 }
 
-type ViewType = 'qualificacao' | 'grafico' | 'kanban' | 'prioridade_alta' | 'valor_alto' | 'funil' | 'configuracoes';
+type ViewType = 'qualificacao' | 'kanban' | 'configuracoes';
 
 export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: CRMDashboardClientProps) {
     const [leads, setLeads] = useState<CRMLead[]>(initialLeads);
@@ -95,6 +92,19 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
         if (editingLead?.id === lead.id) setEditingLead(lead);
     };
 
+    const handleRenameStage = async (oldName: string, newName: string) => {
+        const trimmed = newName.trim();
+        if (!trimmed || trimmed === oldName) return;
+        try {
+            const newConfig = await renameStage(oldName, trimmed);
+            setCrmConfig(newConfig);
+            setLeads(prev => prev.map(l => (l.status === oldName ? { ...l, status: trimmed } : l)));
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : 'Erro ao renomear etapa.';
+            alert(msg);
+        }
+    };
+
     // Leads que podem aparecer no kanban / listas (exclui qualificação)
     const advancedLeads = useMemo(
         () => leads.filter(l => !qualificationStageNames.has(l.status)),
@@ -103,28 +113,13 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
 
     const views = [
         { id: 'qualificacao', label: 'Qualificação', icon: ListChecks, badge: qualificationCount },
-        { id: 'grafico', label: 'Gráfico', icon: BarChart2 },
-        { id: 'kanban', label: 'CRM Principal', icon: LayoutGrid },
-        { id: 'prioridade_alta', label: 'Prioridade alta', icon: AlertCircle },
-        { id: 'valor_alto', label: 'Valor > R$ 1000', icon: DollarSign },
-        { id: 'funil', label: 'Funil de Vendas', icon: TrendingUp },
+        { id: 'kanban', label: 'CRM', icon: LayoutGrid },
         { id: 'configuracoes', label: 'Configurações', icon: Settings },
     ] as const;
 
-    let displayLeads = advancedLeads;
-    if (activeView === 'prioridade_alta') {
-        displayLeads = leads.filter(l => {
-            const match = l.quantidade_animais?.match(/\d+/);
-            return match ? Number(match[0]) > 100 : false;
-        });
-    } else if (activeView === 'valor_alto') {
-        displayLeads = advancedLeads.filter(l => l.interesse?.includes('R$') || l.interesse?.toLowerCase().includes('touro'));
-    }
-
     const isSettings = activeView === 'configuracoes';
-    const isFunnel = activeView === 'funil';
     const isQualificacao = activeView === 'qualificacao';
-    const isScrollable = isSettings || isFunnel || isQualificacao || activeView === 'grafico';
+    const isScrollable = isSettings || isQualificacao;
 
     return (
         <div className={
@@ -157,7 +152,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                                         isActive
                                             ? 'border-[#A0792E] text-gray-900 dark:text-white bg-gray-50 dark:bg-[#1A1A1A]'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
-                                    } ${(isSpecial || view.id === 'funil') && !isActive ? 'ml-1' : ''}`}
+                                    } ${isSpecial && !isActive ? 'ml-1' : ''}`}
                                 >
                                     <Icon size={15} />
                                     {view.label}
@@ -207,8 +202,6 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                     />
                 )}
 
-                {activeView === 'grafico' && <CRMChart leads={leads} stages={allStages} />}
-
                 {activeView === 'kanban' && (
                     <div className="flex flex-col h-full min-h-0">
                         <CRMPreferenciaisStrip
@@ -223,21 +216,10 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
                                 onEditLead={handleEditLead}
                                 onAddLead={handleOpenNewLead}
                                 onMoveLead={handleMoveLead}
+                                onRenameStage={handleRenameStage}
                             />
                         </div>
                     </div>
-                )}
-
-                {(activeView === 'prioridade_alta' || activeView === 'valor_alto') && (
-                    <CRMTable leads={displayLeads} onEditLead={handleEditLead} />
-                )}
-
-                {activeView === 'funil' && (
-                    <CRMFunnelView
-                        leads={leads}
-                        crmConfig={crmConfig}
-                        onConfigSaved={(config) => setCrmConfig(config)}
-                    />
                 )}
 
                 {activeView === 'configuracoes' && (

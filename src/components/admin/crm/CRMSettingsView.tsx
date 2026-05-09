@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Trash2, Save, Check, X, Users } from 'lucide-react';
 import { saveCRMConfig } from '@/app/web-admin/actions/crm-config';
 import type { CRMConfig, CRMResponsavel } from '@/lib/crm-types';
 import { DEFAULT_STAGES } from '@/lib/crm-types';
+import { FunnelsEditor } from '@/components/admin/funil-vendas/FunnelsEditor';
 
 interface CRMSettingsViewProps {
     initialConfig: CRMConfig;
@@ -35,6 +36,12 @@ export function CRMSettingsView({ initialConfig, onConfigSaved }: CRMSettingsVie
     const [newRespName, setNewRespName] = useState('');
     const [newRespEmail, setNewRespEmail] = useState('');
     const [newRespColor, setNewRespColor] = useState('blue');
+
+    // Sincroniza responsáveis com a config atualizada quando o FunnelsEditor salvar
+    // (ou quando a config for atualizada por outro caminho).
+    useEffect(() => {
+        setResponsaveis(initialConfig.responsaveis || []);
+    }, [initialConfig.responsaveis]);
 
     const addResponsavel = () => {
         const name = newRespName.trim();
@@ -84,11 +91,17 @@ export function CRMSettingsView({ initialConfig, onConfigSaved }: CRMSettingsVie
     const btnCancel = 'p-2 text-gray-400 hover:bg-gray-200 dark:hover:bg-[#333] rounded-lg transition-colors';
 
     return (
-        <div className="flex flex-col gap-6 max-w-2xl pb-8">
+        <div className="flex flex-col gap-6 max-w-3xl pb-8">
             <div className="flex items-center gap-2 text-xs text-gray-500">
                 <Users size={14} />
-                <span>Configuração de responsáveis. Para editar funis e etapas, vá para a aba <span className="font-semibold text-gray-700 dark:text-gray-300">Funil de Vendas → Gerenciar funis</span>.</span>
+                <span>Gerencie responsáveis, funis de venda, etapas e campos personalizados.</span>
             </div>
+
+            <FunnelsEditor
+                key={`fe-${initialConfig.funnels.length}-${initialConfig.funnels.map(f => f.stages.length).join('-')}`}
+                initialConfig={initialConfig}
+                onConfigSaved={onConfigSaved}
+            />
 
             <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-200 dark:border-[#222] overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-[#333] flex items-center justify-between">

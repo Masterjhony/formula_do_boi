@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
     Plus, Trash2, GripVertical, Save, Check, X,
-    ChevronUp, ChevronDown, ChevronRight,
+    ChevronUp, ChevronDown, ChevronRight, Eye, EyeOff,
 } from 'lucide-react';
-import { saveCRMConfig } from '@/app/web-admin/actions/crm-config';
-import type { CRMConfig, CRMCustomField, CRMFunnel } from '@/lib/crm-types';
-import { DEFAULT_STAGES } from '@/lib/crm-types';
+import { saveCRMConfig, renameStage } from '@/app/web-admin/actions/crm-config';
+import type { CRMConfig, CRMCustomField, CRMFunnel, CRMStage } from '@/lib/crm-types';
+import { DEFAULT_STAGES, isQualificationStage } from '@/lib/crm-types';
 
 interface FunnelsEditorProps {
     initialConfig: CRMConfig;
@@ -146,6 +146,64 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                 stages: f.stages.map(s => s.id === stageId ? { ...s, probability: probability ?? undefined } : s),
             };
         }));
+    };
+
+    const toggleStageVisibility = (funnelId: string, stageId: string) => {
+        setFunnels(prev => prev.map(f => {
+            if (f.id !== funnelId) return f;
+            return {
+                ...f,
+                stages: f.stages.map(s => {
+                    if (s.id !== stageId) return s;
+                    return { ...s, is_qualification: !isQualificationStage(s) };
+                }),
+            };
+        }));
+    };
+
+    // Rename é persistido imediatamente (no blur) porque precisa migrar `crm_leads.status`
+    // dos leads que estão na etapa antiga. As demais alterações (probabilidade, visibilidade,
+    // novos campos) seguem o fluxo do botão "Salvar funis".
+    const [editingStageId, setEditingStageId] = useState<string | null>(null);
+    const [stageDraft, setStageDraft] = useState('');
+    const stageRenamingRef = useRef(false);
+
+    const startEditStage = (stage: CRMStage) => {
+        setEditingStageId(stage.id);
+        setStageDraft(stage.name);
+    };
+
+    const cancelEditStage = () => {
+        setEditingStageId(null);
+        setStageDraft('');
+    };
+
+    const commitStageRename = async (funnelId: string, stage: CRMStage) => {
+        const next = stageDraft.trim();
+        const prevName = stage.name;
+        setEditingStageId(null);
+        setStageDraft('');
+        if (!next || next === prevName) return;
+
+        // Evita disparos duplicados (Enter dispara blur)
+        if (stageRenamingRef.current) return;
+        stageRenamingRef.current = true;
+        try {
+            const newConfig = await renameStage(prevName, next);
+            // Sincroniza estado local: troca o nome da etapa em todos os funis (igual ao server)
+            setFunnels(prev => prev.map(f => ({
+                ...f,
+                stages: f.stages.map(s => s.name === prevName ? { ...s, name: next } : s),
+            })));
+            onConfigSaved(newConfig);
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : 'Erro ao renomear etapa.';
+            alert(msg);
+        } finally {
+            stageRenamingRef.current = false;
+        }
+        // Suprimimos warning de unused param
+        void funnelId;
     };
 
     const addStage = (funnelId: string) => {
@@ -380,47 +438,86 @@ export function FunnelsEditor({ initialConfig, onConfigSaved }: FunnelsEditorPro
                                                 </div>
                                             )}
 
+                                            <p className="text-[10px] text-gray-400 mb-2 leading-relaxed">
+                                                Clique no nome da etapa para renomeá-la — leads existentes são migrados automaticamente. Use o botão à direita para escolher se a etapa aparece como coluna no <span className="font-semibold">CRM</span> ou só na fila de <span className="font-semibold">Qualificação</span>.
+                                            </p>
+
                                             <div className="bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#333] divide-y divide-gray-100 dark:divide-[#222] overflow-hidden">
-                                                {funnel.stages.map((stage, idx) => (
-                                                    <div
-                                                        key={stage.id}
-                                                        className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-[#222] group/row transition-colors"
-                                                    >
-                                                        <GripVertical size={14} className="text-gray-300 dark:text-gray-600 shrink-0" />
-                                                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStageBadge(stage.color)} min-w-[100px] text-center`}>
-                                                            {stage.name}
-                                                        </span>
-                                                        <span className="text-xs text-gray-400">{idx + 1}ª</span>
-                                                        <div className="flex items-center gap-1.5 ml-4">
-                                                            <label className="text-xs text-gray-400">Prob.</label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                max={100}
-                                                                value={stage.probability ?? ''}
-                                                                onChange={e => updateStageProbability(
-                                                                    funnel.id,
-                                                                    stage.id,
-                                                                    e.target.value === '' ? null : Number(e.target.value)
-                                                                )}
-                                                                className="w-16 px-2 py-1 text-xs bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-[#333] rounded outline-none focus:ring-2 focus:ring-[#A0792E]/40 dark:text-white"
-                                                                placeholder="—"
-                                                            />
-                                                            <span className="text-xs text-gray-400">%</span>
+                                                {funnel.stages.map((stage, idx) => {
+                                                    const hidden = isQualificationStage(stage);
+                                                    const isEditing = editingStageId === stage.id;
+                                                    return (
+                                                        <div
+                                                            key={stage.id}
+                                                            className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-[#222] group/row transition-colors"
+                                                        >
+                                                            <GripVertical size={14} className="text-gray-300 dark:text-gray-600 shrink-0" />
+                                                            {isEditing ? (
+                                                                <input
+                                                                    autoFocus
+                                                                    value={stageDraft}
+                                                                    onChange={e => setStageDraft(e.target.value)}
+                                                                    onBlur={() => commitStageRename(funnel.id, stage)}
+                                                                    onKeyDown={e => {
+                                                                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                                                        if (e.key === 'Escape') cancelEditStage();
+                                                                    }}
+                                                                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStageBadge(stage.color)} min-w-[100px] text-center outline-none focus:ring-2 focus:ring-[#A0792E]/40`}
+                                                                />
+                                                            ) : (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => startEditStage(stage)}
+                                                                    title="Clique para renomear"
+                                                                    className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStageBadge(stage.color)} min-w-[100px] text-center cursor-text hover:opacity-80 transition-opacity`}
+                                                                >
+                                                                    {stage.name}
+                                                                </button>
+                                                            )}
+                                                            <span className="text-xs text-gray-400">{idx + 1}ª</span>
+                                                            <div className="flex items-center gap-1.5 ml-4">
+                                                                <label className="text-xs text-gray-400">Prob.</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    max={100}
+                                                                    value={stage.probability ?? ''}
+                                                                    onChange={e => updateStageProbability(
+                                                                        funnel.id,
+                                                                        stage.id,
+                                                                        e.target.value === '' ? null : Number(e.target.value)
+                                                                    )}
+                                                                    className="w-16 px-2 py-1 text-xs bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-[#333] rounded outline-none focus:ring-2 focus:ring-[#A0792E]/40 dark:text-white"
+                                                                    placeholder="—"
+                                                                />
+                                                                <span className="text-xs text-gray-400">%</span>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => toggleStageVisibility(funnel.id, stage.id)}
+                                                                title={hidden ? 'Etapa só na fila de Qualificação. Clique para mostrar como coluna no CRM.' : 'Etapa visível como coluna no CRM. Clique para mover para a fila de Qualificação.'}
+                                                                className={`flex items-center gap-1 ml-2 text-[10px] font-semibold px-2 py-1 rounded-md border transition-colors ${
+                                                                    hidden
+                                                                        ? 'border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#111] text-gray-500 dark:text-gray-400 hover:border-[#A0792E]/40'
+                                                                        : 'border-[#A0792E]/40 bg-[#A0792E]/10 text-[#A0792E] hover:bg-[#A0792E]/20'
+                                                                }`}
+                                                            >
+                                                                {hidden ? <EyeOff size={11} /> : <Eye size={11} />}
+                                                                {hidden ? 'Qualificação' : 'CRM'}
+                                                            </button>
+                                                            <div className="flex gap-0.5 ml-auto opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                                                <button onClick={() => moveStage(funnel.id, idx, -1)} disabled={idx === 0} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-[#333] disabled:opacity-25 text-gray-500 transition-colors" title="Subir">
+                                                                    <ChevronUp size={13} />
+                                                                </button>
+                                                                <button onClick={() => moveStage(funnel.id, idx, 1)} disabled={idx === funnel.stages.length - 1} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-[#333] disabled:opacity-25 text-gray-500 transition-colors" title="Descer">
+                                                                    <ChevronDown size={13} />
+                                                                </button>
+                                                                <button onClick={() => deleteStage(funnel.id, stage.id)} disabled={funnel.stages.length <= 1} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-500/10 text-red-400 disabled:opacity-25 transition-colors" title="Remover">
+                                                                    <Trash2 size={12} />
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex gap-0.5 ml-auto opacity-0 group-hover/row:opacity-100 transition-opacity">
-                                                            <button onClick={() => moveStage(funnel.id, idx, -1)} disabled={idx === 0} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-[#333] disabled:opacity-25 text-gray-500 transition-colors" title="Subir">
-                                                                <ChevronUp size={13} />
-                                                            </button>
-                                                            <button onClick={() => moveStage(funnel.id, idx, 1)} disabled={idx === funnel.stages.length - 1} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-[#333] disabled:opacity-25 text-gray-500 transition-colors" title="Descer">
-                                                                <ChevronDown size={13} />
-                                                            </button>
-                                                            <button onClick={() => deleteStage(funnel.id, stage.id)} disabled={funnel.stages.length <= 1} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-500/10 text-red-400 disabled:opacity-25 transition-colors" title="Remover">
-                                                                <Trash2 size={12} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         </div>
 

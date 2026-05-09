@@ -26,11 +26,12 @@ interface CRMKanbanBoardProps {
     onEditLead: (lead: CRMLead) => void;
     onAddLead: (status: string) => void;
     onMoveLead: (id: string, newStatus: string, newPosition: number) => Promise<void>;
+    onRenameStage?: (oldName: string, newName: string) => Promise<void>;
 }
 
 export const CRM_COLUMNS = ['Lead', 'Qualificado', 'Proposta', 'Negociação', 'Fechado', 'Perdido', 'Sem Status'];
 
-export function CRMKanbanBoard({ leads: externalLeads, stages, onEditLead, onAddLead, onMoveLead }: CRMKanbanBoardProps) {
+export function CRMKanbanBoard({ leads: externalLeads, stages, onEditLead, onAddLead, onMoveLead, onRenameStage }: CRMKanbanBoardProps) {
     const columns = stages && stages.length > 0 ? stages : CRM_COLUMNS;
     const [leads, setLeads] = useState<CRMLead[]>(externalLeads);
     const [activeLead, setActiveLead] = useState<CRMLead | null>(null);
@@ -160,6 +161,7 @@ export function CRMKanbanBoard({ leads: externalLeads, stages, onEditLead, onAdd
                         leads={leads.filter((l) => l.status === colId)}
                         onLeadClick={onEditLead}
                         onAddLead={onAddLead}
+                        onRename={onRenameStage}
                     />
                 ))}
             </div>
