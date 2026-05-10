@@ -377,19 +377,21 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-gray-100 dark:border-[#1E1E1E] px-4 overflow-x-auto">
-          <DrawerTabBtn active={tab === 'resumo'} onClick={() => setTab('resumo')}>Resumo</DrawerTabBtn>
-          <DrawerTabBtn active={tab === 'assessores'} onClick={() => setTab('assessores')}>Assessores</DrawerTabBtn>
-          <DrawerTabBtn active={tab === 'compradores'} onClick={() => setTab('compradores')}>Compradores</DrawerTabBtn>
-          <DrawerTabBtn active={tab === 'lances'} onClick={() => setTab('lances')}>Lances</DrawerTabBtn>
-          <DrawerTabBtn active={tab === 'estados'} onClick={() => setTab('estados')}>Estados</DrawerTabBtn>
-          {hasPerfil && <DrawerTabBtn active={tab === 'genetica'} onClick={() => setTab('genetica')}>Genética</DrawerTabBtn>}
-          {!!f.lotes_catalogo?.length && <DrawerTabBtn active={tab === 'catalogo'} onClick={() => setTab('catalogo')}>Catálogo</DrawerTabBtn>}
-        </div>
+        {/* Body (tabs + content share the same scroll container so the scrollbar gutter doesn't misalign the tab row) */}
+        <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+          {/* Tabs */}
+          <div className="sticky top-0 z-10 bg-white dark:bg-[#111111] flex border-b border-gray-100 dark:border-[#1E1E1E] px-4 overflow-x-auto">
+            <DrawerTabBtn active={tab === 'resumo'} onClick={() => setTab('resumo')}>Resumo</DrawerTabBtn>
+            <DrawerTabBtn active={tab === 'assessores'} onClick={() => setTab('assessores')}>Assessores</DrawerTabBtn>
+            <DrawerTabBtn active={tab === 'compradores'} onClick={() => setTab('compradores')}>Compradores</DrawerTabBtn>
+            <DrawerTabBtn active={tab === 'lances'} onClick={() => setTab('lances')}>Lances</DrawerTabBtn>
+            <DrawerTabBtn active={tab === 'estados'} onClick={() => setTab('estados')}>Estados</DrawerTabBtn>
+            {hasPerfil && <DrawerTabBtn active={tab === 'genetica'} onClick={() => setTab('genetica')}>Genética</DrawerTabBtn>}
+            {!!f.lotes_catalogo?.length && <DrawerTabBtn active={tab === 'catalogo'} onClick={() => setTab('catalogo')}>Catálogo</DrawerTabBtn>}
+          </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 [scrollbar-gutter:stable]">
+          {/* Content */}
+          <div className="px-6 py-5">
 
           {/* ── RESUMO ── */}
           {tab === 'resumo' && (
@@ -749,6 +751,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
             <CatalogoTab lots={f.lotes_catalogo!} />
           )}
 
+          </div>
         </div>
 
         {/* Footer */}
