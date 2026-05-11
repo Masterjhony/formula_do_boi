@@ -145,7 +145,7 @@ const REPORT_GROUPS: ReportGroup[] = [
       { key: 'mensal',      label: 'Mensal',       icon: Calendar  },
       { key: 'comparativo', label: 'Comparativo',  icon: BarChart3 },
       { key: 'ranking',     label: 'Ranking',      icon: Trophy    },
-      { key: 'pdf',         label: 'PDF Brandbook', icon: FileText },
+      { key: 'pdf',         label: 'Por Leilão',   icon: FileText },
     ],
   },
   {
@@ -636,6 +636,10 @@ function ReportPDFBrandbook({ data, period }: { data: Payload; period: string })
   }, [data.fechamentos, search])
 
   const totalVgv = list.reduce((s, f) => s + (f.vgv_total || 0), 0)
+  const totalLotesVendidos = list.reduce((s, f) => s + (f.lotes_vendidos || 0), 0)
+  const totalLotesOfertados = list.reduce((s, f) => s + (f.lotes_ofertados || 0), 0)
+  const coberturaMedia = totalLotesOfertados ? Math.round((totalLotesVendidos / totalLotesOfertados) * 100) : 0
+  const totalCompradores = list.reduce((s, f) => s + (f.compradores_unicos || 0), 0)
 
   async function handleDownload(f: Fechamento) {
     setBusy(f.id)
@@ -654,15 +658,23 @@ function ReportPDFBrandbook({ data, period }: { data: Payload; period: string })
     <div className="rl-section">
       <SectionHead
         title="Relatórios"
-        emphasis="brandbook"
-        subtitle={`PDF oficial por leilão — visual seguindo Brandbook V1.0 · ${period}`}
+        emphasis="por leilão"
+        subtitle={`Relatório oficial de fechamento por leilão · ${period}`}
       />
 
       <div className="rl-grid rl-grid-4">
         <Stat label="Leilões disponíveis" value={String(list.length)} sub="no recorte" gold />
         <Stat label="VGV consolidado" value={fmtBRLCompact(totalVgv)} />
-        <Stat label="Identidade visual" value="Bronze · Preto" sub="Brandbook V1.0" />
-        <Stat label="Formato" value="A4 · vertical" sub="capa + 5 seções" />
+        <Stat
+          label="Lotes vendidos"
+          value={`${totalLotesVendidos}${totalLotesOfertados ? ` / ${totalLotesOfertados}` : ''}`}
+          sub={totalLotesOfertados ? `cobertura média ${coberturaMedia}%` : 'sem oferta registrada'}
+        />
+        <Stat
+          label="Compradores"
+          value={String(totalCompradores)}
+          sub={list.length ? `≈ ${Math.round(totalCompradores / list.length)} por leilão` : '—'}
+        />
       </div>
 
       <div className="pdfb-toolbar">
