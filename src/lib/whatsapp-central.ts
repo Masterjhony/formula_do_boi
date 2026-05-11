@@ -16,6 +16,8 @@ export type Interesse =
     | 'semen'
     | 'leiloes'
     | 'venda_genetica'
+    | 'oferta_genetica'   // (Academia) "quero ofertar genética" — variante institucional
+    | 'oportunidades'     // (Academia) "quero receber oportunidades selecionadas"
     | 'consultor'
     | 'outro';
 
@@ -27,6 +29,9 @@ export interface InteresseDef {
 }
 
 export const INTERESSES: InteresseDef[] = [
+    // Ordem dos 7 primeiros é load-bearing: o mapeamento numérico do
+    // welcome-default (1..7) usa o índice (idx 0 → "1", ... idx 6 → "7").
+    // Mexer aqui quebra a classificação do menu padrão.
     { id: 'touros',          label: 'Touros',                 triagem_template_slug: 'triagem-touros' },
     { id: 'matrizes',        label: 'Matrizes',               triagem_template_slug: 'triagem-matrizes' },
     { id: 'embrioes',        label: 'Embriões',               triagem_template_slug: 'triagem-embrioes' },
@@ -34,7 +39,42 @@ export const INTERESSES: InteresseDef[] = [
     { id: 'leiloes',         label: 'Leilões',                triagem_template_slug: 'triagem-leiloes' },
     { id: 'venda_genetica',  label: 'Venda de genética',      triagem_template_slug: 'triagem-venda-genetica' },
     { id: 'consultor',       label: 'Falar com consultor',    triagem_template_slug: 'consultor-handoff' },
+    // Interesses adicionais (Academia / institucional). Acessados por id pelo
+    // mapeamento Academia (ver ACADEMIA_NUMERIC_MAP) e pelas palavras-chave,
+    // nunca por índice no mapeamento default.
+    { id: 'oferta_genetica', label: 'Quero ofertar genética', triagem_template_slug: 'triagem-oferta-genetica' },
+    { id: 'oportunidades',   label: 'Receber oportunidades',  triagem_template_slug: 'receber-oportunidades-academia' },
 ];
+
+/**
+ * Tag aplicada nos leads que pertencem à lista institucional
+ * "Academia do Nelore P.O". Quando presente, o engine usa o mapeamento
+ * numérico Academia (1..6) e prefere as variantes de template "-academia"
+ * / consultor-handoff-matheus ao responder.
+ */
+export const ACADEMIA_TAG = 'grupo_academia_nelore_po';
+
+/**
+ * Mapeamento numérico do welcome institucional da Academia do Nelore P.O:
+ *   1 — Sêmen
+ *   2 — Embriões
+ *   3 — Assessoria em leilões
+ *   4 — Quero ofertar genética
+ *   5 — Quero receber oportunidades
+ *   6 — Falar com Matheus / equipe
+ *
+ * Diferente do welcome-default (que cobre touros/matrizes/embriões/sêmen/
+ * leilões/venda/consultor), este menu é usado apenas quando o lead carrega
+ * a tag `grupo_academia_nelore_po`.
+ */
+const ACADEMIA_NUMERIC_MAP: Record<string, Classification> = {
+    '1': { kind: 'interest', interesse: 'semen' },
+    '2': { kind: 'interest', interesse: 'embrioes' },
+    '3': { kind: 'interest', interesse: 'leiloes' },
+    '4': { kind: 'interest', interesse: 'oferta_genetica' },
+    '5': { kind: 'interest', interesse: 'oportunidades' },
+    '6': { kind: 'human' },
+};
 
 /**
  * Normaliza um telefone para o formato armazenado em crm_leads.telefone:
@@ -84,7 +124,10 @@ export function phoneVariants(phone: string): string[] {
 
 const STOP_WORDS = ['parar', 'sair', 'cancelar', 'remover', 'pare', 'descadastrar', 'unsubscribe'];
 const RESUBSCRIBE_WORDS = ['voltar', 'reativar', 'reinscrever'];
-const HUMAN_WORDS = ['consultor', 'humano', 'atendente', 'pessoa', 'falar com alguem', 'falar com alguém'];
+const HUMAN_WORDS = [
+    'consultor', 'humano', 'atendente', 'pessoa', 'equipe', 'atendimento humano',
+    'falar com alguem', 'falar com alguém', 'falar com matheus', 'matheus',
+];
 
 /**
  * Classificação determinística (sem IA) da intenção da mensagem.
@@ -92,9 +135,12 @@ const HUMAN_WORDS = ['consultor', 'humano', 'atendente', 'pessoa', 'falar com al
  * Regras (em ordem):
  *   1. Opt-out: PARAR / SAIR / CANCELAR…
  *   2. Re-subscribe: VOLTAR / REATIVAR…
- *   3. Pedido explícito de humano: "consultor", "humano", "atendente"…
- *   4. Resposta numérica do menu (1..7).
- *   5. Match por palavras-chave do interesse (touro, matriz, embrião, sêmen, leilão, venda).
+ *   3. Pedido explícito de humano: "consultor", "humano", "atendente", "Matheus"…
+ *   4. Resposta numérica do menu — mapeamento depende da audiência:
+ *        - Academia (lead tem tag `grupo_academia_nelore_po`): 1..6 = menu institucional
+ *        - Default: 1..7 = INTERESSES (touros, matrizes, embriões, sêmen, leilões, venda, consultor)
+ *   5. Match por palavras-chave do interesse (touro, matriz, embrião, sêmen,
+ *      leilão, venda, ofertar, oportunidades).
  *   6. Caso contrário: 'unknown' — ainda registramos a mensagem mas não
  *      respondemos automaticamente (evita spam do bot quando o lead já está
  *      conversando livremente com a equipe).
@@ -106,7 +152,17 @@ export type Classification =
     | { kind: 'interest'; interesse: Interesse }
     | { kind: 'unknown' };
 
-export function classifyMessage(text: string): Classification {
+export interface ClassifyContext {
+    /** Tags WhatsApp do lead (vindas de crm_leads.tags_whatsapp) */
+    tags?: string[] | null;
+}
+
+function isAcademiaAudience(ctx?: ClassifyContext): boolean {
+    if (!ctx?.tags) return false;
+    return ctx.tags.includes(ACADEMIA_TAG);
+}
+
+export function classifyMessage(text: string, ctx?: ClassifyContext): Classification {
     const raw = (text || '').trim();
     if (!raw) return { kind: 'unknown' };
     const lower = raw.toLowerCase();
@@ -122,10 +178,15 @@ export function classifyMessage(text: string): Classification {
         return { kind: 'human' };
     }
 
-    // Match numérico (1-7) — apenas se a mensagem é só o número
+    // Match numérico — apenas se a mensagem é só o número
     const onlyNumber = raw.match(/^([1-7])\s*[️⃣]?$/);
     if (onlyNumber) {
-        const idx = Number(onlyNumber[1]) - 1;
+        const digit = onlyNumber[1];
+        // Mapeamento Academia tem prioridade quando o lead pertence ao grupo
+        if (isAcademiaAudience(ctx) && ACADEMIA_NUMERIC_MAP[digit]) {
+            return ACADEMIA_NUMERIC_MAP[digit];
+        }
+        const idx = Number(digit) - 1;
         const inter = INTERESSES[idx];
         if (inter) {
             return inter.id === 'consultor'
@@ -138,8 +199,16 @@ export function classifyMessage(text: string): Classification {
     if (/\btouros?\b/.test(stripped)) return { kind: 'interest', interesse: 'touros' };
     if (/\bmatriz/.test(stripped))    return { kind: 'interest', interesse: 'matrizes' };
     if (/\bembri/.test(stripped))     return { kind: 'interest', interesse: 'embrioes' };
-    if (/\bsemen|\bsemem|\bsêmen/.test(stripped)) return { kind: 'interest', interesse: 'semen' };
-    if (/\bleil/.test(stripped))      return { kind: 'interest', interesse: 'leiloes' };
+    if (/\bsemen|\bsemem|\bsêmen|\bdoses?\b/.test(stripped)) return { kind: 'interest', interesse: 'semen' };
+    if (/\bleil|assessoria/.test(stripped)) return { kind: 'interest', interesse: 'leiloes' };
+    // "ofertar / ofereço / tenho genética" → oferta_genetica (variante institucional)
+    if (/\bofert|\bofere[cç]|tenho genetic/.test(stripped)) {
+        return { kind: 'interest', interesse: 'oferta_genetica' };
+    }
+    // "receber oportunidades / lista / avisos"
+    if (/\boportunidades?\b|\blista\b|\bavisos?\b|quero receber/.test(stripped)) {
+        return { kind: 'interest', interesse: 'oportunidades' };
+    }
     if (/\bvender?\b|\brevender|venda de genetic/.test(stripped)) return { kind: 'interest', interesse: 'venda_genetica' };
 
     return { kind: 'unknown' };

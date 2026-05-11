@@ -21,9 +21,36 @@ import {
     INTERESSES,
     renderTemplate,
     firstName,
+    ACADEMIA_TAG,
     type Classification,
     type Interesse,
 } from './whatsapp-central'
+
+/**
+ * Override de slugs por audiência. Quando o lead carrega `ACADEMIA_TAG`,
+ * o engine tenta resolver primeiro a variante mapeada aqui; se o template
+ * variante não existir/estiver arquivado, cai no slug original.
+ *
+ * Cobre: welcome, triagens, handoff e confirmação de opt-out. Isso permite
+ * usar os mesmos nós do grafo padrão sem precisar de uma cópia do fluxo
+ * só para a Academia.
+ */
+const ACADEMIA_SLUG_OVERRIDES: Record<string, string> = {
+    'welcome-default': 'welcome-academia-nelore-po',
+    'triagem-semen': 'triagem-semen-academia',
+    'triagem-embrioes': 'triagem-embrioes-academia',
+    'triagem-leiloes': 'triagem-leiloes-academia',
+    'consultor-handoff': 'consultor-handoff-matheus',
+    'optout-confirmacao': 'optout-confirmacao-academia',
+    'resubscribe-msg': 'resubscribe-msg-academia',
+}
+
+function audienceOverrideSlug(slug: string, lead: LeadShape | null): string | null {
+    if (!slug || !lead) return null
+    const tags = lead.tags_whatsapp ?? []
+    if (!tags.includes(ACADEMIA_TAG)) return null
+    return ACADEMIA_SLUG_OVERRIDES[slug] ?? null
+}
 
 /* ─── Tipos do grafo ───────────────────────────────────────────────── */
 
@@ -371,6 +398,24 @@ async function fetchTemplateBody(supabase: SupabaseClient, slug: string): Promis
     return data.body
 }
 
+/**
+ * Resolve o corpo do template considerando a audiência do lead.
+ * Se houver variante mapeada em ACADEMIA_SLUG_OVERRIDES e ela existir no
+ * banco, ela é preferida; senão, cai para o slug original.
+ */
+async function fetchTemplateBodyForAudience(
+    supabase: SupabaseClient,
+    slug: string,
+    lead: LeadShape | null,
+): Promise<string | null> {
+    const override = audienceOverrideSlug(slug, lead)
+    if (override) {
+        const variant = await fetchTemplateBody(supabase, override)
+        if (variant !== null) return variant
+    }
+    return fetchTemplateBody(supabase, slug)
+}
+
 function evaluateCondition(expr: ConditionExpr, lead: LeadShape | null): boolean {
     switch (expr) {
         case 'lead.exists':              return Boolean(lead)
@@ -411,9 +456,18 @@ async function applyResubscribe(supabase: SupabaseClient, phone: string, lead: L
 }
 
 async function applyHandoff(supabase: SupabaseClient, lead: LeadShape) {
-    await supabase.from('crm_leads').update({
-        handoff_humano: true, handoff_at: new Date().toISOString(),
-    }).eq('id', lead.id)
+    const update: Record<string, unknown> = {
+        handoff_humano: true,
+        handoff_at: new Date().toISOString(),
+    }
+    // Registra o "interesse_principal" como atendimento_humano quando o lead
+    // ainda não tinha um interesse identificado — permite filtrar/segmentar
+    // depois sem ambiguidade. Não sobrescreve interesses pré-existentes.
+    if (!lead.interesse_principal) {
+        update.interesse_principal = 'atendimento_humano'
+        lead.interesse_principal = 'atendimento_humano'
+    }
+    await supabase.from('crm_leads').update(update).eq('id', lead.id)
     lead.handoff_humano = true
 }
 
@@ -545,7 +599,7 @@ export async function runFlow(
             }
 
             case 'classify': {
-                classification = classifyMessage(input.text)
+                classification = classifyMessage(input.text, { tags: lead?.tags_whatsapp ?? [] })
                 currentId = pickNext(node.id, classification.kind)
                 break
             }
@@ -584,7 +638,7 @@ export async function runFlow(
                         slug = def?.triagem_template_slug ?? slug
                     }
                 }
-                const tplBody = await fetchTemplateBody(supabase, slug)
+                const tplBody = await fetchTemplateBodyForAudience(supabase, slug, lead)
                 const body = tplBody ?? node.data.fallback ?? ''
                 const reply = renderTemplate(body, {
                     nome: firstName(lead?.nome) || input.senderName || '',

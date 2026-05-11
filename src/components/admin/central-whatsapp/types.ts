@@ -105,6 +105,9 @@ export const INTERESSE_LABELS: Record<string, string> = {
     semen: 'Sêmen',
     leiloes: 'Leilões',
     venda_genetica: 'Venda de genética',
+    oferta_genetica: 'Quero ofertar genética',
+    oportunidades: 'Receber oportunidades',
+    atendimento_humano: 'Atendimento humano',
     consultor: 'Consultor',
     outro: 'Outro',
 }

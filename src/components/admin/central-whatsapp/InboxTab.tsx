@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import {
     Search, MessageSquare, User, Send, AlertCircle, CheckCircle2, Clock,
-    UserPlus, BellOff, Bell, Hand, Sparkles, Tag, Loader2,
+    UserPlus, BellOff, Bell, Hand, Sparkles, Tag, Loader2, GraduationCap,
 } from "lucide-react"
 import {
     INTERESSE_LABELS,
@@ -12,6 +12,7 @@ import {
     type ThreadMessage,
     type Template,
 } from "./types"
+import { ACADEMIA_TAG } from "@/lib/whatsapp-central"
 
 type Filter = "todos" | "aguardando" | "handoff" | "optout" | "interesse"
 
@@ -472,6 +473,27 @@ export function InboxTab({ templates }: { templates: Template[] }) {
                                     className="w-full text-xs flex items-center gap-2 px-3 py-2 rounded-md border hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600"
                                 >
                                     <BellOff className="h-3.5 w-3.5" /> Marcar opt-out
+                                </button>
+                            )}
+
+                            {/* Audience: Academia do Nelore P.O — controla qual mapeamento
+                                numérico (1..6 institucional vs 1..7 padrão) o engine usa
+                                quando o lead responder. */}
+                            {(threadLead.tags_whatsapp ?? []).includes(ACADEMIA_TAG) ? (
+                                <button
+                                    onClick={() => handleAction("remove_audience_tag", { tag: ACADEMIA_TAG })}
+                                    className="w-full text-xs flex items-center gap-2 px-3 py-2 rounded-md border hover:bg-muted"
+                                    title="Remove a tag grupo_academia_nelore_po do lead"
+                                >
+                                    <GraduationCap className="h-3.5 w-3.5" /> Remover da Academia P.O
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => handleAction("apply_audience_tag", { tag: ACADEMIA_TAG })}
+                                    className="w-full text-xs flex items-center gap-2 px-3 py-2 rounded-md border hover:bg-muted"
+                                    title="Marca o lead como participante da Academia do Nelore P.O — passa a usar o menu institucional 1..6 e os templates -academia"
+                                >
+                                    <GraduationCap className="h-3.5 w-3.5" /> Marcar como Academia P.O
                                 </button>
                             )}
 

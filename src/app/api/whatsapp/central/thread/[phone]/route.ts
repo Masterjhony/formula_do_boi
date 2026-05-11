@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { normalizePhone, phoneVariants } from '@/lib/whatsapp-central'
+import { ensureAudienceTagForTemplate } from '@/lib/whatsapp-audience-tags'
 
 const WHATSAPP_SERVER_URL = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001'
 
@@ -115,6 +116,24 @@ export async function POST(
                 ultimo_contato: new Date().toISOString(),
             })
             .eq('id', lead.id)
+    }
+
+    // Se a mensagem manual usou um template iniciador de fluxo (welcome
+    // institucional), garantimos a tag de audiência no lead — assim a próxima
+    // resposta dele cai no mapeamento numérico correto.
+    if (lead && body.template_id) {
+        const { data: tpl } = await supabase
+            .from('whatsapp_templates')
+            .select('slug')
+            .eq('id', body.template_id)
+            .single()
+        if (tpl?.slug) {
+            try {
+                await ensureAudienceTagForTemplate(supabase, [lead.id], tpl.slug)
+            } catch (e) {
+                console.warn('[thread/send] ensureAudienceTagForTemplate falhou:', e instanceof Error ? e.message : e)
+            }
+        }
     }
 
     return NextResponse.json({ success: !!sent, ...waBody })

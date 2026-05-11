@@ -3,14 +3,33 @@
  *   - assumir / liberar atendimento (handoff humano on/off)
  *   - marcar opt-out manual / reativar
  *   - definir interesse principal
+ *   - adicionar / remover audience tag (ex.: marcar lead como Academia P.O)
  *
- * Body: { phone: string, action: 'handoff_on' | 'handoff_off' | 'optout_on' | 'optout_off' | 'set_interesse', interesse?: string, responsavel?: string }
+ * Body: {
+ *   phone: string,
+ *   action: 'handoff_on' | 'handoff_off' | 'optout_on' | 'optout_off'
+ *         | 'set_interesse' | 'apply_audience_tag' | 'remove_audience_tag',
+ *   interesse?: string,
+ *   responsavel?: string,
+ *   tag?: string   // obrigatório para apply_audience_tag / remove_audience_tag
+ * }
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { INTERESSES, normalizePhone, phoneVariants } from '@/lib/whatsapp-central'
+import {
+    KNOWN_AUDIENCE_TAGS,
+    ensureLeadsHaveTag,
+    removeTagFromLeads,
+} from '@/lib/whatsapp-audience-tags'
+
+type Action =
+    | 'handoff_on' | 'handoff_off'
+    | 'optout_on'  | 'optout_off'
+    | 'set_interesse'
+    | 'apply_audience_tag' | 'remove_audience_tag'
 
 export async function POST(req: NextRequest) {
     const auth = await requireAdmin()
@@ -18,9 +37,10 @@ export async function POST(req: NextRequest) {
 
     let body: {
         phone: string
-        action: 'handoff_on' | 'handoff_off' | 'optout_on' | 'optout_off' | 'set_interesse'
+        action: Action
         interesse?: string
         responsavel?: string
+        tag?: string
     }
     try { body = await req.json() } catch {
         return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
@@ -79,6 +99,22 @@ export async function POST(req: NextRequest) {
             update.interesse_principal = interesseDef.id
             update.interesse = interesseDef.label
             break
+        }
+        case 'apply_audience_tag':
+        case 'remove_audience_tag': {
+            const tag = body.tag?.trim()
+            if (!tag) return NextResponse.json({ error: 'tag obrigatório' }, { status: 400 })
+            if (!KNOWN_AUDIENCE_TAGS.has(tag)) {
+                return NextResponse.json({ error: `tag "${tag}" não é uma audience tag reconhecida` }, { status: 400 })
+            }
+            try {
+                const res = body.action === 'apply_audience_tag'
+                    ? await ensureLeadsHaveTag(supabase, [lead.id], tag)
+                    : await removeTagFromLeads(supabase, [lead.id], tag)
+                return NextResponse.json({ success: true, tag, updated: res.updated })
+            } catch (e: unknown) {
+                return NextResponse.json({ error: e instanceof Error ? e.message : 'Erro ao atualizar tag' }, { status: 500 })
+            }
         }
         default:
             return NextResponse.json({ error: 'action inválida' }, { status: 400 })

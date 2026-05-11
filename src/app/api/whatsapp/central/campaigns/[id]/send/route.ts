@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { resolveSegment, type SegmentFilters } from '@/lib/whatsapp-segment'
 import { firstName, renderTemplate } from '@/lib/whatsapp-central'
+import { ensureAudienceTagForTemplate } from '@/lib/whatsapp-audience-tags'
 
 const WHATSAPP_SERVER_URL = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001'
 
@@ -41,13 +42,15 @@ export async function POST(
     }
 
     let bodyTemplate = campaign.body ?? ''
+    let templateSlug: string | null = null
     if (campaign.template_id) {
         const { data: tpl } = await supabase
             .from('whatsapp_templates')
-            .select('body')
+            .select('slug, body')
             .eq('id', campaign.template_id)
             .single()
         if (tpl?.body) bodyTemplate = tpl.body
+        templateSlug = tpl?.slug ?? null
     }
     if (!bodyTemplate.trim()) {
         return NextResponse.json({ error: 'Campanha sem corpo de mensagem' }, { status: 400 })
@@ -90,6 +93,21 @@ export async function POST(
         return NextResponse.json({ error: rErr.message }, { status: 500 })
     }
 
+    // Audiência: se o template iniciador tem tag mapeada, garante que TODOS
+    // os recipients carreguem a tag antes de qualquer resposta deles chegar.
+    // Isso evita que o engine classifique o "1..6" da Academia com o
+    // mapeamento default. Falhas aqui não bloqueiam o envio (logamos só).
+    let audienceTagged: { tag: string | null; updated: number } = { tag: null, updated: 0 }
+    try {
+        audienceTagged = await ensureAudienceTagForTemplate(
+            supabase,
+            recipients.map(r => r.id),
+            templateSlug,
+        )
+    } catch (e) {
+        console.warn('[campaigns/send] ensureAudienceTagForTemplate falhou:', e instanceof Error ? e.message : e)
+    }
+
     // Atualiza campanha → enviando
     await supabase
         .from('whatsapp_campaigns')
@@ -125,5 +143,10 @@ export async function POST(
         return NextResponse.json({ error: e instanceof Error ? e.message : 'Falha ao enviar para o VPS' }, { status: 502 })
     }
 
-    return NextResponse.json({ success: true, queued: renderedRecipients.length })
+    return NextResponse.json({
+        success: true,
+        queued: renderedRecipients.length,
+        audience_tag: audienceTagged.tag,
+        audience_tagged: audienceTagged.updated,
+    })
 }
