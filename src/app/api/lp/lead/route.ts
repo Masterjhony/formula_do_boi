@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { google } from 'googleapis';
+import { dispatchWelcome } from '@/lib/whatsapp';
 
 const WHATSAPP_SERVER_URL = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001';
 const SPREADSHEET_ID = '1quOwhQEqT4kthdxPTZ0aHH9XRNhfquuJrBOcS6-QgZk';
@@ -96,67 +97,37 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Erro ao salvar lead' }, { status: 500 });
         }
 
-        // Dispara WhatsApp welcome + convite do grupo (fire-and-forget)
+        // Welcome via helper centralizado (dedup 24h, opt-out, log unificado).
+        // Após welcome enviado/enfileirado, tenta também adicionar ao grupo da LP.
+        // O log em whatsapp_messages é gravado pelo próprio dispatchWelcome.
         const WHATSAPP_GROUP_INVITE = 'https://chat.whatsapp.com/JYxJPWfkoHHLZfosHlywN9?mode=gi_t';
         const phone = tel.replace(/\D/g, '');
-        let whatsappStatus: string = 'no_phone';
-        let whatsappReason: string | null = null;
-        let whatsappError: string | null = null;
 
         if (phone) {
-            try {
-                const waRes = await fetch(`${WHATSAPP_SERVER_URL}/send`, {
+            const welcomeRes = await dispatchWelcome(phone, nome, 'lp', { lead_id: lead.id });
+            if (welcomeRes.sent || welcomeRes.queued) {
+                // Tenta adicionar direto ao grupo; se falhar (privacidade), envia o link
+                void fetch(`${WHATSAPP_SERVER_URL}/add-to-group`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone, name: nome }),
+                    body: JSON.stringify({ phone }),
                     signal: AbortSignal.timeout(15000),
-                });
-                const waBody = await waRes.json().catch(() => ({}));
-                if (waRes.ok && (waBody.sent || waBody.queued)) {
-                    whatsappStatus = 'sent';
-                    // Tenta adicionar direto ao grupo; se falhar (privacidade), envia o link
-                    void fetch(`${WHATSAPP_SERVER_URL}/add-to-group`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ phone }),
-                        signal: AbortSignal.timeout(15000),
-                    }).then(async r => {
-                        const data = await r.json().catch(() => ({}));
-                        if (!r.ok || !data.added) {
-                            // Fallback: envia o link de convite
-                            return fetch(`${WHATSAPP_SERVER_URL}/send-direct`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    phone,
-                                    message: `🐂 Entre no grupo exclusivo da *Fórmula do Boi*:\n👉 ${WHATSAPP_GROUP_INVITE}`,
-                                }),
-                                signal: AbortSignal.timeout(15000),
-                            });
-                        }
-                    }).catch(err => console.warn('[LP] Add ao grupo falhou:', err.message));
-                } else {
-                    whatsappStatus = 'failed';
-                    whatsappReason = waBody.reason ?? null;
-                    whatsappError = waBody.error ?? `HTTP ${waRes.status}`;
-                }
-            } catch (waErr: any) {
-                whatsappStatus = 'failed';
-                whatsappError = waErr.message;
-                console.warn('WhatsApp send falhou (não-crítico):', waErr);
+                }).then(async r => {
+                    const data = await r.json().catch(() => ({}));
+                    if (!r.ok || !data.added) {
+                        return fetch(`${WHATSAPP_SERVER_URL}/send-direct`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                phone,
+                                message: `🐂 Entre no grupo exclusivo da *Fórmula do Boi*:\n👉 ${WHATSAPP_GROUP_INVITE}`,
+                            }),
+                            signal: AbortSignal.timeout(15000),
+                        });
+                    }
+                }).catch(err => console.warn('[LP] Add ao grupo falhou:', err.message));
             }
         }
-
-        void Promise.resolve(
-            supabase.from('whatsapp_messages').insert({
-                phone: phone || null,
-                name: nome,
-                status: whatsappStatus,
-                reason: whatsappReason,
-                error_msg: whatsappError,
-                lead_id: lead.id,
-            })
-        ).catch(console.error);
 
         // Salva na aba Pag-zap do Google Sheets
         try {

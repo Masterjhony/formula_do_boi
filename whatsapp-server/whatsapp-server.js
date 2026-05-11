@@ -711,9 +711,17 @@ async function _executeSend(phone, name) {
   const formattedPhone = formatBRNumber(phone);
   if (!formattedPhone) throw new Error(`Numero invalido: ${phone}`);
 
-  // A mensagem de boas-vindas agora vem do Next.js (template welcome-default).
-  // Mantemos fallback no flowConfig para não quebrar fluxos antigos.
+  // A mensagem de boas-vindas vem do Next.js (template welcome-default).
+  // O endpoint `/api/whatsapp/render-welcome` pode responder:
+  //   { body }            → corpo renderizado, segue o envio normal
+  //   { silent, reason }  → opt-out (lead em whatsapp_optouts ou
+  //                          crm_leads.optout_whatsapp=true). NÃO enviar nada.
+  //
+  // Só caímos no fallback do flowConfig.welcome_message quando o Next.js está
+  // INACESSÍVEL (timeout / 5xx / sem resposta) — nunca quando ele responde
+  // explicitamente que é pra ficar em silêncio.
   let messageText = null;
+  let renderReachable = false;
   if (NEXT_JS_URL && GROUP_TASK_SECRET) {
     try {
       const r = await fetch(`${NEXT_JS_URL}/api/whatsapp/render-welcome`, {
@@ -723,8 +731,15 @@ async function _executeSend(phone, name) {
         signal: AbortSignal.timeout(8000),
       });
       if (r.ok) {
+        renderReachable = true;
         const data = await r.json();
+        if (data?.silent === true) {
+          console.log(`[Welcome] ${formattedPhone} em opt-out (${data.reason || 'silent'}) — abortado.`);
+          return { sent: false, reason: data.reason || 'optout' };
+        }
         if (data?.body) messageText = data.body;
+      } else {
+        console.warn(`[Welcome] render-welcome respondeu HTTP ${r.status} — usando fallback.`);
       }
     } catch (e) {
       console.warn('[Welcome] Falha ao renderizar via Next.js, usando fallback:', e.message);
@@ -732,6 +747,13 @@ async function _executeSend(phone, name) {
   }
 
   if (!messageText) {
+    if (renderReachable) {
+      // Next.js respondeu OK mas sem body e sem silent — situação anormal.
+      // Tratamos como opt-out implícito para não enviar mensagem genérica
+      // que poderia confundir o destinatário.
+      console.log(`[Welcome] ${formattedPhone} — render sem body, abortado.`);
+      return { sent: false, reason: 'no_template' };
+    }
     const template = flowConfig.welcome_message;
     messageText = template.replace(/\{nome\}/g, name).replace(/\{name\}/g, name);
   }

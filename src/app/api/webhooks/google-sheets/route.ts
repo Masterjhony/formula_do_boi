@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-
-const WHATSAPP_SERVER_URL = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001';
+import { dispatchWelcome } from '@/lib/whatsapp';
 
 // Use direct Supabase client (not the SSR one) since this is an API route called by external webhook
 function getSupabaseAdmin() {
@@ -144,45 +143,15 @@ export async function POST(request: NextRequest) {
             if (error) {
                 errors.push({ lead: nomeCompleto, error: error.message });
             } else {
-                // Await WhatsApp send and capture result for diagnostic response
-                let whatsappResult: { sent: boolean; queued?: boolean; reason?: string; error?: string } = { sent: false, reason: 'no_phone' };
+                // Welcome via helper centralizado (dedup 24h, opt-out, log).
+                // O log em whatsapp_messages é gravado dentro do dispatchWelcome.
+                let whatsappResult: { sent: boolean; queued?: boolean; reason?: string; skipped?: boolean } = {
+                    sent: false, reason: 'no_phone',
+                };
                 if (record.telefone) {
-                    try {
-                        const waRes = await fetch(`${WHATSAPP_SERVER_URL}/send`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ phone: record.telefone, name: nomeCompleto }),
-                            signal: AbortSignal.timeout(15000),
-                        });
-                        const waBody = await waRes.json().catch(() => ({}));
-                        if (waRes.ok) {
-                            whatsappResult = waBody; // { sent: true } or { sent: false, reason: '...' }
-                        } else {
-                            whatsappResult = { sent: false, error: waBody.error || `HTTP ${waRes.status}` };
-                        }
-                    } catch (e: any) {
-                        whatsappResult = { sent: false, error: e.message };
-                        console.error('[GoogleSheets Webhook] Failed to send WhatsApp message:', e);
-                    }
+                    const r = await dispatchWelcome(record.telefone, nomeCompleto, 'webhook-sheets', { lead_id: data.id });
+                    whatsappResult = { sent: r.sent, queued: r.queued, skipped: r.skipped, reason: r.reason };
                 }
-                // Log message to whatsapp_messages (fire-and-forget)
-                const msgStatus = !record.telefone
-                    ? 'no_phone'
-                    : (whatsappResult.sent || whatsappResult.queued)
-                        ? 'sent'
-                        : whatsappResult.reason === 'not_on_whatsapp'
-                            ? 'not_on_whatsapp'
-                            : 'failed';
-                void Promise.resolve(
-                    supabase.from('whatsapp_messages').insert({
-                        phone: record.telefone ?? null,
-                        name: nomeCompleto,
-                        status: msgStatus,
-                        reason: whatsappResult.reason ?? null,
-                        error_msg: whatsappResult.error ?? null,
-                        lead_id: data.id,
-                    })
-                ).catch(console.error);
 
                 inserted.push({ ...data, whatsapp: whatsappResult });
             }

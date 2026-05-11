@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { sendWelcomeMessage } from '@/lib/whatsapp';
+import { dispatchWelcome } from '@/lib/whatsapp';
 
 export interface CRMContactEntry {
     id: string;              // uuid local
@@ -98,8 +98,8 @@ export async function createLead(data: Partial<CRMLead>): Promise<CRMLead> {
     }
 
     if (data.telefone) {
-        // Fire and forget welcome message to WhatsApp
-        sendWelcomeMessage(data.telefone, data.nome || 'Amigo(a)').catch(e => {
+        // Fire and forget welcome (dedup + opt-out + log centralizados em dispatchWelcome)
+        dispatchWelcome(data.telefone, data.nome || 'Amigo(a)', 'admin-manual', { lead_id: newLead?.id }).catch((e: unknown) => {
             console.error('[CRM Action] Failed to send WhatsApp message:', e);
         });
     }

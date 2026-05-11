@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server'
-import { sendWelcomeMessage } from '@/lib/whatsapp'
+import { dispatchWelcome } from '@/lib/whatsapp'
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    
+
     console.log('[Webhook] Received CRM Lead:', body)
 
-    // Expected Supabase Realtime/Webhook payload structure
-    const record = body.record || body // In case it's sent directly or via webhook
-
+    const record = body.record || body
     const phone = record.telefone || record.phone
     const name = record.nome || record.name || 'Amigo(a)'
 
@@ -18,21 +16,11 @@ export async function POST(req: Request) {
        return NextResponse.json({ error: 'No phone number provided' }, { status: 400 })
     }
 
-    try {
-      await sendWelcomeMessage(phone, name)
-      return NextResponse.json({ success: true, message: 'Welcome message sent' })
-    } catch (whatsappError: any) {
-      console.error('[Webhook] WhatsApp Error:', whatsappError)
-      return NextResponse.json(
-        { error: 'Failed to send WhatsApp message', details: whatsappError.message },
-        { status: 500 }
-      )
-    }
-  } catch (error: any) {
-    console.error('[Webhook] Route Error:', error)
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    )
+    const result = await dispatchWelcome(phone, name, 'webhook-crm', { lead_id: record.id ?? null })
+    return NextResponse.json({ success: result.sent || !!result.queued, ...result })
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error('[Webhook] Route Error:', msg)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
