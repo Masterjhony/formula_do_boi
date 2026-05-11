@@ -95,6 +95,12 @@ export interface Campaign {
     finished_at: string | null
     created_at: string
     updated_at: string
+    // Mídia opcional anexada à campanha (sobrescreve a do template, se houver)
+    media_url: string | null
+    media_type: 'image' | 'video' | 'audio' | 'document' | null
+    media_mime: string | null
+    media_filename: string | null
+    media_caption: string | null
 }
 
 export interface CentralMetrics {
@@ -124,3 +130,30 @@ export const INTERESSE_LABELS: Record<string, string> = {
     consultor: 'Consultor',
     outro: 'Outro',
 }
+
+/**
+ * Grupos canônicos para filtro em CAMPANHAS — unificam IDs sinônimos/legacy.
+ *
+ * Por que: o `interesse_principal` no banco tem variantes históricas
+ * (`venda_genetica` vs `compra_venda_genetica` vs `oferta_genetica`) que
+ * conceitualmente são o mesmo público. Para o operador escolhendo segmento,
+ * mostrar 13 opções (com 3 que se sobrepõem) gera ruído e segmentos
+ * incompletos. Cada grupo aqui aceita 1+ IDs e o filtro do segmento usa
+ * `interesse_principal IN (...)` quando há mais de um.
+ *
+ * `INTERESSE_LABELS` continua sendo a fonte de exibição na Inbox/Métricas
+ * (lá precisa do label exato do ID salvo no lead).
+ */
+export const INTERESSE_GROUPS: Array<{ label: string; ids: string[] }> = [
+    { label: 'Sêmen',                       ids: ['semen'] },
+    { label: 'Embriões',                    ids: ['embrioes'] },
+    { label: 'Central de embriões',         ids: ['central_embrioes'] },
+    { label: 'Leilões / Assessoria',        ids: ['leiloes'] },
+    { label: 'Compra/venda de genética',    ids: ['compra_venda_genetica', 'venda_genetica', 'oferta_genetica'] },
+    { label: 'Receber oportunidades',       ids: ['oportunidades'] },
+    { label: 'Todos os segmentos',          ids: ['interesse_amplo'] },
+    { label: 'Atendimento humano',          ids: ['atendimento_humano', 'consultor'] },
+    { label: 'Touros (legacy)',             ids: ['touros'] },
+    { label: 'Matrizes (legacy)',           ids: ['matrizes'] },
+    { label: 'Outro',                       ids: ['outro'] },
+]

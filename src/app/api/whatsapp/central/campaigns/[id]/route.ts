@@ -24,7 +24,7 @@ export async function GET(
     const [campRes, recipRes] = await Promise.all([
         supabase
             .from('whatsapp_campaigns')
-            .select('id, name, description, segment, template_id, body, status, total_recipients, sent_count, failed_count, optout_skip_count, started_at, finished_at, created_at')
+            .select('id, name, description, segment, template_id, body, status, total_recipients, sent_count, failed_count, optout_skip_count, started_at, finished_at, created_at, media_url, media_type, media_mime, media_filename, media_caption')
             .eq('id', id)
             .single(),
         supabase

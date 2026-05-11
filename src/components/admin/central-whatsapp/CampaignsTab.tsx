@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react"
 import {
     Plus, Send, Loader2, AlertCircle, CheckCircle2,
-    Megaphone, Trash2, RefreshCw,
+    Megaphone, Trash2, RefreshCw, ImageIcon, X,
 } from "lucide-react"
 import type { Campaign, Template } from "./types"
-import { INTERESSE_LABELS } from "./types"
+import { INTERESSE_GROUPS } from "./types"
+import { useR2Upload, type MediaType } from "./useR2Upload"
 
 interface Props {
     templates: Template[]
@@ -189,18 +190,54 @@ function CampaignForm({
         description: "",
         template_id: "" as string,
         body: "",
-        interesse: "" as string,
+        interesseGroup: "" as string,    // label do INTERESSE_GROUPS
         stage: "" as string,
+        // Mídia direta (opcional, sobrescreve a do template se houver)
+        media_url: null as string | null,
+        media_type: null as MediaType | null,
+        media_mime: null as string | null,
+        media_filename: null as string | null,
+        media_caption: null as string | null,
     })
     const [preview, setPreview] = useState<{ total: number; sample: { nome: string; telefone: string }[] } | null>(null)
     const [loading, setLoading] = useState(false)
     const [err, setErr] = useState<string | null>(null)
+    const { fileInputRef, uploading, uploadFile } = useR2Upload()
 
     function buildSegment() {
         const seg: Record<string, unknown> = {}
-        if (form.interesse) seg.interesse_principal = form.interesse
+        if (form.interesseGroup) {
+            const g = INTERESSE_GROUPS.find(x => x.label === form.interesseGroup)
+            if (g) seg.interesse_principal = g.ids.length === 1 ? g.ids[0] : g.ids
+        }
         if (form.stage) seg.stage = form.stage
         return seg
+    }
+
+    async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0]
+        if (!file) return
+        setErr(null)
+        try {
+            const up = await uploadFile(file)
+            setForm(f => ({
+                ...f,
+                media_url: up.key,
+                media_type: up.type,
+                media_mime: up.mime,
+                media_filename: up.filename,
+            }))
+        } catch (e: unknown) {
+            setErr(e instanceof Error ? e.message : "Erro no upload")
+        }
+    }
+
+    function clearMedia() {
+        setForm(f => ({
+            ...f,
+            media_url: null, media_type: null, media_mime: null,
+            media_filename: null, media_caption: null,
+        }))
     }
 
     async function handlePreview() {
@@ -228,8 +265,9 @@ function CampaignForm({
             setErr("Nome é obrigatório.")
             return
         }
-        if (!form.template_id && !form.body.trim()) {
-            setErr("Selecione um template ou escreva o corpo.")
+        const hasContent = form.template_id || form.body.trim() || form.media_url
+        if (!hasContent) {
+            setErr("Selecione um template, escreva o corpo ou anexe mídia.")
             return
         }
         setLoading(true)
@@ -244,6 +282,11 @@ function CampaignForm({
                     segment: buildSegment(),
                     template_id: form.template_id || null,
                     body: form.body.trim() || null,
+                    media_url: form.media_url,
+                    media_type: form.media_type,
+                    media_mime: form.media_mime,
+                    media_filename: form.media_filename,
+                    media_caption: form.media_caption,
                 }),
             })
             const data = await res.json()
@@ -293,13 +336,15 @@ function CampaignForm({
                 <div className="space-y-1">
                     <label className="text-xs font-medium">Filtrar por interesse</label>
                     <select
-                        value={form.interesse}
-                        onChange={e => setForm(f => ({ ...f, interesse: e.target.value }))}
+                        value={form.interesseGroup}
+                        onChange={e => setForm(f => ({ ...f, interesseGroup: e.target.value }))}
                         className="w-full rounded-md border bg-background px-3 py-1.5 text-sm"
                     >
                         <option value="">Todos</option>
-                        {Object.entries(INTERESSE_LABELS).map(([k, v]) => (
-                            <option key={k} value={k}>{v}</option>
+                        {INTERESSE_GROUPS.map(g => (
+                            <option key={g.label} value={g.label}>
+                                {g.label}{g.ids.length > 1 ? ` (${g.ids.length} variantes)` : ''}
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -346,6 +391,63 @@ function CampaignForm({
                     />
                 </div>
             )}
+
+            {/* Mídia anexa à campanha — sobrescreve a do template, se houver */}
+            <div className="space-y-2 border-t pt-3">
+                <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium flex items-center gap-1.5">
+                        <ImageIcon className="h-3.5 w-3.5" /> Anexar mídia (opcional)
+                    </label>
+                    {form.media_url && (
+                        <button
+                            onClick={clearMedia}
+                            className="text-[10px] text-red-600 hover:underline flex items-center gap-0.5"
+                        >
+                            <X className="h-3 w-3" /> Remover
+                        </button>
+                    )}
+                </div>
+
+                {form.media_url ? (
+                    <div className="rounded-md border bg-muted/30 p-2 space-y-2">
+                        <div className="flex items-center gap-2">
+                            <ImageIcon className="h-4 w-4 text-blue-500" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium truncate">{form.media_filename}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                    {form.media_type} · {form.media_mime}
+                                </p>
+                            </div>
+                        </div>
+                        <input
+                            value={form.media_caption ?? ''}
+                            onChange={e => setForm(f => ({ ...f, media_caption: e.target.value || null }))}
+                            placeholder="Legenda da mídia (opcional — vazio usa o texto da mensagem como legenda)"
+                            className="w-full rounded-md border bg-background px-2 py-1 text-xs"
+                        />
+                    </div>
+                ) : (
+                    <div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*,video/*,audio/*,application/pdf"
+                            onChange={handleFileChange}
+                            disabled={uploading}
+                            className="block w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-primary file:text-primary-foreground hover:file:opacity-90 file:cursor-pointer"
+                        />
+                        {uploading && (
+                            <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                                <Loader2 className="h-3 w-3 animate-spin" /> Enviando para Cloudflare R2…
+                            </p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                            Foto/vídeo/áudio/PDF, máx 50MB. Vai antes do texto. Se a campanha
+                            usa template, esta mídia <strong>sobrescreve</strong> a do template.
+                        </p>
+                    </div>
+                )}
+            </div>
 
             <div className="flex items-center gap-2 pt-2 border-t">
                 <button

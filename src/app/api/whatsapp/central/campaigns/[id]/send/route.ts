@@ -32,7 +32,7 @@ export async function POST(
 
     const { data: campaign, error: cErr } = await supabase
         .from('whatsapp_campaigns')
-        .select('id, name, segment, template_id, body, status')
+        .select('id, name, segment, template_id, body, status, media_url, media_type, media_mime, media_filename, media_caption')
         .eq('id', id)
         .single()
     if (cErr || !campaign) {
@@ -68,7 +68,7 @@ export async function POST(
                     filename: tpl.media_filename,
                 }
             } catch (e) {
-                console.warn('[campaigns/send] presign mídia falhou:', e instanceof Error ? e.message : e)
+                console.warn('[campaigns/send] presign mídia do template falhou:', e instanceof Error ? e.message : e)
             }
         }
         if (tpl?.poll_question && Array.isArray(tpl.poll_options) && tpl.poll_options.length >= 2) {
@@ -79,6 +79,24 @@ export async function POST(
             }
         }
     }
+
+    // Override: mídia anexa NA campanha (preenchida via UI) tem prioridade
+    // sobre a do template — permite reaproveitar o texto e trocar só o anexo.
+    if (campaign.media_url && campaign.media_type) {
+        try {
+            const url = await getR2DownloadUrl(campaign.media_url, { expiresInSeconds: 1800 })
+            mediaPayload = {
+                url,
+                type: campaign.media_type,
+                mime: campaign.media_mime,
+                filename: campaign.media_filename,
+            }
+            if (campaign.media_caption) captionTemplate = campaign.media_caption
+        } catch (e) {
+            console.warn('[campaigns/send] presign mídia da campanha falhou:', e instanceof Error ? e.message : e)
+        }
+    }
+
     // Aceita campanha sem texto se houver mídia ou enquete
     if (!bodyTemplate.trim() && !mediaPayload && !pollPayload) {
         return NextResponse.json({ error: 'Campanha sem mensagem, mídia ou enquete' }, { status: 400 })
