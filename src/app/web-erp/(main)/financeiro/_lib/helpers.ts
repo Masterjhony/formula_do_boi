@@ -1,4 +1,5 @@
 import type { Transaction, BulaLeilao, FechamentoLite, UnifiedItem } from './types';
+import { normalizeAssessorNome } from '@/lib/assessor-normalize';
 
 export const fmt = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
@@ -225,15 +226,26 @@ export function buildPayables(
     for (const f of fechamentos) {
         const comissaoTotal = Number(f.comissao_assessoria) || 0;
         if (comissaoTotal <= 0) continue;
-        const assessores = (f.por_assessor ?? []).filter(a => a?.nome);
-        const totalVgv = assessores.reduce((s, a) => s + (Number(a.vgv) || 0), 0);
+        // Mescla entradas centralizadas (Pedro Barnabé / Matheus Amormino →
+        // Marcelo Carneiro) para gerar um único pagável por assessor canônico.
+        const assessorMap = new Map<string, { nome: string; empresa: string; vgv: number }>();
+        for (const a of f.por_assessor ?? []) {
+            const canon = normalizeAssessorNome(a?.nome);
+            if (!canon) continue;
+            const cur = assessorMap.get(canon) ?? { nome: canon, empresa: a?.empresa || '', vgv: 0 };
+            cur.vgv += Number(a?.vgv) || 0;
+            if (!cur.empresa && a?.empresa) cur.empresa = a.empresa;
+            assessorMap.set(canon, cur);
+        }
+        const assessores = Array.from(assessorMap.values());
+        const totalVgv = assessores.reduce((s, a) => s + a.vgv, 0);
 
         if (assessores.length > 0 && totalVgv > 0) {
             for (const a of assessores) {
-                const share = (Number(a.vgv) || 0) / totalVgv;
+                const share = a.vgv / totalVgv;
                 const valor = comissaoTotal * share;
                 if (valor < 0.01) continue;
-                const key = (a.nome || '').toUpperCase().replace(/\s+/g, '_').slice(0, 40);
+                const key = a.nome.toUpperCase().replace(/\s+/g, '_').slice(0, 40);
                 const tag = `FECHAMENTO:${f.id}:ASSESSOR:${key}`;
                 if (linkedTags.has(tag)) continue;
                 out.push({
@@ -244,8 +256,8 @@ export function buildPayables(
                     status: 'virtual',
                     type: 'expense',
                     title: `Comissão ${a.nome} — ${f.nome}`,
-                    subtitle: a.empresa ? `${a.empresa}` : 'Assessoria',
-                    party: a.nome || '—',
+                    subtitle: a.empresa || 'Assessoria',
+                    party: a.nome,
                     dueDate: f.data || today(),
                     amount: valor,
                     paid: 0,

@@ -9,6 +9,7 @@ import {
   ArrowUp, ArrowDown, Minus, Dna, ShoppingCart, Briefcase, Activity,
   Eye,
 } from 'lucide-react'
+import { normalizeAssessorNome } from '@/lib/assessor-normalize'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -1168,17 +1169,25 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
 
     // Aggregate by Assessor — vendas por assessor (VGV/transações/animais).
     // Comissão/pagamento NÃO entra aqui (esses dados ficam só no ERP).
+    // Nomes centralizados (Pedro Barnabé/Matheus Amormino → Marcelo Carneiro)
+    // são mesclados antes de somar, contando 1 leilão mesmo se ambos
+    // aparecerem no mesmo fechamento.
     const assessorMap = new Map<string, { nome: string; empresa: string; vgv: number; transacoes: number; animais: number; leiloes: number }>()
     items.forEach(f => {
+      const seenInLeilao = new Set<string>()
       f.por_assessor.forEach(a => {
-        if (!a.nome) return
-        const cur = assessorMap.get(a.nome) ?? { nome: a.nome, empresa: a.empresa || '', vgv: 0, transacoes: 0, animais: 0, leiloes: 0 }
+        const canon = normalizeAssessorNome(a.nome)
+        if (!canon) return
+        const cur = assessorMap.get(canon) ?? { nome: canon, empresa: a.empresa || '', vgv: 0, transacoes: 0, animais: 0, leiloes: 0 }
         cur.vgv += a.vgv
         cur.transacoes += a.transacoes
         cur.animais += a.animais
-        cur.leiloes += 1
+        if (!seenInLeilao.has(canon)) {
+          cur.leiloes += 1
+          seenInLeilao.add(canon)
+        }
         if (!cur.empresa && a.empresa) cur.empresa = a.empresa
-        assessorMap.set(a.nome, cur)
+        assessorMap.set(canon, cur)
       })
     })
     const topAssessores = [...assessorMap.values()].sort((a, b) => b.vgv - a.vgv).slice(0, 5)
@@ -1719,8 +1728,8 @@ export default function FechamentoView() {
   const uniqueAssessores = useMemo(() => {
     const set = new Set<string>()
     for (const f of items) for (const a of f.por_assessor ?? []) {
-      const nome = (a.nome ?? '').trim()
-      if (nome) set.add(nome)
+      const canon = normalizeAssessorNome(a.nome)
+      if (canon) set.add(canon)
     }
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
   }, [items])
@@ -1731,7 +1740,7 @@ export default function FechamentoView() {
       if (filterDataFim    && f.data > filterDataFim)    return false
       if (filterLeilao     && f.nome !== filterLeilao)   return false
       if (filterAssessor) {
-        const has = (f.por_assessor ?? []).some(a => (a.nome ?? '').trim() === filterAssessor)
+        const has = (f.por_assessor ?? []).some(a => normalizeAssessorNome(a.nome) === filterAssessor)
         if (!has) return false
       }
       return true

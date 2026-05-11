@@ -7,6 +7,7 @@ import {
   Activity, Briefcase, Calendar, ChevronDown, ChevronRight, DollarSign, Download,
   Edit2, FileBarChart, FileText, Loader2, Sparkles, TrendingUp, Trophy, Users,
 } from 'lucide-react'
+import { normalizeAssessorNome } from '@/lib/assessor-normalize'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -109,21 +110,34 @@ export default function VendasPorAssessorPage() {
   const { assessores, totalVgv, totalAnim, totalTrans } = useMemo(() => {
     const map = new Map<string, AssessorAgg>()
     for (const f of data?.fechamentos ?? []) {
+      // Acumula por leilão antes de mesclar, para que entradas centralizadas
+      // (ex.: Pedro Barnabé + Matheus Amormino → Marcelo Carneiro) somem
+      // suas transações no mesmo leilão em vez de aparecerem duplicadas.
+      const perLeilao = new Map<string, { nome: string; empresa: string; transacoes: number; animais: number; vgv: number }>()
       for (const a of f.por_assessor ?? []) {
-        if (!a.nome) continue
-        const cur = map.get(a.nome) ?? {
-          nome: a.nome, empresa: a.empresa || '',
-          transacoes: 0, animais: 0, vgv: 0, leiloes: [],
-        }
+        const canon = normalizeAssessorNome(a.nome)
+        if (!canon) continue
+        const cur = perLeilao.get(canon) ?? { nome: canon, empresa: a.empresa || '', transacoes: 0, animais: 0, vgv: 0 }
         cur.transacoes += a.transacoes || 0
         cur.animais += a.animais || 0
         cur.vgv += a.vgv || 0
         if (!cur.empresa && a.empresa) cur.empresa = a.empresa
+        perLeilao.set(canon, cur)
+      }
+      for (const [canon, leilaoAgg] of perLeilao) {
+        const cur = map.get(canon) ?? {
+          nome: canon, empresa: leilaoAgg.empresa,
+          transacoes: 0, animais: 0, vgv: 0, leiloes: [],
+        }
+        cur.transacoes += leilaoAgg.transacoes
+        cur.animais += leilaoAgg.animais
+        cur.vgv += leilaoAgg.vgv
+        if (!cur.empresa && leilaoAgg.empresa) cur.empresa = leilaoAgg.empresa
         cur.leiloes.push({
           id: f.id, nome: f.nome, data: f.data,
-          transacoes: a.transacoes || 0, animais: a.animais || 0, vgv: a.vgv || 0,
+          transacoes: leilaoAgg.transacoes, animais: leilaoAgg.animais, vgv: leilaoAgg.vgv,
         })
-        map.set(a.nome, cur)
+        map.set(canon, cur)
       }
     }
     for (const v of map.values()) v.leiloes.sort((x, y) => y.vgv - x.vgv)

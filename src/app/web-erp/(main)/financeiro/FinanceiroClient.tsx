@@ -15,6 +15,7 @@ import {
     saveCategory, deleteCategory, saveObservacao,
     registrarLeiloesLote, saveAccount, deleteAccount,
 } from './actions';
+import { normalizeAssessorNome } from '@/lib/assessor-normalize';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Account {
@@ -1821,26 +1822,37 @@ export function LeiloesIntegracao({
         for (const f of fechamentos ?? []) {
             const comissaoTotal = Number(f.comissao_assessoria) || 0;
             if (comissaoTotal <= 0) continue;
-            const assessores = (f.por_assessor ?? []).filter(a => a?.nome);
-            const totalVgv = assessores.reduce((s, a) => s + (Number(a.vgv) || 0), 0);
+            // Mescla assessores centralizados (Pedro Barnabé / Matheus Amormino →
+            // Marcelo Carneiro) antes de calcular a comissão por share.
+            const assessorMap = new Map<string, { nome: string; empresa: string; vgv: number }>();
+            for (const a of f.por_assessor ?? []) {
+                const canon = normalizeAssessorNome(a?.nome);
+                if (!canon) continue;
+                const cur = assessorMap.get(canon) ?? { nome: canon, empresa: a?.empresa || '', vgv: 0 };
+                cur.vgv += Number(a?.vgv) || 0;
+                if (!cur.empresa && a?.empresa) cur.empresa = a.empresa;
+                assessorMap.set(canon, cur);
+            }
+            const assessores = Array.from(assessorMap.values());
+            const totalVgv = assessores.reduce((s, a) => s + a.vgv, 0);
 
             if (assessores.length > 0 && totalVgv > 0) {
-                // split proporcional ao VGV de cada assessor
+                // split proporcional ao VGV de cada assessor canônico
                 for (const a of assessores) {
-                    const share = (Number(a.vgv) || 0) / totalVgv;
+                    const share = a.vgv / totalVgv;
                     const valor = comissaoTotal * share;
                     if (valor < 0.01) continue;
-                    const key = (a.nome || '').toUpperCase().replace(/\s+/g, '_').slice(0, 40);
+                    const key = a.nome.toUpperCase().replace(/\s+/g, '_').slice(0, 40);
                     const sourceTag = `FECHAMENTO:${f.id}:ASSESSOR:${key}`;
                     out.push({
                         sourceTag,
                         fechamentoId: f.id,
                         leilaoNome: f.nome,
                         data: f.data,
-                        assessor: a.nome || '—',
-                        empresa: a.empresa || '',
+                        assessor: a.nome,
+                        empresa: a.empresa,
                         valor,
-                        vgvAssessor: Number(a.vgv) || 0,
+                        vgvAssessor: a.vgv,
                         alreadyLinked: linkedSet.has(sourceTag),
                     });
                 }

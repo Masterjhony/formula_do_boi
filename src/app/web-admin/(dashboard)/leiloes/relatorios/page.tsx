@@ -11,6 +11,7 @@ import {
   RadioTower, Tag, Briefcase,
 } from 'lucide-react'
 import { generateFechamentoPDF } from '@/lib/fechamento-pdf'
+import { normalizeAssessorNome } from '@/lib/assessor-normalize'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -1266,21 +1267,32 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
     const breakdown = new Map<string, AssessorPerLeilao[]>()
 
     for (const f of data.fechamentos) {
+      // Mescla entradas centralizadas (Pedro Barnabé / Matheus Amormino →
+      // Marcelo Carneiro) dentro do mesmo fechamento antes de agregar.
+      const perLeilao = new Map<string, { nome: string; empresa: string; transacoes: number; animais: number; vgv: number }>()
       for (const a of f.por_assessor ?? []) {
-        const key = a.nome
-        if (!key) continue
-        const cur = map.get(key) ?? { nome: a.nome, empresa: a.empresa, transacoes: 0, animais: 0, vgv: 0, leiloes: new Set() }
+        const canon = normalizeAssessorNome(a.nome)
+        if (!canon) continue
+        const cur = perLeilao.get(canon) ?? { nome: canon, empresa: a.empresa || '', transacoes: 0, animais: 0, vgv: 0 }
         cur.transacoes += a.transacoes || 0
         cur.animais += a.animais || 0
         cur.vgv += a.vgv || 0
-        cur.leiloes.add(f.id)
         if (!cur.empresa && a.empresa) cur.empresa = a.empresa
+        perLeilao.set(canon, cur)
+      }
+      for (const [key, leilaoAgg] of perLeilao) {
+        const cur = map.get(key) ?? { nome: leilaoAgg.nome, empresa: leilaoAgg.empresa, transacoes: 0, animais: 0, vgv: 0, leiloes: new Set() }
+        cur.transacoes += leilaoAgg.transacoes
+        cur.animais += leilaoAgg.animais
+        cur.vgv += leilaoAgg.vgv
+        cur.leiloes.add(f.id)
+        if (!cur.empresa && leilaoAgg.empresa) cur.empresa = leilaoAgg.empresa
         map.set(key, cur)
 
         const list = breakdown.get(key) ?? []
         list.push({
           fechamentoId: f.id, nome: f.nome, data: f.data,
-          transacoes: a.transacoes || 0, animais: a.animais || 0, vgv: a.vgv || 0,
+          transacoes: leilaoAgg.transacoes, animais: leilaoAgg.animais, vgv: leilaoAgg.vgv,
         })
         breakdown.set(key, list)
       }
