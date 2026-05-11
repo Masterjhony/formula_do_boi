@@ -115,7 +115,7 @@ export function parseOfx(raw: string): OfxStatement {
             trntype,
             rawAmount: amtRaw,
             amount: Math.abs(amtRaw),
-            type: amtRaw >= 0 ? 'income' : 'expense',
+            type: (amtRaw >= 0 ? 'income' : 'expense') as 'income' | 'expense',
             date: dt,
             name,
             memo,
