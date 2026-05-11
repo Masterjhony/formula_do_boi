@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import ERPSidebarLayout from '@/components/erp/ERPSidebarLayout'
+import ERPNavbarLayout from '@/components/erp/ERPNavbarLayout'
 
 export const dynamic = 'force-dynamic';
 
@@ -9,8 +9,8 @@ interface ERpLayoutProps {
 
 export default function ERPMainLayout({ children }: ERpLayoutProps) {
     return (
-        <ERPSidebarLayout>
+        <ERPNavbarLayout>
             {children}
-        </ERPSidebarLayout>
+        </ERPNavbarLayout>
     )
 }
