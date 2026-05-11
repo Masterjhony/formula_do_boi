@@ -449,6 +449,134 @@ export async function deleteAccount(id: string) {
     }
 }
 
+// ─── Conciliação OFX ───────────────────────────────────────────────────────────
+// Vincula uma transação existente (geralmente uma conta a pagar/receber pendente)
+// à linha do extrato OFX (FITID). Marca como `completed` e ajusta a data efetiva.
+// Idempotente: se o FITID já estiver gravado em outra transação da mesma conta,
+// o índice único do banco bloqueia a operação.
+export async function vincularTransacaoOfx(data: {
+    transactionId: string;
+    fitid: string;
+    accountId: string;
+    actualDate: string;
+    memo?: string | null;
+}) {
+    const supabase = await createClient();
+    try {
+        const { data: curr } = await supabase
+            .from('erp_finance_transactions')
+            .select('observacao')
+            .eq('id', data.transactionId)
+            .maybeSingle();
+        const prev = (curr?.observacao ?? '').trim();
+        const tag = `[OFX:${data.fitid}]`;
+        const note = data.memo?.trim() ? ` ${data.memo.trim()}` : '';
+        const observacao = prev.includes(tag) ? prev : (prev ? `${prev}\n${tag}${note}` : `${tag}${note}`);
+
+        const { error } = await supabase
+            .from('erp_finance_transactions')
+            .update({
+                status: 'completed',
+                transaction_date: data.actualDate,
+                account_id: data.accountId,
+                ofx_fitid: data.fitid,
+                observacao,
+            })
+            .eq('id', data.transactionId);
+        if (error) throw error;
+
+        revalidatePath(PATH);
+        revalidatePath('/web-erp/financeiro/conciliacao');
+        revalidatePath('/web-erp/financeiro/conciliacao-ofx');
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+// Cria uma transação nova a partir de uma linha do OFX que não tem contra-parte no ERP.
+// Já vem como `completed` (porque o extrato é a verdade) e com `ofx_fitid` setado.
+export async function criarTransacaoDoOfx(data: {
+    accountId: string;
+    fitid: string;
+    type: 'income' | 'expense';
+    amount: number;
+    description: string;
+    transactionDate: string;
+    categoryId?: string | null;
+    memo?: string | null;
+}) {
+    const supabase = await createClient();
+    try {
+        const tag = `[OFX:${data.fitid}]`;
+        const observacao = data.memo?.trim() ? `${tag} ${data.memo.trim()}` : tag;
+
+        const { data: inserted, error } = await supabase
+            .from('erp_finance_transactions')
+            .insert([{
+                account_id: data.accountId,
+                type: data.type,
+                amount: data.amount,
+                description: data.description,
+                transaction_date: data.transactionDate,
+                status: 'completed',
+                category_id: data.categoryId || null,
+                ofx_fitid: data.fitid,
+                observacao,
+            }])
+            .select('id')
+            .single();
+        if (error) throw error;
+
+        revalidatePath(PATH);
+        revalidatePath('/web-erp/financeiro/conciliacao');
+        revalidatePath('/web-erp/financeiro/conciliacao-ofx');
+        return { success: true, id: inserted?.id };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+// Marca um FITID como "ignorar" — não vira lançamento e não volta a aparecer
+// em importações futuras do mesmo extrato.
+export async function ignorarOfxFitid(data: {
+    accountId: string;
+    fitid: string;
+    reason?: string | null;
+}) {
+    const supabase = await createClient();
+    try {
+        const { error } = await supabase
+            .from('erp_finance_ofx_ignored')
+            .upsert(
+                { account_id: data.accountId, fitid: data.fitid, reason: data.reason || null },
+                { onConflict: 'account_id,fitid' }
+            );
+        if (error) throw error;
+        revalidatePath('/web-erp/financeiro/conciliacao-ofx');
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+// Desfaz o "ignorar".
+export async function reativarOfxFitid(data: { accountId: string; fitid: string }) {
+    const supabase = await createClient();
+    try {
+        const { error } = await supabase
+            .from('erp_finance_ofx_ignored')
+            .delete()
+            .eq('account_id', data.accountId)
+            .eq('fitid', data.fitid);
+        if (error) throw error;
+        revalidatePath('/web-erp/financeiro/conciliacao-ofx');
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
 export async function deleteCategory(id: string) {
     const supabase = await createClient();
     try {

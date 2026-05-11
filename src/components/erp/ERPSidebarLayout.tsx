@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { LayoutDashboard, Wallet, Calculator, LogOut, Menu, X, Settings, ChevronLeft, ChevronRight, ChevronDown, ArrowDownToLine, ArrowUpFromLine, BarChart3, Gavel, CheckCircle2, TrendingUp, Scale, BookOpen, Receipt, FileSpreadsheet } from 'lucide-react';
+import { LayoutDashboard, Wallet, Calculator, LogOut, Menu, X, Settings, ChevronLeft, ChevronRight, ChevronDown, ArrowDownToLine, ArrowUpFromLine, BarChart3, Gavel, CheckCircle2, TrendingUp, Scale, BookOpen, Receipt, FileSpreadsheet, FileUp } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -243,6 +243,7 @@ export default function ERPSidebarLayout({
                                     { href: '/financeiro/a-pagar', label: 'A Pagar', icon: ArrowUpFromLine },
                                     { href: '/financeiro/fluxo-caixa', label: 'Fluxo de Caixa', icon: BarChart3 },
                                     { href: '/financeiro/conciliacao', label: 'Conciliação', icon: CheckCircle2 },
+                                    { href: '/financeiro/conciliacao-ofx', label: 'Conciliação OFX', icon: FileUp },
                                 ].map(sub => {
                                     const isActive = pathname === sub.href;
                                     const SubIcon = sub.icon;
