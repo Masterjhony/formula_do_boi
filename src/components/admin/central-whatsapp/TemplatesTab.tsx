@@ -103,28 +103,48 @@ export function TemplatesTab({ templates, onChange }: Props) {
         }
         setUploading(true)
         setFeedback(null)
+
+        // Mesmo padrão usado em web-admin/biblioteca-midia/R2Library.tsx:
+        // (1) fallback explícito de content-type (alguns browsers deixam vazio
+        //     pra arquivos pouco comuns — e o presign do R2 assina com este
+        //     valor; se o PUT manda outro, R2 rejeita com 403/SignatureMismatch);
+        // (2) PUT via XHR para conseguir mostrar erros do R2 com texto.
+        const contentType = file.type || 'application/octet-stream'
         try {
             const presignRes = await fetch('/api/r2/upload-url', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename: file.name, contentType: file.type }),
+                body: JSON.stringify({ filename: file.name, contentType }),
             })
-            const presign = await presignRes.json()
-            if (!presignRes.ok) throw new Error(presign.error || 'Falha ao obter URL de upload')
+            const presign = await presignRes.json().catch(() => ({}))
+            if (!presignRes.ok) {
+                throw new Error(presign.error || `Falha gerando URL de upload (HTTP ${presignRes.status})`)
+            }
+            if (!presign.url || !presign.key) {
+                throw new Error('Resposta do servidor sem url/key — confira as env vars R2_* no Vercel.')
+            }
 
-            const putRes = await fetch(presign.url, {
-                method: 'PUT',
-                headers: { 'Content-Type': file.type },
-                body: file,
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest()
+                xhr.open('PUT', presign.url)
+                xhr.setRequestHeader('Content-Type', contentType)
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) resolve()
+                    else reject(new Error(
+                        `Upload R2 falhou (HTTP ${xhr.status}). ` +
+                        `${xhr.responseText ? xhr.responseText.slice(0, 200) : 'Verifique CORS do bucket no Cloudflare R2.'}`
+                    ))
+                }
+                xhr.onerror = () => reject(new Error('Falha de rede no PUT — possível bloqueio CORS do R2.'))
+                xhr.send(file)
             })
-            if (!putRes.ok) throw new Error(`Upload R2 falhou (HTTP ${putRes.status})`)
 
-            const mt = mediaTypeForMime(file.type || '')
+            const mt = mediaTypeForMime(contentType)
             setForm(f => ({
                 ...f,
                 media_url: presign.key,
                 media_type: mt,
-                media_mime: file.type || null,
+                media_mime: contentType,
                 media_filename: file.name,
             }))
             setFeedback({ type: "ok", msg: `Arquivo enviado (${(file.size / 1024).toFixed(0)} KB).` })

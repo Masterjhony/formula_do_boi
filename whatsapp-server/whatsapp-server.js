@@ -27,7 +27,7 @@ const fs = require('fs');
 const path = require('path');
 
 let makeWASocket, DisconnectReason, useMultiFileAuthState,
-    fetchLatestBaileysVersion;
+    fetchLatestBaileysVersion, decryptPollVote;
 
 let cachedWAVersion = null;
 
@@ -514,6 +514,20 @@ async function startSocket() {
       }
     });
 
+    // Votos em poll → vêm como messages.update com pollUpdates criptografado.
+    // Decryptamos usando o messageSecret cacheado e disparamos /api/whatsapp/inbound
+    // com o texto da opção votada, para o engine classificar normalmente.
+    sock.ev.on('messages.update', async (updates) => {
+      if (myGen !== socketGeneration) return;
+      for (const u of updates) {
+        const pollUpdates = u.update?.pollUpdates;
+        if (!Array.isArray(pollUpdates) || pollUpdates.length === 0) continue;
+        await handlePollVoteUpdates(u.key, pollUpdates).catch(e =>
+          console.error('[Poll] handlePollVoteUpdates falhou:', e.message)
+        );
+      }
+    });
+
   } catch (error) {
     console.error('[WA] Erro ao iniciar:', error.message);
     if (sock) { destroySocket(sock); sock = null; }
@@ -527,6 +541,95 @@ async function startSocket() {
 // =============================================================================
 // Handlers de mensagem (extraídos para clareza)
 // =============================================================================
+
+/**
+ * Processa votes de poll.
+ *
+ * `pollKey` é a key da poll original (id == pollMsgId no nosso cache).
+ * `pollUpdates` são os votos individuais; cada um tem o JID do votante em
+ * pu.pollUpdateMessageKey.remoteJid e o vote criptografado em pu.vote.
+ *
+ * Para cada vote: decrypta → mapeia hash SHA256 → texto da opção → POSTa
+ * para /api/whatsapp/inbound com o texto, como se fosse uma mensagem comum.
+ */
+async function handlePollVoteUpdates(pollKey, pollUpdates) {
+  const pollMsgId = pollKey?.id;
+  if (!pollMsgId) return;
+  const cached = pollCache.get(pollMsgId);
+  if (!cached) {
+    console.warn('[Poll] vote em poll não cacheada:', pollMsgId);
+    return;
+  }
+  if (!decryptPollVote) {
+    console.warn('[Poll] decryptPollVote indisponível na lib Baileys');
+    return;
+  }
+  if (!NEXT_JS_URL || !GROUP_TASK_SECRET) {
+    console.warn('[Poll] NEXT_JS_URL/secret ausente — vote ignorado');
+    return;
+  }
+
+  const myJid = sock?.user?.id;
+  if (!myJid) {
+    console.warn('[Poll] sock.user.id ausente — não dá para decryptar');
+    return;
+  }
+
+  // Mapa hash -> texto para resolver as opções escolhidas
+  const hashToText = new Map();
+  for (const opt of cached.values) {
+    hashToText.set(sha256Hex(opt), opt);
+  }
+
+  for (const pu of pollUpdates) {
+    try {
+      const voterJid = pu.pollUpdateMessageKey?.remoteJid;
+      if (!voterJid || !pu.vote) continue;
+
+      const decrypted = await decryptPollVote(pu.vote, {
+        pollEncKey: cached.encKey,
+        pollCreatorJid: myJid,
+        pollMsgId,
+        voterJid,
+      });
+      const selected = decrypted?.selectedOptions || [];
+      // selectedOptions é array de Buffer (SHA256 raw bytes das opções)
+      const texts = [];
+      for (const sel of selected) {
+        const hex = Buffer.from(sel).toString('hex');
+        const text = hashToText.get(hex);
+        if (text) texts.push(text);
+      }
+      if (texts.length === 0) {
+        console.warn('[Poll] vote decryptado mas sem match de hash:', pollMsgId, voterJid);
+        continue;
+      }
+      const phone = voterJid.replace(/@.*/, '');
+      const body = texts.join(', ');
+      console.log(`[Poll] vote ${voterJid} em poll ${pollMsgId}: "${body}"`);
+
+      // Encaminha para o Next.js classificar (interesse_principal etc.)
+      try {
+        await fetch(`${NEXT_JS_URL}/api/whatsapp/inbound`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-webhook-secret': GROUP_TASK_SECRET },
+          body: JSON.stringify({
+            phone,
+            name: '',
+            body,
+            message_id: pu.pollUpdateMessageKey?.id || null,
+            poll_vote: true,
+          }),
+          signal: AbortSignal.timeout(10000),
+        });
+      } catch (e) {
+        console.warn('[Poll] POST inbound falhou:', e.message);
+      }
+    } catch (e) {
+      console.error('[Poll] decrypt falhou:', e.message);
+    }
+  }
+}
 
 async function handleGroupMessage(msg, remoteJid, text) {
   const lower = text.toLowerCase();
@@ -708,6 +811,47 @@ function formatBRNumber(phone) {
 // na ordem natural.
 const COMPOSED_DELAY_MS = 1200;
 
+// =============================================================================
+// Poll vote tracking
+// =============================================================================
+// Quando enviamos uma poll, o WhatsApp envia o voto do destinatário como
+// `messages.update` com `pollUpdates` criptografado — NÃO como mensagem de
+// texto comum. Para classificar essas escolhas no /api/whatsapp/inbound,
+// precisamos:
+//   1. Guardar `messageSecret` + opções da poll quando ela foi enviada.
+//   2. Quando o vote chega, decryptar com `decryptPollVote` e mapear o hash
+//      SHA256 retornado de volta para o texto da opção.
+//   3. POSTar o texto resultante no /api/whatsapp/inbound como se fosse uma
+//      mensagem de texto comum, para o engine classificar normalmente.
+//
+// Cache em memória — perde no restart do container, mas votos típicos
+// chegam segundos depois do envio. TTL de 7 dias para limitar growth.
+const pollCache = new Map(); // pollMsgId -> { values, encKey, jid, sentAt }
+const POLL_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const POLL_CACHE_MAX = 5000;
+setInterval(() => {
+  const cutoff = Date.now() - POLL_CACHE_TTL_MS;
+  for (const [k, v] of pollCache.entries()) {
+    if (v.sentAt < cutoff) pollCache.delete(k);
+  }
+  // Hard cap (LRU-ish: drop oldest when blown)
+  while (pollCache.size > POLL_CACHE_MAX) {
+    const oldestKey = pollCache.keys().next().value;
+    if (!oldestKey) break;
+    pollCache.delete(oldestKey);
+  }
+}, 60 * 60 * 1000);
+
+// Pré-calcula SHA256 hex de cada opção para mapear hash -> texto no decrypt.
+let _crypto;
+function getCrypto() {
+  if (!_crypto) _crypto = require('crypto');
+  return _crypto;
+}
+function sha256Hex(input) {
+  return getCrypto().createHash('sha256').update(Buffer.from(input, 'utf8')).digest('hex');
+}
+
 /**
  * Envia uma sequência composta para `jid`:
  *   1. Mídia (se `media.url`) com legenda opcional (caption).
@@ -785,6 +929,22 @@ async function _sendComposed(jid, body, media, poll) {
       },
     });
     ids.push(r?.key?.id);
+    // Cacheia messageSecret + opções para conseguir decryptar votes depois.
+    // O Baileys popula messageContextInfo.messageSecret na mensagem enviada.
+    const pollMsgId = r?.key?.id;
+    const messageSecret = r?.message?.messageContextInfo?.messageSecret
+      || r?.message?.pollCreationMessage?.messageSecret
+      || r?.message?.pollCreationMessageV3?.messageSecret;
+    if (pollMsgId && messageSecret) {
+      pollCache.set(pollMsgId, {
+        values: poll.options.slice(),
+        encKey: Buffer.from(messageSecret),
+        jid,
+        sentAt: Date.now(),
+      });
+    } else {
+      console.warn('[Poll] enviado sem cache (messageSecret ausente) — votes não vão ser classificados.', { pollMsgId });
+    }
   }
 
   return { sent: ids.length > 0, ids };
@@ -1063,6 +1223,7 @@ async function main() {
   DisconnectReason = baileys.DisconnectReason;
   useMultiFileAuthState = baileys.useMultiFileAuthState;
   fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
+  decryptPollVote = baileys.decryptPollVote;
 
   await loadFlowConfig();
   await startSocket();

@@ -13,11 +13,14 @@ export type Interesse =
     | 'touros'
     | 'matrizes'
     | 'embrioes'
+    | 'central_embrioes'      // Central de embriões (operação) — diferente do produto "embrioes"
     | 'semen'
     | 'leiloes'
-    | 'venda_genetica'
-    | 'oferta_genetica'   // (Academia) "quero ofertar genética" — variante institucional
-    | 'oportunidades'     // (Academia) "quero receber oportunidades selecionadas"
+    | 'venda_genetica'        // legacy: "quero vender minha genética" (welcome-default antigo)
+    | 'compra_venda_genetica' // welcome Matheus institucional — cobre comprar OU vender
+    | 'oferta_genetica'       // (Academia) "quero ofertar genética"
+    | 'oportunidades'         // (Academia) "quero receber oportunidades selecionadas"
+    | 'interesse_amplo'       // welcome Matheus — opção "Todos"
     | 'consultor'
     | 'outro';
 
@@ -39,11 +42,14 @@ export const INTERESSES: InteresseDef[] = [
     { id: 'leiloes',         label: 'Leilões',                triagem_template_slug: 'triagem-leiloes' },
     { id: 'venda_genetica',  label: 'Venda de genética',      triagem_template_slug: 'triagem-venda-genetica' },
     { id: 'consultor',       label: 'Falar com consultor',    triagem_template_slug: 'consultor-handoff' },
-    // Interesses adicionais (Academia / institucional). Acessados por id pelo
-    // mapeamento Academia (ver ACADEMIA_NUMERIC_MAP) e pelas palavras-chave,
-    // nunca por índice no mapeamento default.
-    { id: 'oferta_genetica', label: 'Quero ofertar genética', triagem_template_slug: 'triagem-oferta-genetica' },
-    { id: 'oportunidades',   label: 'Receber oportunidades',  triagem_template_slug: 'receber-oportunidades-academia' },
+    // Interesses adicionais (Academia / Matheus institucional). Acessados por id
+    // pelos mapeamentos de audiência e pelas palavras-chave, nunca por índice
+    // no mapeamento default.
+    { id: 'oferta_genetica',       label: 'Quero ofertar genética',         triagem_template_slug: 'triagem-oferta-genetica' },
+    { id: 'oportunidades',         label: 'Receber oportunidades',          triagem_template_slug: 'receber-oportunidades-academia' },
+    { id: 'central_embrioes',      label: 'Central de embriões',            triagem_template_slug: 'triagem-central-embrioes' },
+    { id: 'compra_venda_genetica', label: 'Compra/venda de genética',       triagem_template_slug: 'triagem-compra-venda-genetica' },
+    { id: 'interesse_amplo',       label: 'Todos os segmentos',             triagem_template_slug: 'triagem-interesse-amplo' },
 ];
 
 /**
@@ -53,6 +59,14 @@ export const INTERESSES: InteresseDef[] = [
  * / consultor-handoff-matheus ao responder.
  */
 export const ACADEMIA_TAG = 'grupo_academia_nelore_po';
+
+/**
+ * Tag aplicada nos leads que receberam o welcome institucional do Matheus
+ * (template `welcome-matheus-institucional`). Quando presente, o classifier
+ * usa o mapeamento numérico Matheus (1..6) com os 6 segmentos atuais da
+ * empresa, em vez do mapeamento default do welcome-default.
+ */
+export const LISTA_MATHEUS_TAG = 'lista_matheus_personalizada';
 
 /**
  * Mapeamento numérico do welcome institucional da Academia do Nelore P.O:
@@ -74,6 +88,28 @@ const ACADEMIA_NUMERIC_MAP: Record<string, Classification> = {
     '4': { kind: 'interest', interesse: 'oferta_genetica' },
     '5': { kind: 'interest', interesse: 'oportunidades' },
     '6': { kind: 'human' },
+};
+
+/**
+ * Mapeamento numérico do welcome institucional do Matheus:
+ *   1 — Sêmen
+ *   2 — Embriões
+ *   3 — Central de embriões
+ *   4 — Assessoria em leilões
+ *   5 — Compra/venda de genética Nelore P.O
+ *   6 — Todos
+ *
+ * Usado quando o lead carrega a tag `lista_matheus_personalizada`.
+ * Diferente da Academia (que tem opção 6 = "Falar com Matheus") — aqui a
+ * apresentação já é do Matheus e o "humano" entra via PARAR/keyword/inbox.
+ */
+const LISTA_MATHEUS_NUMERIC_MAP: Record<string, Classification> = {
+    '1': { kind: 'interest', interesse: 'semen' },
+    '2': { kind: 'interest', interesse: 'embrioes' },
+    '3': { kind: 'interest', interesse: 'central_embrioes' },
+    '4': { kind: 'interest', interesse: 'leiloes' },
+    '5': { kind: 'interest', interesse: 'compra_venda_genetica' },
+    '6': { kind: 'interest', interesse: 'interesse_amplo' },
 };
 
 /**
@@ -162,6 +198,11 @@ function isAcademiaAudience(ctx?: ClassifyContext): boolean {
     return ctx.tags.includes(ACADEMIA_TAG);
 }
 
+function isListaMatheusAudience(ctx?: ClassifyContext): boolean {
+    if (!ctx?.tags) return false;
+    return ctx.tags.includes(LISTA_MATHEUS_TAG);
+}
+
 export function classifyMessage(text: string, ctx?: ClassifyContext): Classification {
     const raw = (text || '').trim();
     if (!raw) return { kind: 'unknown' };
@@ -182,7 +223,12 @@ export function classifyMessage(text: string, ctx?: ClassifyContext): Classifica
     const onlyNumber = raw.match(/^([1-7])\s*[️⃣]?$/);
     if (onlyNumber) {
         const digit = onlyNumber[1];
-        // Mapeamento Academia tem prioridade quando o lead pertence ao grupo
+        // Audiências específicas têm prioridade sobre o mapeamento default.
+        // Lista Matheus institucional > Academia > default. Um lead pode ter
+        // as duas tags se passou pelos dois fluxos — Matheus é o mais novo.
+        if (isListaMatheusAudience(ctx) && LISTA_MATHEUS_NUMERIC_MAP[digit]) {
+            return LISTA_MATHEUS_NUMERIC_MAP[digit];
+        }
         if (isAcademiaAudience(ctx) && ACADEMIA_NUMERIC_MAP[digit]) {
             return ACADEMIA_NUMERIC_MAP[digit];
         }
@@ -195,7 +241,22 @@ export function classifyMessage(text: string, ctx?: ClassifyContext): Classifica
         }
     }
 
-    // Palavras-chave
+    // ── Match exato das opções da enquete do welcome Matheus institucional ─
+    // Estas regras são checadas ANTES das keywords genéricas porque os textos
+    // se sobrepõem (ex.: "Central de embriões" casaria com /\bembri/ se viesse
+    // depois). Tratam o que o WhatsApp envia quando o lead clica numa opção
+    // da poll nativa.
+    if (/^todos$|^todos os|todos os segmentos|interesse amplo/.test(stripped)) {
+        return { kind: 'interest', interesse: 'interesse_amplo' };
+    }
+    if (/central.{0,5}embri|central.{0,5}embrioes|central.{0,5}embriao/.test(stripped)) {
+        return { kind: 'interest', interesse: 'central_embrioes' };
+    }
+    if (/compra.{0,3}\/?\s*venda|compra e venda|venda e compra/.test(stripped)) {
+        return { kind: 'interest', interesse: 'compra_venda_genetica' };
+    }
+
+    // ── Keywords genéricas ─────────────────────────────────────────────────
     if (/\btouros?\b/.test(stripped)) return { kind: 'interest', interesse: 'touros' };
     if (/\bmatriz/.test(stripped))    return { kind: 'interest', interesse: 'matrizes' };
     if (/\bembri/.test(stripped))     return { kind: 'interest', interesse: 'embrioes' };

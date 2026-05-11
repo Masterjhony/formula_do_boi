@@ -15,7 +15,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { ACADEMIA_TAG } from './whatsapp-central'
+import { ACADEMIA_TAG, LISTA_MATHEUS_TAG } from './whatsapp-central'
 
 /**
  * Slugs de templates que indicam que o lead pertence a uma audiência
@@ -28,13 +28,16 @@ import { ACADEMIA_TAG } from './whatsapp-central'
  * para serem escolhidos pelo engine.
  */
 export const TEMPLATE_AUDIENCE_TAG: Record<string, string> = {
+    // Academia do Nelore P.O
     'welcome-academia-nelore-po': ACADEMIA_TAG,
     'follow-up-academia-24h':     ACADEMIA_TAG,
     'follow-up-academia-final':   ACADEMIA_TAG,
+    // Welcome institucional do Matheus (apresentação + menu numérico 1..6)
+    'welcome-matheus-institucional': LISTA_MATHEUS_TAG,
 }
 
 /** Audience tags reconhecidas pelo sistema (whitelist para o lead-action manual). */
-export const KNOWN_AUDIENCE_TAGS: ReadonlySet<string> = new Set([ACADEMIA_TAG])
+export const KNOWN_AUDIENCE_TAGS: ReadonlySet<string> = new Set([ACADEMIA_TAG, LISTA_MATHEUS_TAG])
 
 export function audienceTagForTemplateSlug(slug: string | null | undefined): string | null {
     if (!slug) return null
