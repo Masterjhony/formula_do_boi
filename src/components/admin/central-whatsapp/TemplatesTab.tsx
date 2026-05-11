@@ -1,7 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { Plus, Save, Trash2, Archive, AlertCircle, CheckCircle2, Loader2, Edit3 } from "lucide-react"
+import { useState, useRef } from "react"
+import {
+    Plus, Save, Trash2, Archive, AlertCircle, CheckCircle2, Loader2, Edit3,
+    ImageIcon, Vote, Upload, X,
+} from "lucide-react"
 import type { Template } from "./types"
 
 const CATEGORIES = [
@@ -12,8 +15,47 @@ const CATEGORIES = [
     { id: "follow_up", label: "Follow-up" },
     { id: "encaminhamento", label: "Encaminhamento" },
     { id: "optout", label: "Opt-out" },
+    { id: "reativacao", label: "Reativação" },
+    { id: "aviso", label: "Aviso" },
     { id: "geral", label: "Geral" },
 ]
+
+const MEDIA_TYPE_BY_MIME: Record<string, Template["media_type"]> = {}
+function mediaTypeForMime(mime: string): Template["media_type"] {
+    if (MEDIA_TYPE_BY_MIME[mime]) return MEDIA_TYPE_BY_MIME[mime]
+    if (mime.startsWith('image/')) return 'image'
+    if (mime.startsWith('video/')) return 'video'
+    if (mime.startsWith('audio/')) return 'audio'
+    return 'document'
+}
+
+interface FormState {
+    title: string
+    category: string
+    body: string
+    media_url: string | null
+    media_type: Template["media_type"]
+    media_mime: string | null
+    media_filename: string | null
+    media_caption: string | null
+    poll_question: string | null
+    poll_options: string[]
+    poll_selectable_count: number
+}
+
+const EMPTY_FORM: FormState = {
+    title: "",
+    category: "geral",
+    body: "",
+    media_url: null,
+    media_type: null,
+    media_mime: null,
+    media_filename: null,
+    media_caption: null,
+    poll_question: null,
+    poll_options: [],
+    poll_selectable_count: 1,
+}
 
 interface Props {
     templates: Template[]
@@ -22,44 +64,156 @@ interface Props {
 
 export function TemplatesTab({ templates, onChange }: Props) {
     const [editing, setEditing] = useState<Template | null>(null)
-    const [form, setForm] = useState<{ title: string; category: string; body: string }>({
-        title: "",
-        category: "geral",
-        body: "",
-    })
+    const [form, setForm] = useState<FormState>(EMPTY_FORM)
     const [saving, setSaving] = useState(false)
+    const [uploading, setUploading] = useState(false)
     const [feedback, setFeedback] = useState<{ type: "ok" | "err"; msg: string } | null>(null)
+    const fileInputRef = useRef<HTMLInputElement | null>(null)
 
     function startNew() {
         setEditing(null)
-        setForm({ title: "", category: "geral", body: "" })
+        setForm(EMPTY_FORM)
         setFeedback(null)
     }
 
     function startEdit(t: Template) {
         setEditing(t)
-        setForm({ title: t.title, category: t.category, body: t.body })
+        setForm({
+            title: t.title,
+            category: t.category,
+            body: t.body,
+            media_url: t.media_url,
+            media_type: t.media_type,
+            media_mime: t.media_mime,
+            media_filename: t.media_filename,
+            media_caption: t.media_caption,
+            poll_question: t.poll_question,
+            poll_options: t.poll_options ?? [],
+            poll_selectable_count: t.poll_selectable_count ?? 1,
+        })
         setFeedback(null)
     }
 
-    async function handleSave() {
-        if (!form.title.trim() || !form.body.trim()) {
-            setFeedback({ type: "err", msg: "Título e corpo são obrigatórios." })
+    async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0]
+        if (!file) return
+        if (file.size > 50 * 1024 * 1024) {
+            setFeedback({ type: "err", msg: "Arquivo > 50MB. Use mídia menor (limite do WhatsApp)." })
             return
         }
+        setUploading(true)
+        setFeedback(null)
+        try {
+            const presignRes = await fetch('/api/r2/upload-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: file.name, contentType: file.type }),
+            })
+            const presign = await presignRes.json()
+            if (!presignRes.ok) throw new Error(presign.error || 'Falha ao obter URL de upload')
+
+            const putRes = await fetch(presign.url, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type },
+                body: file,
+            })
+            if (!putRes.ok) throw new Error(`Upload R2 falhou (HTTP ${putRes.status})`)
+
+            const mt = mediaTypeForMime(file.type || '')
+            setForm(f => ({
+                ...f,
+                media_url: presign.key,
+                media_type: mt,
+                media_mime: file.type || null,
+                media_filename: file.name,
+            }))
+            setFeedback({ type: "ok", msg: `Arquivo enviado (${(file.size / 1024).toFixed(0)} KB).` })
+        } catch (err: unknown) {
+            setFeedback({ type: "err", msg: err instanceof Error ? err.message : "Erro no upload" })
+        } finally {
+            setUploading(false)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+        }
+    }
+
+    function clearMedia() {
+        setForm(f => ({
+            ...f,
+            media_url: null, media_type: null, media_mime: null, media_filename: null, media_caption: null,
+        }))
+    }
+
+    function addPollOption() {
+        setForm(f => ({
+            ...f,
+            poll_question: f.poll_question ?? "",
+            poll_options: [...f.poll_options, ""],
+        }))
+    }
+
+    function updatePollOption(idx: number, value: string) {
+        setForm(f => ({
+            ...f,
+            poll_options: f.poll_options.map((o, i) => i === idx ? value : o),
+        }))
+    }
+
+    function removePollOption(idx: number) {
+        setForm(f => {
+            const next = f.poll_options.filter((_, i) => i !== idx)
+            return {
+                ...f,
+                poll_options: next,
+                poll_selectable_count: Math.min(f.poll_selectable_count, Math.max(1, next.length)),
+            }
+        })
+    }
+
+    function clearPoll() {
+        setForm(f => ({ ...f, poll_question: null, poll_options: [], poll_selectable_count: 1 }))
+    }
+
+    async function handleSave() {
+        if (!form.title.trim()) {
+            setFeedback({ type: "err", msg: "Título é obrigatório." })
+            return
+        }
+        const hasContent = form.body.trim() || form.media_url || (form.poll_question && form.poll_options.length >= 2)
+        if (!hasContent) {
+            setFeedback({ type: "err", msg: "Informe mensagem, mídia ou enquete (pelo menos um)." })
+            return
+        }
+        if (form.poll_question && form.poll_options.filter(o => o.trim()).length < 2) {
+            setFeedback({ type: "err", msg: "Enquete precisa de pelo menos 2 opções preenchidas." })
+            return
+        }
+
         setSaving(true)
         setFeedback(null)
         try {
+            const payload = {
+                title: form.title.trim(),
+                category: form.category,
+                body: form.body,
+                media_url: form.media_url,
+                media_type: form.media_type,
+                media_mime: form.media_mime,
+                media_filename: form.media_filename,
+                media_caption: form.media_caption,
+                poll_question: form.poll_question?.trim() || null,
+                poll_options: form.poll_options.map(o => o.trim()).filter(Boolean),
+                poll_selectable_count: form.poll_selectable_count,
+            }
             const res = editing
                 ? await fetch(`/api/whatsapp/central/templates/${editing.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(form),
+                    body: JSON.stringify(payload),
                 })
                 : await fetch(`/api/whatsapp/central/templates`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(form),
+                    body: JSON.stringify(payload),
                 })
             const data = await res.json()
             if (!res.ok) {
@@ -87,8 +241,11 @@ export function TemplatesTab({ templates, onChange }: Props) {
         return acc
     }, {})
 
+    const hasPoll = form.poll_question !== null
+    const mediaIsImage = form.media_type === 'image'
+
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_460px] gap-4">
             {/* Lista */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -126,9 +283,21 @@ export function TemplatesTab({ templates, onChange }: Props) {
                                         }`}
                                     >
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-semibold text-sm">{t.title}</p>
+                                            <div className="flex items-center gap-1.5">
+                                                <p className="font-semibold text-sm">{t.title}</p>
+                                                {t.media_url && (
+                                                    <span className="inline-flex items-center gap-0.5 text-[9px] uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">
+                                                        <ImageIcon className="h-2.5 w-2.5" /> {t.media_type}
+                                                    </span>
+                                                )}
+                                                {t.poll_question && (
+                                                    <span className="inline-flex items-center gap-0.5 text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
+                                                        <Vote className="h-2.5 w-2.5" /> enquete
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-xs text-muted-foreground line-clamp-2 whitespace-pre-wrap mt-0.5">
-                                                {t.body}
+                                                {t.body || (t.media_url ? '(somente mídia)' : '(somente enquete)')}
                                             </p>
                                             <p className="text-[10px] text-muted-foreground mt-1">
                                                 slug: <code>{t.slug}</code> · usado {t.usage_count}×
@@ -159,7 +328,7 @@ export function TemplatesTab({ templates, onChange }: Props) {
             </div>
 
             {/* Editor */}
-            <div className="bg-card text-card-foreground rounded-xl border p-5 space-y-4 sticky top-4 self-start">
+            <div className="bg-card text-card-foreground rounded-xl border p-5 space-y-4 sticky top-4 self-start max-h-[calc(100vh-80px)] overflow-y-auto">
                 <h3 className="font-semibold flex items-center gap-2">
                     {editing ? <Edit3 className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                     {editing ? `Editar: ${editing.title}` : "Novo template"}
@@ -171,7 +340,7 @@ export function TemplatesTab({ templates, onChange }: Props) {
                         value={form.title}
                         onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                         className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-                        placeholder="Ex: Triagem · Sêmen"
+                        placeholder="Ex: Welcome Matheus institucional"
                     />
                 </div>
 
@@ -191,13 +360,140 @@ export function TemplatesTab({ templates, onChange }: Props) {
                     <textarea
                         value={form.body}
                         onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
-                        rows={10}
+                        rows={8}
                         className="w-full rounded-md border bg-background px-3 py-2 text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-primary/40"
                         placeholder={"Olá {nome}!\n\nObrigado pelo contato…"}
                     />
                     <p className="text-[10px] text-muted-foreground">
                         Variáveis disponíveis: <code>{"{nome}"}</code>, <code>{"{name}"}</code>
                     </p>
+                </div>
+
+                {/* Mídia */}
+                <div className="space-y-2 border-t pt-3">
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs font-medium flex items-center gap-1.5">
+                            <ImageIcon className="h-3.5 w-3.5" /> Mídia (opcional)
+                        </label>
+                        {form.media_url && (
+                            <button
+                                onClick={clearMedia}
+                                className="text-[10px] text-red-600 hover:underline flex items-center gap-0.5"
+                            >
+                                <X className="h-3 w-3" /> Remover
+                            </button>
+                        )}
+                    </div>
+
+                    {form.media_url ? (
+                        <div className="rounded-md border bg-muted/30 p-2 space-y-2">
+                            <div className="flex items-center gap-2">
+                                {mediaIsImage ? <ImageIcon className="h-4 w-4 text-blue-500" /> : <Upload className="h-4 w-4 text-blue-500" />}
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium truncate">{form.media_filename ?? form.media_url}</p>
+                                    <p className="text-[10px] text-muted-foreground">
+                                        {form.media_type} · {form.media_mime ?? '—'}
+                                    </p>
+                                </div>
+                            </div>
+                            <input
+                                value={form.media_caption ?? ''}
+                                onChange={e => setForm(f => ({ ...f, media_caption: e.target.value || null }))}
+                                placeholder="Legenda da mídia (opcional — vazio usa a Mensagem como legenda)"
+                                className="w-full rounded-md border bg-background px-2 py-1 text-xs"
+                            />
+                        </div>
+                    ) : (
+                        <div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*,video/*,audio/*,application/pdf"
+                                onChange={handleFileUpload}
+                                disabled={uploading}
+                                className="block w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-primary file:text-primary-foreground hover:file:opacity-90 file:cursor-pointer"
+                            />
+                            {uploading && (
+                                <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                                    <Loader2 className="h-3 w-3 animate-spin" /> Enviando para Cloudflare R2…
+                                </p>
+                            )}
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                                Foto, vídeo, áudio ou PDF. Máx 50MB. Vai antes do texto na mensagem.
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Enquete */}
+                <div className="space-y-2 border-t pt-3">
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs font-medium flex items-center gap-1.5">
+                            <Vote className="h-3.5 w-3.5" /> Enquete (opcional)
+                        </label>
+                        {hasPoll ? (
+                            <button onClick={clearPoll} className="text-[10px] text-red-600 hover:underline flex items-center gap-0.5">
+                                <X className="h-3 w-3" /> Remover
+                            </button>
+                        ) : (
+                            <button onClick={addPollOption} className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
+                                <Plus className="h-3 w-3" /> Adicionar enquete
+                            </button>
+                        )}
+                    </div>
+
+                    {hasPoll && (
+                        <div className="space-y-2">
+                            <input
+                                value={form.poll_question ?? ''}
+                                onChange={e => setForm(f => ({ ...f, poll_question: e.target.value }))}
+                                placeholder="Pergunta (ex.: Qual segmento da Fórmula do Boi faz mais sentido?)"
+                                className="w-full rounded-md border bg-background px-2 py-1.5 text-xs"
+                            />
+                            <div className="space-y-1.5">
+                                {form.poll_options.map((opt, i) => (
+                                    <div key={i} className="flex gap-1">
+                                        <span className="text-xs text-muted-foreground w-5 text-right pt-1">{i + 1}.</span>
+                                        <input
+                                            value={opt}
+                                            onChange={e => updatePollOption(i, e.target.value)}
+                                            placeholder={`Opção ${i + 1}`}
+                                            className="flex-1 rounded-md border bg-background px-2 py-1 text-xs"
+                                        />
+                                        <button
+                                            onClick={() => removePollOption(i)}
+                                            className="text-muted-foreground hover:text-red-600 p-1"
+                                            title="Remover"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            <button
+                                onClick={addPollOption}
+                                disabled={form.poll_options.length >= 12}
+                                className="text-[10px] text-primary hover:underline disabled:opacity-40 flex items-center gap-0.5"
+                            >
+                                <Plus className="h-3 w-3" /> Adicionar opção
+                                {form.poll_options.length >= 12 && ' (máx 12)'}
+                            </button>
+                            <div className="flex items-center gap-2">
+                                <label className="text-[10px] text-muted-foreground">Múltipla escolha:</label>
+                                <input
+                                    type="checkbox"
+                                    checked={form.poll_selectable_count > 1}
+                                    onChange={e => setForm(f => ({
+                                        ...f,
+                                        poll_selectable_count: e.target.checked ? Math.max(2, f.poll_options.length) : 1,
+                                    }))}
+                                />
+                                <span className="text-[10px] text-muted-foreground">
+                                    {form.poll_selectable_count > 1 ? `pode escolher até ${form.poll_selectable_count}` : 'só uma resposta'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {feedback && (
@@ -215,10 +511,10 @@ export function TemplatesTab({ templates, onChange }: Props) {
                     </p>
                 )}
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-2 border-t">
                     <button
                         onClick={handleSave}
-                        disabled={saving}
+                        disabled={saving || uploading}
                         className="flex-1 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
                         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
@@ -228,6 +524,7 @@ export function TemplatesTab({ templates, onChange }: Props) {
                         <button
                             onClick={startNew}
                             className="px-4 py-2 rounded-md text-sm border hover:bg-muted"
+                            title="Novo (limpa o formulário)"
                         >
                             <Trash2 className="h-4 w-4" />
                         </button>

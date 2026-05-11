@@ -323,7 +323,7 @@ async function runMsgQueue() {
       if (item.kind === 'welcome') {
         await _executeSend(item.phone, item.name);
       } else if (item.kind === 'direct') {
-        await _executeSendDirect(item.phone, item.message, item.meta);
+        await _executeSendDirect(item.phone, item.message, item.meta, item.media || null, item.poll || null);
       }
     } catch (err) {
       console.error(`[Queue] Falha ao enviar para ${item.phone}:`, err.message);
@@ -344,9 +344,9 @@ function enqueueSend(phone, name) {
   return { queued: true, position, estimatedSeconds };
 }
 
-function enqueueSendDirect(phone, message, meta = null) {
+function enqueueSendDirect(phone, message, meta = null, media = null, poll = null) {
   if (msgQueue.length >= 500) throw new Error('Fila de envio cheia (max 500).');
-  msgQueue.push({ kind: 'direct', phone, message, meta });
+  msgQueue.push({ kind: 'direct', phone, message, meta, media, poll });
   const position = msgQueue.length;
   const estimatedSeconds = (position - 1) * (QUEUE_DELAY_MS / 1000);
   runMsgQueue();
@@ -703,6 +703,93 @@ function formatBRNumber(phone) {
   return `55${cleaned}@s.whatsapp.net`;
 }
 
+// Pequena pausa entre as mensagens compostas (mídia → texto → enquete) para
+// que o WhatsApp processe cada bubble na ordem certa e o destinatário veja
+// na ordem natural.
+const COMPOSED_DELAY_MS = 1200;
+
+/**
+ * Envia uma sequência composta para `jid`:
+ *   1. Mídia (se `media.url`) com legenda opcional (caption).
+ *   2. Texto (`body`) — só se vier separado da legenda da mídia.
+ *   3. Enquete nativa (poll) com pergunta + opções.
+ *
+ * Regra de caption: se o template tem `media` E `body`:
+ *   - quando `media.caption` veio explicitamente, usa esse texto como legenda
+ *     da mídia e o `body` vai como mensagem separada (2 bubbles antes do poll).
+ *   - quando `media.caption` é vazio e `body` é curto (≤ 1024 chars, limite do
+ *     WhatsApp para caption), o `body` vira a legenda e enviamos só 1 bubble.
+ *   - quando `body` excede o limite de caption ou está vazio, mídia vai
+ *     sem caption e `body` separado (se houver).
+ *
+ * Retorna `{sent, ids[]}` ou propaga erro.
+ */
+async function _sendComposed(jid, body, media, poll) {
+  const ids = [];
+  let mediaSentWithCaption = false;
+
+  if (media && media.url) {
+    const captionExplicit = typeof media.caption === 'string' && media.caption.trim().length > 0;
+    let caption;
+    if (captionExplicit) {
+      caption = media.caption;
+    } else if (body && body.length <= 1024) {
+      caption = body;
+      mediaSentWithCaption = true;
+    } else {
+      caption = undefined;
+    }
+
+    let mediaPayload;
+    switch (media.type) {
+      case 'image':
+        mediaPayload = { image: { url: media.url }, caption };
+        break;
+      case 'video':
+        mediaPayload = { video: { url: media.url }, caption };
+        break;
+      case 'audio':
+        // ptt=true para "voz" (mais natural em apresentação pessoal); o cliente
+        // escolhe via media.mime se preferir document. Mantemos ptt=false aqui
+        // para não simular voz quando o template é só áudio anexo.
+        mediaPayload = { audio: { url: media.url }, mimetype: media.mime || 'audio/ogg; codecs=opus', ptt: false };
+        break;
+      case 'document':
+        mediaPayload = {
+          document: { url: media.url },
+          mimetype: media.mime || 'application/octet-stream',
+          fileName: media.filename || 'arquivo',
+          caption,
+        };
+        break;
+      default:
+        throw new Error(`media.type inválido: ${media.type}`);
+    }
+    const r = await sock.sendMessage(jid, mediaPayload);
+    ids.push(r?.key?.id);
+    if ((body && !mediaSentWithCaption) || poll) await new Promise(r => setTimeout(r, COMPOSED_DELAY_MS));
+  }
+
+  if (body && !mediaSentWithCaption) {
+    const r = await sock.sendMessage(jid, { text: body });
+    ids.push(r?.key?.id);
+    if (poll) await new Promise(r => setTimeout(r, COMPOSED_DELAY_MS));
+  }
+
+  if (poll && poll.question && Array.isArray(poll.options) && poll.options.length >= 2) {
+    const r = await sock.sendMessage(jid, {
+      poll: {
+        name: poll.question,
+        values: poll.options,
+        selectableCount: Math.max(1, Math.min(poll.options.length, poll.selectable_count || 1)),
+      },
+    });
+    ids.push(r?.key?.id);
+  }
+
+  return { sent: ids.length > 0, ids };
+}
+
 async function _executeSend(phone, name) {
   if (currentStatus !== 'connected' || !sock) {
     throw new Error(`WhatsApp nao conectado. Status: ${currentStatus}`);
@@ -713,14 +800,15 @@ async function _executeSend(phone, name) {
 
   // A mensagem de boas-vindas vem do Next.js (template welcome-default).
   // O endpoint `/api/whatsapp/render-welcome` pode responder:
-  //   { body }            → corpo renderizado, segue o envio normal
-  //   { silent, reason }  → opt-out (lead em whatsapp_optouts ou
-  //                          crm_leads.optout_whatsapp=true). NÃO enviar nada.
+  //   { body, media?, poll? } → renderizado; envia mídia+texto+enquete em ordem.
+  //   { silent, reason }      → opt-out — NÃO enviar nada.
   //
   // Só caímos no fallback do flowConfig.welcome_message quando o Next.js está
   // INACESSÍVEL (timeout / 5xx / sem resposta) — nunca quando ele responde
   // explicitamente que é pra ficar em silêncio.
   let messageText = null;
+  let mediaPayload = null;
+  let pollPayload = null;
   let renderReachable = false;
   if (NEXT_JS_URL && GROUP_TASK_SECRET) {
     try {
@@ -738,6 +826,8 @@ async function _executeSend(phone, name) {
           return { sent: false, reason: data.reason || 'optout' };
         }
         if (data?.body) messageText = data.body;
+        if (data?.media?.url) mediaPayload = data.media;
+        if (data?.poll?.question) pollPayload = data.poll;
       } else {
         console.warn(`[Welcome] render-welcome respondeu HTTP ${r.status} — usando fallback.`);
       }
@@ -746,12 +836,9 @@ async function _executeSend(phone, name) {
     }
   }
 
-  if (!messageText) {
+  if (!messageText && !mediaPayload && !pollPayload) {
     if (renderReachable) {
-      // Next.js respondeu OK mas sem body e sem silent — situação anormal.
-      // Tratamos como opt-out implícito para não enviar mensagem genérica
-      // que poderia confundir o destinatário.
-      console.log(`[Welcome] ${formattedPhone} — render sem body, abortado.`);
+      console.log(`[Welcome] ${formattedPhone} — render sem conteúdo, abortado.`);
       return { sent: false, reason: 'no_template' };
     }
     const template = flowConfig.welcome_message;
@@ -765,8 +852,8 @@ async function _executeSend(phone, name) {
   }
 
   const jid = result[0].jid || formattedPhone;
-  const msgResult = await sock.sendMessage(jid, { text: messageText });
-  console.log(`[Queue] Welcome enviado para ${jid} (${name}) — id: ${msgResult?.key?.id}`);
+  const out = await _sendComposed(jid, messageText, mediaPayload, pollPayload);
+  console.log(`[Queue] Welcome enviado para ${jid} (${name}) — bubbles: ${out.ids.length} — ids: ${out.ids.join(',')}`);
   return { sent: true };
 }
 
@@ -792,7 +879,17 @@ async function _executeAddToGroup(phone) {
   return { added: false, status };
 }
 
-async function _executeSendDirect(phone, message, meta) {
+/**
+ * Envia mensagem direta para um número. Aceita texto, mídia e/ou enquete.
+ *
+ * Argumentos:
+ *   message — texto (pode ser string vazia se houver mídia ou poll)
+ *   meta    — { report_url?, campaign_id?, recipient_id?, phone?, caption? }
+ *             (caption sobrescreve a legenda da mídia para esta entrega)
+ *   media   — { url, type, mime?, filename?, caption? } | null
+ *   poll    — { question, options[], selectable_count } | null
+ */
+async function _executeSendDirect(phone, message, meta, media = null, poll = null) {
   if (currentStatus !== 'connected' || !sock) {
     throw new Error(`WhatsApp nao conectado. Status: ${currentStatus}`);
   }
@@ -815,14 +912,19 @@ async function _executeSendDirect(phone, message, meta) {
   }
 
   const jid = result[0].jid || formattedPhone;
-  const msgResult = await sock.sendMessage(jid, { text: message });
-  console.log(`[Queue] Mensagem direta enviada para ${jid} — id: ${msgResult?.key?.id}`);
+  // meta.caption permite override da legenda por destinatário (campanhas
+  // renderizam {nome} para cada um). Se vier, sobrescreve media.caption.
+  const effectiveMedia = media
+    ? { ...media, caption: meta?.caption ?? media.caption }
+    : null;
+  const out = await _sendComposed(jid, message, effectiveMedia, poll);
+  console.log(`[Queue] Direta enviada para ${jid} — bubbles: ${out.ids.length} — ids: ${out.ids.join(',')}`);
 
   if (meta?.report_url && NEXT_JS_URL && GROUP_TASK_SECRET) {
     fetch(meta.report_url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-webhook-secret': GROUP_TASK_SECRET },
-      body: JSON.stringify({ ...meta, status: 'enviado', message_id: msgResult?.key?.id }),
+      body: JSON.stringify({ ...meta, status: 'enviado', message_id: out.ids[0] || null, message_ids: out.ids }),
       signal: AbortSignal.timeout(5000),
     }).catch(() => {});
   }
@@ -872,16 +974,17 @@ async function handleRequest(req, res) {
     }
 
     if (req.method === 'POST' && url.pathname === '/send-direct') {
-      const { phone, message, meta } = await readJsonBody(req);
-      if (!phone || !message) {
-        res.writeHead(400); res.end(JSON.stringify({ error: 'phone e message sao obrigatorios' })); return;
+      const { phone, message, meta, media, poll } = await readJsonBody(req);
+      // Aceita envio com APENAS mídia ou APENAS enquete (message pode ser vazio)
+      if (!phone || (!message && !media && !poll)) {
+        res.writeHead(400); res.end(JSON.stringify({ error: 'phone obrigatório; message, media ou poll necessário' })); return;
       }
-      const result = enqueueSendDirect(phone, message, meta);
+      const result = enqueueSendDirect(phone, message || '', meta, media || null, poll || null);
       res.writeHead(200); res.end(JSON.stringify({ success: true, ...result })); return;
     }
 
     if (req.method === 'POST' && url.pathname === '/campaign-send') {
-      const { campaign_id, recipients } = await readJsonBody(req);
+      const { campaign_id, recipients, media, poll } = await readJsonBody(req);
       if (!campaign_id || !Array.isArray(recipients)) {
         res.writeHead(400);
         res.end(JSON.stringify({ error: 'campaign_id e recipients[] são obrigatórios' }));
@@ -890,15 +993,20 @@ async function handleRequest(req, res) {
       const queued = [];
       const reportUrl = `${NEXT_JS_URL}/api/whatsapp/campaign-callback`;
       for (const r of recipients) {
-        if (!r.phone || !r.message) continue;
+        // Aceita recipient sem `message` se a campanha tem mídia ou poll
+        if (!r.phone) continue;
+        if (!r.message && !media && !poll) continue;
         try {
           const meta = {
             report_url: reportUrl,
             campaign_id,
             recipient_id: r.recipient_id || null,
             phone: r.phone,
+            // caption por destinatário (rendered no Next.js); o VPS prefere
+            // este valor sobre media.caption do template.
+            caption: r.caption || null,
           };
-          const q = enqueueSendDirect(r.phone, r.message, meta);
+          const q = enqueueSendDirect(r.phone, r.message || '', meta, media || null, poll || null);
           queued.push({ recipient_id: r.recipient_id, ...q });
         } catch (e) {
           queued.push({ recipient_id: r.recipient_id, error: e.message });

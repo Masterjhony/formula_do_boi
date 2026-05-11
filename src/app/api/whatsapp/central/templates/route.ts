@@ -7,6 +7,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/auth-helpers'
+import {
+    normalizeMediaAndPoll,
+    TemplatePayloadError,
+    TEMPLATE_SELECT_COLUMNS,
+    type TemplateMediaPollInput,
+} from '@/lib/whatsapp-template-payload'
 
 export async function GET(req: NextRequest) {
     const auth = await requireAdmin()
@@ -22,7 +28,7 @@ export async function GET(req: NextRequest) {
 
     let q = supabase
         .from('whatsapp_templates')
-        .select('id, slug, title, category, body, variables, archived, usage_count, updated_at')
+        .select(TEMPLATE_SELECT_COLUMNS)
         .order('category', { ascending: true })
         .order('title', { ascending: true })
 
@@ -37,12 +43,41 @@ export async function POST(req: NextRequest) {
     const auth = await requireAdmin()
     if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-    let body: { slug?: string; title: string; category?: string; body: string; variables?: string[] }
+    type Body = {
+        slug?: string
+        title: string
+        category?: string
+        body?: string
+        variables?: string[]
+    } & TemplateMediaPollInput
+
+    let body: Body
     try { body = await req.json() } catch {
         return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
-    if (!body.title?.trim() || !body.body?.trim()) {
-        return NextResponse.json({ error: 'title e body são obrigatórios' }, { status: 400 })
+    if (!body.title?.trim()) {
+        return NextResponse.json({ error: 'title é obrigatório' }, { status: 400 })
+    }
+
+    let mediaPoll
+    try {
+        mediaPoll = normalizeMediaAndPoll(body)
+    } catch (e) {
+        if (e instanceof TemplatePayloadError) {
+            return NextResponse.json({ error: e.message }, { status: 400 })
+        }
+        throw e
+    }
+
+    // Pelo menos um dos três (body, mídia, enquete) precisa estar presente.
+    const hasBody = !!body.body?.trim()
+    const hasMedia = !!mediaPoll.media_url
+    const hasPoll = !!mediaPoll.poll_question
+    if (!hasBody && !hasMedia && !hasPoll) {
+        return NextResponse.json(
+            { error: 'Informe pelo menos uma das opções: mensagem, mídia ou enquete.' },
+            { status: 400 }
+        )
     }
 
     const slug = (body.slug || body.title)
@@ -63,9 +98,10 @@ export async function POST(req: NextRequest) {
             slug,
             title: body.title.trim(),
             category: body.category?.trim() || 'geral',
-            body: body.body,
+            body: body.body ?? '',
             variables: body.variables ?? [],
             created_by: auth.userId,
+            ...mediaPoll,
         })
         .select('id, slug')
         .single()

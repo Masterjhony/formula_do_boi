@@ -12,6 +12,7 @@ import { requireAdmin } from '@/lib/auth-helpers'
 import { resolveSegment, type SegmentFilters } from '@/lib/whatsapp-segment'
 import { firstName, renderTemplate } from '@/lib/whatsapp-central'
 import { ensureAudienceTagForTemplate } from '@/lib/whatsapp-audience-tags'
+import { getR2DownloadUrl } from '@/lib/r2'
 
 const WHATSAPP_SERVER_URL = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001'
 
@@ -43,17 +44,44 @@ export async function POST(
 
     let bodyTemplate = campaign.body ?? ''
     let templateSlug: string | null = null
+    let captionTemplate: string | null = null
+    let mediaPayload: { url: string; type: string; mime?: string | null; filename?: string | null } | null = null
+    let pollPayload: { question: string; options: string[]; selectable_count: number } | null = null
     if (campaign.template_id) {
         const { data: tpl } = await supabase
             .from('whatsapp_templates')
-            .select('slug, body')
+            .select('slug, body, media_url, media_type, media_mime, media_filename, media_caption, poll_question, poll_options, poll_selectable_count')
             .eq('id', campaign.template_id)
             .single()
         if (tpl?.body) bodyTemplate = tpl.body
         templateSlug = tpl?.slug ?? null
+        captionTemplate = tpl?.media_caption ?? null
+
+        if (tpl?.media_url && tpl?.media_type) {
+            try {
+                // Presigned válido por 30 min — tempo suficiente pro VPS escoar a fila
+                const url = await getR2DownloadUrl(tpl.media_url, { expiresInSeconds: 1800 })
+                mediaPayload = {
+                    url,
+                    type: tpl.media_type,
+                    mime: tpl.media_mime,
+                    filename: tpl.media_filename,
+                }
+            } catch (e) {
+                console.warn('[campaigns/send] presign mídia falhou:', e instanceof Error ? e.message : e)
+            }
+        }
+        if (tpl?.poll_question && Array.isArray(tpl.poll_options) && tpl.poll_options.length >= 2) {
+            pollPayload = {
+                question: tpl.poll_question,
+                options: tpl.poll_options as string[],
+                selectable_count: tpl.poll_selectable_count ?? 1,
+            }
+        }
     }
-    if (!bodyTemplate.trim()) {
-        return NextResponse.json({ error: 'Campanha sem corpo de mensagem' }, { status: 400 })
+    // Aceita campanha sem texto se houver mídia ou enquete
+    if (!bodyTemplate.trim() && !mediaPayload && !pollPayload) {
+        return NextResponse.json({ error: 'Campanha sem mensagem, mídia ou enquete' }, { status: 400 })
     }
 
     const segment = (campaign.segment ?? {}) as SegmentFilters
@@ -118,21 +146,33 @@ export async function POST(
         })
         .eq('id', id)
 
-    // Renderiza mensagem por destinatário e envia ao VPS
-    const renderedRecipients = (insertedRecipients ?? []).map(r => ({
-        recipient_id: r.id,
-        phone: r.phone,
-        message: renderTemplate(bodyTemplate, {
+    // Renderiza mensagem + caption por destinatário (cada um com seu {nome}).
+    // Mídia e enquete são iguais para todos os recipients da campanha.
+    const renderedRecipients = (insertedRecipients ?? []).map(r => {
+        const vars = {
             nome: firstName(r.name) || 'amigo(a)',
             name: r.name || '',
-        }),
-    }))
+        }
+        return {
+            recipient_id: r.id,
+            phone: r.phone,
+            message: bodyTemplate ? renderTemplate(bodyTemplate, vars) : '',
+            // caption por destinatário só quando o template definiu uma legenda
+            // dedicada para a mídia; senão o VPS usa `message` como caption.
+            caption: captionTemplate ? renderTemplate(captionTemplate, vars) : null,
+        }
+    })
 
     try {
         await fetch(`${WHATSAPP_SERVER_URL}/campaign-send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ campaign_id: id, recipients: renderedRecipients }),
+            body: JSON.stringify({
+                campaign_id: id,
+                recipients: renderedRecipients,
+                media: mediaPayload,
+                poll: pollPayload,
+            }),
             signal: AbortSignal.timeout(30000),
         })
     } catch (e: unknown) {
@@ -148,5 +188,7 @@ export async function POST(
         queued: renderedRecipients.length,
         audience_tag: audienceTagged.tag,
         audience_tagged: audienceTagged.updated,
+        has_media: !!mediaPayload,
+        has_poll: !!pollPayload,
     })
 }

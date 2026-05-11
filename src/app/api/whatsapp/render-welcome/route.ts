@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { firstName, normalizePhone, phoneVariants, renderTemplate } from '@/lib/whatsapp-central'
+import { getR2DownloadUrl } from '@/lib/r2'
 
 export async function POST(req: NextRequest) {
     const SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
@@ -49,13 +50,40 @@ export async function POST(req: NextRequest) {
 
     const { data: tpl } = await supabase
         .from('whatsapp_templates')
-        .select('body')
+        .select('body, media_url, media_type, media_mime, media_filename, media_caption, poll_question, poll_options, poll_selectable_count')
         .eq('slug', 'welcome-default')
         .eq('archived', false)
         .single()
 
     const tplBody = tpl?.body || `Olá {nome}! 👋\n\nAqui é da Fórmula do Boi.`
-    const rendered = renderTemplate(tplBody, { nome: firstName(name), name })
+    const vars = { nome: firstName(name), name }
+    const rendered = renderTemplate(tplBody, vars)
 
-    return NextResponse.json({ body: rendered })
+    // Mídia: gera presigned URL curta (10 min) — o VPS baixa via Baileys
+    let media: { url: string; type: string; mime?: string | null; filename?: string | null; caption?: string } | null = null
+    if (tpl?.media_url && tpl?.media_type) {
+        try {
+            const url = await getR2DownloadUrl(tpl.media_url, { expiresInSeconds: 600 })
+            media = {
+                url,
+                type: tpl.media_type,
+                mime: tpl.media_mime,
+                filename: tpl.media_filename,
+                caption: tpl.media_caption ? renderTemplate(tpl.media_caption, vars) : undefined,
+            }
+        } catch (e) {
+            console.warn('[render-welcome] presign falhou:', e instanceof Error ? e.message : e)
+        }
+    }
+
+    let poll: { question: string; options: string[]; selectable_count: number } | null = null
+    if (tpl?.poll_question && Array.isArray(tpl.poll_options) && tpl.poll_options.length >= 2) {
+        poll = {
+            question: renderTemplate(tpl.poll_question, vars),
+            options: tpl.poll_options.map((o: string) => renderTemplate(o, vars)),
+            selectable_count: tpl.poll_selectable_count ?? 1,
+        }
+    }
+
+    return NextResponse.json({ body: rendered, media, poll })
 }

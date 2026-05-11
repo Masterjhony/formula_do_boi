@@ -67,6 +67,16 @@ export interface Template {
     archived: boolean
     usage_count: number
     updated_at: string
+    // Mídia opcional anexada ao template (foto/vídeo/áudio/documento)
+    media_url: string | null            // key do R2 (ex.: libmedia/123_foto.jpg)
+    media_type: 'image' | 'video' | 'audio' | 'document' | null
+    media_mime: string | null
+    media_filename: string | null
+    media_caption: string | null
+    // Enquete nativa do WhatsApp (opcional)
+    poll_question: string | null
+    poll_options: string[]              // sempre array, default []
+    poll_selectable_count: number       // default 1
 }
 
 export interface Campaign {
