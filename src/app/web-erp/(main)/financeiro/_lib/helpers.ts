@@ -1,5 +1,8 @@
 import type { Transaction, BulaLeilao, FechamentoLite, UnifiedItem } from './types';
-import { normalizeAssessorNome } from '@/lib/assessor-normalize';
+import {
+    normalizeAssessorNome,
+    isFdbAssessor,
+} from '@/lib/assessor-normalize';
 
 export const fmt = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
@@ -226,15 +229,24 @@ export function buildPayables(
     for (const f of fechamentos) {
         const comissaoTotal = Number(f.comissao_assessoria) || 0;
         if (comissaoTotal <= 0) continue;
-        // Mescla entradas centralizadas (Pedro Barnabé / Matheus Amormino →
-        // Marcelo Carneiro) para gerar um único pagável por assessor canônico.
-        const assessorMap = new Map<string, { nome: string; empresa: string; vgv: number }>();
+        // Considera APENAS assessores do roster FdB (Bulinha, Marcelo Carneiro,
+        // Pedro Barnabé→Marcelo, Matheus Amormino→Marcelo) — regra dos 2% FdB.
+        // Bula tem rotina própria e fica de fora da distribuição automática.
+        const assessorMap = new Map<string, { nome: string; empresa: string; vgv: number; vgvBreakdown: Array<{ nome: string; vgv: number }> }>();
         for (const a of f.por_assessor ?? []) {
+            if (!isFdbAssessor(a?.nome)) continue;
             const canon = normalizeAssessorNome(a?.nome);
             if (!canon) continue;
-            const cur = assessorMap.get(canon) ?? { nome: canon, empresa: a?.empresa || '', vgv: 0 };
-            cur.vgv += Number(a?.vgv) || 0;
+            const vgvA = Number(a?.vgv) || 0;
+            const cur = assessorMap.get(canon) ?? { nome: canon, empresa: a?.empresa || '', vgv: 0, vgvBreakdown: [] };
+            cur.vgv += vgvA;
             if (!cur.empresa && a?.empresa) cur.empresa = a.empresa;
+            // Guarda contribuição do nome ORIGINAL para discriminar quando
+            // houve centralização (Pedro/Matheus → Marcelo).
+            const originalNome = (a?.nome || '').trim();
+            if (originalNome && originalNome !== canon) {
+                cur.vgvBreakdown.push({ nome: originalNome, vgv: vgvA });
+            }
             assessorMap.set(canon, cur);
         }
         const assessores = Array.from(assessorMap.values());
@@ -248,6 +260,18 @@ export function buildPayables(
                 const key = a.nome.toUpperCase().replace(/\s+/g, '_').slice(0, 40);
                 const tag = `FECHAMENTO:${f.id}:ASSESSOR:${key}`;
                 if (linkedTags.has(tag)) continue;
+                // Quando houve centralização (Pedro/Matheus → Marcelo), enriquece
+                // subtitle/observacao com a discriminação por nome original.
+                const incluiOriginais = a.vgvBreakdown.filter(b => b.vgv > 0);
+                const subtitleBase = a.empresa || 'Assessoria';
+                const subtitle = incluiOriginais.length
+                    ? `${subtitleBase} · pago a ${a.nome} · inclui ${incluiOriginais.map(b => b.nome).join(' · ')}`
+                    : subtitleBase;
+                const observacao = incluiOriginais.length
+                    ? `Comissão FdB 2% paga a ${a.nome}. Discriminação por assessor original: ${incluiOriginais
+                          .map(b => `${b.nome} R$ ${(comissaoTotal * (b.vgv / totalVgv)).toFixed(2)} (VGV R$ ${b.vgv.toFixed(2)})`)
+                          .join(' · ')}.`
+                    : null;
                 out.push({
                     key: `fech-asses:${f.id}:${key}`,
                     sourceTag: tag,
@@ -256,7 +280,7 @@ export function buildPayables(
                     status: 'virtual',
                     type: 'expense',
                     title: `Comissão ${a.nome} — ${f.nome}`,
-                    subtitle: a.empresa || 'Assessoria',
+                    subtitle,
                     party: a.nome,
                     dueDate: f.data || today(),
                     amount: valor,
@@ -266,7 +290,7 @@ export function buildPayables(
                     accountName: null,
                     categoryId: null,
                     categoryName: null,
-                    observacao: null,
+                    observacao,
                     refId: f.id,
                 });
             }

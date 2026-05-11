@@ -12,6 +12,8 @@
 //   07 Benchmark       — comparativo vs. média dos outros leilões (opcional)
 // ============================================================
 
+import { normalizeAssessorNome } from '@/lib/assessor-normalize'
+
 type Assessor = {
   posicao?: number; nome?: string; empresa?: string
   transacoes?: number; animais?: number; vgv?: number
@@ -632,7 +634,43 @@ export async function generateFechamentoPDF(
   }
 
   // ════════════ 03 POR ASSESSOR ════════════
-  const porAssessor = Array.isArray(fech.por_assessor) ? fech.por_assessor : []
+  // Consolida Pedro Barnabé / Matheus Amormino sob Marcelo Carneiro (diretiva
+  // 11/05/2026). Pedro/Matheus aparecem como sub-rótulo no nome do Marcelo
+  // para preservar a discriminação informativa.
+  const porAssessorRaw = Array.isArray(fech.por_assessor) ? fech.por_assessor : []
+  const porAssessorMap = new Map<string, {
+    canon: string; empresa: string; transacoes: number; animais: number;
+    vgv: number; pct_total: number; origens: string[]
+  }>()
+  for (const a of porAssessorRaw) {
+    const canon = normalizeAssessorNome(a.nome) || (a.nome ?? '')
+    if (!canon) continue
+    const cur = porAssessorMap.get(canon) ?? {
+      canon, empresa: a.empresa ?? '', transacoes: 0, animais: 0,
+      vgv: 0, pct_total: 0, origens: [],
+    }
+    cur.transacoes += a.transacoes ?? 0
+    cur.animais += a.animais ?? 0
+    cur.vgv += a.vgv ?? 0
+    cur.pct_total += a.pct_total ?? 0
+    if (!cur.empresa && a.empresa) cur.empresa = a.empresa
+    const original = (a.nome ?? '').trim()
+    if (original && original !== canon) cur.origens.push(original)
+    porAssessorMap.set(canon, cur)
+  }
+  const porAssessor = Array.from(porAssessorMap.values())
+    .sort((a, b) => b.vgv - a.vgv)
+    .map((a, i) => ({
+      posicao: i + 1,
+      nome: a.canon,
+      empresa: a.empresa,
+      transacoes: a.transacoes,
+      animais: a.animais,
+      vgv: a.vgv,
+      ticket_medio: a.animais > 0 ? a.vgv / a.animais : 0,
+      pct_total: a.pct_total,
+      origens: a.origens,
+    }))
   if (porAssessor.length) {
     y = novaPagina('Por Assessor')
     y = tituloSecao(y, '03 POR ASSESSOR', 'Cobertura individual', `${porAssessor.length} assessor(es) atuaram nesta cobertura`)
@@ -642,7 +680,9 @@ export async function generateFechamentoPDF(
       head: [['#', 'Assessor', 'Casa', 'Lances', 'Animais', 'Ticket méd.', 'VGV', '% Cobertura']],
       body: porAssessor.map((a, i) => [
         a.posicao ?? (i + 1),
-        a.nome ?? '',
+        a.origens.length
+          ? `${a.nome}\ninclui ${a.origens.join(' · ')}`
+          : (a.nome ?? ''),
         a.empresa ?? '',
         a.transacoes ?? 0,
         a.animais ?? 0,
@@ -739,16 +779,23 @@ export async function generateFechamentoPDF(
       startY: y,
       margin: { left: M, right: M, bottom: 22 },
       head: [['Lote', 'Comprador', 'UF', 'Assessor', 'Casa', 'Anim.', 'Parcela', 'VGV']],
-      body: lances.map(l => [
-        l.lote || '—',
-        l.comprador ?? '',
-        l.uf || '—',
-        l.assessor ?? '',
-        l.empresa ?? '',
-        l.animais ?? 0,
-        fmtBRL(l.parcela),
-        fmtBRL(l.vgv),
-      ]),
+      body: lances.map(l => {
+        const canon = normalizeAssessorNome(l.assessor) || (l.assessor ?? '')
+        const original = (l.assessor ?? '').trim()
+        const assessorCell = original && original !== canon
+          ? `${canon}\n(${original})`
+          : canon
+        return [
+          l.lote || '—',
+          l.comprador ?? '',
+          l.uf || '—',
+          assessorCell,
+          l.empresa ?? '',
+          l.animais ?? 0,
+          fmtBRL(l.parcela),
+          fmtBRL(l.vgv),
+        ]
+      }),
       styles: { font: 'helvetica', fontSize: 8, cellPadding: 2.4, lineColor: TABLE_LINE, lineWidth: 0.1, textColor: INK2 },
       headStyles: { fillColor: PRETO, textColor: BRONZE_100, fontStyle: 'bold', fontSize: 7.5 },
       alternateRowStyles: { fillColor: ROW_ALT },

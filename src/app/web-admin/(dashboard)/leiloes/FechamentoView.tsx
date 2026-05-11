@@ -481,47 +481,87 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
           )}
 
           {/* ── ASSESSORES ── */}
-          {tab === 'assessores' && (
-            <div className="space-y-4">
-              {f.por_assessor.length === 0 ? (
-                <p className="text-center text-gray-400 text-sm py-12">Nenhum dado de assessor registrado</p>
-              ) : f.por_assessor.map((a, i) => (
-                <div key={a.nome} className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-4">
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0
-                      ${i === 0 ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400'}`}>
-                      {i === 0 ? <Star size={16} /> : a.posicao}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 dark:text-white text-sm">{a.nome}</p>
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wide">{a.empresa}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-black text-[#A0792E] text-base">{R(a.vgv)}</p>
-                      <p className="text-[10px] text-gray-400">{PCT(a.pct_total)} do total</p>
-                    </div>
-                  </div>
-                  {/* VGV bar */}
-                  <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] mb-3 overflow-hidden">
-                    <div className="h-full rounded-full transition-all"
-                      style={{ width: `${(a.vgv / maxVgv) * 100}%`, background: EMPRESA_COLORS[a.empresa] ?? '#A0792E' }} />
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { label: 'Transações', value: a.transacoes },
-                      { label: 'Animais', value: a.animais },
-                      { label: 'Ticket Médio', value: R(a.ticket_medio) },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="rounded-lg bg-gray-50 dark:bg-[#151515] px-3 py-2 text-center">
-                        <p className="text-[9px] uppercase tracking-wide text-gray-400 mb-0.5">{label}</p>
-                        <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{value}</p>
+          {tab === 'assessores' && (() => {
+            // Consolida Pedro Barnabé / Matheus Amormino sob Marcelo Carneiro
+            // (diretiva 11/05/2026), preservando os nomes originais para
+            // discriminação informativa.
+            type Origin = { nome: string; vgv: number; animais: number; transacoes: number }
+            const grouped = new Map<string, Assessor & { origens: Origin[] }>()
+            for (const a of f.por_assessor) {
+              const canon = normalizeAssessorNome(a.nome) || a.nome
+              const cur = grouped.get(canon) ?? {
+                ...a, nome: canon, vgv: 0, transacoes: 0, animais: 0,
+                ticket_medio: 0, pct_total: 0, posicao: a.posicao, empresa: a.empresa,
+                origens: [],
+              }
+              cur.vgv += a.vgv || 0
+              cur.transacoes += a.transacoes || 0
+              cur.animais += a.animais || 0
+              cur.pct_total += a.pct_total || 0
+              if (!cur.empresa && a.empresa) cur.empresa = a.empresa
+              const original = (a.nome || '').trim()
+              if (original && original !== canon) {
+                cur.origens.push({
+                  nome: original, vgv: a.vgv || 0,
+                  animais: a.animais || 0, transacoes: a.transacoes || 0,
+                })
+              }
+              grouped.set(canon, cur)
+            }
+            const items = Array.from(grouped.values())
+              .sort((a, b) => b.vgv - a.vgv)
+              .map((a, i) => ({
+                ...a, posicao: i + 1,
+                ticket_medio: a.animais > 0 ? a.vgv / a.animais : 0,
+              }))
+            if (items.length === 0) {
+              return <div className="space-y-4"><p className="text-center text-gray-400 text-sm py-12">Nenhum dado de assessor registrado</p></div>
+            }
+            return (
+              <div className="space-y-4">
+                {items.map((a, i) => (
+                  <div key={a.nome} className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0
+                        ${i === 0 ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400'}`}>
+                        {i === 0 ? <Star size={16} /> : a.posicao}
                       </div>
-                    ))}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">{a.nome}</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">{a.empresa}</p>
+                        {a.origens.length > 0 && (
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 italic">
+                            inclui {a.origens.map(o => `${o.nome} (${R(o.vgv)})`).join(' · ')}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-[#A0792E] text-base">{R(a.vgv)}</p>
+                        <p className="text-[10px] text-gray-400">{PCT(a.pct_total)} do total</p>
+                      </div>
+                    </div>
+                    {/* VGV bar */}
+                    <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] mb-3 overflow-hidden">
+                      <div className="h-full rounded-full transition-all"
+                        style={{ width: `${(a.vgv / maxVgv) * 100}%`, background: EMPRESA_COLORS[a.empresa] ?? '#A0792E' }} />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: 'Transações', value: a.transacoes },
+                        { label: 'Animais', value: a.animais },
+                        { label: 'Ticket Médio', value: R(a.ticket_medio) },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="rounded-lg bg-gray-50 dark:bg-[#151515] px-3 py-2 text-center">
+                          <p className="text-[9px] uppercase tracking-wide text-gray-400 mb-0.5">{label}</p>
+                          <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{value}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )
+          })()}
 
           {/* ── COMPRADORES ── */}
           {tab === 'compradores' && (
@@ -581,7 +621,18 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400">{l.uf}</span>
                           </td>
                           <td className="px-3 py-2.5 max-w-[120px]">
-                            <p className="font-semibold text-gray-700 dark:text-gray-300 truncate">{l.assessor}</p>
+                            {(() => {
+                              const canon = normalizeAssessorNome(l.assessor) || l.assessor
+                              const original = (l.assessor || '').trim()
+                              return (
+                                <>
+                                  <p className="font-semibold text-gray-700 dark:text-gray-300 truncate">{canon}</p>
+                                  {original && original !== canon && (
+                                    <p className="text-[9px] italic text-gray-500 dark:text-gray-400 truncate">({original})</p>
+                                  )}
+                                </>
+                              )
+                            })()}
                             <p className="text-gray-400 truncate" style={{ color: EMPRESA_COLORS[l.empresa] ?? undefined }}>{l.empresa}</p>
                           </td>
                           <td className="px-3 py-2.5 text-center font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">{l.animais}</td>
