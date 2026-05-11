@@ -58,5 +58,11 @@ temp_planotatico_part1/
 plano_tatico_recente/
 crm_formula/
 crm_formula_content/
+tmp/
+extrato_tmp/
+
+# Catalogs in docs/assets/catalogos/ são commitados manualmente quando precisam
+# ser referenciados em algum lugar do projeto. Não há regra para gerar automaticamente;
+# se quiser parar de trackar um catálogo específico, faça `git rm --cached <arquivo>`.
 
 # Dev/test scripts and output files (local use only)

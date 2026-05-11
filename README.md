@@ -1,151 +1,146 @@
 # Fórmula do Boi
 
-Plataforma completa para gestão e venda de genética bovina — marketplace público, painel administrativo, CRM de vendas, ERP e automação via WhatsApp.
+Plataforma completa para gestão e venda de genética bovina Nelore PO — marketplace público, landing de captura, painel admin com CRM/WhatsApp/contratos, ERP interno e o sistema da Bula Assessoria.
+
+> Documentação operacional detalhada (rotas, env vars, comandos do VPS, fluxos) está em [CLAUDE.md](./CLAUDE.md). Este README cobre o panorama. Para a Central WhatsApp em profundidade, veja [docs/whatsapp-central.md](./docs/whatsapp-central.md).
 
 ---
 
 ## Domínios
 
+Tudo é servido por **um único deployment Next.js na Vercel**. O [middleware](src/middleware.ts) faz rewrite por subdomínio.
+
 | Ambiente | Produção | Local |
 |---|---|---|
-| Marketplace (público) | `formuladoboi.com` (e `www.*`, `app.*` legacy) | `localhost:3000` |
+| Marketplace (público) | `formuladoboi.com` (+ `www.*`, `app.*` legacy) | `localhost:3000` |
 | Landing Page (Grupo VIP) | `formuladoboi.com/grupo-vip` | `localhost:3000/grupo-vip` |
 | Painel Admin | `admin.formuladoboi.com` | `admin.localhost:3000` |
 | ERP | `erp.formuladoboi.com` | `erp.localhost:3000` |
 | Bula | `adminbula.formuladoboi.com` | `adminbula.localhost:3000` |
-| WhatsApp Server | `http://165.232.142.37:3001` (VPS DigitalOcean) | `localhost:3001` |
+| WhatsApp Server (VPS) | `165.232.142.37:3001` | `localhost:3001` |
 
-O roteamento por subdomínio é feito via `src/middleware.ts`:
+Mapeamento interno:
+
 - `admin.*` → `/web-admin`
 - `erp.*` → `/web-erp`
 - `adminbula.*` → `/web-bula`
-- `lp.*` → 301 redirect para `formuladoboi.com/grupo-vip` (legacy)
-- domínio raiz / `www.*` / `app.*` → `/web-site` (marketplace)
-- `/grupo-vip[/...]` no marketplace → `/web-lp[/...]` (Landing Page de captura)
+- `lp.*` → **301** para `formuladoboi.com/grupo-vip` (legado)
+- domínio raiz / `www.*` / `app.*` → `/web-site`
+- `/grupo-vip[/...]` no marketplace → `/web-lp[/...]`
 
 ---
 
-## Funcionalidades
+## Funcionalidades por painel
 
 ### Marketplace (`/web-site`)
-- Catálogo público de bovinos com filtros por raça (Nelore Padrão, Nelore Pintado), tipo e categoria
-- Página de detalhes de lote com fotos, vídeos, DEPs e condições de pagamento
-- Catálogo de embriões e doadoras
-- SEO otimizado com Open Graph por página
+Catálogo público (touros, matrizes, embriões, sêmen), detalhes de lote, rankings, top criadores, agenda de leilões, checkout PIX.
 
-### Painel Admin (`/web-admin`)
-- Autenticação via Supabase SSR
-- Gestão de produtos (matrizes, reprodutores, embriões)
-- **CRM Kanban** — pipeline de vendas com drag-and-drop, salvo em tempo real no banco
-- Dashboard de analytics com métricas de leads e visitas (Google Analytics 4)
-- Gestão de criadores (breeders)
-- **Painel WhatsApp** — exibe QR code para conectar o WhatsApp e status da conexão
+### Landing Page Grupo VIP (`/web-lp` em `/grupo-vip`)
+Formulário de captura → grava no `crm_leads` com UTM/atribuição, espelha em Google Sheets, dispara welcome via WhatsApp.
 
-### Automação Google Sheets → CRM → WhatsApp
-Quando um lead é captado via formulário (integrado ao Google Sheets), um script no Sheets chama o webhook:
+### Admin (`/web-admin`)
+Auth via Supabase SSR. Segmentos sob `(dashboard)`:
 
-```
-POST /api/webhooks/google-sheets
-Header: x-webhook-secret: <SHEETS_WEBHOOK_SECRET>
-```
-
-O webhook:
-1. Insere o lead na tabela `crm_leads` do Supabase
-2. Aguarda (`await`) o resultado do envio da mensagem de boas-vindas via WhatsApp Server
-3. Retorna no response o status de cada lead com o resultado do WhatsApp (`{ sent, reason?, error? }`)
+| Segmento | O que faz |
+|---|---|
+| `analytics` | GA4 + métricas de leads |
+| `crm` | Kanban de leads com drag-and-drop (dnd-kit) |
+| `whatsapp` | **Central WhatsApp** — inbox conversacional, fluxo visual, templates, campanhas, métricas, QR/conexão. Ver [docs/whatsapp-central.md](./docs/whatsapp-central.md). |
+| `products` | CRUD de bovinos (com parser de genealogia/avaliação genética via PDF) |
+| `contratos` | Geração e envio de contratos via **ClickSign** (assinatura eletrônica) |
+| `biblioteca-midia` | Upload/download direto em Cloudflare R2 (presigned URLs) |
+| `breeders`, `genealogia` | Cadastro e visualização da genealogia |
+| `tactical-plan`, `okr`, `vendas-marketing` | Plano tático, OKRs, vendas/marketing |
+| `leiloes`, `lotes-touros`, `lotes-doadoras` | Operação de leilões |
+| `ia` | Assistente GLM-4.7 com tool-calling nas 8 tabelas |
 
 ### ERP (`/web-erp`)
-Módulo interno de gestão operacional com Kanban tático (`tactical_tasks`).
+Financeiro, contábil, estoque, leilões — fluxo interno de gestão.
 
-### Automação WhatsApp → Kanban Tático
-
-Membros dos grupos da comunidade WhatsApp podem criar cards no Kanban do ERP digitando:
-
-```
-/tarefa <descrição da tarefa>
-```
-
-O bot responde no próprio grupo confirmando a criação. O card aparece no Kanban com um badge verde **WhatsApp** e registra o grupo e o remetente de origem. Implementado em `whatsapp-server.js` (listener de grupos) + `POST /api/whatsapp/group-task` (cria o card no Supabase).
+### Bula (`/web-bula`)
+Plataforma do braço **Bula Assessoria**: CRM próprio, leilões, fechamentos, cronograma. Combina rotas Next.js (`/api/bula/*`) com SPA legada servida estaticamente (`sistema.html`, `login.html`).
 
 ---
 
-## Stack Técnica
+## Stack
 
 | Camada | Tecnologia |
 |---|---|
-| Framework | Next.js (App Router) |
-| UI | React 19, Tailwind CSS v4, Framer Motion |
-| Banco de dados | Supabase (PostgreSQL) |
-| Auth | Supabase SSR |
-| Drag & Drop | dnd-kit |
-| Ícones | Lucide React |
-| Analytics | Google Analytics 4 |
-| WhatsApp | Baileys (`@whiskeysockets/baileys`) via microserviço |
-| Imagens | Sharp, Jimp |
-| Deploy | Vercel (Next.js) + Docker (WhatsApp Server) |
+| Framework | Next.js 16 (App Router) + React 19 |
+| UI | Tailwind v4, Framer Motion, dnd-kit, @xyflow/react (fluxo da Central) |
+| Banco | Supabase (PostgreSQL + RLS + Auth) |
+| Object storage | Cloudflare R2 (S3-compatible) via `aws4fetch` |
+| WhatsApp | Baileys (`@whiskeysockets/baileys`) em VPS Docker — fora da Vercel por exigir WebSocket persistente |
+| Pagamentos | Asaas (PIX/transfer + webhook) |
+| Assinatura eletrônica | ClickSign API v1 |
+| IA | GLM-4.7 (Zhipu) via HTTP, tool-calling |
+| Email | Nodemailer/SMTP (Hostinger) — códigos de verificação e resets |
+| Analytics | GA4 via service account (`@google-analytics/data`) |
+| Deploy | Vercel (auto-deploy no push para `main`) + Docker (WhatsApp Server) |
 
 ---
 
-## Arquitetura de Serviços
+## Arquitetura de serviços
 
 ```
-Vercel (Next.js)             DigitalOcean Droplet (165.232.142.37)
-┌──────────────────────┐      ┌──────────────────────┐
-│  formuladoboi.com    │      │  whatsapp-server.js  │
-│   ├ /          → site│      │  porta 3001          │
-│   └ /grupo-vip → LP  │ ───▶ │  Baileys WebSocket   │
-│  admin.* / erp.* /   │ HTTP └──────────────────────┘
-│  adminbula.*         │
-└──────────────────────┘
-        │                           │
-        ▼                           ▼
-   Supabase                    WhatsApp Web
-  (crm_leads,                  (sessão salva em
-  products, etc.)              arquivos locais via
-                               Docker volume)
+Vercel (Next.js)
+┌──────────────────────────────────────────────┐
+│  formuladoboi.com (marketplace + LP)         │
+│  admin.* (Central WA, CRM, ERP-tactical)     │
+│  erp.* (financeiro/contábil/estoque)         │
+│  adminbula.* (Bula)                          │
+│                                              │
+│  /api/*  ─┬─► Supabase (PostgreSQL + RLS)    │
+│           ├─► Cloudflare R2 (mídia)          │
+│           ├─► ClickSign (contratos)          │
+│           ├─► Asaas (pagamentos)             │
+│           ├─► Zhipu GLM-4.7 (IA)             │
+│           └─► VPS WhatsApp ◄────┐            │
+└──────────────────────────────────────────────┘
+                                  │ HTTP
+                                  ▼
+DigitalOcean Droplet 165.232.142.37
+┌──────────────────────────────────────────────┐
+│  Docker: formula_boi_whatsapp :3001          │
+│  whatsapp-server.js (Baileys WebSocket)      │
+│  Auth persistida em /opt/whatsapp-auth/      │
+│  (volume Docker — NÃO em Supabase)           │
+└──────────────────────────────────────────────┘
+                                  │
+                                  ▼
+                            WhatsApp Web
 ```
 
-O **WhatsApp Server** é um processo Node.js separado porque o Baileys mantém uma conexão WebSocket persistente — incompatível com o modelo serverless da Vercel. Ele roda em Docker com `restart: unless-stopped` num Droplet DigitalOcean.
+O servidor WhatsApp é o **único componente** fora da Vercel — todo o resto roda serverless. A sessão Baileys é persistida em arquivos no volume Docker (`/opt/whatsapp-auth/`); reinicia o container sem perder a sessão. O Next.js só fala HTTP com o VPS, **não importa Baileys**.
 
-A sessão do Baileys é persistida em **arquivos locais** (`useMultiFileAuthState`) via Docker volume (`/opt/whatsapp-auth/`). O `src/lib/whatsapp.ts` no Next.js é um proxy HTTP puro — **não importa Baileys**.
-
-> Documentação detalhada do servidor: [whatsapp-server/README.md](./whatsapp-server/README.md)
+> Documentação detalhada do servidor: [whatsapp-server/README.md](./whatsapp-server/README.md).
 
 ---
 
-## Variáveis de Ambiente
-
-Copie `.env.example` para `.env.local` e preencha:
-
-```bash
-cp .env.example .env.local
-```
-
-### Vercel
-Na Vercel, configure as mesmas variáveis em **Settings → Environment Variables**. As prefixadas com `NEXT_PUBLIC_` ficam expostas ao browser; as demais são server-only.
-
-> **WhatsApp Server**: o servidor não depende mais do Supabase — a sessão é persistida em arquivos locais via Docker volume. Apenas a variável `WHATSAPP_SERVER_PORT` é necessária (ver [whatsapp-server/README.md](./whatsapp-server/README.md)).
-
----
-
-## Desenvolvimento Local
+## Setup local
 
 ### Pré-requisitos
 - Node.js 20+
-- Docker (para o WhatsApp Server)
+- Docker (opcional — só para subir o servidor WhatsApp local)
 
-### Subdomínios locais
+### Subdomínios
 
-Para que `admin.localhost` e `erp.localhost` funcionem, adicione ao seu arquivo `hosts`:
+Adicione ao `hosts` (`C:\Windows\System32\drivers\etc\hosts` no Windows, `/etc/hosts` no Linux/Mac):
 
 ```
-# Windows: C:\Windows\System32\drivers\etc\hosts
-# Linux/Mac: /etc/hosts
 127.0.0.1  admin.localhost
 127.0.0.1  erp.localhost
+127.0.0.1  adminbula.localhost
 ```
 
-### Iniciar Next.js
+### Variáveis de ambiente
+
+```bash
+cp .env.example .env.local
+# preencha as chaves (lista completa em CLAUDE.md → "Environment Variables")
+```
+
+### Rodar
 
 ```bash
 npm install
@@ -156,194 +151,123 @@ Acesse:
 - Marketplace: http://localhost:3000
 - Admin: http://admin.localhost:3000
 - ERP: http://erp.localhost:3000
+- Bula: http://adminbula.localhost:3000
 
-### Iniciar WhatsApp Server (desenvolvimento local)
-
-> **Atenção**: o WhatsApp permite apenas **uma sessão ativa por número**. O VPS de produção (`165.232.142.37`) mantém a sessão ativa permanentemente. Rodar um servidor WhatsApp local simultaneamente causa conflito de sessão (erro 440) e derruba a conexão do VPS.
->
-> **Só suba o servidor local se o VPS estiver parado ou para testes com um número diferente.**
+### Comandos
 
 ```bash
-# Com Docker (recomendado)
-docker compose --env-file .env.local up -d whatsapp-server
+npm run dev      # dev server (porta 3000)
+npm run build    # build de produção
+npm run start    # serve build de produção
+npm run lint     # ESLint
+```
 
-# Ver logs / QR Code
-docker logs -f formula_boi_whatsapp
+> Não há test runner configurado. `playwright` está em devDependencies mas sem script.
+
+### WhatsApp local (somente quando o VPS estiver parado)
+
+> ⚠️ O WhatsApp permite **uma sessão por número**. Subir servidor local em paralelo com o VPS de produção derruba a sessão da VPS com **erro 440**. Só rode local se a VPS estiver parada ou para testar com outro número.
+
+```bash
+# Docker (recomendado)
+docker compose --env-file .env.local up -d whatsapp-server
+docker logs -f formula_boi_whatsapp   # ver QR / logs
 
 # Sem Docker (dev rápido)
-cd whatsapp-server
-npm install
-node whatsapp-server.js
+cd whatsapp-server && npm install && node whatsapp-server.js
 ```
 
-Depois, acesse o painel em `http://admin.localhost:3000/whatsapp` para escanear o QR code.
-
-### Reconectar WhatsApp (sessão expirada)
-
-Se o WhatsApp pedir novo QR mesmo com container rodando, a sessão expirou. Limpe os arquivos de auth e reinicie:
-
-```bash
-# Em produção (VPS)
-ssh root@165.232.142.37
-docker stop formula_boi_whatsapp
-rm -rf /opt/whatsapp-auth/*
-docker start formula_boi_whatsapp
-docker logs -f formula_boi_whatsapp  # ver novo QR
-
-# Em desenvolvimento local
-docker restart formula_boi_whatsapp
-```
-
-Escaneie o novo QR em `http://admin.formuladoboi.com/whatsapp` (produção) ou `http://admin.localhost:3000/whatsapp` (local).
+QR code aparece em `http://admin.localhost:3000/whatsapp` → aba **Conexão**.
 
 ---
 
-## Infraestrutura de Produção
-
-### Vercel (Next.js)
-
-- **Conta**: `masterjhony` em `joaos-projects-4fb95c65`
-- **Projeto**: `formula_do_boii`
-- **URL de produção**: `https://formuladoboi.com` (apex). `www.*` e `app.*` (legacy) também atendem o marketplace; `lp.*` 301-redireciona pra `formuladoboi.com/grupo-vip`.
-- **Deploy**: automático a cada `git push` para `main`
-
-#### Gerenciar via Vercel CLI
-
-```bash
-# Instalar CLI (se necessário)
-npm install -g vercel
-
-# Login (abre browser)
-vercel login
-
-# Vincular o repositório local ao projeto
-vercel link --scope joaos-projects-4fb95c65 --project formula_do_boii
-
-# Listar variáveis de ambiente
-vercel env ls
-
-# Adicionar variável
-vercel env add NOME_DA_VAR production
-
-# Redeploy sem alterar código (ex: após mudar env vars)
-vercel redeploy <deployment-url> --target production
-
-# Ver deployments recentes
-vercel ls
-```
-
-#### Checklist de variáveis na Vercel
-
-| Variável | Valor em produção | Descrição |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://hghtikjaqixglmpujbwj.supabase.co` | URL do projeto Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | — | Chave pública do Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | — | Chave admin (bypassa RLS) |
-| `SHEETS_WEBHOOK_SECRET` | — | Segredo compartilhado com o Apps Script |
-| `WHATSAPP_SERVER_URL` | `http://165.232.142.37:3001` | URL do servidor WhatsApp no VPS |
-| `WHATSAPP_GROUP_TASK_SECRET` | — | Segredo compartilhado com o VPS para `/api/whatsapp/group-task` (Production only) |
-| `GOOGLE_GA4_PROPERTY_ID` | `483341191` | ID da propriedade GA4 |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | — | JSON da service account GA4 |
-
-> Para alterar uma variável na Vercel e fazer redeploy sem subir arquivos locais (evita erro de limite de 100 MB):
-> ```bash
-> vercel env rm NOME_DA_VAR production --yes
-> vercel env add NOME_DA_VAR production --value "novo_valor" --yes
-> vercel redeploy <url-do-ultimo-deploy> --target production
-> ```
-
----
-
-### VPS DigitalOcean (WhatsApp Server)
-
-- **Provedor**: DigitalOcean
-- **IP**: `165.232.142.37`
-- **OS**: Ubuntu 24.04 LTS x64
-- **Recursos**: 1 GB RAM
-- **Arquivos**: `/opt/whatsapp-server/`
-
-> O WhatsApp Server **não roda na Vercel** — requer conexão WebSocket persistente, incompatível com serverless.
-
-#### Acessar via SSH
-
-```bash
-ssh root@165.232.142.37
-```
-
-#### Comandos úteis no servidor
-
-```bash
-# Ver status do container
-docker ps
-
-# Ver logs em tempo real
-docker logs -f formula_boi_whatsapp
-
-# Reiniciar container (ex: após atualizar código)
-docker restart formula_boi_whatsapp
-
-# Parar container
-docker stop formula_boi_whatsapp
-
-# Rebuild após alterar whatsapp-server.js
-cd /opt/whatsapp-server
-docker build -t formula_boi_whatsapp_img .
-docker stop formula_boi_whatsapp && docker rm formula_boi_whatsapp
-docker run -d --name formula_boi_whatsapp --restart unless-stopped \
-  -p 3001:3001 -v /opt/whatsapp-auth:/data/auth \
-  -e WHATSAPP_SERVER_PORT=3001 formula_boi_whatsapp_img
-
-# Verificar status do WhatsApp (conectado, qr, etc.)
-curl http://localhost:3001/status
-```
-
-> A sessão é preservada no volume `/opt/whatsapp-auth/` — não precisa escanear QR ao fazer rebuild.
-
-#### Atualizar o servidor WhatsApp
-
-Quando `whatsapp-server.js` for alterado localmente, enviar para o servidor. Veja [whatsapp-server/README.md](./whatsapp-server/README.md) para instruções detalhadas.
-
-```bash
-scp whatsapp-server/whatsapp-server.js root@165.232.142.37:/opt/whatsapp-server/
-ssh root@165.232.142.37 "cd /opt/whatsapp-server && docker build -t formula_boi_whatsapp_img . && \
-  docker stop formula_boi_whatsapp && docker rm formula_boi_whatsapp && \
-  docker run -d --name formula_boi_whatsapp --restart unless-stopped \
-  -p 3001:3001 -v /opt/whatsapp-auth:/data/auth \
-  -e WHATSAPP_SERVER_PORT=3001 formula_boi_whatsapp_img"
-```
-
----
-
-## Estrutura de Pastas
+## Estrutura de pastas
 
 ```
 formula_boi/
 ├── src/
 │   ├── app/
-│   │   ├── web-site/          # Marketplace público
-│   │   ├── web-admin/         # Painel administrativo
-│   │   │   └── (dashboard)/
-│   │   │       ├── crm/       # CRM Kanban
-│   │   │       ├── products/  # Gestão de produtos
-│   │   │       ├── analytics/ # Dashboard de métricas
-│   │   │       └── whatsapp/  # Status e QR do WhatsApp
-│   │   ├── web-erp/           # ERP interno
-│   │   └── api/
-│   │       ├── webhooks/google-sheets/  # Webhook de leads
-│   │       └── whatsapp/status/         # Proxy status WhatsApp
-│   ├── components/            # Componentes reutilizáveis
-│   ├── lib/                   # Wrappers e utilitários
-│   ├── services/              # Lógica de negócio / acesso a dados
-│   ├── utils/                 # Supabase client, GA, helpers
-│   └── middleware.ts          # Roteamento por subdomínio
-├── whatsapp-server/           # Microserviço WhatsApp (Node.js + Docker)
+│   │   ├── web-site/          # Marketplace
+│   │   ├── web-lp/            # Landing /grupo-vip
+│   │   ├── web-admin/         # Painel admin
+│   │   │   ├── (auth)/
+│   │   │   ├── (dashboard)/   # CRM, products, whatsapp, contratos, etc
+│   │   │   └── actions/       # Server actions
+│   │   ├── web-erp/           # ERP (financeiro, contábil, estoque, leilões)
+│   │   ├── web-bula/          # Bula (CRM próprio, leilões, fechamentos)
+│   │   └── api/               # Todas as rotas serverless (ver CLAUDE.md)
+│   ├── components/            # UI reutilizável (admin/, central-whatsapp/, erp/...)
+│   ├── lib/                   # Clients externos + lógica de negócio
+│   │   ├── whatsapp.ts        # Proxy HTTP para o VPS
+│   │   ├── whatsapp-central.ts        # Classificador, normalização, renderer
+│   │   ├── whatsapp-flow-engine.ts    # Interpretador do grafo do bot
+│   │   ├── whatsapp-segment.ts        # Resolução de segmentos de campanha
+│   │   ├── clicksign.ts       # Cliente ClickSign API v1
+│   │   ├── r2.ts              # Cloudflare R2 (presigned URLs)
+│   │   ├── genealogy-parser.ts        # PDF → genealogia_json
+│   │   ├── avaliacao-genetica-parser.ts
+│   │   ├── auth-helpers.ts    # requireAdmin() e afins
+│   │   └── email.ts           # SMTP / Nodemailer
+│   ├── utils/supabase/        # Clients server, browser, middleware
+│   └── middleware.ts          # Rewrites por subdomínio + refresh de sessão
+├── whatsapp-server/           # Microserviço Baileys (Node.js + Docker)
 │   ├── whatsapp-server.js
-│   ├── package.json
-│   └── Dockerfile
-├── database/                  # Migrations SQL (Supabase)
-├── scripts/                   # Scripts utilitários locais
-├── public/                    # Assets estáticos
+│   ├── Dockerfile
+│   └── README.md
+├── database/                  # ~160 migrations SQL (manuais)
+├── scripts/
+│   ├── (utilitários atuais)
+│   └── archive/               # Scripts one-shot já executados — ver scripts/archive/README.md
+├── docs/                      # Documentação suplementar
+│   ├── whatsapp-central.md    # Central WhatsApp end-to-end
+│   ├── assets/                # Brandbook + catálogos
+│   └── legacy/                # Versões antigas/protótipos
+├── public/                    # Assets estáticos + PDFs de produto
 ├── docker-compose.yml
-├── .env.example
-└── .vercelignore          # Exclui .next e node_modules do upload da Vercel CLI
+├── architecture.md            # Diagrama macro
+└── CLAUDE.md                  # Referência operacional completa
 ```
+
+---
+
+## Infraestrutura de produção
+
+### Vercel
+- Conta `masterjhony` em `joaos-projects-4fb95c65`
+- Projeto `formula_do_boii`
+- Deploy automático a cada `git push` para `main`
+- **Não rodar `vercel --prod` manualmente** — sempre push para `main`
+
+Comandos úteis (não substituem o push):
+
+```bash
+vercel link --scope joaos-projects-4fb95c65 --project formula_do_boii
+vercel env ls
+vercel env add NOME_VAR production
+vercel ls
+```
+
+### VPS DigitalOcean (WhatsApp Server)
+- IP: `165.232.142.37`
+- Ubuntu 24.04 LTS / 1 GB RAM
+- `/opt/whatsapp-server/` + volume `/opt/whatsapp-auth/`
+
+```bash
+ssh root@165.232.142.37
+docker ps
+docker logs -f formula_boi_whatsapp
+docker restart formula_boi_whatsapp
+curl http://localhost:3001/status
+```
+
+Para reconectar a sessão (depois de expirar ou após conflito de erro 440), ver instruções detalhadas em [whatsapp-server/README.md](./whatsapp-server/README.md) e em [docs/whatsapp-central.md](./docs/whatsapp-central.md#reconectando-a-sessão).
+
+---
+
+## Para onde ir agora
+
+- **Acabei de chegar no projeto** → leia [CLAUDE.md](./CLAUDE.md) (referência operacional completa)
+- **Vou mexer no bot do WhatsApp** → [docs/whatsapp-central.md](./docs/whatsapp-central.md)
+- **Vou mexer no Baileys/VPS** → [whatsapp-server/README.md](./whatsapp-server/README.md)
+- **Quero o diagrama macro** → [architecture.md](./architecture.md)
+- **Procuro um endpoint específico** → tabela de rotas em [CLAUDE.md](./CLAUDE.md#api-routes)

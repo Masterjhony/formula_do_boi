@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fórmula do Boi — Genética Nelore P.O. de criador pra criador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black: #0A0A0A;
+    --ink: #1A1A1A;
+    --charcoal: #2A2A2A;
+    --gold: #A0802A;
+    --gold-light: #C9A961;
+    --gold-soft: #D4B878;
+    --cream: #F6F2EA;
+    --paper: #FAFAF7;
+    --white: #FFFFFF;
+    --line: #E8E4DB;
+    --muted: #6B6558;
+    --success: #2E7D32;
+
+    --f-display: 'Fraunces', serif;
+    --f-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+
+    --r-sm: 6px;
+    --r-md: 12px;
+    --r-lg: 20px;
+
+    --shadow-sm: 0 2px 8px rgba(10,10,10,0.06);
+    --shadow-md: 0 8px 24px rgba(10,10,10,0.10);
+    --shadow-lg: 0 20px 60px rgba(10,10,10,0.20);
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  html{ scroll-behavior: smooth; }
+  body{
+    font-family: var(--f-body);
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a{ color: inherit; text-decoration: none; }
+  img{ max-width:100%; display:block; }
+
+  /* ================== HEADER ================== */
+  .nav{
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(160,128,42,0.15);
+  }
+  .nav-inner{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .nav-logo{
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--cream);
+    letter-spacing: 0.01em;
+  }
+  .nav-logo span{ color: var(--gold-light); }
+  .nav-cta{
+    display:inline-flex;
+    align-items:center;
+    gap: 6px;
+    background: var(--gold);
+    color: var(--black);
+    padding: 9px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    transition: transform .2s, background .2s;
+  }
+  .nav-cta:hover{ background: var(--gold-light); transform: translateY(-1px); }
+  .nav-cta svg{ width: 14px; height: 14px; }
+
+  /* ================== HERO ================== */
+  .hero{
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: flex-end;
+    padding: 120px 20px 48px;
+    color: var(--cream);
+    overflow: hidden;
+    background: var(--black);
+  }
+  .hero-bg{
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(180deg, rgba(10,10,10,0.35) 0%, rgba(10,10,10,0.70) 60%, rgba(10,10,10,0.95) 100%),
+      url('https://res.cloudinary.com/dkh2nsugb/video/upload/f_jpg,q_80,w_1280,so_0/v1775568904/cam_1_lifky2.jpg');
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+  }
+  .hero-grain{
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.8 0 0 0 0 0.7 0 0 0 0 0.3 0 0 0 0.12 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: 0.35;
+    mix-blend-mode: overlay;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .hero-inner{
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    animation: fadeUp .9s ease-out both;
+  }
+  .hero-kicker{
+    display:inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    font-weight: 600;
+    margin-bottom: 22px;
+  }
+  .hero-kicker::before{
+    content:'';
+    width: 28px;
+    height: 1px;
+    background: var(--gold-light);
+  }
+  .hero h1{
+    font-family: var(--f-display);
+    font-weight: 400;
+    font-size: clamp(38px, 9vw, 84px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin-bottom: 22px;
+    max-width: 14ch;
+  }
+  .hero h1 em{
+    font-style: italic;
+    color: var(--gold-light);
+    font-weight: 400;
+  }
+  .hero-sub{
+    font-size: clamp(15px, 4vw, 18px);
+    line-height: 1.55;
+    color: rgba(246,242,234,0.80);
+    margin-bottom: 32px;
+    max-width: 52ch;
+    font-weight: 400;
+  }
+  .hero-ctas{
+    display:flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .btn-primary{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap: 10px;
+    background: var(--gold);
+    color: var(--black);
+    padding: 18px 28px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    transition: all .25s;
+    border: 2px solid var(--gold);
+  }
+  .btn-primary:hover{ background: var(--gold-light); border-color: var(--gold-light); transform: translateY(-2px); box-shadow: 0 12px 30px rgba(160,128,42,0.35); }
+  .btn-ghost{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap: 10px;
+    background: transparent;
+    color: var(--cream);
+    padding: 18px 28px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 15px;
+    border: 1.5px solid rgba(246,242,234,0.35);
+    transition: all .2s;
+  }
+  .btn-ghost:hover{ border-color: var(--gold-light); color: var(--gold-light); }
+  .btn-primary svg, .btn-ghost svg{ width: 18px; height: 18px; }
+
+  .trust-row{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 18px 28px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(246,242,234,0.12);
+  }
+  .trust-item{
+    display:flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .trust-item b{
+    font-family: var(--f-display);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--gold-light);
+    letter-spacing: -0.01em;
+  }
+  .trust-item span{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(246,242,234,0.70);
+    font-weight: 500;
+  }
+
+  /* ================== SELO OURO ================== */
+  .selo{
+    padding: 60px 20px;
+    background: var(--black);
+    position: relative;
+  }
+  .selo-card{
+    max-width: 1200px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #14110A 0%, #1F1A0E 50%, #14110A 100%);
+    border: 1px solid rgba(160,128,42,0.30);
+    border-radius: var(--r-lg);
+    padding: 44px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .selo-card::before{
+    content:'';
+    position: absolute;
+    top: -50%; right: -30%;
+    width: 80%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, rgba(201,169,97,0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .selo-badge{
+    display:inline-flex;
+    align-items:center;
+    gap: 8px;
+    background: rgba(160,128,42,0.15);
+    border: 1px solid var(--gold);
+    color: var(--gold-light);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    position: relative;
+    z-index: 1;
+  }
+  .selo-badge::before{
+    content:'★';
+    color: var(--gold);
+    font-size: 13px;
+  }
+  .selo-title{
+    font-family: var(--f-display);
+    font-size: clamp(30px, 7vw, 52px);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--cream);
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 1;
+  }
+  .selo-title em{ font-style: italic; color: var(--gold-light); }
+  .selo-text{
+    color: rgba(246,242,234,0.78);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    max-width: 54ch;
+    position: relative;
+    z-index: 1;
+  }
+  .selo-bullets{
+    list-style: none;
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+  }
+  .selo-bullets li{
+    color: rgba(246,242,234,0.88);
+    font-size: 14px;
+    display:flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .selo-bullets li::before{
+    content:'';
+    flex: none;
+    width: 6px; height: 6px;
+    background: var(--gold-light);
+    border-radius: 50%;
+  }
+  .selo-cta{
+    display:inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--gold);
+    color: var(--black);
+    padding: 18px 32px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 15px;
+    position: relative;
+    z-index: 1;
+    transition: all .25s;
+  }
+  .selo-cta:hover{ background: var(--gold-light); transform: translateY(-2px); }
+  .selo-cta svg{ width: 18px; height: 18px; }
+
+  /* ================== SECTION SHARED ================== */
+  .section{ padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
+  .section-kicker{
+    display:inline-block;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .section-title{
+    font-family: var(--f-display);
+    font-size: clamp(30px, 7vw, 54px);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--black);
+    margin-bottom: 18px;
+  }
+  .section-title em{ font-style: italic; color: var(--gold); }
+  .section-lead{
+    font-size: 17px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 58ch;
+    margin-bottom: 40px;
+  }
+
+  /* ================== ACELERADORA DE TOUROS ================== */
+  .aceleradora{
+    background: var(--white);
+    border-top: 1px solid var(--line);
+  }
+  .big-number{
+    font-family: var(--f-display);
+    font-style: italic;
+    font-size: clamp(80px, 22vw, 180px);
+    font-weight: 300;
+    line-height: 0.85;
+    color: var(--gold);
+    margin-bottom: 8px;
+    letter-spacing: -0.04em;
+  }
+  .big-number-sub{
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--charcoal);
+    font-weight: 600;
+    margin-bottom: 28px;
+  }
+  .split-text{
+    margin-bottom: 36px;
+    max-width: 58ch;
+  }
+  .split-text p{
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .split-text p strong{ color: var(--black); font-weight: 700; }
+
+  .touros-scroll{
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding: 4px 0 18px;
+    margin: 0 -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .touros-scroll::-webkit-scrollbar{ height: 4px; }
+  .touros-scroll::-webkit-scrollbar-thumb{ background: var(--gold); border-radius: 2px; }
+
+  .touro-card{
+    flex: 0 0 260px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    scroll-snap-align: start;
+    transition: all .25s;
+    display:flex;
+    flex-direction: column;
+  }
+  .touro-card:hover{ transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--gold-soft); }
+  .touro-img{
+    width: 100%;
+    height: 200px;
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .touro-img img{
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .touro-tag{
+    position: absolute;
+    top: 12px; left: 12px;
+    background: var(--black);
+    color: var(--gold-light);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+  .touro-body{ padding: 18px; flex: 1; display:flex; flex-direction: column; }
+  .touro-rgd{ font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+  .touro-name{
+    font-family: var(--f-display);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--black);
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .touro-meta{
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .touro-price{
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    margin-top: auto;
+  }
+  .touro-price-label{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .touro-price-value{
+    font-family: var(--f-display);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: -0.01em;
+  }
+  .touro-price-value small{ font-size: 12px; color: var(--muted); font-family: var(--f-body); font-weight: 500; }
+
+  .section-link{
+    display:inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--black);
+    font-weight: 700;
+    font-size: 14px;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 2px;
+    margin-top: 28px;
+    transition: gap .2s;
+  }
+  .section-link:hover{ gap: 14px; }
+
+  /* ================== DOADORAS ================== */
+  .doadoras{
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .doadoras::before{
+    content:'';
+    position: absolute;
+    top: -100px; right: -150px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(160,128,42,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .persona5-hook{
+    border-left: 3px solid var(--gold);
+    padding: 4px 0 4px 18px;
+    margin-bottom: 28px;
+    font-family: var(--f-display);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 40ch;
+  }
+  .persona5-hook::before{
+    content:'"';
+    font-size: 32px;
+    color: var(--gold);
+    font-family: var(--f-display);
+  }
+  .price-flag{
+    display:inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    background: var(--black);
+    color: var(--cream);
+    padding: 14px 20px;
+    border-radius: var(--r-md);
+    margin-bottom: 28px;
+  }
+  .price-flag-label{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--gold-light);
+    font-weight: 700;
+  }
+  .price-flag-value{
+    font-family: var(--f-display);
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .price-flag-value small{ font-size: 14px; color: rgba(246,242,234,0.7); font-weight: 400; font-family: var(--f-body); }
+
+  .doadoras-grid{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .doadora-card{
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    display: flex;
+    transition: all .25s;
+  }
+  .doadora-card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .doadora-img{
+    flex: 0 0 120px;
+    background: var(--cream);
+    overflow: hidden;
+  }
+  .doadora-img img{ width: 100%; height: 100%; object-fit: cover; }
+  .doadora-body{ padding: 16px; flex: 1; display:flex; flex-direction: column; justify-content: space-between; }
+  .doadora-name{
+    font-family: var(--f-display);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--black);
+    line-height: 1.25;
+    margin-bottom: 4px;
+  }
+  .doadora-meta{ font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .doadora-price{
+    font-family: var(--f-display);
+    font-size: 16px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .doadora-price small{ font-family: var(--f-body); font-size: 11px; color: var(--muted); font-weight: 500; }
+
+  /* ================== AGENDA ================== */
+  .agenda{
+    background: var(--black);
+    color: var(--cream);
+    padding: 80px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .agenda-inner{ max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+  .agenda .section-title{ color: var(--cream); }
+  .agenda .section-lead{ color: rgba(246,242,234,0.70); }
+
+  .agenda-list{
+    display:flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid rgba(246,242,234,0.12);
+    margin-top: 8px;
+    margin-bottom: 32px;
+  }
+  .agenda-item{
+    display:flex;
+    align-items: center;
+    gap: 18px;
+    padding: 22px 0;
+    border-bottom: 1px solid rgba(246,242,234,0.12);
+    transition: all .2s;
+  }
+  .agenda-item:hover{ padding-left: 8px; }
+  .agenda-date{
+    flex: 0 0 64px;
+    text-align: center;
+    border-right: 1px solid rgba(160,128,42,0.35);
+    padding-right: 18px;
+  }
+  .agenda-day{
+    font-family: var(--f-display);
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--gold-light);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .agenda-month{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: rgba(246,242,234,0.70);
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  .agenda-info{ flex: 1; }
+  .agenda-name{
+    font-family: var(--f-display);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--cream);
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .agenda-meta{
+    font-size: 12px;
+    color: rgba(246,242,234,0.65);
+    letter-spacing: 0.02em;
+  }
+  .agenda-type{
+    flex: 0 0 auto;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--gold-light);
+    font-weight: 700;
+    padding: 5px 10px;
+    border: 1px solid rgba(160,128,42,0.4);
+    border-radius: 999px;
+  }
+  .agenda-ctas{
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  /* ================== SOCIEDADE BULINHA ================== */
+  .sociedade{
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .sociedade-layout{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 36px;
+    align-items: center;
+  }
+  .sociedade-title{
+    font-family: var(--f-display);
+    font-size: clamp(38px, 10vw, 78px);
+    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    margin-bottom: 26px;
+    color: var(--black);
+  }
+  .sociedade-title em{ font-style: italic; color: var(--gold); }
+  .sociedade-lead{
+    font-size: 17px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+  .sociedade-lead strong{ color: var(--black); font-weight: 700; }
+  .sociedade-body{
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+  .sociedade-body em{ color: var(--gold); font-style: italic; font-weight: 500; }
+  .sociedade-stats{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px 36px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  .sociedade-stats > div{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sociedade-stats b{
+    font-family: var(--f-display);
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--black);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .sociedade-stats span{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .sociedade-visual{
+    aspect-ratio: 4/5;
+    background: linear-gradient(135deg, #0A0A0A 0%, #1F1A0E 100%);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 28px;
+    order: -1;
+  }
+  .sociedade-visual::before{
+    content:'B';
+    position: absolute;
+    top: -60px;
+    right: -40px;
+    font-family: var(--f-display);
+    font-style: italic;
+    font-size: clamp(320px, 80vw, 520px);
+    font-weight: 300;
+    color: rgba(201,169,97,0.12);
+    line-height: 0.8;
+    pointer-events: none;
+  }
+  .sociedade-visual::after{
+    content:'';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.8 0 0 0 0 0.7 0 0 0 0 0.3 0 0 0 0.10 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+  .portrait-frame{
+    position: relative;
+    z-index: 1;
+    color: var(--cream);
+  }
+  .portrait-tag{
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    font-weight: 700;
+    padding: 6px 12px;
+    border: 1px solid rgba(201,169,97,0.35);
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .portrait-name{
+    font-family: var(--f-display);
+    font-size: 26px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--cream);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .portrait-role{
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(246,242,234,0.70);
+    font-weight: 600;
+  }
+
+  /* ================== BULA (legacy, mantido no CSS se precisar) ================== */
+  .bula{
+    background: var(--white);
+    padding: 80px 20px;
+  }
+  .bula-inner{ max-width: 1200px; margin: 0 auto; }
+  .bula-card{
+    background: var(--paper);
+    border-radius: var(--r-lg);
+    padding: 44px 28px;
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .bula-card::before{
+    content:'';
+    position: absolute;
+    top: 0; left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--gold) 0%, var(--gold-soft) 100%);
+  }
+  .bula-kicker{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .bula-title{
+    font-family: var(--f-display);
+    font-size: clamp(26px, 6vw, 42px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .bula-title em{ font-style: italic; color: var(--gold); }
+  .bula-text{
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    max-width: 54ch;
+  }
+  .bula-stats{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 32px;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .bula-stat-value{
+    font-family: var(--f-display);
+    font-size: clamp(22px, 6vw, 36px);
+    font-weight: 500;
+    color: var(--black);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .bula-stat-label{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-top: 6px;
+  }
+
+  /* ================== VENDA CONOSCO (B2B) ================== */
+  .b2b{
+    background: linear-gradient(180deg, var(--black) 0%, #1A1609 100%);
+    color: var(--cream);
+    padding: 90px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .b2b::after{
+    content:'';
+    position: absolute;
+    bottom: -100px; left: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(201,169,97,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .b2b-inner{ max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+  .b2b-kicker{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--gold-light);
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .b2b h2{
+    font-family: var(--f-display);
+    font-size: clamp(30px, 7vw, 52px);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 18px;
+  }
+  .b2b h2 em{ font-style: italic; color: var(--gold-light); }
+  .b2b-sub{
+    color: rgba(246,242,234,0.75);
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 54ch;
+    margin-bottom: 32px;
+  }
+  .b2b-paths{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .b2b-path{
+    padding: 22px;
+    background: rgba(246,242,234,0.04);
+    border: 1px solid rgba(160,128,42,0.20);
+    border-radius: var(--r-md);
+  }
+  .b2b-path-title{
+    font-family: var(--f-display);
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+  }
+  .b2b-path-desc{
+    font-size: 13px;
+    color: rgba(246,242,234,0.70);
+    line-height: 1.55;
+  }
+
+  /* ================== FOOTER ================== */
+  footer{
+    background: var(--black);
+    color: rgba(246,242,234,0.65);
+    padding: 60px 20px 32px;
+    font-size: 13px;
+  }
+  .footer-inner{ max-width: 1200px; margin: 0 auto; }
+  .footer-grid{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    margin-bottom: 40px;
+  }
+  .footer-brand{
+    font-family: var(--f-display);
+    font-size: 24px;
+    color: var(--cream);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  .footer-brand span{ color: var(--gold-light); }
+  .footer-desc{ max-width: 40ch; margin-bottom: 16px; }
+  .footer-title{
+    color: var(--gold-light);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .footer-links{
+    list-style: none;
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .footer-links a:hover{ color: var(--gold-light); }
+  .footer-bottom{
+    padding-top: 24px;
+    border-top: 1px solid rgba(246,242,234,0.12);
+    font-size: 11px;
+    color: rgba(246,242,234,0.45);
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    justify-content: space-between;
+  }
+
+  /* ================== ANIMATIONS ================== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  [data-reveal]{ opacity: 0; transform: translateY(24px); transition: opacity .8s ease-out, transform .8s ease-out; }
+  [data-reveal].in{ opacity: 1; transform: translateY(0); }
+
+  /* ================== RESPONSIVE ================== */
+  @media (min-width: 768px){
+    .hero{ padding: 160px 40px 80px; }
+    .selo-card{ padding: 60px 48px; }
+    .section{ padding: 110px 40px; }
+    .agenda, .b2b{ padding: 110px 40px; }
+    footer{ padding: 80px 40px 32px; }
+    .hero-ctas{ flex-direction: row; }
+    .footer-grid{ grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+    .doadoras-grid{ grid-template-columns: 1fr 1fr; }
+    .b2b-paths{ grid-template-columns: 1fr 1fr; }
+    .nav-inner{ padding: 18px 40px; }
+    .sociedade-layout{ grid-template-columns: 1.15fr 0.85fr; gap: 56px; }
+    .sociedade-visual{ order: 0; }
+  }
+  @media (min-width: 1024px){
+    .trust-row{ gap: 24px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">Fórmula<span>·</span>do<span>·</span>Boi</a>
+    <a href="https://wa.me/5531984143874" class="nav-cta" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      WhatsApp
+    </a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grain"></div>
+  <div class="hero-inner">
+    <div class="hero-kicker">De criador, pra criador</div>
+    <h1>Genética Nelore P.O. sem <em>intermediário caro</em>.</h1>
+    <p class="hero-sub">Sêmen dos 11 melhores reprodutores da safra, embriões de doadoras consagradas e leilões com curadoria Bula Remates. Direto no WhatsApp. Sem ruído de vitrine.</p>
+
+    <div class="hero-ctas">
+      <a href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20quero%20entrar%20no%20grupo%20Selo%20Ouro" class="btn-primary" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        Entrar no Grupo Selo Ouro
+      </a>
+      <a href="#semen" class="btn-ghost">
+        Ver a escalação
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+
+    <div class="trust-row">
+      <div class="trust-item"><b>+10</b><span>anos no P.O.</span></div>
+      <div class="trust-item"><b>R$ 300M</b><span>em gado assessorado</span></div>
+      <div class="trust-item"><b>18</b><span>leilões em 2026</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SELO OURO ============ -->
+<section class="selo">
+  <div class="selo-card">
+    <div class="selo-badge">Grupo Selo Ouro</div>
+    <h2 class="selo-title">Onde a oferta chega <em>antes do leilão.</em></h2>
+    <p class="selo-text">Ficha técnica, vídeo e condição direto no seu WhatsApp — antes do catálogo público. Só genética que interessa pro criador sério. Sem spam, sem ruído.</p>
+    <ul class="selo-bullets">
+      <li>Ofertas exclusivas de touros, doadoras e embriões</li>
+      <li>Primeira mão nos leilões com curadoria FdB × Bula</li>
+      <li>Atendimento direto com o time comercial</li>
+    </ul>
+    <a href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20quero%20entrar%20no%20grupo%20Selo%20Ouro" class="selo-cta" target="_blank" rel="noopener">
+      Quero entrar no grupo
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ============ SOCIEDADE BULINHA ============ -->
+<section class="sociedade section" data-reveal>
+  <div class="section-kicker">Novo capítulo</div>
+  <div class="sociedade-layout">
+    <div class="sociedade-text">
+      <h2 class="sociedade-title"><em>Bulinha</em><br>agora é sócio.</h2>
+      <p class="sociedade-lead">
+        Felipe "Bulinha" Andrade — fundador da <strong>Bula Assessoria Pecuária</strong> e da <strong>Bula Remates</strong> — entra na Fórmula do Boi como sócio e Diretor Comercial de Marcas e Relacionamento.
+      </p>
+      <p class="sociedade-body">
+        Mais de uma década curando P.O. do campo ao comprador. R$ 300 milhões em gado assessorado. Uma leiloeira ativa. Tudo isso agora dentro da casa, sob a mesma filosofia: <em>de criador, pra criador.</em>
+      </p>
+      <div class="sociedade-stats">
+        <div><b>+10</b><span>anos de leiloeira</span></div>
+        <div><b>R$ 300M</b><span>em gado assessorado</span></div>
+        <div><b>18</b><span>leilões em 2026</span></div>
+      </div>
+    </div>
+    <div class="sociedade-visual">
+      <div class="portrait-frame">
+        <div class="portrait-tag">Sócio · Diretor Comercial</div>
+        <div class="portrait-name">Felipe "Bulinha"<br>Andrade</div>
+        <div class="portrait-role">Bula Assessoria · Bula Remates</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ACELERADORA DE TOUROS ============ -->
+<section class="aceleradora section" id="semen" data-reveal>
+  <div class="section-kicker">Aceleradora de Touros · Central Bela Vista</div>
+  <div class="big-number">11</div>
+  <div class="big-number-sub">Touros · Uma escalação</div>
+
+  <div class="split-text">
+    <p><strong>Central comum trabalha com centenas de reprodutores ao mesmo tempo</strong> — sem foco, sem comercial dedicado, sem história pra contar.</p>
+    <p>Nós selecionamos 11 por safra. Com o criador dentro da operação, divisão <strong>50/50 do lucro líquido</strong> e marketing direcionado. É touro tratado como ativo, não commodity.</p>
+  </div>
+
+  <div class="touros-scroll">
+    <a href="#" class="touro-card">
+      <div class="touro-img">
+        <span class="touro-tag">EPCF 2315</span>
+        <img src="https://res.cloudinary.com/dkh2nsugb/image/upload/v1774271580/sertanejo-04_a2avtq.jpg" alt="Sertanejo Terra Brava" />
+      </div>
+      <div class="touro-body">
+        <div class="touro-rgd">Terra Brava</div>
+        <div class="touro-name">Sertanejo</div>
+        <div class="touro-meta">MGTe 20.81 · iABCZ 11.37</div>
+        <div class="touro-price">
+          <div class="touro-price-label">A partir de</div>
+          <div class="touro-price-value">R$ 24,50<small> / dose</small></div>
+        </div>
+      </div>
+    </a>
+    <a href="#" class="touro-card">
+      <div class="touro-img">
+        <span class="touro-tag">RDMB 3224</span>
+        <img src="https://res.cloudinary.com/dkh2nsugb/video/upload/f_jpg,q_75,w_520,so_0/v1775568904/cam_1_lifky2.jpg" alt="Touro RDMB 3224" />
+      </div>
+      <div class="touro-body">
+        <div class="touro-rgd">Santana</div>
+        <div class="touro-name">Lote RDMB 3224</div>
+        <div class="touro-meta">P.O. · 1.000 doses · 50/50</div>
+        <div class="touro-price">
+          <div class="touro-price-label">Condições</div>
+          <div class="touro-price-value">Sob consulta</div>
+        </div>
+      </div>
+    </a>
+    <a href="#" class="touro-card">
+      <div class="touro-img">
+        <span class="touro-tag">EAJR 9</span>
+        <img src="https://res.cloudinary.com/dkh2nsugb/video/upload/v1770325189/Trufa_Berrante_Ouro_wkoaiv.jpg" alt="Touro Berrante de Ouro" />
+      </div>
+      <div class="touro-body">
+        <div class="touro-rgd">Berrante de Ouro</div>
+        <div class="touro-name">Lote em curadoria</div>
+        <div class="touro-meta">Linhagem consagrada</div>
+        <div class="touro-price">
+          <div class="touro-price-label">Reserva</div>
+          <div class="touro-price-value">Em breve</div>
+        </div>
+      </div>
+    </a>
+    <a href="#" class="touro-card" style="background: var(--cream); justify-content: center; align-items: center; padding: 30px; text-align: center;">
+      <div>
+        <div style="font-family: var(--f-display); font-size: 36px; color: var(--gold); margin-bottom: 8px; font-style: italic;">+8</div>
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 14px;">reprodutores na escalação</div>
+        <div style="font-size: 13px; font-weight: 700; color: var(--black);">Ver catálogo →</div>
+      </div>
+    </a>
+  </div>
+
+  <a href="/touros" class="section-link">Ver a escalação completa
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+  </a>
+</section>
+
+<!-- ============ DOADORAS ============ -->
+<section class="doadoras section" id="doadoras" data-reveal>
+  <div class="section-kicker">Doadoras & Embriões</div>
+  <div class="persona5-hook">P.O. é só pra milionário.</div>
+  <h2 class="section-title">Genética de elite <em>a partir de</em></h2>
+
+  <div class="price-flag">
+    <span class="price-flag-label">30x de</span>
+    <span class="price-flag-value">R$ 293<small> / mês</small></span>
+  </div>
+
+  <p class="section-lead">Pacote de 10 embriões de doadoras consagradas. Você coloca receptora, a genética de elite entra no seu rebanho. A porta de entrada do P.O. é mais larga do que te contaram.</p>
+
+  <div class="doadoras-grid">
+    <a href="#" class="doadora-card">
+      <div class="doadora-img">
+        <img src="https://res.cloudinary.com/dkh2nsugb/video/upload/v1770325189/Trufa_Berrante_Ouro_wkoaiv.jpg" alt="Trufa" />
+      </div>
+      <div class="doadora-body">
+        <div>
+          <div class="doadora-name">Trufa Berrante de Ouro</div>
+          <div class="doadora-meta">Pacote 10 embriões · EAJR 9</div>
+        </div>
+        <div class="doadora-price">30x R$ 320 <small>· entr. R$ 2.400</small></div>
+      </div>
+    </a>
+    <a href="#" class="doadora-card">
+      <div class="doadora-img">
+        <img src="https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224964/dandara_nwmjkr.jpg" alt="Dandara" />
+      </div>
+      <div class="doadora-body">
+        <div>
+          <div class="doadora-name">Dandara EAJR 2</div>
+          <div class="doadora-meta">Pacote 10 embriões</div>
+        </div>
+        <div class="doadora-price">30x R$ 293 <small>· entr. R$ 2.200</small></div>
+      </div>
+    </a>
+    <a href="#" class="doadora-card">
+      <div class="doadora-img">
+        <img src="https://res.cloudinary.com/dkh2nsugb/video/upload/v1769224984/fada_vg580y.jpg" alt="Fada" />
+      </div>
+      <div class="doadora-body">
+        <div>
+          <div class="doadora-name">Fada IBIZ 2331</div>
+          <div class="doadora-meta">Pacote 10 embriões</div>
+        </div>
+        <div class="doadora-price">30x R$ 400 <small>· entr. R$ 3.000</small></div>
+      </div>
+    </a>
+    <a href="#" class="doadora-card">
+      <div class="doadora-img">
+        <img src="https://res.cloudinary.com/dkh2nsugb/video/upload/v1770665944/IBIZA_FIV_RONDA_nr78n3.jpg" alt="Ibiza" />
+      </div>
+      <div class="doadora-body">
+        <div>
+          <div class="doadora-name">Ibiza FIV Ronda</div>
+          <div class="doadora-meta">9 embriões · Faz. Santana</div>
+        </div>
+        <div class="doadora-price">R$ 9.000 <small>· 6x R$ 1.500</small></div>
+      </div>
+    </a>
+  </div>
+
+  <a href="/embrioes" class="section-link">Ver todas as doadoras
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+  </a>
+</section>
+
+<!-- ============ AGENDA RESUMIDA ============ -->
+<section class="agenda" id="leiloes" data-reveal>
+  <div class="agenda-inner">
+    <div class="section-kicker" style="color: var(--gold-light);">Agenda · Temporada 2026</div>
+    <h2 class="section-title">Próximos leilões com <em>curadoria Bula.</em></h2>
+    <p class="section-lead">Toda pista passa pelo nosso olho antes de ir pro criador. Filmagem dos lotes, transmissão, crédito e logística — infraestrutura montada.</p>
+
+    <div class="agenda-list">
+      <div class="agenda-item">
+        <div class="agenda-date">
+          <div class="agenda-day">9</div>
+          <div class="agenda-month">Abr</div>
+        </div>
+        <div class="agenda-info">
+          <div class="agenda-name">Toka Jakaré / 3 Nascentes</div>
+          <div class="agenda-meta">80 fêmeas · Quinta, 13h · Presencial</div>
+        </div>
+        <span class="agenda-type">Fêmeas</span>
+      </div>
+      <div class="agenda-item">
+        <div class="agenda-date">
+          <div class="agenda-day">11</div>
+          <div class="agenda-month">Abr</div>
+        </div>
+        <div class="agenda-info">
+          <div class="agenda-name">Nelore IPB</div>
+          <div class="agenda-meta">30 fêmeas · Sábado, 13h · Presencial</div>
+        </div>
+        <span class="agenda-type">Fêmeas</span>
+      </div>
+      <div class="agenda-item">
+        <div class="agenda-date">
+          <div class="agenda-day">14</div>
+          <div class="agenda-month">Abr</div>
+        </div>
+        <div class="agenda-info">
+          <div class="agenda-name">Cachoeirão</div>
+          <div class="agenda-meta">30 fêmeas · Terça, 19h30 · Presencial</div>
+        </div>
+        <span class="agenda-type">Fêmeas</span>
+      </div>
+    </div>
+
+    <div class="agenda-ctas">
+      <a href="/agenda" class="btn-primary">
+        Ver agenda completa (18 leilões)
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <a href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20gostaria%20de%20receber%20a%20agenda%20dos%20pr%C3%B3ximos%20leil%C3%B5es." class="btn-ghost" target="_blank" rel="noopener">
+        Receber agenda no WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ B2B / VENDA CONOSCO ============ -->
+<section class="b2b" id="vender" data-reveal>
+  <div class="b2b-inner">
+    <div class="b2b-kicker">Pra quem produz</div>
+    <h2>É criador? Coloque sua genética <em>na FdB.</em></h2>
+    <p class="b2b-sub">Você foca no gado. A gente no mercado. Infraestrutura comercial pronta — time, tráfego, marketplace, leilão com a Bula. Sem exclusividade.</p>
+
+    <div class="b2b-paths">
+      <div class="b2b-path">
+        <div class="b2b-path-title">Seu touro na Aceleradora</div>
+        <div class="b2b-path-desc">Divisão 50/50 do lucro líquido. FdB banca comercial, marketing, tributos. Você recebe o rateio de coleta + sua parte.</div>
+      </div>
+      <div class="b2b-path">
+        <div class="b2b-path-title">Sua doadora no Marketplace</div>
+        <div class="b2b-path-desc">Listagem com vídeo, ficha técnica e funil WhatsApp. Taxa por animal — sem comissão sobre venda.</div>
+      </div>
+    </div>
+
+    <a href="https://wa.me/5531984143874?text=Ol%C3%A1%2C%20sou%20criador%20e%20quero%20comercializar%20minha%20gen%C3%A9tica%20com%20a%20FdB" class="btn-primary" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      Falar com o time comercial
+    </a>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">Fórmula<span>·</span>do<span>·</span>Boi</div>
+        <p class="footer-desc">Ecossistema completo de genética Nelore P.O. — touros, sêmen, doadoras, embriões e leilões com curadoria especializada.</p>
+      </div>
+      <div>
+        <div class="footer-title">Comprar</div>
+        <ul class="footer-links">
+          <li><a href="/touros">Touros · Sêmen</a></li>
+          <li><a href="/embrioes">Doadoras · Embriões</a></li>
+          <li><a href="/agenda">Leilões</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-title">Vender</div>
+        <ul class="footer-links">
+          <li><a href="#vender">Aceleradora de Touros</a></li>
+          <li><a href="#vender">Marketplace P.O.</a></li>
+          <li><a href="/quem-somos">Quem Somos</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-title">Contato</div>
+        <ul class="footer-links">
+          <li>(31) 9414-9161</li>
+          <li>(31) 7565-9900</li>
+          <li>formuladoboi@gmail.com</li>
+          <li>Belo Horizonte · MG</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Fórmula do Boi. Todos os direitos reservados.</div>
+      <div>De criador, pra criador.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveal = () => {
+    document.querySelectorAll('[data-reveal]').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight * 0.85) el.classList.add('in');
+    });
+  };
+  window.addEventListener('scroll', reveal, { passive: true });
+  window.addEventListener('load', reveal);
+</script>
+
+</body>
+</html>

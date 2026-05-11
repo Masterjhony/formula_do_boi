@@ -1,267 +1,239 @@
 # Arquitetura — Fórmula do Boi
 
----
-
-## Visão Geral
-
-O sistema é composto por dois processos distintos:
-
-1. **Next.js (Vercel)** — aplicação principal com três frontends em subdomínios distintos, roteados via middleware
-2. **WhatsApp Server (Docker)** — microserviço Node.js dedicado à conexão persistente do Baileys com o WhatsApp Web
-
-Ambos compartilham o mesmo banco **Supabase** (PostgreSQL).
+Visão macro do sistema. Para operação detalhada (endpoints, env vars, comandos), use [CLAUDE.md](./CLAUDE.md). Para a Central WhatsApp, [docs/whatsapp-central.md](./docs/whatsapp-central.md).
 
 ---
 
-## Diagrama de Serviços
+## Visão geral
+
+O sistema tem **um processo principal** (Next.js na Vercel) e **um microserviço** (Baileys em VPS Docker). Tudo gira em torno do Supabase como fonte única de dados.
+
+| Componente | Onde roda | Por quê |
+|---|---|---|
+| Next.js (App Router) | Vercel (serverless) | Todas as 5 interfaces — marketplace, LP, admin, ERP, Bula — no mesmo deployment, multiplexadas por subdomínio no `middleware.ts` |
+| WhatsApp Server (Baileys) | DigitalOcean Droplet (Docker) | Baileys exige WebSocket persistente; serverless da Vercel não suporta |
+| Supabase (Postgres + Auth + RLS) | Supabase | Fonte única de verdade — leads, produtos, leilões, mensagens, contratos |
+| Cloudflare R2 | Cloudflare | Mídia (vídeos/imagens) — browser sobe via presigned PUT |
+| ClickSign | ClickSign | Contratos assinados eletronicamente |
+| Asaas | Asaas | Pagamentos PIX |
+| GLM-4.7 (Zhipu) | API HTTP | IA usada pelo `/web-admin/ia` e pelo comando `/ia` em grupos |
+
+---
+
+## Diagrama de serviços
 
 ```mermaid
 graph TD
-    %% Entidades externas
-    Cliente[Cliente / Visitante]
-    Admin[Administrador]
-    GoogleSheets[Google Sheets\nScript de Automação]
-    WhatsAppWeb[WhatsApp Web]
+    %% Atores
+    Visitor[Visitante]
+    Admin[Admin / equipe]
+    Lead[Lead via LP]
+    Group[Grupo WhatsApp]
+    Member[Usuário Bula]
 
-    %% Vercel — Next.js App Router
+    %% Vercel
     subgraph Vercel ["Vercel — Next.js (App Router)"]
         direction TB
+        MW[middleware.ts<br/>rewrite por subdomínio]
 
-        subgraph PublicSite ["formuladoboi.com — /web-site (marketplace)"]
-            Home[Home & Marketplace]
-            Catalog[Catálogo de Bovinos]
-            Embrioes[Catálogo de Embriões]
-            ProductDetails[Detalhes do Lote]
-            GrupoVip["/grupo-vip → /web-lp\n(Landing Page de captura)"]
+        subgraph Site ["formuladoboi.com — /web-site"]
+            Market[Marketplace público]
+            LP["/grupo-vip → /web-lp<br/>(captura de leads)"]
         end
 
-        subgraph AdminPanel ["admin.formuladoboi.com — /web-admin"]
-            Auth[Login Supabase SSR]
-            Dashboard[Analytics Dashboard]
-            ProductsAdmin[Gestão de Produtos]
+        subgraph AdminUI ["admin.* — /web-admin"]
             CRM[CRM Kanban]
-            WhatsAppAdmin[Painel WhatsApp]
+            Central[Central WhatsApp<br/>inbox · fluxo · templates · campanhas]
+            Contracts[Contratos<br/>+ ClickSign]
+            Products[Produtos<br/>+ parsers PDF]
+            Media[Biblioteca de mídia<br/>+ Cloudflare R2]
+            IA[Assistente IA<br/>GLM-4.7 + tools]
         end
 
-        subgraph ERP2 ["erp.formuladoboi.com — /web-erp (Kanban Tático)"]
-            TacticalKanban[Kanban Tático]
+        subgraph ErpUI ["erp.* — /web-erp"]
+            Finance[Financeiro · Contábil · Estoque · Leilões]
         end
 
-        subgraph ERP ["erp.formuladoboi.com — /web-erp"]
-            ERPModule[Módulo ERP Interno]
+        subgraph BulaUI ["adminbula.* — /web-bula"]
+            BulaSPA[SPA Bula: CRM · Leilões · Fechamentos · Cronograma]
         end
 
-        subgraph API ["API Routes"]
-            WebhookSheets[POST /api/webhooks/google-sheets]
-            WhatsAppStatus[GET /api/whatsapp/status]
-            GroupTask[POST /api/whatsapp/group-task]
+        subgraph API ["/api/*"]
+            APILead[/api/lp/lead]
+            APIInbound[/api/whatsapp/inbound]
+            APIRender[/api/whatsapp/render-welcome]
+            APICampaign[/api/whatsapp/central/campaigns/...]
+            APICallback[/api/whatsapp/campaign-callback]
+            APIGroup[/api/whatsapp/group-task<br/>group-decision · group-risk · group-ai]
+            APIClicksign[/api/clicksign/...]
+            APIR2[/api/r2/...]
+            APIBula[/api/bula/...]
         end
-
-        Middleware[middleware.ts\nroteamento por subdomínio]
     end
 
-    %% WhatsApp Server — Docker
-    subgraph Docker ["DigitalOcean Droplet 165.232.142.37 — Docker"]
-        WAServer[whatsapp-server.js\nporta 3001]
-        Baileys[Baileys WebSocket]
-        WAServer --> Baileys
+    %% Externos
+    subgraph VPS ["DigitalOcean 165.232.142.37 — Docker"]
+        WA[whatsapp-server.js<br/>:3001 · Baileys WS]
     end
 
-    %% Supabase
-    subgraph Supabase ["Supabase (Backend)"]
-        SupabaseAuth[Auth SSR]
-        subgraph DB ["PostgreSQL"]
-            DB_Leads[(crm_leads)]
-            DB_Products[(products)]
-            DB_WAAuth[(whatsapp_auth)]
-            DB_Tasks[(tactical_tasks)]
-        end
-        Storage[Storage — Mídias]
+    subgraph SB ["Supabase (Postgres + RLS)"]
+        L[(crm_leads)]
+        P[(products)]
+        WM[(whatsapp_messages)]
+        WT[(whatsapp_templates)]
+        WC[(whatsapp_campaigns +<br/>recipients + optouts)]
+        SS[(site_settings<br/>whatsapp_flow_v2)]
+        TC[(tactical_contracts)]
+        TT[(tactical_tasks)]
+        BL[(bula_*)]
+        Auth[Supabase Auth]
     end
+
+    R2[(Cloudflare R2)]
+    ClickSign[ClickSign API]
+    Asaas[Asaas API]
+    GLM[Zhipu GLM-4.7]
+    GA4[GA4 Data API]
+    Sheets[Google Sheets]
+    WAweb[WhatsApp Web]
 
     %% Fluxos públicos
-    Cliente -->|Acessa catálogo| Middleware
-    Middleware --> PublicSite
-    Catalog -->|Lê produtos| DB_Products
-    Embrioes -->|Lê produtos| DB_Products
-    ProductDetails -->|Carrega mídia| Storage
+    Visitor --> MW --> Site
+    Market <--> P
+    Lead --> LP --> APILead
+    APILead -->|insere lead| L
+    APILead -->|appenda linha| Sheets
+    APILead -->|POST /send| WA
+    WA -->|GET /render-welcome| APIRender
+    APIRender -->|template welcome| WT
+    APIRender -->|checa opt-out| WC
 
-    %% Fluxos admin
-    Admin -->|Acessa painel| Middleware
-    Middleware --> AdminPanel
-    Auth <-->|Valida sessão| SupabaseAuth
-    ProductsAdmin <-->|CRUD| DB_Products
-    ProductsAdmin -->|Upload mídia| Storage
-    CRM <-->|CRUD leads| DB_Leads
-    Dashboard -->|Lê métricas| DB_Leads
-    Dashboard -->|Lê métricas| DB_Products
-    WhatsAppAdmin -->|Polling QR/status| WhatsAppStatus
+    %% Admin
+    Admin --> MW --> AdminUI
+    Auth <--> AdminUI
+    CRM <--> L
+    Central -->|inbox/thread| WM
+    Central -->|templates CRUD| WT
+    Central -->|campanhas| WC
+    Central -->|grafo do bot| SS
+    Contracts <--> TC
+    Contracts -->|envia/sincroniza| APIClicksign
+    APIClicksign <-->|API| ClickSign
+    Products -->|upload| R2
+    Media <-->|presigned| APIR2 <--> R2
+    IA -->|tool-calling| GLM
+    IA -->|consulta tabelas| SB
 
-    %% Fluxo ERP
-    Admin -->|Acessa ERP| ERPModule
+    %% ClickSign webhook
+    ClickSign -->|webhook| APIClicksign
 
-    %% Fluxo Automação: Google Sheets → CRM → WhatsApp
-    GoogleSheets -->|"POST (x-webhook-secret)"| WebhookSheets
-    WebhookSheets -->|Insere lead| DB_Leads
-    WebhookSheets -->|"POST /send (await + resultado no response)"| WAServer
+    %% ERP
+    Admin --> ErpUI
+    Finance <--> SB
 
-    %% Fluxo: Grupos WhatsApp → Kanban Tático
-    Baileys -->|"/tarefa detectado no grupo"| GroupTask
-    GroupTask -->|"Cria card com origem WA"| DB_Tasks
-    TacticalKanban <-->|CRUD tasks| DB_Tasks
+    %% Bula
+    Member --> BulaUI <--> APIBula <--> BL
 
-    %% WhatsApp Server
-    WhatsAppStatus -->|"GET /status"| WAServer
-    WAServer -->|Persiste sessão| DB_WAAuth
-    Baileys <-->|WebSocket persistente| WhatsAppWeb
+    %% Fluxo Central WhatsApp inbound
+    WAweb <-->|WebSocket| WA
+    WA -->|POST /inbound| APIInbound
+    APIInbound -->|cria/atualiza| L
+    APIInbound -->|log| WM
+    APIInbound -->|carrega grafo| SS
+    APIInbound -->|render template| WT
 
-    %% Estilos
-    classDef public fill:#eef2ff,stroke:#6366f1,stroke-width:2px
-    classDef admin fill:#f0fdf4,stroke:#22c55e,stroke-width:2px
-    classDef api fill:#fff7ed,stroke:#f97316,stroke-width:2px
-    classDef db fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
-    classDef wa fill:#dcfce7,stroke:#16a34a,stroke-width:2px
-    classDef ext fill:#f1f5f9,stroke:#94a3b8,stroke-width:1px,stroke-dasharray:4
+    %% Campanhas
+    APICampaign -->|materializa| WC
+    APICampaign -->|POST /campaign-send| WA
+    WA -->|callback por destinatário| APICallback
+    APICallback --> WC
 
-    class Home,Catalog,Embrioes,ProductDetails public
-    class Auth,Dashboard,ProductsAdmin,CRM,WhatsAppAdmin,ERPModule admin
-    class WebhookSheets,WhatsAppStatus api
-    class DB_Leads,DB_Products,DB_WAAuth,SupabaseAuth,Storage db
-    class WAServer,Baileys wa
-    class GoogleSheets,WhatsAppWeb,Cliente,Admin ext
+    %% Grupos
+    Group <-->|WS| WAweb
+    WA -->|/tarefa /decisao /risco /ia| APIGroup
+    APIGroup --> TT
+    APIGroup -->|/ia| GLM
+
+    %% Pagamentos / Analytics
+    Asaas -->|webhook| API
+    GA4 --> AdminUI
+
+    classDef ext fill:#f1f5f9,stroke:#94a3b8,stroke-dasharray:4
+    classDef db fill:#fef3c7,stroke:#f59e0b
+    classDef wa fill:#dcfce7,stroke:#16a34a
+    class L,P,WM,WT,WC,SS,TC,TT,BL,Auth db
+    class WA wa
+    class WAweb,R2,ClickSign,Asaas,GLM,GA4,Sheets ext
 ```
 
 ---
 
-## Fluxo de Automação de Leads
+## Roteamento por subdomínio
 
-```
-Google Sheets (novo lead)
-        │
-        │ POST /api/webhooks/google-sheets
-        │ Header: x-webhook-secret
-        ▼
-  Next.js API Route
-  ┌─────────────────────────────────┐
-  │ 1. Valida secret                │
-  │ 2. Normaliza campos (nome,      │
-  │    data DD/MM/YYYY, telefone)   │
-  │ 3. INSERT → crm_leads           │
-  │ 4. await POST /send             │
-  │    → captura { sent, reason,    │
-  │      error } por lead           │
-  │ 5. Retorna leads[] com status   │
-  │    WhatsApp no response         │
-  └─────────────────────────────────┘
-        │
-        ▼
-  whatsapp-server.js
-  ┌─────────────────────────────────┐
-  │ 1. Formata número (+55)         │
-  │ 2. onWhatsApp() → resolve JID   │
-  │ 3. sendMessage(jid, texto)      │
-  └─────────────────────────────────┘
-        │
-        ▼
-  WhatsApp Web (mensagem entregue)
-```
+Tudo em [src/middleware.ts](src/middleware.ts).
 
-> **Nota sobre JID**: O `onWhatsApp()` do Baileys retorna o JID canônico do número, que pode diferir do número formatado (ex: números brasileiros com 8 vs 9 dígitos). O envio DEVE usar `result[0].jid` e não o número formatado diretamente.
+| Hostname / path | Comportamento |
+|---|---|
+| `admin.*` | rewrite → `/web-admin/*` |
+| `erp.*` | rewrite → `/web-erp/*` |
+| `adminbula.*` | rewrite → `/web-bula/*` |
+| `lp.*` | **301** → `formuladoboi.com/grupo-vip${path}` (legacy) |
+| `formuladoboi.com` / `www.*` / `app.*` | rewrite → `/web-site/*` |
+| `formuladoboi.com/grupo-vip[/...]` | rewrite → `/web-lp[/...]` |
+| `/api/*` (qualquer hostname) | bypass — sem rewrite |
+
+O middleware também chama `updateSession()` em [src/utils/supabase/middleware.ts](src/utils/supabase/middleware.ts) para renovar o cookie de auth do Supabase.
+
+---
+
+## Tabelas principais do Supabase
+
+Catálogo resumido — para colunas/JSONB completos, ver [CLAUDE.md](./CLAUDE.md#database) e os arquivos em [database/](database/).
+
+| Domínio | Tabelas |
+|---|---|
+| Catálogo | `products`, `breeders` |
+| CRM / leads | `crm_leads`, `profiles`, `signup_verification_codes` |
+| WhatsApp (Central) | `whatsapp_messages`, `whatsapp_templates`, `whatsapp_campaigns`, `whatsapp_campaign_recipients`, `whatsapp_optouts`, `site_settings.whatsapp_flow_v2` |
+| Plano tático / OKR | `tactical_tasks`, `tactical_task_comments`, `tactical_task_attachments`, `tactical_kanban_columns`, `tactical_contracts`, `tactical_members`, `tactical_objectives`, `tactical_key_results`, `tactical_task_kr_links`, `tactical_risks`, `tactical_decisions`, `strategic_flows`, `strategic_stages` |
+| Leilões | `cronograma_leiloes` |
+| ERP | `erp_finance_*`, `erp_accounting_*`, `erp_inventory_*` |
+| Bula | `bula_membros`, `bula_leiloes`, `bula_leilao_assessores`, `bula_leilao_fechamento`, `bula_projeto_cards`, `bula_card_responsaveis`, `bula_crm_funis`, `bula_crm_deals`, `bula_leads`, `bula_marketing_config` |
+
+Migrations em [database/](database/) — **rodadas manualmente** contra o Supabase (não há migration runner). O arquivo canônico que cria a camada da Central WhatsApp é [database/central_whatsapp_06_mai_2026.sql](database/central_whatsapp_06_mai_2026.sql).
 
 ---
 
 ## Sessão do WhatsApp
 
-A sessão do Baileys (credenciais e chaves de criptografia) é persistida na tabela `whatsapp_auth` do Supabase, permitindo que o container reinicie sem perder a sessão autenticada.
+> **Importante**: a sessão **não está mais no Supabase** (versões anteriores deste documento mencionavam uma tabela `whatsapp_auth` — obsoleta).
 
-**Conflito de sessão (erro 440):** o WhatsApp permite apenas uma instância ativa por número. Se um servidor local subir com as mesmas credenciais do Supabase, a sessão do VPS cai imediatamente com código 440. Nunca rodar o servidor local em paralelo com o VPS de produção.
+A sessão Baileys é persistida via `useMultiFileAuthState` em arquivos no volume Docker `/opt/whatsapp-auth/` no Droplet. O container reinicia sem perder a sessão.
 
-**Para reconectar** (sessão expirada ou após conflito):
-```bash
-# 1. Limpar sessão via API REST do Supabase
-curl -X DELETE \
-  "https://hghtikjaqixglmpujbwj.supabase.co/rest/v1/whatsapp_auth?id=neq.null" \
-  -H "apikey: <SUPABASE_SERVICE_ROLE_KEY>" \
-  -H "Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>"
-
-# 2. O container reconecta automaticamente em até 5s e gera novo QR
-# Acompanhar pelo painel: admin.formuladoboi.com/whatsapp
-```
-
-```bash
-# Alternativa via SSH (se precisar ver o QR no terminal)
-ssh root@165.232.142.37
-docker restart formula_boi_whatsapp
-docker logs -f formula_boi_whatsapp
-```
+**Conflito 440**: o WhatsApp permite apenas uma sessão por número. Subir um servidor local em paralelo com o VPS de produção causa erro 440 e derruba a sessão da VPS imediatamente. Veja [docs/whatsapp-central.md](./docs/whatsapp-central.md#reconectando-a-sessão) para reconectar.
 
 ---
 
-## Roteamento por Subdomínio
-
-`src/middleware.ts` intercepta todas as requisições e reescreve o path com base no hostname:
-
-| Hostname / Path | Comportamento |
-|---|---|
-| `admin.*` | rewrite → `/web-admin/*` |
-| `erp.*` | rewrite → `/web-erp/*` |
-| `adminbula.*` | rewrite → `/web-bula/*` |
-| `lp.*` | 301 redirect → `formuladoboi.com/grupo-vip${path}` |
-| `formuladoboi.com` / `www.*` / `app.*` | rewrite → `/web-site/*` (marketplace) |
-| `formuladoboi.com/grupo-vip[/...]` | rewrite → `/web-lp[/...]` (Landing Page de captura) |
-
-Na Vercel, cada domínio aponta para o mesmo deployment. O middleware faz o roteamento em runtime, sem builds separados.
-
-A LP foi consolidada sob `/grupo-vip` no domínio raiz após a migração: `formuladoboi.com` agora serve o marketplace (antigo `app.*`); o subdomínio `lp.*` permanece atrelado ao projeto na Vercel apenas para preservar links antigos via 301.
-
----
-
-## Banco de Dados (Supabase)
-
-Tabelas principais:
-
-| Tabela | Uso |
-|---|---|
-| `products` | Catálogo de bovinos (matrizes, reprodutores, embriões) |
-| `crm_leads` | Leads do pipeline de vendas (status, responsável, histórico) |
-| `whatsapp_auth` | Credenciais da sessão Baileys (chaves de criptografia) |
-
-Migrations SQL em `/database/`.
-
----
-
-## Infraestrutura de Produção
+## Infraestrutura de produção
 
 | Componente | Serviço | Detalhes |
 |---|---|---|
-| Next.js App | Vercel | Conta `masterjhony`, projeto `formula_do_boii` |
-| WhatsApp Server | DigitalOcean Droplet | IP `165.232.142.37`, Ubuntu 24.04, 1GB RAM |
-| Banco de Dados | Supabase | `hghtikjaqixglmpujbwj.supabase.co` |
+| Next.js App | Vercel | conta `masterjhony` / projeto `formula_do_boii` — auto-deploy no push para `main` |
+| WhatsApp Server | DigitalOcean Droplet | IP `165.232.142.37`, Ubuntu 24.04, 1 GB RAM, `/opt/whatsapp-server/` |
+| Banco de dados | Supabase | `hghtikjaqixglmpujbwj.supabase.co` |
+| Mídia | Cloudflare R2 | bucket configurável via `R2_BUCKET`, prefixo `R2_PREFIX` (default `libmedia/`) |
+| Email | SMTP Hostinger | `smtp.hostinger.com:465` (códigos de verificação) |
+| Contratos | ClickSign | conta de produção via `CLICKSIGN_ACCESS_TOKEN` |
 
-### Acesso ao Droplet
-
-```bash
-ssh root@165.232.142.37
-```
-
-Arquivos do servidor em `/opt/whatsapp-server/`:
-- `whatsapp-server.js` — código do servidor
-- `package.json` — dependências
-- `Dockerfile` — build da imagem
-- `.env` — variáveis de ambiente (Supabase keys)
-
-Container: `formula_boi_whatsapp`, porta `3001`, `restart: unless-stopped`.
-
-### Acesso à Vercel
+Acesso:
 
 ```bash
-# Requer login prévio
-vercel login
-
-# Vincular repositório local
+# Vercel
 vercel link --scope joaos-projects-4fb95c65 --project formula_do_boii
-
-# Gerenciar env vars, deployments, etc.
 vercel env ls
 vercel ls
+
+# VPS
+ssh root@165.232.142.37
+docker logs -f formula_boi_whatsapp
 ```
