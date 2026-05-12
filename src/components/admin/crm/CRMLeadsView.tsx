@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { CRMLead } from '@/app/web-admin/actions/crm-leads';
 import { Search, Phone, MapPin, Calendar, Instagram, TrendingUp, Users, Plus, Download, SlidersHorizontal, X } from 'lucide-react';
+import { Pagination } from '@/components/admin/Pagination';
 
 interface CRMLeadsViewProps {
     leads: CRMLead[];
@@ -91,7 +92,7 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
     const [filterDataAte, setFilterDataAte] = useState('');
     const [showAdvFilters, setShowAdvFilters] = useState(true);
     const [page, setPage] = useState(1);
-    const PER_PAGE = 25;
+    const [perPage, setPerPage] = useState(25);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -173,8 +174,8 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
         setFilterBusca(''); setFilterDataDe(''); setFilterDataAte('');
     };
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-    const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+    const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
     return (
         <div className="flex flex-col gap-4 h-full min-h-0">
@@ -479,52 +480,20 @@ export function CRMLeadsView({ leads, stages, onEditLead, onAddLead }: CRMLeadsV
                     )}
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-[#333] px-5 py-2.5 flex items-center justify-between shrink-0">
-                    <span className="text-xs text-gray-500">
-                        {filtered.length === leads.length
+                <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    totalItems={filtered.length}
+                    pageSize={perPage}
+                    onPageChange={setPage}
+                    onPageSizeChange={(size) => { setPerPage(size); setPage(1); }}
+                    itemLabel={{ singular: 'lead', plural: 'leads' }}
+                    summaryPrefix={
+                        filtered.length === leads.length
                             ? `${leads.length} lead${leads.length !== 1 ? 's' : ''}`
-                            : `${filtered.length} de ${leads.length} leads`}
-                        {totalPages > 1 && ` · página ${page} de ${totalPages}`}
-                    </span>
-                    {totalPages > 1 && (
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className="px-2.5 py-1 text-xs rounded-lg border border-gray-200 dark:border-[#333] disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-[#222] transition-colors text-gray-600 dark:text-gray-300"
-                            >
-                                ← Anterior
-                            </button>
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                let p: number;
-                                if (totalPages <= 5) p = i + 1;
-                                else if (page <= 3) p = i + 1;
-                                else if (page >= totalPages - 2) p = totalPages - 4 + i;
-                                else p = page - 2 + i;
-                                return (
-                                    <button
-                                        key={p}
-                                        onClick={() => setPage(p)}
-                                        className={`w-7 h-7 text-xs rounded-lg border transition-colors ${
-                                            p === page
-                                                ? 'bg-[#A0792E] border-[#A0792E] text-white font-medium'
-                                                : 'border-gray-200 dark:border-[#333] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#222]'
-                                        }`}
-                                    >
-                                        {p}
-                                    </button>
-                                );
-                            })}
-                            <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className="px-2.5 py-1 text-xs rounded-lg border border-gray-200 dark:border-[#333] disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-[#222] transition-colors text-gray-600 dark:text-gray-300"
-                            >
-                                Próxima →
-                            </button>
-                        </div>
-                    )}
-                </div>
+                            : `${filtered.length} de ${leads.length} leads`
+                    }
+                />
             </div>
         </div>
     );

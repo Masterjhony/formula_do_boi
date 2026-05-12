@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 import { CRMDashboardClient } from '@/components/admin/crm/CRMDashboardClient';
 import { getLeads } from '@/app/web-admin/actions/crm-leads';
 import { getCRMConfig } from '@/app/web-admin/actions/crm-config';
@@ -13,7 +15,9 @@ export default async function CRMPage() {
     return (
         <div className="h-full flex flex-col">
             <div className="flex-1 overflow-hidden">
-                <CRMDashboardClient initialLeads={leads || []} crmConfig={crmConfig} />
+                <Suspense fallback={<div className="flex items-center justify-center py-24"><Loader2 size={28} className="animate-spin text-[#A0792E]" /></div>}>
+                    <CRMDashboardClient initialLeads={leads || []} crmConfig={crmConfig} />
+                </Suspense>
             </div>
         </div>
     );

@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import {
-    QrCode, Inbox, MessageSquare, Megaphone, BarChart3, Plug, Workflow,
+    QrCode, Inbox, MessageSquare, Megaphone, BarChart3, Plug, Workflow, Loader2,
 } from "lucide-react"
 import { ConexaoTab } from "@/components/admin/central-whatsapp/ConexaoTab"
 import { InboxTab } from "@/components/admin/central-whatsapp/InboxTab"
@@ -13,6 +14,7 @@ import { FluxoTab } from "@/components/admin/central-whatsapp/FluxoTab"
 import type { Template } from "@/components/admin/central-whatsapp/types"
 
 type Tab = "inbox" | "fluxo" | "templates" | "campanhas" | "metricas" | "conexao"
+const VALID_TABS: Tab[] = ["inbox", "fluxo", "templates", "campanhas", "metricas", "conexao"]
 
 const TABS: { id: Tab; label: string; icon: typeof Inbox }[] = [
     { id: "inbox",     label: "Inbox",     icon: Inbox },
@@ -24,7 +26,31 @@ const TABS: { id: Tab; label: string; icon: typeof Inbox }[] = [
 ]
 
 export default function CentralWhatsAppPage() {
-    const [tab, setTab] = useState<Tab>("inbox")
+    // useSearchParams precisa estar dentro de Suspense (Next 16) para o build.
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center py-24"><Loader2 size={28} className="animate-spin text-[#A0792E]" /></div>}>
+            <CentralWhatsAppInner />
+        </Suspense>
+    )
+}
+
+function CentralWhatsAppInner() {
+    // Tab atual vive em `?tab=` pra permitir deep-link e compartilhar URL exata.
+    // Default 'inbox' não emite param (mantém URL limpa em /whatsapp).
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const pathname = usePathname()
+    const rawTab = searchParams.get("tab")
+    const tab: Tab = (rawTab && (VALID_TABS as string[]).includes(rawTab)) ? (rawTab as Tab) : "inbox"
+
+    const setTab = (next: Tab) => {
+        const params = new URLSearchParams(searchParams.toString())
+        if (next === "inbox") params.delete("tab")
+        else params.set("tab", next)
+        const qs = params.toString()
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    }
+
     const [templates, setTemplates] = useState<Template[]>([])
 
     async function fetchTemplates() {

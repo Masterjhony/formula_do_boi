@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
     DndContext,
     closestCorners,
@@ -37,6 +38,7 @@ import {
 } from 'lucide-react';
 
 type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'dashboard' | 'members';
+const VALID_VIEWS: ViewMode[] = ['kanban', 'gantt', 'whiteboard', 'dashboard', 'members'];
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];
@@ -59,11 +61,40 @@ export function KanbanBoard({
     const [isCreatingColumn, setIsCreatingColumn] = useState(false);
     const [newColumnTitle, setNewColumnTitle] = useState('');
     const [activeTask, setActiveTask] = useState<TacticalTask | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingTask, setEditingTask] = useState<TacticalTask | undefined>(undefined);
+    // Modal "novo" (sem id) é estado local; modal de edição é derivado de `?task=<id>`.
+    const [isCreatingTask, setIsCreatingTask] = useState(false);
     const [defaultStatus, setDefaultStatus] = useState('A fazer');
 
-    const [viewMode, setViewMode] = useState<ViewMode>('kanban');
+    // Deep-link: `?view=<kanban|gantt|…>` controla a aba ativa,
+    // `?task=<id>` controla qual tarefa está aberta no modal.
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const rawView = searchParams.get('view');
+    const viewMode: ViewMode = (rawView && (VALID_VIEWS as string[]).includes(rawView))
+        ? (rawView as ViewMode) : 'kanban';
+    const editingTaskId = searchParams.get('task');
+    const editingTask = useMemo<TacticalTask | undefined>(
+        () => (editingTaskId ? tasks.find(t => t.id === editingTaskId) : undefined),
+        [tasks, editingTaskId]
+    );
+    const isModalOpen = isCreatingTask || editingTask != null;
+
+    const updateUrl = useCallback((mutate: (params: URLSearchParams) => void) => {
+        const params = new URLSearchParams(searchParams.toString());
+        mutate(params);
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }, [router, pathname, searchParams]);
+
+    const setViewMode = (next: ViewMode) => {
+        updateUrl(p => { if (next === 'kanban') p.delete('view'); else p.set('view', next); });
+    };
+    const setEditingTaskId = (id: string | null) => {
+        updateUrl(p => { if (id) p.set('task', id); else p.delete('task'); });
+    };
+
     const [filterAssignee, setFilterAssignee] = useState<string>('all');
     const [filterPriority, setFilterPriority] = useState<string>('all');
     const [focusMode, setFocusMode] = useState(false);
@@ -95,14 +126,19 @@ export function KanbanBoard({
     }, [tasks]);
 
     const handleTaskClick = (task: TacticalTask) => {
-        setEditingTask(task);
-        setIsModalOpen(true);
+        setEditingTaskId(task.id);
+        setIsCreatingTask(false);
     };
 
     const handleAddTask = (status: string) => {
-        setEditingTask(undefined);
+        setEditingTaskId(null);
         setDefaultStatus(status);
-        setIsModalOpen(true);
+        setIsCreatingTask(true);
+    };
+
+    const closeModal = () => {
+        setIsCreatingTask(false);
+        setEditingTaskId(null);
     };
 
     const handleSaveTask = async (taskData: any) => {
@@ -283,7 +319,7 @@ export function KanbanBoard({
 
                         {(viewMode === 'kanban' || viewMode === 'gantt') && (
                             <button
-                                onClick={() => { setEditingTask(undefined); setDefaultStatus('A fazer'); setIsModalOpen(true); }}
+                                onClick={() => handleAddTask('A fazer')}
                                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black rounded-lg font-bold hover:shadow-lg hover:shadow-[#A0792E]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap text-sm"
                             >
                                 <Plus size={16} /> Nova Tarefa
@@ -402,7 +438,7 @@ export function KanbanBoard({
 
             <TaskModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={closeModal}
                 task={editingTask}
                 defaultStatus={defaultStatus}
                 onSave={handleSaveTask}

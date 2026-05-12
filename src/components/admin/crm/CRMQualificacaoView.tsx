@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CRMLead, updateLead } from '@/app/web-admin/actions/crm-leads';
 import type { CRMConfig } from '@/lib/crm-types';
 import { isQualificationStage } from '@/lib/crm-types';
+import { Pagination } from '@/components/admin/Pagination';
 import {
     ChevronRight, Phone, Instagram, MapPin, Beef, Search,
     AlertCircle, ArrowRight, Loader2, Check, ListChecks, Sparkles,
@@ -55,6 +56,8 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
     const [savingId, setSavingId] = useState<string | null>(null);
     const [qualifyingId, setQualifyingId] = useState<string | null>(null);
     const [draft, setDraft] = useState<Record<string, Partial<CRMLead>>>({});
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(25);
 
     const qualificationStageNames = useMemo(
         () => new Set(crmConfig.stages.filter(isQualificationStage).map(s => s.name)),
@@ -95,6 +98,15 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                 return (db || '').localeCompare(da || '');
             });
     }, [leads, qualificationStageNames, search]);
+
+    // Reset pra primeira página sempre que filtros ou per-page mudam.
+    useEffect(() => { setPage(1); }, [search, perPage]);
+
+    const totalPages = Math.max(1, Math.ceil(qualificationLeads.length / perPage));
+    const paginatedLeads = useMemo(
+        () => qualificationLeads.slice((page - 1) * perPage, page * perPage),
+        [qualificationLeads, page, perPage]
+    );
 
     const stats = useMemo(() => {
         const all = leads.filter(l => qualificationStageNames.has(l.status));
@@ -203,7 +215,7 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {qualificationLeads.map(lead => {
+                    {paginatedLeads.map(lead => {
                         const missing = REQUIRED_FIELDS.filter(f => !fieldFilled(lead, f.key));
                         const ready = missing.length === 0;
                         const isSaving = savingId === lead.id;
@@ -388,6 +400,20 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                             </div>
                         );
                     })}
+
+                    {qualificationLeads.length > 0 && (
+                        <div className="rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#1A1A1A]">
+                            <Pagination
+                                page={page}
+                                totalPages={totalPages}
+                                totalItems={qualificationLeads.length}
+                                pageSize={perPage}
+                                onPageChange={setPage}
+                                onPageSizeChange={setPerPage}
+                                itemLabel={{ singular: 'lead', plural: 'leads' }}
+                            />
+                        </div>
+                    )}
                 </div>
             )}
         </div>

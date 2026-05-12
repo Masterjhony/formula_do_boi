@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import {
   Plus, Edit2, Trash2, X, Loader2, AlertCircle, Save,
   MapPin, Users, TrendingUp, BarChart3, DollarSign,
@@ -1734,7 +1735,6 @@ type SortKey = 'recent' | 'vgv' | 'cobertura'
 export default function FechamentoView() {
   const [items, setItems] = useState<Fechamento[]>([])
   const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState<Fechamento | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Fechamento | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -1743,6 +1743,25 @@ export default function FechamentoView() {
   const [filterDataFim, setFilterDataFim] = useState('')
   const [filterLeilao, setFilterLeilao] = useState('')
   const [filterAssessor, setFilterAssessor] = useState('')
+
+  // Deep-link: o fechamento aberto vive em `?id=<uuid>` pra permitir
+  // compartilhar URL exata do detalhe (admin.formuladoboi.com/leiloes/fechamento?id=…).
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  const selectedId = searchParams.get('id')
+  const selected = useMemo(
+    () => (selectedId ? items.find(f => f.id === selectedId) ?? null : null),
+    [items, selectedId]
+  )
+
+  const setSelectedId = useCallback((id: string | null) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (id) params.set('id', id)
+    else params.delete('id')
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [router, pathname, searchParams])
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -1760,7 +1779,7 @@ export default function FechamentoView() {
     setDeleting(true)
     try {
       await fetch(`/api/bula/fechamento/${selected.id}`, { method: 'DELETE' })
-      setSelected(null)
+      setSelectedId(null)
       fetchAll()
     } finally { setDeleting(false) }
   }
@@ -1768,7 +1787,7 @@ export default function FechamentoView() {
   const handleEdit = (f: Fechamento) => {
     setEditItem(f)
     setShowForm(true)
-    setSelected(null)
+    setSelectedId(null)
   }
 
   // Listas pra preencher os selects de filtro — derivadas do conjunto completo
@@ -1978,7 +1997,7 @@ export default function FechamentoView() {
                 key={f.id}
                 f={f}
                 selected={selected?.id === f.id}
-                onClick={() => setSelected(s => s?.id === f.id ? null : f)}
+                onClick={() => setSelectedId(selected?.id === f.id ? null : f.id)}
               />
             ))}
           </div>
@@ -1989,7 +2008,7 @@ export default function FechamentoView() {
       {selected && (
         <FechamentoDrawer
           f={selected}
-          onClose={() => setSelected(null)}
+          onClose={() => setSelectedId(null)}
           onEdit={() => handleEdit(selected)}
           onDelete={handleDelete}
         />
@@ -2007,7 +2026,7 @@ export default function FechamentoView() {
         <FechamentoFormModal
           initial={editItem}
           onClose={() => { setShowForm(false); setEditItem(null) }}
-          onSaved={() => { fetchAll(); setSelected(null) }}
+          onSaved={() => { fetchAll(); setSelectedId(null) }}
         />
       )}
     </div>

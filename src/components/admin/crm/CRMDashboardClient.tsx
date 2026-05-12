@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { CRMLead, updateLead, createLead, moveLead, deleteLead } from '@/app/web-admin/actions/crm-leads';
 import { renameStage } from '@/app/web-admin/actions/crm-config';
 import type { CRMConfig } from '@/lib/crm-types';
@@ -20,16 +21,50 @@ interface CRMDashboardClientProps {
 }
 
 type ViewType = 'qualificacao' | 'kanban' | 'configuracoes';
+const VALID_VIEWS: ViewType[] = ['qualificacao', 'kanban', 'configuracoes'];
 
 export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: CRMDashboardClientProps) {
     const [leads, setLeads] = useState<CRMLead[]>(initialLeads);
-    const [activeView, setActiveView] = useState<ViewType>('qualificacao');
     const [crmConfig, setCrmConfig] = useState<CRMConfig>(initialConfig);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingLead, setEditingLead] = useState<CRMLead | undefined>(undefined);
+    // Modal "novo lead" (sem id) é estado local; edição é derivada de `?lead=<id>`.
+    const [isCreatingLead, setIsCreatingLead] = useState(false);
     const [defaultStatus, setDefaultStatus] = useState('Lead');
     const [isFullscreen, setIsFullscreen] = useState(false);
+
+    // Deep-link: `?view=<qualificacao|kanban|configuracoes>` controla a aba,
+    // `?lead=<id>` controla qual lead está aberto no modal de edição.
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const rawView = searchParams.get('view');
+    const activeView: ViewType = (rawView && (VALID_VIEWS as string[]).includes(rawView))
+        ? (rawView as ViewType) : 'qualificacao';
+    const editingLeadId = searchParams.get('lead');
+    const editingLead = useMemo<CRMLead | undefined>(
+        () => (editingLeadId ? leads.find(l => l.id === editingLeadId) : undefined),
+        [leads, editingLeadId]
+    );
+    const isModalOpen = isCreatingLead || editingLead != null;
+
+    const updateUrl = useCallback((mutate: (params: URLSearchParams) => void) => {
+        const params = new URLSearchParams(searchParams.toString());
+        mutate(params);
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }, [router, pathname, searchParams]);
+
+    const setActiveView = (next: ViewType) => {
+        updateUrl(p => { if (next === 'qualificacao') p.delete('view'); else p.set('view', next); });
+    };
+    const setEditingLeadId = (id: string | null) => {
+        updateUrl(p => { if (id) p.set('lead', id); else p.delete('lead'); });
+    };
+    const closeModal = () => {
+        setIsCreatingLead(false);
+        setEditingLeadId(null);
+    };
 
     const allStages = crmConfig.stages.map(s => s.name);
 
@@ -50,21 +85,21 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
     );
 
     const handleOpenNewLead = (status: string = advancedStages[0] || 'Qualificado') => {
-        setEditingLead(undefined);
+        setEditingLeadId(null);
         setDefaultStatus(status);
-        setIsModalOpen(true);
+        setIsCreatingLead(true);
     };
 
     const handleEditLead = (lead: CRMLead) => {
-        setEditingLead(lead);
-        setIsModalOpen(true);
+        setIsCreatingLead(false);
+        setEditingLeadId(lead.id);
     };
 
     const handleSaveLead = async (leadData: Partial<CRMLead>) => {
         if (editingLead) {
             const updated = await updateLead(editingLead.id, leadData);
             setLeads(leads.map(l => l.id === updated.id ? updated : l));
-            setEditingLead(updated);
+            // editingLead é derivado de URL+leads, então atualiza sozinho.
         } else {
             const newLead = await createLead({ ...leadData, status: leadData.status || defaultStatus });
             setLeads([...leads, newLead]);
@@ -84,12 +119,12 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
     const handleDeleteLead = async (id: string) => {
         setLeads(leads.filter(l => l.id !== id));
         await deleteLead(id);
-        setIsModalOpen(false);
+        closeModal();
     };
 
     const handleLeadUpdated = (lead: CRMLead) => {
         setLeads(prev => prev.map(l => l.id === lead.id ? lead : l));
-        if (editingLead?.id === lead.id) setEditingLead(lead);
+        // editingLead é derivado, então atualiza sozinho quando `leads` muda.
     };
 
     const handleRenameStage = async (oldName: string, newName: string) => {
@@ -232,7 +267,7 @@ export function CRMDashboardClient({ initialLeads, crmConfig: initialConfig }: C
 
             <CRMModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={closeModal}
                 lead={editingLead}
                 defaultStatus={defaultStatus}
                 stages={allStages}

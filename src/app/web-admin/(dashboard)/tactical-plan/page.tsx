@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 import { KanbanBoard } from '@/components/admin/kanban/KanbanBoard';
 import { getTasks, getColumns } from '@/app/web-admin/actions/tactical-tasks';
 import { getObjectives, getMembers } from '@/app/web-admin/actions/tactical-strategic';
@@ -26,12 +28,14 @@ export default async function TacticalPlanPage() {
             </div>
 
             <div className="flex-1 overflow-hidden">
-                <KanbanBoard
-                    initialTasks={tasks || []}
-                    initialColumns={columns || []}
-                    initialObjectives={objectives || []}
-                    initialMembers={members || []}
-                />
+                <Suspense fallback={<div className="flex items-center justify-center py-24"><Loader2 size={28} className="animate-spin text-[#A0792E]" /></div>}>
+                    <KanbanBoard
+                        initialTasks={tasks || []}
+                        initialColumns={columns || []}
+                        initialObjectives={objectives || []}
+                        initialMembers={members || []}
+                    />
+                </Suspense>
             </div>
         </div>
     );
