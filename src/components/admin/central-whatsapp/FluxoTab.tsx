@@ -54,6 +54,11 @@ import {
     Info,
     ChevronDown,
     ChevronUp,
+    Settings2,
+    Plus,
+    Copy,
+    CheckSquare,
+    Pencil,
 } from "lucide-react"
 import type {
     ActionKind,
@@ -392,7 +397,20 @@ interface Props {
     onTemplatesChanged: () => void
 }
 
+/** Metadados de cada fluxo na lista do seletor. O grafo completo é carregado
+ * sob demanda quando o usuário escolhe um fluxo. */
+interface FlowMeta {
+    id: string
+    name: string
+    description: string | null
+    is_active: boolean
+    created_at: string
+    updated_at: string
+}
+
 export function FluxoTab({ templates }: Props) {
+    const [flows, setFlows] = useState<FlowMeta[]>([])
+    const [currentFlowId, setCurrentFlowId] = useState<string | null>(null)
     const [graph, setGraph] = useState<FlowGraphV2 | null>(null)
     const [rfNodes, setRfNodes] = useState<RFFlowNode[]>([])
     const [rfEdges, setRfEdges] = useState<RFEdge[]>([])
@@ -406,6 +424,13 @@ export function FluxoTab({ templates }: Props) {
     const [fullscreen, setFullscreen] = useState(false)
     const [triggerInfoOpen, setTriggerInfoOpen] = useState(true)
     const [isDark, setIsDark] = useState(false)
+    const [settingsOpen, setSettingsOpen] = useState(false)
+    const [flowSelectorOpen, setFlowSelectorOpen] = useState(false)
+
+    const currentFlow = useMemo(
+        () => flows.find(f => f.id === currentFlowId) ?? null,
+        [flows, currentFlowId]
+    )
 
     // ESC sai do modo tela cheia
     useEffect(() => {
@@ -430,32 +455,89 @@ export function FluxoTab({ templates }: Props) {
         return () => obs.disconnect()
     }, [])
 
-    // Carrega o grafo
+    // Carrega lista de fluxos + abre o ATIVO (ou o 1º se nenhum ativo).
+    // Se a tabela whatsapp_flows ainda não existir (migration não rodou),
+    // cai pro endpoint legado /api/whatsapp/central/flow que opera em
+    // site_settings.whatsapp_flow_v2 — mantém a UI funcional durante migração.
+    const loadFlowsList = useCallback(async (selectAfter?: string | null) => {
+        const res = await fetch("/api/whatsapp/central/flows", { cache: "no-store" })
+        if (!res.ok) {
+            // Fallback: tabela whatsapp_flows não criada ainda
+            const legacyRes = await fetch("/api/whatsapp/central/flow", { cache: "no-store" })
+            const legacy = await legacyRes.json()
+            if (!legacyRes.ok) throw new Error(legacy.error || "Erro ao carregar fluxo")
+            setFlows([])
+            setCurrentFlowId(null)
+            setGraph(legacy.graph)
+            const { nodes, edges } = engineToRF(legacy.graph)
+            setRfNodes(nodes)
+            setRfEdges(edges)
+            setValidation(legacy.validation ?? null)
+            setDirty(false)
+            return
+        }
+        const j = await res.json()
+        const list: FlowMeta[] = j.flows ?? []
+        setFlows(list)
+
+        // Quem abrir: o id solicitado, ou o ativo, ou o primeiro
+        const target = selectAfter
+            ? list.find(f => f.id === selectAfter)
+            : (list.find(f => f.is_active) ?? list[0])
+        if (!target) {
+            setCurrentFlowId(null)
+            setGraph(null)
+            return
+        }
+        await loadFlowById(target.id)
+    }, [])
+
+    async function loadFlowById(id: string) {
+        const res = await fetch(`/api/whatsapp/central/flows/${id}`, { cache: "no-store" })
+        const j = await res.json()
+        if (!res.ok) throw new Error(j.error || "Erro ao carregar fluxo")
+        setCurrentFlowId(id)
+        setGraph(j.flow.graph)
+        const { nodes, edges } = engineToRF(j.flow.graph)
+        setRfNodes(nodes)
+        setRfEdges(edges)
+        setValidation(j.validation ?? null)
+        setDirty(false)
+        setSelectedId(null)
+    }
+
     useEffect(() => {
         let cancelled = false
-        async function load() {
+        ;(async () => {
             setLoading(true)
             try {
-                const res = await fetch("/api/whatsapp/central/flow", { cache: "no-store" })
-                const j = await res.json()
-                if (cancelled) return
-                if (!res.ok) throw new Error(j.error || "Erro ao carregar grafo")
-                setGraph(j.graph)
-                const { nodes, edges } = engineToRF(j.graph)
-                setRfNodes(nodes)
-                setRfEdges(edges)
-                setValidation(j.validation ?? null)
-                setDirty(false)
+                await loadFlowsList()
             } catch (e) {
+                if (cancelled) return
                 const msg = e instanceof Error ? e.message : "Erro desconhecido"
                 setFeedback({ type: "err", msg })
             } finally {
-                setLoading(false)
+                if (!cancelled) setLoading(false)
             }
-        }
-        load()
+        })()
         return () => { cancelled = true }
-    }, [])
+    }, [loadFlowsList])
+
+    async function handleSwitchFlow(id: string) {
+        if (dirty && !confirm("Você tem alterações não salvas. Trocar de fluxo descarta? Para manter, cancele e clique em Salvar.")) {
+            return
+        }
+        setLoading(true)
+        try {
+            await loadFlowById(id)
+            setFlowSelectorOpen(false)
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : "Erro desconhecido"
+            setFeedback({ type: "err", msg })
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const onNodesChange = useCallback((changes: NodeChange<RFFlowNode>[]) => {
         setRfNodes(nds => applyNodeChanges(changes, nds))
@@ -579,19 +661,33 @@ export function FluxoTab({ templates }: Props) {
         setFeedback(null)
         try {
             const updated = rfToEngine(graph, rfNodes, rfEdges)
-            const res = await fetch("/api/whatsapp/central/flow", {
+
+            // PUT /flows/[id] se estamos editando um fluxo nomeado; senão
+            // cai no endpoint legado (compatibilidade enquanto migration não rodou).
+            const url = currentFlowId
+                ? `/api/whatsapp/central/flows/${currentFlowId}`
+                : "/api/whatsapp/central/flow"
+            const payload = currentFlowId ? { graph: updated } : updated
+
+            const res = await fetch(url, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updated),
+                body: JSON.stringify(payload),
             })
             const j = await res.json()
             if (!res.ok) {
                 if (j.validation) setValidation(j.validation)
                 throw new Error(j.error || "Falha ao salvar")
             }
-            setGraph(j.graph)
+            const savedGraph = currentFlowId ? j.flow?.graph : j.graph
+            if (savedGraph) {
+                setGraph(savedGraph)
+            }
             setValidation(j.validation ?? null)
-            setFeedback({ type: "ok", msg: "Fluxo salvo. O bot já está usando essa versão." })
+            const activeNote = currentFlow?.is_active
+                ? "O bot já está usando essa versão."
+                : "Fluxo salvo. Ative-o em Configurações pra o bot usar."
+            setFeedback({ type: "ok", msg: `Salvo. ${activeNote}` })
             setDirty(false)
         } catch (e) {
             const msg = e instanceof Error ? e.message : "Erro desconhecido"
@@ -602,17 +698,33 @@ export function FluxoTab({ templates }: Props) {
     }
 
     async function handleReset() {
-        if (!confirm("Resetar o fluxo para o padrão? Suas alterações serão perdidas.")) return
+        if (!confirm("Resetar o grafo deste fluxo para o padrão? Suas alterações serão perdidas.")) return
         setResetting(true)
         setFeedback(null)
         try {
-            const res = await fetch("/api/whatsapp/central/flow", { method: "DELETE" })
+            // Resetar = sobrescrever o grafo deste fluxo com buildDefaultGraph().
+            // Implementado client-side: gera o default, manda PUT pro fluxo atual.
+            // Backend valida.
+            const { buildDefaultGraph } = await import("@/lib/whatsapp-flow-engine")
+            const def = buildDefaultGraph()
+            const url = currentFlowId
+                ? `/api/whatsapp/central/flows/${currentFlowId}`
+                : "/api/whatsapp/central/flow"
+            const payload = currentFlowId ? { graph: def } : def
+            const res = await fetch(url, {
+                method: currentFlowId ? "PUT" : "DELETE",
+                headers: currentFlowId ? { "Content-Type": "application/json" } : undefined,
+                body: currentFlowId ? JSON.stringify(payload) : undefined,
+            })
             const j = await res.json()
             if (!res.ok) throw new Error(j.error || "Falha ao resetar")
-            setGraph(j.graph)
-            const { nodes, edges } = engineToRF(j.graph)
-            setRfNodes(nodes)
-            setRfEdges(edges)
+            const newGraph = currentFlowId ? j.flow?.graph : j.graph
+            if (newGraph) {
+                setGraph(newGraph)
+                const { nodes, edges } = engineToRF(newGraph)
+                setRfNodes(nodes)
+                setRfEdges(edges)
+            }
             setValidation(null)
             setFeedback({ type: "ok", msg: "Fluxo resetado para o padrão." })
             setDirty(false)
@@ -656,10 +768,33 @@ export function FluxoTab({ templates }: Props) {
                         {dirty && <span className="text-[10px] text-amber-800 dark:text-amber-200 bg-amber-500/15 ring-1 ring-amber-500/40 px-1.5 py-0.5 rounded">não salvo</span>}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                        Cada inbound do bot executa este grafo. Edite nós, conecte handles, salve — vale na próxima mensagem.
+                        {currentFlow ? (
+                            <>Editando <strong className="text-foreground">{currentFlow.name}</strong>{currentFlow.is_active && <span className="ml-1 text-emerald-700 dark:text-emerald-400">(ativo)</span>}. Mudanças valem na próxima inbound após salvar.</>
+                        ) : (
+                            <>Cada inbound do bot executa este grafo. Edite nós, conecte handles, salve — vale na próxima mensagem.</>
+                        )}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                    {flows.length > 0 && (
+                        <FlowSelector
+                            flows={flows}
+                            currentId={currentFlowId}
+                            open={flowSelectorOpen}
+                            onOpenChange={setFlowSelectorOpen}
+                            onPick={handleSwitchFlow}
+                        />
+                    )}
+                    {flows.length > 0 && currentFlow && (
+                        <button
+                            onClick={() => setSettingsOpen(true)}
+                            className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-md border hover:bg-muted"
+                            title="Configurações: renomear, ativar, duplicar, deletar, criar novo fluxo"
+                        >
+                            <Settings2 className="h-3 w-3" />
+                            Configurações
+                        </button>
+                    )}
                     <button
                         onClick={() => setFullscreen(f => !f)}
                         className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-md border hover:bg-muted"
@@ -686,6 +821,19 @@ export function FluxoTab({ templates }: Props) {
                     </button>
                 </div>
             </div>
+
+            {settingsOpen && currentFlow && (
+                <FlowSettingsModal
+                    flow={currentFlow}
+                    flows={flows}
+                    onClose={() => setSettingsOpen(false)}
+                    onChanged={async (selectAfter) => {
+                        setSettingsOpen(false)
+                        await loadFlowsList(selectAfter)
+                    }}
+                    onFeedback={(type, msg) => setFeedback({ type, msg })}
+                />
+            )}
 
             {/* Painel "Como o welcome é disparado" — documenta os DOIS gatilhos
                 da 1ª mensagem (LP/admin via dispatchWelcome + inbound desconhecido
@@ -800,6 +948,355 @@ export function FluxoTab({ templates }: Props) {
         return createPortal(editor, document.body)
     }
     return editor
+}
+
+/* ─── Flow Selector (dropdown) ─────────────────────────────────── */
+
+function FlowSelector({
+    flows, currentId, open, onOpenChange, onPick,
+}: {
+    flows: FlowMeta[]
+    currentId: string | null
+    open: boolean
+    onOpenChange: (v: boolean) => void
+    onPick: (id: string) => void
+}) {
+    const current = flows.find(f => f.id === currentId)
+    return (
+        <div className="relative">
+            <button
+                onClick={() => onOpenChange(!open)}
+                className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border hover:bg-muted min-w-[180px] justify-between"
+                title="Trocar fluxo"
+            >
+                <span className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-muted-foreground">Fluxo:</span>
+                    <span className="font-medium truncate">{current?.name ?? "—"}</span>
+                    {current?.is_active && (
+                        <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-1 rounded">ativo</span>
+                    )}
+                </span>
+                <ChevronDown className="h-3 w-3 opacity-60 shrink-0" />
+            </button>
+            {open && (
+                <>
+                    {/* backdrop: clicar fora fecha */}
+                    <div className="fixed inset-0 z-40" onClick={() => onOpenChange(false)} />
+                    <div className="absolute right-0 mt-1 w-72 max-h-80 overflow-auto bg-card text-card-foreground rounded-md border shadow-lg z-50 py-1">
+                        {flows.map(f => (
+                            <button
+                                key={f.id}
+                                onClick={() => onPick(f.id)}
+                                className={`w-full text-left px-3 py-2 hover:bg-muted text-xs flex items-start gap-2 ${
+                                    f.id === currentId ? "bg-muted/60" : ""
+                                }`}
+                            >
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-medium flex items-center gap-1.5">
+                                        <span className="truncate">{f.name}</span>
+                                        {f.is_active && (
+                                            <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-1 rounded">ativo</span>
+                                        )}
+                                    </div>
+                                    {f.description && (
+                                        <div className="text-muted-foreground text-[10px] truncate mt-0.5">{f.description}</div>
+                                    )}
+                                </div>
+                                {f.id === currentId && <CheckSquare className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />}
+                            </button>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
+
+/* ─── Flow Settings Modal ──────────────────────────────────────── */
+
+function FlowSettingsModal({
+    flow, flows, onClose, onChanged, onFeedback,
+}: {
+    flow: FlowMeta
+    flows: FlowMeta[]
+    onClose: () => void
+    onChanged: (selectAfter?: string | null) => void | Promise<void>
+    onFeedback: (type: "ok" | "err", msg: string) => void
+}) {
+    const [name, setName] = useState(flow.name)
+    const [description, setDescription] = useState(flow.description ?? "")
+    const [busy, setBusy] = useState(false)
+    const [createOpen, setCreateOpen] = useState(false)
+
+    async function handleRename() {
+        if (!name.trim() || (name.trim() === flow.name && description === (flow.description ?? ""))) return
+        setBusy(true)
+        try {
+            const res = await fetch(`/api/whatsapp/central/flows/${flow.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name.trim(), description: description.trim() || null }),
+            })
+            const j = await res.json()
+            if (!res.ok) throw new Error(j.error || "Falha ao salvar")
+            onFeedback("ok", "Fluxo atualizado.")
+            await onChanged(flow.id)
+        } catch (e) {
+            onFeedback("err", e instanceof Error ? e.message : "Erro desconhecido")
+        } finally { setBusy(false) }
+    }
+
+    async function handleActivate() {
+        if (flow.is_active) return
+        if (!confirm(`Ativar "${flow.name}"? Isso desativa o fluxo atual e o bot passa a usar este na próxima inbound.`)) return
+        setBusy(true)
+        try {
+            const res = await fetch(`/api/whatsapp/central/flows/${flow.id}/activate`, { method: "POST" })
+            const j = await res.json()
+            if (!res.ok) throw new Error(j.error || "Falha ao ativar")
+            onFeedback("ok", `"${flow.name}" agora é o fluxo ativo.`)
+            await onChanged(flow.id)
+        } catch (e) {
+            onFeedback("err", e instanceof Error ? e.message : "Erro desconhecido")
+        } finally { setBusy(false) }
+    }
+
+    async function handleDuplicate() {
+        const newName = prompt("Nome do novo fluxo (cópia):", `${flow.name} (cópia)`)
+        if (!newName?.trim()) return
+        setBusy(true)
+        try {
+            const res = await fetch(`/api/whatsapp/central/flows`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: newName.trim(), clone_from: flow.id }),
+            })
+            const j = await res.json()
+            if (!res.ok) throw new Error(j.error || "Falha ao duplicar")
+            onFeedback("ok", `"${newName}" criado a partir de "${flow.name}".`)
+            await onChanged(j.flow.id)
+        } catch (e) {
+            onFeedback("err", e instanceof Error ? e.message : "Erro desconhecido")
+        } finally { setBusy(false) }
+    }
+
+    async function handleDelete() {
+        if (flow.is_active) {
+            onFeedback("err", "Não dá pra deletar o fluxo ativo. Ative outro antes.")
+            return
+        }
+        if (flows.length <= 1) {
+            onFeedback("err", "Não dá pra deletar o último fluxo restante.")
+            return
+        }
+        if (!confirm(`Deletar "${flow.name}"? Esta ação não pode ser desfeita.`)) return
+        setBusy(true)
+        try {
+            const res = await fetch(`/api/whatsapp/central/flows/${flow.id}`, { method: "DELETE" })
+            const j = await res.json().catch(() => ({}))
+            if (!res.ok) throw new Error(j.error || "Falha ao deletar")
+            onFeedback("ok", `"${flow.name}" removido.`)
+            await onChanged(null) // recarrega lista e seleciona o ativo
+        } catch (e) {
+            onFeedback("err", e instanceof Error ? e.message : "Erro desconhecido")
+        } finally { setBusy(false) }
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+            <div className="bg-card text-card-foreground rounded-xl border max-w-lg w-full max-h-[90vh] overflow-auto p-5 space-y-5">
+                <div className="flex items-center justify-between">
+                    <h3 className="font-semibold flex items-center gap-2">
+                        <Settings2 className="h-4 w-4" />
+                        Configurações de fluxo
+                    </h3>
+                    <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                {/* Editar nome/descrição */}
+                <section className="space-y-2">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                        <Pencil className="h-3 w-3" /> Renomear este fluxo
+                    </h4>
+                    <input
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        placeholder="Nome do fluxo"
+                        className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                    />
+                    <textarea
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        placeholder="Descrição (opcional)"
+                        rows={2}
+                        className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                    />
+                    <button
+                        onClick={handleRename}
+                        disabled={busy || !name.trim() || (name.trim() === flow.name && description === (flow.description ?? ""))}
+                        className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50 inline-flex items-center gap-1.5"
+                    >
+                        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                        Salvar nome/descrição
+                    </button>
+                </section>
+
+                {/* Ações */}
+                <section className="space-y-2 border-t pt-4">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ações</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button
+                            onClick={handleActivate}
+                            disabled={busy || flow.is_active}
+                            className="text-sm px-3 py-2 rounded-md border hover:bg-muted disabled:opacity-50 inline-flex items-center gap-1.5 justify-center"
+                            title={flow.is_active ? "Este fluxo já é o ativo" : "Tornar este o fluxo ativo do bot"}
+                        >
+                            <CheckSquare className="h-3.5 w-3.5" />
+                            {flow.is_active ? "Já é o ativo" : "Ativar este fluxo"}
+                        </button>
+                        <button
+                            onClick={handleDuplicate}
+                            disabled={busy}
+                            className="text-sm px-3 py-2 rounded-md border hover:bg-muted disabled:opacity-50 inline-flex items-center gap-1.5 justify-center"
+                        >
+                            <Copy className="h-3.5 w-3.5" />
+                            Duplicar
+                        </button>
+                        <button
+                            onClick={() => setCreateOpen(true)}
+                            disabled={busy}
+                            className="text-sm px-3 py-2 rounded-md border hover:bg-muted disabled:opacity-50 inline-flex items-center gap-1.5 justify-center"
+                            title="Criar um fluxo novo a partir do default em código"
+                        >
+                            <Plus className="h-3.5 w-3.5" />
+                            Criar novo fluxo
+                        </button>
+                        <button
+                            onClick={handleDelete}
+                            disabled={busy || flow.is_active || flows.length <= 1}
+                            className="text-sm px-3 py-2 rounded-md border border-rose-500/30 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10 disabled:opacity-50 inline-flex items-center gap-1.5 justify-center"
+                            title={flow.is_active ? "Não dá pra deletar o ativo" : flows.length <= 1 ? "Precisa ter mais de um fluxo" : "Remover este fluxo"}
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Deletar
+                        </button>
+                    </div>
+                </section>
+
+                <p className="text-[11px] text-muted-foreground">
+                    Apenas <strong>um fluxo é ativo</strong> por vez. Edite quantos quiser em paralelo e troque o ativo quando estiver pronto — o bot pega a mudança na próxima inbound.
+                </p>
+            </div>
+
+            {createOpen && (
+                <FlowCreateModal
+                    flows={flows}
+                    onClose={() => setCreateOpen(false)}
+                    onCreated={async (newId) => {
+                        setCreateOpen(false)
+                        onFeedback("ok", "Fluxo criado.")
+                        await onChanged(newId)
+                    }}
+                    onError={msg => onFeedback("err", msg)}
+                />
+            )}
+        </div>
+    )
+}
+
+function FlowCreateModal({
+    flows, onClose, onCreated, onError,
+}: {
+    flows: FlowMeta[]
+    onClose: () => void
+    onCreated: (newId: string) => void | Promise<void>
+    onError: (msg: string) => void
+}) {
+    const [name, setName] = useState("")
+    const [description, setDescription] = useState("")
+    const [cloneFrom, setCloneFrom] = useState<string>("")
+    const [busy, setBusy] = useState(false)
+
+    async function submit() {
+        if (!name.trim()) return
+        setBusy(true)
+        try {
+            const res = await fetch(`/api/whatsapp/central/flows`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: name.trim(),
+                    description: description.trim() || null,
+                    clone_from: cloneFrom || null,
+                }),
+            })
+            const j = await res.json()
+            if (!res.ok) throw new Error(j.error || "Falha ao criar")
+            await onCreated(j.flow.id)
+        } catch (e) {
+            onError(e instanceof Error ? e.message : "Erro desconhecido")
+        } finally { setBusy(false) }
+    }
+
+    return (
+        <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
+            <div className="bg-card text-card-foreground rounded-xl border max-w-md w-full p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                    <h4 className="font-semibold flex items-center gap-2">
+                        <Plus className="h-4 w-4" /> Novo fluxo
+                    </h4>
+                    <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+                <input
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="Nome (ex: Campanha verão 2026)"
+                    className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                    autoFocus
+                />
+                <textarea
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder="Descrição (opcional)"
+                    rows={2}
+                    className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                />
+                <div>
+                    <label className="text-xs font-medium text-muted-foreground">Começar a partir de</label>
+                    <select
+                        value={cloneFrom}
+                        onChange={e => setCloneFrom(e.target.value)}
+                        className="w-full mt-1 px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                    >
+                        <option value="">Padrão em código (buildDefaultGraph)</option>
+                        {flows.map(f => (
+                            <option key={f.id} value={f.id}>Clonar &quot;{f.name}&quot;{f.is_active ? " (ativo)" : ""}</option>
+                        ))}
+                    </select>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                        O fluxo novo é criado <strong>inativo</strong>. Edite e depois clique em &quot;Ativar este fluxo&quot; quando estiver pronto.
+                    </p>
+                </div>
+                <div className="flex justify-end gap-2 pt-2 border-t">
+                    <button onClick={onClose} className="text-sm px-3 py-1.5 rounded-md border hover:bg-muted">
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={submit}
+                        disabled={busy || !name.trim()}
+                        className="text-sm px-3 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50 inline-flex items-center gap-1.5"
+                    >
+                        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                        Criar
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
 }
 
 /* ─── Palette ────────────────────────────────────────────────────── */

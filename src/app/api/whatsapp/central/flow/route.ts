@@ -1,12 +1,12 @@
 /**
- * /api/whatsapp/central/flow
+ * /api/whatsapp/central/flow  (LEGADO — opera sobre o fluxo ATIVO)
  *
- *   GET    → devolve o grafo persistido (ou o default se nunca foi salvo)
- *   PUT    → upserta o grafo (valida antes; rejeita se houver erros graves)
- *   DELETE → reseta para o default
+ *   GET    → devolve o grafo do fluxo ativo
+ *   PUT    → salva o grafo no fluxo ativo
+ *   DELETE → reseta o grafo do fluxo ativo para buildDefaultGraph()
  *
- * Storage: site_settings (key='whatsapp_flow_v2'), value = FlowGraphV2 JSON.
- * Não notifica o VPS — o /api/whatsapp/inbound carrega o grafo a cada inbound.
+ * Mantido pra não quebrar UIs antigas. UIs novas devem usar
+ * /api/whatsapp/central/flows e /flows/[id] (suporte a múltiplos fluxos).
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -17,8 +17,7 @@ import {
     validateGraph,
     type FlowGraphV2,
 } from '@/lib/whatsapp-flow-engine'
-
-const KEY = 'whatsapp_flow_v2'
+import { loadActiveFlow } from '@/lib/whatsapp-flows'
 
 function getSupabase() {
     return createClient(
@@ -27,25 +26,22 @@ function getSupabase() {
     )
 }
 
-async function loadGraph(): Promise<FlowGraphV2> {
+async function getActiveFlowId(): Promise<string | null> {
     const supabase = getSupabase()
     const { data } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', KEY)
-        .single()
-    const stored = data?.value as FlowGraphV2 | undefined
-    if (stored && stored.version === 2 && Array.isArray(stored.nodes) && Array.isArray(stored.edges)) {
-        return stored
-    }
-    return buildDefaultGraph()
+        .from('whatsapp_flows')
+        .select('id')
+        .eq('is_active', true)
+        .maybeSingle()
+    return data?.id ?? null
 }
 
 export async function GET() {
     const auth = await requireAdmin()
     if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-    const graph = await loadGraph()
+    const supabase = getSupabase()
+    const graph = await loadActiveFlow(supabase)
     const validation = validateGraph(graph)
     return NextResponse.json({ graph, validation })
 }
@@ -78,14 +74,21 @@ export async function PUT(req: NextRequest) {
     }
 
     const supabase = getSupabase()
-    const { error } = await supabase.from('site_settings').upsert({
-        key: KEY,
-        value: toStore,
-        description: 'Grafo do fluxo de atendimento da Central WhatsApp (FlowGraphV2)',
-        updated_at: new Date().toISOString(),
-    }, { onConflict: 'key' })
+    const activeId = await getActiveFlowId()
+    if (activeId) {
+        const { error } = await supabase
+            .from('whatsapp_flows')
+            .update({ graph: toStore })
+            .eq('id', activeId)
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    } else {
+        // Sem fluxo ativo, cria o primeiro como "Padrão" e ativa.
+        const { error } = await supabase
+            .from('whatsapp_flows')
+            .insert({ name: 'Padrão', graph: toStore, is_active: true, created_by: auth.userId })
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true, graph: toStore, validation })
 }
 
@@ -94,13 +97,21 @@ export async function DELETE() {
     if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
     const def = buildDefaultGraph()
+    const toStore = { ...def, updatedAt: new Date().toISOString(), updatedBy: auth.userId }
     const supabase = getSupabase()
-    const { error } = await supabase.from('site_settings').upsert({
-        key: KEY,
-        value: { ...def, updatedAt: new Date().toISOString(), updatedBy: auth.userId },
-        description: 'Grafo do fluxo de atendimento da Central WhatsApp (reset)',
-        updated_at: new Date().toISOString(),
-    }, { onConflict: 'key' })
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ success: true, graph: def })
+
+    const activeId = await getActiveFlowId()
+    if (activeId) {
+        const { error } = await supabase
+            .from('whatsapp_flows')
+            .update({ graph: toStore })
+            .eq('id', activeId)
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    } else {
+        const { error } = await supabase
+            .from('whatsapp_flows')
+            .insert({ name: 'Padrão', graph: toStore, is_active: true, created_by: auth.userId })
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    return NextResponse.json({ success: true, graph: toStore })
 }

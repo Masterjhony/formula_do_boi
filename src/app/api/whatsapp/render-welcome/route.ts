@@ -13,11 +13,10 @@ import { firstName, normalizePhone, phoneVariants, renderTemplate } from '@/lib/
 import { getR2DownloadUrl } from '@/lib/r2'
 import { readPauseState } from '@/lib/whatsapp-pause'
 import {
-    buildDefaultGraph,
     resolveWelcomeDispatch,
-    type FlowGraphV2,
     type LeadShape,
 } from '@/lib/whatsapp-flow-engine'
+import { loadActiveFlow } from '@/lib/whatsapp-flows'
 
 export async function POST(req: NextRequest) {
     const SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
@@ -72,20 +71,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ silent: true, reason: 'lead_optout' })
     }
 
-    // Carrega o grafo do fluxo. Welcome dispatch só usa o subgrafo new_lead
-    // (resolveWelcomeDispatch percorre a partir do start com trigger='new_lead').
-    let graph: FlowGraphV2
-    const { data: graphRow } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'whatsapp_flow_v2')
-        .maybeSingle()
-    const stored = graphRow?.value as FlowGraphV2 | undefined
-    if (stored && stored.version === 2 && Array.isArray(stored.nodes) && Array.isArray(stored.edges)) {
-        graph = stored
-    } else {
-        graph = buildDefaultGraph()
-    }
+    // Carrega o fluxo ATIVO (whatsapp_flows.is_active=true, com fallback
+    // p/ site_settings.whatsapp_flow_v2 e por fim buildDefaultGraph).
+    // Welcome dispatch só usa o subgrafo new_lead via resolveWelcomeDispatch().
+    const graph = await loadActiveFlow(supabase)
 
     // Resolve o slug do welcome via grafo. Se o grafo não tiver subgrafo
     // new_lead (legado antes do trigger field), cai no fallback hardcoded

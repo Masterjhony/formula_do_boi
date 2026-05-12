@@ -46,9 +46,24 @@ A comunicação é bidirecional: o Next.js empurra envios pelo VPS, e o VPS enca
 5. Se o Next.js responder `{ silent: true }` (opt-out, pausa, ou silence node no grafo), o VPS aborta. Se o `render-welcome` estiver INACESSÍVEL (timeout/5xx), o VPS cai no fallback `flowConfig.welcome_message` (texto puro, sem mídia)
 6. Caso contrário, monta a bubble composta (mídia → texto → poll) e envia
 
+### Múltiplos fluxos nomeados (com 1 ativo)
+
+A partir de **2026-05-12** os grafos vivem em `whatsapp_flows` (tabela nova), não mais em `site_settings.whatsapp_flow_v2`. Cada linha é um fluxo nomeado com seu próprio grafo. Apenas **um** é `is_active=true` por vez (garantido por UNIQUE parcial no banco). Inbound e render-welcome consultam o ativo via `loadActiveFlow()` em `src/lib/whatsapp-flows.ts`.
+
+Fallback em cascata pra robustez: (1) fluxo ativo em `whatsapp_flows`; (2) `site_settings.whatsapp_flow_v2` legado; (3) `buildDefaultGraph()` em código.
+
+**Operação pela aba Fluxo:** seletor de fluxo no topo direito + botão "Configurações" que abre modal com:
+- Renomear / descrição
+- **Ativar** este fluxo (desativa o atual)
+- **Duplicar** (cria cópia inativa do grafo atual)
+- **Criar novo** (a partir do default em código ou clonando outro)
+- **Deletar** (bloqueado se for o ativo ou o último restante)
+
+Casos de uso típicos: A/B testar uma nova versão do welcome sem desfazer o atual; ter "modo conservador final-de-semana" pronto pra ativar; manter "padrão" intacto pra rollback rápido.
+
 ### Gatilhos do grafo (multi-trigger)
 
-O grafo persistido em `site_settings.whatsapp_flow_v2` pode ter **mais de um start node**, cada um vinculado a um gatilho distinto. Hoje existem 2 gatilhos:
+Cada fluxo é um grafo que pode ter **mais de um start node**, cada um vinculado a um gatilho distinto. Hoje existem 2 gatilhos:
 
 | Trigger | Onde dispara | Função executada | O que o subgrafo decide |
 |---------|--------------|------------------|-------------------------|

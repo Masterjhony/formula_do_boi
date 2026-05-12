@@ -19,12 +19,11 @@ import { createClient } from '@supabase/supabase-js'
 import { normalizePhone, phoneVariants } from '@/lib/whatsapp-central'
 import {
     runFlow,
-    buildDefaultGraph,
-    type FlowGraphV2,
     type LeadShape,
 } from '@/lib/whatsapp-flow-engine'
 import { readPauseState } from '@/lib/whatsapp-pause'
 import { handleCampaignReply } from '@/lib/whatsapp-campaign-reply'
+import { loadActiveFlow } from '@/lib/whatsapp-flows'
 
 export const maxDuration = 30
 
@@ -103,18 +102,9 @@ function logInbound(
     })
 }
 
-async function loadGraph(supabase: ReturnType<typeof getSupabase>): Promise<FlowGraphV2> {
-    const { data } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'whatsapp_flow_v2')
-        .single()
-    const stored = data?.value as FlowGraphV2 | undefined
-    if (stored && stored.version === 2 && Array.isArray(stored.nodes) && Array.isArray(stored.edges)) {
-        return stored
-    }
-    return buildDefaultGraph()
-}
+// loadGraph foi removido — agora chamamos loadActiveFlow(supabase) diretamente,
+// que consulta whatsapp_flows.is_active=true com fallback p/ site_settings.whatsapp_flow_v2
+// e por fim buildDefaultGraph().
 
 export async function POST(req: NextRequest) {
     const SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
@@ -175,7 +165,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ silent: true, reason: 'paused' })
     }
 
-    const graph = await loadGraph(supabase)
+    const graph = await loadActiveFlow(supabase)
     const result = await runFlow(graph, { phone, senderName, text, lead })
 
     if ('silent' in result) {

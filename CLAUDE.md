@@ -65,7 +65,8 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 | `whatsapp_campaign_steps` | Passos adicionais (1+) da sequência de follow-up; o passo 0 vive na própria campanha. Cada step tem `delay_value`/`delay_unit` (minutes\|hours\|days) relativo ao passo anterior + conteúdo (template ou body ou mídia). |
 | `whatsapp_campaign_recipients` | Destinatários materializados ao disparar a campanha. Status: `pendente\|enviado\|falhou\|optout`. Estado da sequência: `current_step`, `next_send_at`, `replied_at`, `stopped_at`, `stopped_reason` (`replied\|optout\|handoff\|interest\|completed\|cancelled\|error`). |
 | `whatsapp_optouts` | Cache rápido de opt-outs por número (PK = phone). Espelhado em `crm_leads.optout_whatsapp`. |
-| `site_settings` | Feature flags and configuration (key/JSONB). Key `whatsapp_flow` stores the automation flow config. |
+| `site_settings` | Feature flags and configuration (key/JSONB). Key `whatsapp_flow` stores legacy automation config; key `whatsapp_flow_v2` é fallback do grafo (compat — fonte da verdade nova é `whatsapp_flows`). |
+| `whatsapp_flows` | Múltiplos fluxos nomeados (grafos completos). Apenas UM `is_active=true` por vez (constraint UNIQUE parcial). Inbound e render-welcome consultam o ativo via `loadActiveFlow()`. Operador cria variantes (A/B, sazonais) e troca o ativo em 1 clique. Migration: `database/whatsapp_flows.sql`. |
 | `signup_verification_codes` | 6-digit signup codes (SHA-256 hash, expires_at, attempts). |
 | `tactical_tasks` | ERP/Admin Kanban with `checklists` and `attachments` JSONB. WhatsApp-origin columns: `whatsapp_group_id`, `whatsapp_group_name`, `whatsapp_sender`, `whatsapp_sender_name`. |
 | `tactical_task_attachments`, `tactical_task_comments`, `tactical_kanban_columns` | Companion tables for the Kanban. |
@@ -166,7 +167,10 @@ Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeir
 | `/api/whatsapp/central/campaigns/cron` | GET | Cron externo (GitHub Actions, cron-job.org etc — a cada 1-5min). Processa recipients com `next_send_at <= now()`: aplica regras de parada, envia próximo step, avança `current_step`. Auth via `x-webhook-secret`. Plano Hobby da Vercel não permite cron sub-diário, por isso não usamos `vercel.json`. |
 | `/api/whatsapp/central/campaigns/preview` | POST | Pré-visualiza público (count + amostra) sem materializar. |
 | `/api/whatsapp/central/metrics` | GET | Métricas operacionais (novos contatos 7d, opt-outs, distribuição de interesse). |
-| `/api/whatsapp/central/flow` | GET, PUT, DELETE | Grafo do fluxo da Central (`FlowGraphV2` em `site_settings.whatsapp_flow_v2`). PUT valida via `validateGraph()`. DELETE reseta para o default em código. |
+| `/api/whatsapp/central/flow` | GET, PUT, DELETE | **Legado**. Hoje opera sobre o fluxo ATIVO em `whatsapp_flows`. Mantido pra compat; UIs novas devem usar `/flows`. |
+| `/api/whatsapp/central/flows` | GET, POST | Lista fluxos nomeados / cria novo (com `clone_from` opcional pra duplicar). |
+| `/api/whatsapp/central/flows/[id]` | GET, PUT, DELETE | Detalhe + grafo / edita nome/descrição/grafo / deleta (não permite deletar o ativo nem o último restante). PUT valida via `validateGraph()`. |
+| `/api/whatsapp/central/flows/[id]/activate` | POST | Torna esse fluxo o único ativo. Valida o grafo antes de ativar (não deixa colocar fluxo quebrado em produção). |
 | `/api/whatsapp/group-task` | POST | `/tarefa <desc>` from a group → creates `tactical_tasks` card with WhatsApp origin fields. |
 | `/api/whatsapp/group-decision` | POST | `/decisao <desc>` from a group → inserts into `tactical_decisions`. |
 | `/api/whatsapp/group-risk` | POST | `/risco <title>` from a group → inserts into `tactical_risks` with default `media`/`medio`. |
