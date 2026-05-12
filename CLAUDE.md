@@ -357,3 +357,74 @@ VPS env vars required: `NEXT_JS_URL=https://admin.formuladoboi.com`, `WHATSAPP_G
 - With zero options configured, only the welcome message is sent (no reply tracking).
 
 To apply changes: save via the admin panel or `PUT /api/whatsapp/flow` — this triggers `POST /reload-config` on the VPS automatically.
+
+### Central WhatsApp — Fluxo default (voz do Matheus, 1ª pessoa)
+
+A partir de 2026-05-12, o welcome padrão e toda a triagem subsequente são
+escritos em primeira pessoa, como se o Matheus (diretor) estivesse falando.
+Mudança aplicada via [database/seed_welcome_default_matheus_1p.sql](database/seed_welcome_default_matheus_1p.sql).
+
+**Welcome `welcome-default`** — apresentação do Matheus + 3 frentes da empresa
+(Aceleradora de Touros, Central de Embriões, Assessoria em Leilões) + menu
+enxuto de 4 opções:
+
+```
+1 — Sêmen
+2 — Embriões
+3 — Compra e venda de genética Nelore P.O
+4 — Todos
+```
+
+**Mapeamento numérico default** (`DEFAULT_NUMERIC_MAP` em [src/lib/whatsapp-central.ts](src/lib/whatsapp-central.ts)):
+
+| Tecla | `Classification`                                         | Template de triagem               |
+|-------|----------------------------------------------------------|-----------------------------------|
+| `1`   | `interest` → `semen`                                     | `triagem-semen`                   |
+| `2`   | `interest` → `embrioes`                                  | `triagem-embrioes`                |
+| `3`   | `interest` → `compra_venda_genetica`                     | `triagem-compra-venda-genetica`   |
+| `4`   | `interest` → `interesse_amplo`                           | `triagem-interesse-amplo`         |
+
+> Leads históricos que receberam o welcome antigo (menu 1..7) e respondem
+> `5/6/7` agora caem em `unknown` no classifier default — o bot fica em
+> silêncio nesses casos. Não é problema na prática porque o gate
+> `welcome_eligible` impede re-welcome, e o operador atende manualmente pelo
+> Inbox.
+
+**Cobertura por palavra-chave** continua ativa para os interesses fora do
+menu enxuto (touros, matrizes, central de embriões, leilões, oferta de
+genética, oportunidades). Todos têm template de triagem em 1ª pessoa
+Matheus no seed.
+
+**Tom canônico do fluxo default**:
+- Sempre 1ª pessoa singular ("vou anotar", "eu te chamo", "me responde").
+- Sem emojis no welcome e nas triagens default.
+- Encerramentos prometem ação direta do Matheus ("eu te chamo aqui mesmo",
+  "agendamos uma conversa direta"), não "vou te encaminhar para um
+  consultor".
+- Opt-out e re-subscribe seguem o mesmo tom — `optout-confirmacao` e
+  `resubscribe-msg` foram reescritos no mesmo seed.
+
+**Overrides de audiência** (continuam funcionando, intocados):
+
+| Tag no lead                       | Welcome usado                      | Menu      | Slugs preferenciais          |
+|-----------------------------------|------------------------------------|-----------|------------------------------|
+| _(sem tag)_ — default             | `welcome-default`                  | 1..4      | `triagem-*` padrão (Matheus) |
+| `grupo_academia_nelore_po`        | `welcome-academia-nelore-po`       | 1..6      | `triagem-*-academia`         |
+| `lista_matheus_personalizada`     | `welcome-matheus-institucional`    | 1..6      | (mesmos `triagem-*` default) |
+
+O override Academia é aplicado em [src/lib/whatsapp-flow-engine.ts](src/lib/whatsapp-flow-engine.ts)
+via `ACADEMIA_SLUG_OVERRIDES`; o classifier resolve a audiência (Lista
+Matheus > Academia > default) no [src/lib/whatsapp-central.ts:206](src/lib/whatsapp-central.ts#L206).
+
+**Para alterar o fluxo default**: edite os bodies em
+[database/seed_welcome_default_matheus_1p.sql](database/seed_welcome_default_matheus_1p.sql)
+e reaplique (idempotente — usa `ON CONFLICT (slug) DO UPDATE`). Se a lista
+de opções mudar, atualize também `DEFAULT_NUMERIC_MAP` em sincronia. O grafo
+em si (gates de opt-out / handoff) não precisa de mudança — vive em
+`site_settings.whatsapp_flow_v2` e é editável pela aba "Fluxo" da Central.
+
+**Pausa global**: a aba **Conexão** tem o botão "Pausar fluxo" — quando
+ativo, o número segue conectado e o Inbox segue logando inbound, mas
+welcome e fluxo são bloqueados (`{ silent: true, reason: 'paused' }`).
+Estado em `site_settings.whatsapp_central_paused`, helper em
+[src/lib/whatsapp-pause.ts](src/lib/whatsapp-pause.ts).

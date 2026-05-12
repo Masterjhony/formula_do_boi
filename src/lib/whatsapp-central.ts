@@ -32,9 +32,10 @@ export interface InteresseDef {
 }
 
 export const INTERESSES: InteresseDef[] = [
-    // Ordem dos 7 primeiros é load-bearing: o mapeamento numérico do
-    // welcome-default (1..7) usa o índice (idx 0 → "1", ... idx 6 → "7").
-    // Mexer aqui quebra a classificação do menu padrão.
+    // Os 7 primeiros existem por compatibilidade com leads históricos
+    // (welcome-default antigo tinha menu 1..7). A partir do novo welcome do
+    // Matheus, o mapeamento numérico default vive em DEFAULT_NUMERIC_MAP
+    // (1..4) e NÃO depende mais do índice deste array.
     { id: 'touros',          label: 'Touros',                 triagem_template_slug: 'triagem-touros' },
     { id: 'matrizes',        label: 'Matrizes',               triagem_template_slug: 'triagem-matrizes' },
     { id: 'embrioes',        label: 'Embriões',               triagem_template_slug: 'triagem-embrioes' },
@@ -113,6 +114,30 @@ const LISTA_MATHEUS_NUMERIC_MAP: Record<string, Classification> = {
 };
 
 /**
+ * Mapeamento numérico do welcome-default (novo padrão, voz do Matheus em
+ * primeira pessoa). Fonte canônica para todo lead sem tag de audiência
+ * específica (Academia / Lista Matheus):
+ *
+ *   1 — Sêmen
+ *   2 — Embriões
+ *   3 — Compra e venda de genética Nelore P.O
+ *   4 — Todos
+ *
+ * Substituiu o mapeamento legado por índice de INTERESSES (1..7) que cobria
+ * touros/matrizes/embrioes/semen/leiloes/venda/consultor. Para sair da lista
+ * o lead responde PARAR; para falar com humano basta usar palavras como
+ * "consultor", "Matheus" ou "humano" (HUMAN_WORDS). Os interesses legados
+ * (touros, matrizes, central de embriões, leilões etc.) continuam acessíveis
+ * via match por palavra-chave abaixo.
+ */
+const DEFAULT_NUMERIC_MAP: Record<string, Classification> = {
+    '1': { kind: 'interest', interesse: 'semen' },
+    '2': { kind: 'interest', interesse: 'embrioes' },
+    '3': { kind: 'interest', interesse: 'compra_venda_genetica' },
+    '4': { kind: 'interest', interesse: 'interesse_amplo' },
+};
+
+/**
  * Normaliza um telefone para o formato armazenado em crm_leads.telefone:
  * apenas dígitos, com DDI (55) à frente. Retorna null se não puder normalizar.
  */
@@ -173,8 +198,10 @@ const HUMAN_WORDS = [
  *   2. Re-subscribe: VOLTAR / REATIVAR…
  *   3. Pedido explícito de humano: "consultor", "humano", "atendente", "Matheus"…
  *   4. Resposta numérica do menu — mapeamento depende da audiência:
- *        - Academia (lead tem tag `grupo_academia_nelore_po`): 1..6 = menu institucional
- *        - Default: 1..7 = INTERESSES (touros, matrizes, embriões, sêmen, leilões, venda, consultor)
+ *        - Lista Matheus (tag `lista_matheus_personalizada`): 1..6 institucional
+ *        - Academia (tag `grupo_academia_nelore_po`): 1..6 menu institucional
+ *        - Default: 1..4 — DEFAULT_NUMERIC_MAP (welcome-default voz Matheus:
+ *          sêmen, embriões, compra/venda de genética, todos)
  *   5. Match por palavras-chave do interesse (touro, matriz, embrião, sêmen,
  *      leilão, venda, ofertar, oportunidades).
  *   6. Caso contrário: 'unknown' — ainda registramos a mensagem mas não
@@ -232,12 +259,11 @@ export function classifyMessage(text: string, ctx?: ClassifyContext): Classifica
         if (isAcademiaAudience(ctx) && ACADEMIA_NUMERIC_MAP[digit]) {
             return ACADEMIA_NUMERIC_MAP[digit];
         }
-        const idx = Number(digit) - 1;
-        const inter = INTERESSES[idx];
-        if (inter) {
-            return inter.id === 'consultor'
-                ? { kind: 'human' }
-                : { kind: 'interest', interesse: inter.id };
+        // Default = welcome-default do Matheus, 4 opções (1..4).
+        // Dígitos 5..7 caem aqui por leads que receberam welcome-default antigo;
+        // tratamos como unknown (deixa fluir para keyword match abaixo).
+        if (DEFAULT_NUMERIC_MAP[digit]) {
+            return DEFAULT_NUMERIC_MAP[digit];
         }
     }
 
