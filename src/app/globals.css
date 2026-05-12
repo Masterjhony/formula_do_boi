@@ -51,6 +51,25 @@
   --background: #ffffff;
   --foreground: #171717;
 
+  /* shadcn-style tokens (usados pelo painel admin via bg-card/bg-muted/...).
+     Definidos aqui pra evitar transparência em modais e dropdowns que ficam
+     sobre conteúdo dinâmico (ex.: canvas do ReactFlow). Light mode → fundo
+     branco com texto neutro escuro. */
+  --card:                 #ffffff;
+  --card-foreground:      #171717;
+  --popover:              #ffffff;
+  --popover-foreground:   #171717;
+  --muted:                #f4f4f5;
+  --muted-foreground:     #6b7280;
+  --primary:              var(--bronze);
+  --primary-foreground:   #ffffff;
+  --secondary:            #f4f4f5;
+  --secondary-foreground: #171717;
+  --accent-foreground:    #ffffff;
+  --border:               rgba(0, 0, 0, 0.10);
+  --input:                rgba(0, 0, 0, 0.12);
+  --ring:                 var(--bronze-light);
+
   /* Aliases retrocompatíveis (código antigo) */
   --brand-gold:  var(--bronze);
   --brand-black: var(--ink);
@@ -60,6 +79,24 @@
 .dark {
   --background: var(--ink);
   --foreground: var(--fg);
+
+  /* Tokens shadcn em dark — superfícies sólidas (ink-2/ink-3) pra que modais,
+     dropdowns e cards fiquem opacos sobre o canvas do ReactFlow e demais. */
+  --card:                 var(--ink-2);
+  --card-foreground:      var(--fg);
+  --popover:              var(--ink-2);
+  --popover-foreground:   var(--fg);
+  --muted:                var(--ink-3);
+  --muted-foreground:     var(--fg-muted);
+  --primary:              var(--bronze);
+  --primary-foreground:   var(--ink);
+  --secondary:            var(--ink-3);
+  --secondary-foreground: var(--fg);
+  --accent-foreground:    var(--ink);
+  --border:               var(--line-strong);
+  --input:                var(--line-strong);
+  --ring:                 var(--bronze);
+
   --brand-gold:  var(--bronze);
   --brand-black: var(--ink);
   --brand-light: var(--ink-3);
@@ -68,6 +105,24 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* shadcn-style tokens expostos ao Tailwind v4 — habilita bg-card, bg-muted,
+     bg-popover, text-card-foreground, text-muted-foreground, bg-primary,
+     border-border, etc. nos componentes do painel admin. */
+  --color-card:                 var(--card);
+  --color-card-foreground:      var(--card-foreground);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-border:               var(--border);
+  --color-input:                var(--input);
+  --color-ring:                 var(--ring);
 
   /* Bronze scale */
   --color-bronze:       var(--bronze);

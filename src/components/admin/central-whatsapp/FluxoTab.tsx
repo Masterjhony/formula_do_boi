@@ -739,7 +739,7 @@ export function FluxoTab({ templates }: Props) {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+            <div className="flex items-center justify-center h-[400px] text-zinc-500 dark:text-zinc-400">
                 <Loader2 className="h-5 w-5 animate-spin mr-2" /> Carregando fluxo…
             </div>
         )
@@ -755,10 +755,10 @@ export function FluxoTab({ templates }: Props) {
 
     const editor = (
         <div
-            className={`text-card-foreground border overflow-hidden flex flex-col ${
+            className={`text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col ${
                 fullscreen
-                    ? "fixed inset-0 z-[9999] rounded-none bg-background"
-                    : "flex-1 min-h-0 rounded-xl bg-card"
+                    ? "fixed inset-0 z-[9999] rounded-none bg-white dark:bg-zinc-950"
+                    : "flex-1 min-h-0 rounded-xl bg-white dark:bg-zinc-900"
             }`}
         >
             <div className="px-5 py-3 border-b flex items-center gap-3 flex-wrap">
@@ -767,9 +767,9 @@ export function FluxoTab({ templates }: Props) {
                         <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Editor de fluxo
                         {dirty && <span className="text-[10px] text-amber-800 dark:text-amber-200 bg-amber-500/15 ring-1 ring-amber-500/40 px-1.5 py-0.5 rounded">não salvo</span>}
                     </h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                         {currentFlow ? (
-                            <>Editando <strong className="text-foreground">{currentFlow.name}</strong>{currentFlow.is_active && <span className="ml-1 text-emerald-700 dark:text-emerald-400">(ativo)</span>}. Mudanças valem na próxima inbound após salvar.</>
+                            <>Editando <strong className="text-zinc-900 dark:text-zinc-100">{currentFlow.name}</strong>{currentFlow.is_active && <span className="ml-1 text-emerald-700 dark:text-emerald-400">(ativo)</span>}. Mudanças valem na próxima inbound após salvar.</>
                         ) : (
                             <>Cada inbound do bot executa este grafo. Edite nós, conecte handles, salve — vale na próxima mensagem.</>
                         )}
@@ -788,7 +788,7 @@ export function FluxoTab({ templates }: Props) {
                     {flows.length > 0 && currentFlow && (
                         <button
                             onClick={() => setSettingsOpen(true)}
-                            className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-md border hover:bg-muted"
+                            className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                             title="Configurações: renomear, ativar, duplicar, deletar, criar novo fluxo"
                         >
                             <Settings2 className="h-3 w-3" />
@@ -797,7 +797,7 @@ export function FluxoTab({ templates }: Props) {
                     )}
                     <button
                         onClick={() => setFullscreen(f => !f)}
-                        className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-md border hover:bg-muted"
+                        className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         title={fullscreen ? "Sair do modo tela cheia (Esc)" : "Modo tela cheia"}
                     >
                         {fullscreen ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
@@ -806,7 +806,7 @@ export function FluxoTab({ templates }: Props) {
                     <button
                         onClick={handleReset}
                         disabled={resetting}
-                        className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-md border hover:bg-muted disabled:opacity-50"
+                        className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
                     >
                         {resetting ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
                         Resetar p/ padrão
@@ -814,7 +814,7 @@ export function FluxoTab({ templates }: Props) {
                     <button
                         onClick={handleSave}
                         disabled={saving || !dirty}
-                        className="text-xs flex items-center gap-1 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                        className="text-xs flex items-center gap-1 px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
                         Salvar fluxo
@@ -966,11 +966,11 @@ function FlowSelector({
         <div className="relative">
             <button
                 onClick={() => onOpenChange(!open)}
-                className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border hover:bg-muted min-w-[180px] justify-between"
+                className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 min-w-[180px] justify-between"
                 title="Trocar fluxo"
             >
                 <span className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-muted-foreground">Fluxo:</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">Fluxo:</span>
                     <span className="font-medium truncate">{current?.name ?? "—"}</span>
                     {current?.is_active && (
                         <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-1 rounded">ativo</span>
@@ -982,13 +982,13 @@ function FlowSelector({
                 <>
                     {/* backdrop: clicar fora fecha */}
                     <div className="fixed inset-0 z-40" onClick={() => onOpenChange(false)} />
-                    <div className="absolute right-0 mt-1 w-72 max-h-80 overflow-auto bg-card text-card-foreground rounded-md border shadow-lg z-50 py-1">
+                    <div className="absolute right-0 mt-1 w-72 max-h-80 overflow-auto bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-xl z-50 py-1">
                         {flows.map(f => (
                             <button
                                 key={f.id}
                                 onClick={() => onPick(f.id)}
-                                className={`w-full text-left px-3 py-2 hover:bg-muted text-xs flex items-start gap-2 ${
-                                    f.id === currentId ? "bg-muted/60" : ""
+                                className={`w-full text-left px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs flex items-start gap-2 ${
+                                    f.id === currentId ? "bg-zinc-100 dark:bg-zinc-800/70" : ""
                                 }`}
                             >
                                 <div className="flex-1 min-w-0">
@@ -999,10 +999,10 @@ function FlowSelector({
                                         )}
                                     </div>
                                     {f.description && (
-                                        <div className="text-muted-foreground text-[10px] truncate mt-0.5">{f.description}</div>
+                                        <div className="text-zinc-500 dark:text-zinc-400 text-[10px] truncate mt-0.5">{f.description}</div>
                                     )}
                                 </div>
-                                {f.id === currentId && <CheckSquare className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />}
+                                {f.id === currentId && <CheckSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />}
                             </button>
                         ))}
                     </div>
@@ -1103,40 +1103,40 @@ function FlowSettingsModal({
     }
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-            <div className="bg-card text-card-foreground rounded-xl border max-w-lg w-full max-h-[90vh] overflow-auto p-5 space-y-5">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl max-w-lg w-full max-h-[90vh] overflow-auto p-5 space-y-5">
                 <div className="flex items-center justify-between">
                     <h3 className="font-semibold flex items-center gap-2">
                         <Settings2 className="h-4 w-4" />
                         Configurações de fluxo
                     </h3>
-                    <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+                    <button onClick={onClose} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
 
                 {/* Editar nome/descrição */}
                 <section className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
                         <Pencil className="h-3 w-3" /> Renomear este fluxo
                     </h4>
                     <input
                         value={name}
                         onChange={e => setName(e.target.value)}
                         placeholder="Nome do fluxo"
-                        className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                        className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                     />
                     <textarea
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                         placeholder="Descrição (opcional)"
                         rows={2}
-                        className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                        className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                     />
                     <button
                         onClick={handleRename}
                         disabled={busy || !name.trim() || (name.trim() === flow.name && description === (flow.description ?? ""))}
-                        className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50 inline-flex items-center gap-1.5"
+                        className="text-xs px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                     >
                         {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
                         Salvar nome/descrição
@@ -1144,13 +1144,13 @@ function FlowSettingsModal({
                 </section>
 
                 {/* Ações */}
-                <section className="space-y-2 border-t pt-4">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ações</h4>
+                <section className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Ações</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <button
                             onClick={handleActivate}
                             disabled={busy || flow.is_active}
-                            className="text-sm px-3 py-2 rounded-md border hover:bg-muted disabled:opacity-50 inline-flex items-center gap-1.5 justify-center"
+                            className="text-sm px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
                             title={flow.is_active ? "Este fluxo já é o ativo" : "Tornar este o fluxo ativo do bot"}
                         >
                             <CheckSquare className="h-3.5 w-3.5" />
@@ -1159,7 +1159,7 @@ function FlowSettingsModal({
                         <button
                             onClick={handleDuplicate}
                             disabled={busy}
-                            className="text-sm px-3 py-2 rounded-md border hover:bg-muted disabled:opacity-50 inline-flex items-center gap-1.5 justify-center"
+                            className="text-sm px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
                         >
                             <Copy className="h-3.5 w-3.5" />
                             Duplicar
@@ -1167,7 +1167,7 @@ function FlowSettingsModal({
                         <button
                             onClick={() => setCreateOpen(true)}
                             disabled={busy}
-                            className="text-sm px-3 py-2 rounded-md border hover:bg-muted disabled:opacity-50 inline-flex items-center gap-1.5 justify-center"
+                            className="text-sm px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
                             title="Criar um fluxo novo a partir do default em código"
                         >
                             <Plus className="h-3.5 w-3.5" />
@@ -1176,7 +1176,7 @@ function FlowSettingsModal({
                         <button
                             onClick={handleDelete}
                             disabled={busy || flow.is_active || flows.length <= 1}
-                            className="text-sm px-3 py-2 rounded-md border border-rose-500/30 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10 disabled:opacity-50 inline-flex items-center gap-1.5 justify-center"
+                            className="text-sm px-3 py-2 rounded-md border border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
                             title={flow.is_active ? "Não dá pra deletar o ativo" : flows.length <= 1 ? "Precisa ter mais de um fluxo" : "Remover este fluxo"}
                         >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -1185,7 +1185,7 @@ function FlowSettingsModal({
                     </div>
                 </section>
 
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                     Apenas <strong>um fluxo é ativo</strong> por vez. Edite quantos quiser em paralelo e troque o ativo quando estiver pronto — o bot pega a mudança na próxima inbound.
                 </p>
             </div>
@@ -1241,13 +1241,13 @@ function FlowCreateModal({
     }
 
     return (
-        <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
-            <div className="bg-card text-card-foreground rounded-xl border max-w-md w-full p-5 space-y-3">
+        <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl max-w-md w-full p-5 space-y-3">
                 <div className="flex items-center justify-between">
                     <h4 className="font-semibold flex items-center gap-2">
                         <Plus className="h-4 w-4" /> Novo fluxo
                     </h4>
-                    <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+                    <button onClick={onClose} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
@@ -1255,7 +1255,7 @@ function FlowCreateModal({
                     value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="Nome (ex: Campanha verão 2026)"
-                    className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                    className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                     autoFocus
                 />
                 <textarea
@@ -1263,32 +1263,32 @@ function FlowCreateModal({
                     onChange={e => setDescription(e.target.value)}
                     placeholder="Descrição (opcional)"
                     rows={2}
-                    className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                    className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                 />
                 <div>
-                    <label className="text-xs font-medium text-muted-foreground">Começar a partir de</label>
+                    <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Começar a partir de</label>
                     <select
                         value={cloneFrom}
                         onChange={e => setCloneFrom(e.target.value)}
-                        className="w-full mt-1 px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                        className="w-full mt-1 px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm"
                     >
                         <option value="">Padrão em código (buildDefaultGraph)</option>
                         {flows.map(f => (
                             <option key={f.id} value={f.id}>Clonar &quot;{f.name}&quot;{f.is_active ? " (ativo)" : ""}</option>
                         ))}
                     </select>
-                    <p className="text-[10px] text-muted-foreground mt-1">
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1">
                         O fluxo novo é criado <strong>inativo</strong>. Edite e depois clique em &quot;Ativar este fluxo&quot; quando estiver pronto.
                     </p>
                 </div>
-                <div className="flex justify-end gap-2 pt-2 border-t">
-                    <button onClick={onClose} className="text-sm px-3 py-1.5 rounded-md border hover:bg-muted">
+                <div className="flex justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                    <button onClick={onClose} className="text-sm px-3 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800">
                         Cancelar
                     </button>
                     <button
                         onClick={submit}
                         disabled={busy || !name.trim()}
-                        className="text-sm px-3 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50 inline-flex items-center gap-1.5"
+                        className="text-sm px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                     >
                         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
                         Criar
@@ -1311,8 +1311,8 @@ function Palette({ onAdd }: { onAdd: (t: NodeType) => void }) {
         { type: "end",           label: "+ Fim" },
     ]
     return (
-        <div className="bg-card/95 text-card-foreground backdrop-blur rounded-lg border shadow-sm dark:shadow-black/40 p-2 space-y-1">
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground px-1">Adicionar nó</div>
+        <div className="bg-white/95 dark:bg-zinc-900/95 text-zinc-900 dark:text-zinc-100 backdrop-blur rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm dark:shadow-black/40 p-2 space-y-1">
+            <div className="text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400 px-1">Adicionar nó</div>
             {items.map(i => {
                 const Icon = NODE_THEME[i.type].icon
                 return (
@@ -1320,7 +1320,7 @@ function Palette({ onAdd }: { onAdd: (t: NodeType) => void }) {
                         key={i.type}
                         type="button"
                         onClick={() => onAdd(i.type)}
-                        className="w-full text-left text-xs flex items-center gap-1.5 px-2 py-1 rounded hover:bg-muted"
+                        className="w-full text-left text-xs flex items-center gap-1.5 px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     >
                         <Icon className="h-3 w-3" />
                         {i.label}
@@ -1345,23 +1345,23 @@ function TriggerInfoPanel({ open, onToggle }: { open: boolean; onToggle: () => v
             <button
                 type="button"
                 onClick={onToggle}
-                className="w-full px-5 py-2 flex items-center gap-2 text-xs text-left hover:bg-muted/40 transition-colors"
+                className="w-full px-5 py-2 flex items-center gap-2 text-xs text-left hover:bg-zinc-100/60 dark:hover:bg-zinc-800/40 transition-colors"
             >
                 <Info className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
                 <span className="font-medium">Como o welcome é disparado &amp; o que este grafo cobre</span>
-                <span className="text-muted-foreground hidden sm:inline">— LP, inbound, pausa global</span>
-                <span className="ml-auto text-muted-foreground">
+                <span className="text-zinc-500 dark:text-zinc-400 hidden sm:inline">— LP, inbound, pausa global</span>
+                <span className="ml-auto text-zinc-500 dark:text-zinc-400">
                     {open ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                 </span>
             </button>
             {open && (
-                <div className="px-5 pb-3 text-[12px] text-muted-foreground space-y-2.5 bg-muted/20">
+                <div className="px-5 pb-3 text-[12px] text-zinc-500 dark:text-zinc-400 space-y-2.5 bg-zinc-50 dark:bg-zinc-900/40">
                     <div className="flex items-start gap-2">
                         <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-700 dark:text-sky-300 shrink-0">
                             Gatilho&nbsp;1
                         </span>
                         <div className="leading-relaxed">
-                            <strong className="text-foreground">Lead capturado na LP ou criado no admin</strong> — não passa por este grafo.
+                            <strong className="text-zinc-900 dark:text-zinc-100">Lead capturado na LP ou criado no admin</strong> — não passa por este grafo.
                             O <code>dispatchWelcome()</code> em <code>/lib/whatsapp.ts</code> respeita opt-out, faz dedup
                             de 24h e pede ao VPS renderizar o template <code>welcome-default</code> via <code>/api/whatsapp/render-welcome</code>.
                             Editar o welcome aqui não afeta este caminho — edite o template na aba <strong>Templates</strong>.
@@ -1372,7 +1372,7 @@ function TriggerInfoPanel({ open, onToggle }: { open: boolean; onToggle: () => v
                             Gatilho&nbsp;2
                         </span>
                         <div className="leading-relaxed">
-                            <strong className="text-foreground">Inbound chega de um número desconhecido</strong> — entra
+                            <strong className="text-zinc-900 dark:text-zinc-100">Inbound chega de um número desconhecido</strong> — entra
                             neste grafo pelo nó <em>Início</em>. O classificador roteia em 5 saídas. Quando cai em
                             <em> sem match</em> e o lead passa pelos gates (não está em opt-out, não está em handoff,
                             não tem <code>interesse_principal</code> e não tem a tag <code>whatsapp:menu_enviado</code>),
@@ -1384,7 +1384,7 @@ function TriggerInfoPanel({ open, onToggle }: { open: boolean; onToggle: () => v
                             Pausa
                         </span>
                         <div className="leading-relaxed">
-                            <strong className="text-foreground">Gate global</strong> em <code>site_settings.whatsapp_central_paused</code>:
+                            <strong className="text-zinc-900 dark:text-zinc-100">Gate global</strong> em <code>site_settings.whatsapp_central_paused</code>:
                             ativado pelo botão &quot;Pausar fluxo&quot; na aba <strong>Conexão</strong>, bloqueia welcome (gatilho 1) <em>e</em>
                             qualquer execução deste grafo (gatilho 2) antes mesmo do nó Início. Inbound continua sendo logada no Inbox.
                         </div>
@@ -1432,16 +1432,16 @@ function SidePanel({
     const cfg = node.data.config ?? {}
 
     return (
-        <div className="absolute inset-y-0 right-0 z-30 w-full sm:w-[380px] bg-card border-l shadow-xl flex flex-col">
-            <div className="px-4 py-3 border-b flex items-start gap-2">
+        <div className="absolute inset-y-0 right-0 z-30 w-full sm:w-[380px] bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col">
+            <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-start gap-2">
                 <div className={`p-2 rounded-md ring-1 ${theme.ring} ${theme.bg}`}>
                     <Icon className={`h-4 w-4 ${theme.text}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="text-[10px] uppercase text-muted-foreground">{type.replace(/_/g, " ")}</div>
+                    <div className="text-[10px] uppercase text-zinc-500 dark:text-zinc-400">{type.replace(/_/g, " ")}</div>
                     <div className="font-semibold text-sm truncate">{node.data.label}</div>
                 </div>
-                <button onClick={onClose} className="p-1.5 rounded hover:bg-muted text-muted-foreground" aria-label="Fechar">
+                <button onClick={onClose} className="p-1.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400" aria-label="Fechar">
                     <X className="h-4 w-4" />
                 </button>
             </div>
@@ -1452,7 +1452,7 @@ function SidePanel({
                         type="text"
                         value={node.data.label}
                         onChange={e => onChangeLabel(e.target.value)}
-                        className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                        className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                     />
                 </Field>
 
@@ -1461,11 +1461,11 @@ function SidePanel({
                         <select
                             value={cfg.expr ?? "lead.exists"}
                             onChange={e => onChangeConfig({ expr: e.target.value as ConditionExpr })}
-                            className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                            className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         >
                             {CONDITION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select>
-                        <p className="text-[10px] text-muted-foreground mt-1">
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1">
                             Saída <strong>true</strong> (verde) é tomada quando a expressão é verdadeira; <strong>false</strong> (vermelha tracejada) caso contrário.
                         </p>
                     </Field>
@@ -1477,7 +1477,7 @@ function SidePanel({
                             <select
                                 value={cfg.kind ?? "add_tag"}
                                 onChange={e => onChangeConfig({ kind: e.target.value as ActionKind })}
-                                className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                                className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             >
                                 {ACTION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </select>
@@ -1489,7 +1489,7 @@ function SidePanel({
                                     value={cfg.tag ?? ""}
                                     onChange={e => onChangeConfig({ tag: e.target.value })}
                                     placeholder="ex: whatsapp:menu_enviado"
-                                    className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm font-mono"
+                                    className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm font-mono placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                                 />
                             </Field>
                         )}
@@ -1499,7 +1499,7 @@ function SidePanel({
                                 value={cfg.note ?? ""}
                                 onChange={e => onChangeConfig({ note: e.target.value })}
                                 placeholder="anotação interna"
-                                className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                                className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
                         </Field>
                     </>
@@ -1514,12 +1514,12 @@ function SidePanel({
                                     const v = e.target.value
                                     onChangeConfig({ dynamic: v ? "triagem_by_interesse" : undefined })
                                 }}
-                                className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                                className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             >
                                 <option value="">Slug fixo</option>
                                 <option value="triagem_by_interesse">Dinâmico — triagem por interesse</option>
                             </select>
-                            <p className="text-[10px] text-muted-foreground mt-1">
+                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1">
                                 No modo dinâmico, o slug vira <code>triagem-{"{interesse}"}</code> com base na classificação.
                             </p>
                         </Field>
@@ -1529,14 +1529,14 @@ function SidePanel({
                                 <select
                                     value={cfg.slug ?? ""}
                                     onChange={e => onChangeConfig({ slug: e.target.value })}
-                                    className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                                    className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                                 >
                                     <option value="">— selecione —</option>
                                     {templates.map(t => (
                                         <option key={t.id} value={t.slug}>{t.title} ({t.slug})</option>
                                     ))}
                                 </select>
-                                <p className="text-[10px] text-muted-foreground mt-1">
+                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1">
                                     Edite o corpo dos templates na aba <strong>Templates</strong>.
                                 </p>
                             </Field>
@@ -1548,7 +1548,7 @@ function SidePanel({
                                 value={cfg.bot_step ?? ""}
                                 onChange={e => onChangeConfig({ bot_step: e.target.value })}
                                 placeholder="ex: welcome, triagem, optout"
-                                className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm font-mono"
+                                className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm font-mono placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
                         </Field>
 
@@ -1558,7 +1558,7 @@ function SidePanel({
                                 onChange={e => onChangeConfig({ fallback: e.target.value })}
                                 rows={3}
                                 placeholder="Usado se o template não existir no banco."
-                                className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                                className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
                         </Field>
 
@@ -1568,7 +1568,7 @@ function SidePanel({
                                 value={cfg.contact_note ?? ""}
                                 onChange={e => onChangeConfig({ contact_note: e.target.value })}
                                 placeholder="ex: Lead solicitou opt-out via WhatsApp"
-                                className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                                className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             />
                         </Field>
                     </>
@@ -1581,9 +1581,9 @@ function SidePanel({
                             value={cfg.reason ?? ""}
                             onChange={e => onChangeConfig({ reason: e.target.value })}
                             placeholder="ex: lead_optout, unknown_intent"
-                            className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm font-mono"
+                            className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm font-mono placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         />
-                        <p className="text-[10px] text-muted-foreground mt-1">
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1">
                             Devolvido pro VPS no JSON <code>{"{ silent: true, reason }"}</code>. Útil pra debugar por que o bot ficou em silêncio.
                         </p>
                     </Field>
@@ -1596,13 +1596,13 @@ function SidePanel({
                             value={cfg.bot_step ?? ""}
                             onChange={e => onChangeConfig({ bot_step: e.target.value })}
                             placeholder="vazio = usa o do send_template anterior"
-                            className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm font-mono"
+                            className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm font-mono placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         />
                     </Field>
                 )}
 
                 {type === "classify" && (
-                    <div className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-md">
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/40 p-2.5 rounded-md">
                         O nó <strong>classify</strong> roda <code>classifyMessage()</code> sobre o texto recebido e tem 5 saídas
                         (handles) na borda inferior, da esquerda pra direita: <strong>opt-out</strong>, <strong>resubscribe</strong>,
                         <strong> humano</strong>, <strong>interesse</strong>, <strong>sem match</strong>. Conecte cada handle ao
@@ -1616,19 +1616,19 @@ function SidePanel({
                             <select
                                 value={cfg.trigger ?? "inbound"}
                                 onChange={e => onChangeConfig({ trigger: e.target.value as TriggerKind })}
-                                className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                                className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                             >
                                 <option value="inbound">Inbound — toda mensagem recebida do VPS</option>
                                 <option value="new_lead">Novo lead — VPS pede render-welcome (LP / admin / Sheets)</option>
                             </select>
-                            <p className="text-[10px] text-muted-foreground mt-1">
+                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1">
                                 Cada gatilho deve ter no máximo 1 nó de início. Os ramos abaixo de cada start formam fluxos independentes que rodam em momentos diferentes do ciclo do lead.
                             </p>
                         </Field>
-                        <div className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-md">
-                            <strong className="text-foreground">Inbound</strong> roda no <code>/api/whatsapp/inbound</code> — classifica intenção e responde.
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/40 p-2.5 rounded-md">
+                            <strong className="text-zinc-900 dark:text-zinc-100">Inbound</strong> roda no <code>/api/whatsapp/inbound</code> — classifica intenção e responde.
                             <br /><br />
-                            <strong className="text-foreground">Novo lead</strong> roda no <code>/api/whatsapp/render-welcome</code> via <code>resolveWelcomeDispatch()</code> — anda apenas por <strong>condição</strong> e termina num <strong>send_template</strong>, devolvendo o slug pro VPS renderizar. Actions/classify/send aqui são ignorados (efeitos colaterais e logging acontecem no envio real).
+                            <strong className="text-zinc-900 dark:text-zinc-100">Novo lead</strong> roda no <code>/api/whatsapp/render-welcome</code> via <code>resolveWelcomeDispatch()</code> — anda apenas por <strong>condição</strong> e termina num <strong>send_template</strong>, devolvendo o slug pro VPS renderizar. Actions/classify/send aqui são ignorados (efeitos colaterais e logging acontecem no envio real).
                         </div>
                     </>
                 )}
@@ -1649,7 +1649,7 @@ function SidePanel({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{label}</label>
+            <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{label}</label>
             <div className="mt-1">{children}</div>
         </div>
     )
