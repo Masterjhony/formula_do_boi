@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { firstName, normalizePhone, phoneVariants, renderTemplate } from '@/lib/whatsapp-central'
 import { getR2DownloadUrl } from '@/lib/r2'
+import { readPauseState } from '@/lib/whatsapp-pause'
 
 export async function POST(req: NextRequest) {
     const SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
@@ -32,6 +33,12 @@ export async function POST(req: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
+
+    // Pausa global da Central — bloqueia o welcome (mesmo padrão do opt-out).
+    const pause = await readPauseState(supabase)
+    if (pause.paused) {
+        return NextResponse.json({ silent: true, reason: 'paused' })
+    }
 
     // Verifica opt-out por número (cobre casos sem lead vinculado também)
     const variants = phoneVariants(phone)

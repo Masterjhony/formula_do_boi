@@ -23,6 +23,7 @@ import {
     type FlowGraphV2,
     type LeadShape,
 } from '@/lib/whatsapp-flow-engine'
+import { readPauseState } from '@/lib/whatsapp-pause'
 
 export const maxDuration = 30
 
@@ -155,6 +156,14 @@ export async function POST(req: NextRequest) {
             .from('crm_leads')
             .update({ last_whatsapp_at: new Date().toISOString() })
             .eq('id', lead.id)
+    }
+
+    // Pausa global: a Central segue conectada e logando a inbound, mas
+    // nenhum fluxo automatizado roda. Operador pode responder manualmente
+    // pelo Inbox enquanto estiver pausado.
+    const pause = await readPauseState(supabase)
+    if (pause.paused) {
+        return NextResponse.json({ silent: true, reason: 'paused' })
     }
 
     const graph = await loadGraph(supabase)
