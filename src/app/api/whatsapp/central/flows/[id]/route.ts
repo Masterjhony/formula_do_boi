@@ -8,7 +8,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/auth-helpers'
-import { validateGraph, type FlowGraphV2 } from '@/lib/whatsapp-flow-engine'
+import { buildDefaultGraph, validateGraph, type FlowGraphV2 } from '@/lib/whatsapp-flow-engine'
+
+function isGraphEmpty(g: unknown): boolean {
+    if (!g || typeof g !== 'object') return true
+    const obj = g as Record<string, unknown>
+    return !Array.isArray(obj.nodes) || (obj.nodes as unknown[]).length === 0
+}
 
 export async function GET(
     _req: NextRequest,
@@ -31,6 +37,26 @@ export async function GET(
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     if (!data) return NextResponse.json({ error: 'Fluxo não encontrado' }, { status: 404 })
+
+    // Auto-cura: a migration semeia "Padrão" com placeholder vazio quando
+    // site_settings.whatsapp_flow_v2 não existia. Na primeira leitura,
+    // se o grafo está vazio, persiste buildDefaultGraph() e devolve já curado.
+    if (isGraphEmpty(data.graph)) {
+        const def = buildDefaultGraph()
+        const seeded: FlowGraphV2 = {
+            ...def,
+            updatedAt: new Date().toISOString(),
+            updatedBy: auth.userId,
+        }
+        const { data: healed } = await supabase
+            .from('whatsapp_flows')
+            .update({ graph: seeded })
+            .eq('id', id)
+            .select('id, name, description, graph, is_active, created_at, updated_at')
+            .single()
+        const flow = healed ?? { ...data, graph: seeded }
+        return NextResponse.json({ flow, validation: validateGraph(seeded), healed: true })
+    }
 
     const validation = validateGraph(data.graph as FlowGraphV2)
     return NextResponse.json({ flow: data, validation })
