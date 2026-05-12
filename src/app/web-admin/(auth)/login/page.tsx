@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { Loader2, Mail, Lock, Info, ShieldCheck } from 'lucide-react'
+import { Loader2, Mail, Lock, Info } from 'lucide-react'
 
-export default function AdminLoginPage() {
+// useSearchParams() força a página a virar dynamic. No Next 16 o prerender
+// falha sem um <Suspense> boundary em torno do componente que o usa, então
+// isolamos o form aqui dentro.
+function LoginForm() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -35,12 +38,88 @@ export default function AdminLoginPage() {
                 router.refresh()
                 router.push(safe)
             }
-        } catch (err: any) {
-            setError(err.message || 'Erro ao realizar login')
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erro ao realizar login')
             setLoading(false) // Only stop loading on error, otherwise we are navigating
         }
     }
 
+    return (
+        <form onSubmit={handleLogin} className="space-y-6">
+            {error && (
+                <div className="bg-red-900/10 border border-red-900/20 text-red-400 p-4 rounded-xl text-sm flex items-start gap-3">
+                    <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                    <span>{error}</span>
+                </div>
+            )}
+
+            <div className="space-y-2">
+                <label className="text-xs font-medium text-gray-400 ml-1 uppercase tracking-wider">Email Corporativo</label>
+                <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
+                        placeholder="admin@formuladoboi.com"
+                        required
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex justify-between items-center ml-1">
+                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Credencial</label>
+                </div>
+                <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
+                        placeholder="••••••••"
+                        required
+                    />
+                </div>
+            </div>
+
+            <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-white text-black hover:bg-gray-200 font-bold py-3.5 rounded-xl transition-all shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+                {loading ? (
+                    <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Autenticando...
+                    </>
+                ) : (
+                    'Acessar Painel'
+                )}
+            </button>
+        </form>
+    )
+}
+
+function LoginFormFallback() {
+    return (
+        <div className="space-y-6 animate-pulse">
+            <div className="space-y-2">
+                <div className="h-3 w-32 bg-[#222] rounded ml-1" />
+                <div className="h-12 bg-[#141414] border border-[#333] rounded-xl" />
+            </div>
+            <div className="space-y-2">
+                <div className="h-3 w-24 bg-[#222] rounded ml-1" />
+                <div className="h-12 bg-[#141414] border border-[#333] rounded-xl" />
+            </div>
+            <div className="h-12 bg-[#222] rounded-xl" />
+        </div>
+    )
+}
+
+export default function AdminLoginPage() {
     return (
         <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Elements - Slightly different for Admin */}
@@ -66,61 +145,9 @@ export default function AdminLoginPage() {
                 </div>
 
                 <div className="bg-[#0F0F0F] border border-[#222222] rounded-2xl p-8 backdrop-blur-sm shadow-2xl">
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        {error && (
-                            <div className="bg-red-900/10 border border-red-900/20 text-red-400 p-4 rounded-xl text-sm flex items-start gap-3">
-                                <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                                <span>{error}</span>
-                            </div>
-                        )}
-
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium text-gray-400 ml-1 uppercase tracking-wider">Email Corporativo</label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
-                                    placeholder="admin@formuladoboi.com"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center ml-1">
-                                <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Credencial</label>
-                            </div>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
-                                    placeholder="••••••••"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-white text-black hover:bg-gray-200 font-bold py-3.5 rounded-xl transition-all shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    Autenticando...
-                                </>
-                            ) : (
-                                'Acessar Painel'
-                            )}
-                        </button>
-                    </form>
+                    <Suspense fallback={<LoginFormFallback />}>
+                        <LoginForm />
+                    </Suspense>
 
                     <div className="mt-6 text-center">
                         <p className="text-gray-500 text-sm">
