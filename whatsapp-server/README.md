@@ -344,7 +344,7 @@ Inbound do lead chega (/api/whatsapp/inbound)
 | GET/POST | `/api/whatsapp/central/campaigns/[id]/steps` | UI | Lista/cria passos da sequência |
 | PUT/DELETE | `/api/whatsapp/central/campaigns/[id]/steps/[stepId]` | UI | Edita/remove passo |
 | POST | `/api/whatsapp/central/campaigns/[id]/send` | UI | Dispara passo 0 + agenda steps |
-| GET | `/api/whatsapp/central/campaigns/cron` | **Vercel Cron** (`*/5 * * * *`) | Processa recipients elegíveis. Auth via `Authorization: Bearer ${CRON_SECRET}` |
+| GET | `/api/whatsapp/central/campaigns/cron` | **Cron externo** (a cada 1-5min) | Processa recipients elegíveis. Auth via `x-webhook-secret: ${WHATSAPP_GROUP_TASK_SECRET}` |
 
 #### Pausa global vs. campanhas
 
@@ -352,11 +352,22 @@ A **pausa global** da Central (`site_settings.whatsapp_central_paused`, aba **Co
 - Antes de iniciar: cancele a campanha em rascunho
 - Em sequência ativa: cancele a campanha (marca status `cancelada`; o cron então para todos os recipients ativos no próximo tick com `stopped_reason='cancelled'`)
 
-#### Variáveis de ambiente novas
+#### Cron para a sequência (externo)
 
-| Variável | Função |
-|----------|--------|
-| `CRON_SECRET` | Token usado pelo Vercel Cron no header `Authorization: Bearer <secret>`. Configurado em `vercel.json`. Sem isso, qualquer um poderia hitar o endpoint de cron — o endpoint também aceita `x-webhook-secret=${WHATSAPP_GROUP_TASK_SECRET}` pra disparo manual em dev |
+A Vercel no plano Hobby só permite cron diário (`0 0 * * *`), insuficiente para sequência de campanha (precisa rodar a cada poucos minutos). Por isso, o cron **NÃO** está em `vercel.json` — em vez disso, configure um cron externo que faça GET no endpoint:
+
+```bash
+curl -H "x-webhook-secret: <WHATSAPP_GROUP_TASK_SECRET>" \
+  https://admin.formuladoboi.com/api/whatsapp/central/campaigns/cron
+```
+
+Opções recomendadas (em ordem de simplicidade):
+
+1. **GitHub Actions** (gratuito, confiável) — adicione `.github/workflows/campaign-cron.yml` com `schedule: cron: '*/5 * * * *'` e um step que faz `curl`. Vantagem: o secret fica em GitHub Secrets, fora de qualquer service externo.
+2. **cron-job.org** (gratuito, web UI) — cria um job que chama a URL com o header customizado. Rápido de configurar, mas o secret fica num serviço terceiro.
+3. **Upgrade pra Vercel Pro** — aí dá pra recriar o `vercel.json` com `*/5 * * * *` e usar `Authorization: Bearer ${CRON_SECRET}`.
+
+Sem cron configurado, a sequência de follow-up não dispara — o passo 0 funciona normal (envio na hora do "Disparar"), mas os passos 1+ ficam parados em `next_send_at` até alguém chamar o endpoint manualmente.
 
 ## Trocando o número conectado (sócio)
 
@@ -411,15 +422,14 @@ O Next.js **não** roda Baileys — apenas faz proxy HTTP para a VPS:
 - `src/lib/whatsapp.ts` — Proxy HTTP puro, zero imports de Baileys
 - `@whiskeysockets/baileys` **não** está no package.json do Next.js
 
-### Vercel Cron — sequência de campanhas
+### Cron da sequência de campanhas
 
-O `vercel.json` na raiz define um cron `*/5 * * * *` apontando para `/api/whatsapp/central/campaigns/cron`. O Vercel chama esse endpoint com `Authorization: Bearer ${CRON_SECRET}` (Vercel injeta automaticamente quando o env var `CRON_SECRET` está configurado no projeto).
-
-Para disparar manualmente em dev:
+No plano Hobby da Vercel, cron via `vercel.json` só permite execução diária — insuficiente para sequência de campanha. Por isso o cron é EXTERNO (GitHub Actions, cron-job.org, etc) batendo em:
 ```bash
 curl -H "x-webhook-secret: <WHATSAPP_GROUP_TASK_SECRET>" \
   https://admin.formuladoboi.com/api/whatsapp/central/campaigns/cron
 ```
+Detalhes e opções na seção [Campanhas](#campanhas-broadcasts-segmentados--sequência-multi-step).
 
 ## Problemas conhecidos e soluções
 

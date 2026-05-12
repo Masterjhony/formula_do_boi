@@ -163,7 +163,7 @@ Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeir
 | `/api/whatsapp/central/campaigns/[id]/steps` | GET, POST | Lista/cria passos (1+) da sequência (delay relativo + template/body/mídia). Só em rascunho. |
 | `/api/whatsapp/central/campaigns/[id]/steps/[stepId]` | PUT, DELETE | Edita ou remove um passo (reordena os sucessores). Só em rascunho. |
 | `/api/whatsapp/central/campaigns/[id]/send` | POST | Resolve segmento → materializa em `whatsapp_campaign_recipients` (com `current_step=1`, `next_send_at` se houver follow-up) → POST `/campaign-send` no VPS pro passo 0. |
-| `/api/whatsapp/central/campaigns/cron` | GET | **Vercel Cron** (`*/5 * * * *`). Processa recipients com `next_send_at <= now()`: aplica regras de parada, envia próximo step, avança `current_step`. Auth via `Authorization: Bearer ${CRON_SECRET}` ou `x-webhook-secret`. |
+| `/api/whatsapp/central/campaigns/cron` | GET | Cron externo (GitHub Actions, cron-job.org etc — a cada 1-5min). Processa recipients com `next_send_at <= now()`: aplica regras de parada, envia próximo step, avança `current_step`. Auth via `x-webhook-secret`. Plano Hobby da Vercel não permite cron sub-diário, por isso não usamos `vercel.json`. |
 | `/api/whatsapp/central/campaigns/preview` | POST | Pré-visualiza público (count + amostra) sem materializar. |
 | `/api/whatsapp/central/metrics` | GET | Métricas operacionais (novos contatos 7d, opt-outs, distribuição de interesse). |
 | `/api/whatsapp/central/flow` | GET, PUT, DELETE | Grafo do fluxo da Central (`FlowGraphV2` em `site_settings.whatsapp_flow_v2`). PUT valida via `validateGraph()`. DELETE reseta para o default em código. |
@@ -269,7 +269,7 @@ SUPABASE_SERVICE_ROLE_KEY         # Supabase service role key (bypasses RLS)
 SHEETS_WEBHOOK_SECRET             # Validates Google Sheets webhook requests
 WHATSAPP_SERVER_URL               # default: http://localhost:3001
 WHATSAPP_GROUP_TASK_SECRET        # Shared secret for /tarefa, /decisao, /risco, /ia + inbound + render-welcome (Production only in Vercel)
-CRON_SECRET                       # Token usado pelo Vercel Cron (vercel.json) ao chamar /api/whatsapp/central/campaigns/cron. Sem isso o cron funciona, mas o endpoint precisará do x-webhook-secret para autenticação manual.
+# (Cron de campanhas usa WHATSAPP_GROUP_TASK_SECRET via header x-webhook-secret — não há CRON_SECRET separado porque o plano Hobby da Vercel não permite cron sub-diário; usamos cron externo.)
 
 # AI (GLM-4.7 / Zhipu)
 GLM_API_KEY                       # Zhipu API key
