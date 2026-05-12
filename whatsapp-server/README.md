@@ -30,6 +30,8 @@ A comunicação é bidirecional: o Next.js empurra envios pelo VPS, e o VPS enca
 
 > **Gate de pausa global** (`site_settings.whatsapp_central_paused`, controlado pelo botão "Pausar fluxo" da aba **Conexão** em `admin.formuladoboi.com/whatsapp`): quando ativo, o VPS continua conectado e logando inbound, mas o Next.js bloqueia tanto a renderização do welcome (`render-welcome` devolve `{silent, reason: 'paused'}`) quanto a execução do fluxo (`/inbound` devolve `{silent, reason: 'paused'}`). O operador segue conseguindo responder manualmente pelo Inbox.
 
+> **Gate de janela horária** (per-fluxo, em `whatsapp_flows.settings.allowed_hours_*`): quando `allowed_hours_enabled=true` no fluxo ativo, o Next.js resolve a hora atual no fuso configurado (default `America/Sao_Paulo`) e — se estiver fora de `[start, end]` — responde `{silent, reason: 'outside_allowed_hours'}` tanto em `render-welcome` quanto em `/inbound`. A janela suporta cruzar meia-noite (ex.: `22:00 → 06:00`). Pra editar: aba **Fluxo** → Configurações → Parâmetros → seção "Horário de operação". O VPS não precisa saber das regras — ele só aborta quando vê `silent: true`.
+
 ### Fluxo de envio (welcome)
 
 1. Lead entra por um dos 4 caminhos (LP, webhook Sheets, webhook CRM legado, criação manual no admin)
@@ -48,18 +50,23 @@ A comunicação é bidirecional: o Next.js empurra envios pelo VPS, e o VPS enca
 
 ### Múltiplos fluxos nomeados (com 1 ativo)
 
-A partir de **2026-05-12** os grafos vivem em `whatsapp_flows` (tabela nova), não mais em `site_settings.whatsapp_flow_v2`. Cada linha é um fluxo nomeado com seu próprio grafo. Apenas **um** é `is_active=true` por vez (garantido por UNIQUE parcial no banco). Inbound e render-welcome consultam o ativo via `loadActiveFlow()` em `src/lib/whatsapp-flows.ts`.
+A partir de **2026-05-12** os grafos vivem em `whatsapp_flows` (tabela nova), não mais em `site_settings.whatsapp_flow_v2`. Cada linha é um fluxo nomeado com seu próprio grafo + seus próprios **settings** (parâmetros). Apenas **um** é `is_active=true` por vez (garantido por UNIQUE parcial no banco). Inbound e render-welcome consultam o ativo via `loadActiveFlowWithSettings()` em `src/lib/whatsapp-flows.ts`.
 
-Fallback em cascata pra robustez: (1) fluxo ativo em `whatsapp_flows`; (2) `site_settings.whatsapp_flow_v2` legado; (3) `buildDefaultGraph()` em código.
+Colunas-chave:
+- `graph` (JSONB) — nós/arestas do grafo v2
+- `settings` (JSONB) — parâmetros do fluxo (rate limit, horário permitido, fuso, fallback template etc). Lidos junto com o grafo. Tipos e defaults em `src/lib/whatsapp-flow-settings.ts`
+- `last_activated_at` — timestamp da última ativação (útil pra rollback)
+- `is_active`, `created_by`, `created_at`, `updated_at`
 
-**Operação pela aba Fluxo:** seletor de fluxo no topo direito + botão "Configurações" que abre modal com:
-- Renomear / descrição
-- **Ativar** este fluxo (desativa o atual)
-- **Duplicar** (cria cópia inativa do grafo atual)
-- **Criar novo** (a partir do default em código ou clonando outro)
-- **Deletar** (bloqueado se for o ativo ou o último restante)
+Fallback em cascata pra robustez: (1) fluxo ativo em `whatsapp_flows`; (2) `site_settings.whatsapp_flow_v2` legado; (3) `buildDefaultGraph()` em código. Quando o grafo do ativo está vazio (caso da migration inicial), o GET de `/api/whatsapp/central/flows/[id]` **auto-cura** persistindo `buildDefaultGraph()` na linha.
 
-Casos de uso típicos: A/B testar uma nova versão do welcome sem desfazer o atual; ter "modo conservador final-de-semana" pronto pra ativar; manter "padrão" intacto pra rollback rápido.
+**Operação pela aba Fluxo:** seletor de fluxo no topo direito + botão "Configurações" que abre modal com **3 abas internas**:
+
+- **Geral** — renomear / descrição + grid de metadados (status ativo/inativo, ID, criado em, última edição, última ativação, total de fluxos) + ações (**Ativar** este fluxo, **Duplicar**, **Criar novo**, **Deletar** — bloqueado se for o ativo ou o último restante)
+- **Gatilhos** — lista os 5 tipos de trigger (`inbound`, `new_lead`, `campaign_reply`, `manual_start`, `group_command`) com status (ativo/em breve/externo) e quantos start nodes do grafo cobrem cada um
+- **Parâmetros** — editor dos settings JSONB do fluxo. Cada parâmetro carrega badge **ativo** (engine já consome) ou **pendente** (UI persiste mas engine ainda não usa). Seções: Welcome & menu, Rate limit, Horário de operação, Handoff & opt-out
+
+Casos de uso típicos: A/B testar uma nova versão do welcome sem desfazer o atual; ter "modo conservador final-de-semana" pronto pra ativar (com janela horária restrita); manter "padrão" intacto pra rollback rápido.
 
 ### Gatilhos do grafo (multi-trigger)
 
@@ -74,7 +81,7 @@ Os dois subgrafos vivem no MESMO grafo e são editados juntos na aba **Fluxo**. 
 
 ### Fluxo de inbound (Central WhatsApp)
 
-Toda mensagem individual recebida em chat 1:1 é encaminhada para o Next.js. A lógica de classificação e resposta é o subgrafo `inbound` do grafo data-driven (`site_settings.whatsapp_flow_v2`), interpretado pelo engine em `src/lib/whatsapp-flow-engine.ts`. O grafo é editável em tempo real pela aba **Fluxo** da Central (`admin.formuladoboi.com/whatsapp?tab=fluxo`).
+Toda mensagem individual recebida em chat 1:1 é encaminhada para o Next.js. A lógica de classificação e resposta é o subgrafo `inbound` do grafo data-driven do fluxo ativo (linha `whatsapp_flows.is_active=true`), interpretado pelo engine em `src/lib/whatsapp-flow-engine.ts`. O grafo é editável em tempo real pela aba **Fluxo** da Central (`admin.formuladoboi.com/whatsapp?tab=fluxo`).
 
 ```
 Lead manda mensagem  →  Baileys (VPS)  ──POST /api/whatsapp/inbound──►  Next.js
@@ -82,8 +89,10 @@ Lead manda mensagem  →  Baileys (VPS)  ──POST /api/whatsapp/inbound──�
                                                                           ├ Encontra/Cria lead em crm_leads
                                                                           ├ Loga em whatsapp_messages (direction=inbound)
                                                                           ├ Gate de pausa global → {silent, reason:'paused'}
-                                                                          ├ Carrega site_settings.whatsapp_flow_v2
-                                                                          │   (ou buildDefaultGraph() se não houver linha)
+                                                                          ├ Carrega grafo + settings do fluxo ativo
+                                                                          │   (cascata: whatsapp_flows → site_settings v2 → buildDefaultGraph)
+                                                                          ├ Gate de janela horária (settings.allowed_hours_*)
+                                                                          │   → {silent, reason:'outside_allowed_hours'} se fora
                                                                           └ Executa runFlow(trigger='inbound'):
                                                                               findStartId(graph,'inbound') → classify (5 saídas)
                                                                                 ├ opt-out  → marca opt-out → optout-confirmacao
@@ -111,7 +120,7 @@ O ramo **"sem match"** é o segundo ponto onde o welcome pode ser disparado (o p
 | POST   | /campaign-send   | Enfileira lote de uma campanha. Body: `{campaign_id, recipients[], media?, poll?}` |
 | POST   | /add-to-group    | Adiciona número ao grupo da LP. Body: `{phone}`                          |
 | GET    | /queue           | Tamanho da fila e flag `processing`                                       |
-| GET    | /config          | Config de fluxo **legada** em memória (`site_settings.whatsapp_flow`). Hoje só é consultada como fallback de texto do welcome quando `/api/whatsapp/render-welcome` está inacessível. A lógica viva é o grafo `whatsapp_flow_v2` no Next.js |
+| GET    | /config          | Config de fluxo **legada** em memória (`site_settings.whatsapp_flow`). Hoje só é consultada como fallback de texto do welcome quando `/api/whatsapp/render-welcome` está inacessível. A lógica viva é o fluxo ativo em `whatsapp_flows` (grafo + settings) no Next.js |
 | POST   | /reload-config   | Força recarga da config legada do Supabase (chamada pelo Next.js ao salvar `/api/whatsapp/flow`) |
 
 ### Mensagens compostas (mídia + texto + enquete)
@@ -455,7 +464,8 @@ Detalhes e opções na seção [Campanhas](#campanhas-broadcasts-segmentados--se
 | Sockets fantasma | `sock = null` sem fechar WebSocket | Sempre usar `destroySocket()` |
 | QR não aparece | Sessão antiga corrompida | Limpar `/opt/whatsapp-auth/*` e reiniciar |
 | Bot não responde nada (nem welcome nem inbound) | Pausa global ativa em `site_settings.whatsapp_central_paused` | Aba **Conexão** → "Retomar fluxo". O VPS continua conectado, só o Next.js silencia |
-| Bot responde fora do esperado depois de editar o fluxo | Grafo persistido em `site_settings.whatsapp_flow_v2` está malformado | Aba **Fluxo** → "Resetar p/ padrão" (chama `DELETE /api/whatsapp/central/flow`). Ou edite e revalide pelo painel — o save chama `validateGraph()` antes |
+| Bot responde só em alguns horários | Janela horária ativa nos settings do fluxo ativo (`allowed_hours_enabled=true`) | Aba **Fluxo** → Configurações → Parâmetros → "Horário de operação". Logs do Next.js mostram `{silent, reason: 'outside_allowed_hours'}`. Ajustar janela ou desativar o gate |
+| Bot responde fora do esperado depois de editar o fluxo | Grafo persistido em `whatsapp_flows` (linha ativa) está malformado | Aba **Fluxo** → "Resetar p/ padrão" reescreve o grafo do fluxo ativo com `buildDefaultGraph()`. Ou edite e revalide pelo painel — o PUT chama `validateGraph()` antes |
 | Welcome chega 2x rapidinho pro mesmo número | Dedup 24h do `dispatchWelcome` foi pulado (logs do Vercel mostrarão por quê) — geralmente race entre 2 webhooks Sheets simultâneos | Investigar `whatsapp_messages` filtrando por phone (existem variantes com/sem DDI/9º dígito — usar `phoneVariants`) |
 | `/tarefa` retorna 401 | `WHATSAPP_GROUP_TASK_SECRET` não carregado | Garantir `--env-file` no `docker run`; verificar comprimento (deve ser 64 chars — CLI do Vercel pode adicionar `\n` virando 65) |
 | Bot não responde a `/tarefa` | Mensagem enviada pelo próprio número do bot | `fromMe = true` é ignorado por design |

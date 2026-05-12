@@ -86,7 +86,8 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 
 ### Notable Implementation Details
 
-- **WhatsApp flow engine (Central)**: a data-driven flow graph drives every Central WhatsApp inbound. Stored in `site_settings.whatsapp_flow_v2` as JSON (nodes + edges). The engine in [src/lib/whatsapp-flow-engine.ts](src/lib/whatsapp-flow-engine.ts) interprets it: node types are `start`, `classify` (5 outputs by classification kind), `condition` (true/false), `action` (apply_optout / apply_resubscribe / apply_handoff / apply_interest / add_tag), `send_template` (slug fixed or dynamic `triagem_by_interesse`), `silence` (terminal silent), `end` (terminal reply). Visual editor at admin `/whatsapp` → tab "Fluxo" uses `@xyflow/react`; saving validates and writes back. If the row doesn't exist, `buildDefaultGraph()` is used as fallback — it mirrors the previous hardcoded behavior. `/api/whatsapp/flow` (legacy `whatsapp_flow` key) is deprecated for the Central but remains for backward compatibility.
+- **WhatsApp flow engine (Central)**: a data-driven flow graph drives every Central WhatsApp inbound. Fonte da verdade é a tabela `whatsapp_flows` (múltiplos fluxos nomeados, 1 ativo por vez); `site_settings.whatsapp_flow_v2` segue como fallback de compatibilidade. O engine em [src/lib/whatsapp-flow-engine.ts](src/lib/whatsapp-flow-engine.ts) interpreta o grafo: node types são `start` (com `data.trigger` = `inbound` ou `new_lead`), `classify` (5 saídas por kind), `condition` (true/false), `action` (apply_optout / apply_resubscribe / apply_handoff / apply_interest / add_tag), `send_template` (slug fixo ou dinâmico `triagem_by_interesse`), `silence` (terminal silent), `end` (terminal reply). O subgrafo `new_lead` é percorrido por `resolveWelcomeDispatch()` quando o VPS chama `/render-welcome` — anda só por `condition` e termina num `send_template`, devolvendo o slug ao caller. Editor visual em admin `/whatsapp` → aba "Fluxo" usa `@xyflow/react`; salvar valida via `validateGraph()` e grava. Se a linha ativa do `whatsapp_flows` tiver grafo vazio (placeholder de migration), o GET de `/api/whatsapp/central/flows/[id]` auto-cura gravando `buildDefaultGraph()`. `/api/whatsapp/flow` (legacy `whatsapp_flow` key) é deprecated mas mantido por compat.
+- **Parâmetros do fluxo (`whatsapp_flows.settings`)**: JSONB por fluxo com configurações que afetam o engine *antes* de entrar no grafo (rate limit, compliance, horário). Lidos por `loadActiveFlowWithSettings()` em [src/lib/whatsapp-flows.ts](src/lib/whatsapp-flows.ts), tipos e defaults em [src/lib/whatsapp-flow-settings.ts](src/lib/whatsapp-flow-settings.ts). Editor na aba "Fluxo" → botão **Configurações** (3 abas internas: Geral / Gatilhos / Parâmetros). Cada parâmetro carrega badge **ativo** ou **pendente** indicando se o engine já consome. **Ativos hoje**: `welcome_dedup_hours`, `send_welcome_on_unknown`, `menu_sent_tag`, `fallback_template`, `optout_blocks_automation`, `handoff_blocks_automation`, e o trio `allowed_hours_*` + `timezone` — quando `allowed_hours_enabled=true`, `/api/whatsapp/inbound` e `/api/whatsapp/render-welcome` respondem `{ silent: true, reason: 'outside_allowed_hours' }` fora da janela (`isWithinAllowedHours()` resolve hora atual no fuso IANA e aceita janelas cruzando meia-noite). **Pendentes** (UI persiste mas engine ignora): `max_auto_replies_per_lead_per_day`, `min_interval_minutes_between_replies`, `resend_menu_after_days`, `send_menu_if_interest_already_set`, `handoff_auto_expire_hours`. Adicionar um setting novo: declare no `FlowSettings`, ponha default em `FLOW_SETTINGS_DEFAULTS`, leia onde fizer sentido, e atualize o badge na UI ([ParamRow](src/components/admin/central-whatsapp/FluxoTab.tsx)) pra "ativo".
 - **WhatsApp group commands**: members of a connected group (`@g.us`) can run `/tarefa`, `/decisao`, `/risco`, and `/ia`. The VPS detects the prefix in `messages.upsert` (ignoring `fromMe`), POSTs to the corresponding Next.js endpoint with `x-webhook-secret`, and replies in the group on success/failure. See [WhatsApp Group Commands](#whatsapp-group-commands) below.
 - **AI assistant (GLM-4.7)**: same model is shared by the in-app `/web-admin/ia` page (`/api/ai/chat`) and the WhatsApp `/ia` command (`/api/whatsapp/group-ai`). Both use tool-calling against an 8-table allow-list (`products`, `crm_leads`, `profiles`, `tactical_tasks`, `tactical_contracts`, `whatsapp_messages`, `site_settings`, `breeders`).
 - **Genealogy / Genetic Evaluation parsing**: [src/lib/genealogy-parser.ts](src/lib/genealogy-parser.ts) and [src/lib/avaliacao-genetica-parser.ts](src/lib/avaliacao-genetica-parser.ts) parse PDFs via `pdf-parse` and back the batch endpoints under `/api/parse-*`.
@@ -168,9 +169,9 @@ Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeir
 | `/api/whatsapp/central/campaigns/preview` | POST | Pré-visualiza público (count + amostra) sem materializar. |
 | `/api/whatsapp/central/metrics` | GET | Métricas operacionais (novos contatos 7d, opt-outs, distribuição de interesse). |
 | `/api/whatsapp/central/flow` | GET, PUT, DELETE | **Legado**. Hoje opera sobre o fluxo ATIVO em `whatsapp_flows`. Mantido pra compat; UIs novas devem usar `/flows`. |
-| `/api/whatsapp/central/flows` | GET, POST | Lista fluxos nomeados / cria novo (com `clone_from` opcional pra duplicar). |
-| `/api/whatsapp/central/flows/[id]` | GET, PUT, DELETE | Detalhe + grafo / edita nome/descrição/grafo / deleta (não permite deletar o ativo nem o último restante). PUT valida via `validateGraph()`. |
-| `/api/whatsapp/central/flows/[id]/activate` | POST | Torna esse fluxo o único ativo. Valida o grafo antes de ativar (não deixa colocar fluxo quebrado em produção). |
+| `/api/whatsapp/central/flows` | GET, POST | Lista fluxos nomeados (com `settings`, `last_activated_at`, `created_by`) / cria novo (com `clone_from` opcional pra duplicar). |
+| `/api/whatsapp/central/flows/[id]` | GET, PUT, DELETE | Detalhe + grafo + settings / edita `name`/`description`/`graph`/`settings` (qualquer combinação) / deleta. PUT valida via `validateGraph()`. GET auto-cura grafo vazio escrevendo `buildDefaultGraph()`. Bloqueia delete do ativo e do último restante. |
+| `/api/whatsapp/central/flows/[id]/activate` | POST | Torna esse fluxo o único ativo + grava `last_activated_at`. Valida o grafo antes (não deixa colocar fluxo quebrado em produção). |
 | `/api/whatsapp/group-task` | POST | `/tarefa <desc>` from a group → creates `tactical_tasks` card with WhatsApp origin fields. |
 | `/api/whatsapp/group-decision` | POST | `/decisao <desc>` from a group → inserts into `tactical_decisions`. |
 | `/api/whatsapp/group-risk` | POST | `/risco <title>` from a group → inserts into `tactical_risks` with default `media`/`medio`. |
@@ -445,3 +446,25 @@ ativo, o número segue conectado e o Inbox segue logando inbound, mas
 welcome e fluxo são bloqueados (`{ silent: true, reason: 'paused' }`).
 Estado em `site_settings.whatsapp_central_paused`, helper em
 [src/lib/whatsapp-pause.ts](src/lib/whatsapp-pause.ts).
+
+**Janela horária de automação**: parâmetro por fluxo (aba **Fluxo** →
+Configurações → Parâmetros → "Restringir automação a um horário"). Quando
+ligado, `/api/whatsapp/inbound` e `/api/whatsapp/render-welcome` devolvem
+`{ silent: true, reason: 'outside_allowed_hours' }` se a hora local no
+fuso configurado (default `America/Sao_Paulo`) estiver fora de
+`[allowed_hours_start, allowed_hours_end]`. A janela suporta cruzar meia-
+noite (ex.: `22:00` → `06:00`). Inbox segue logando inbound — operador
+responde manualmente. Útil pra evitar disparo madrugada/domingo (anti-
+bloqueio Baileys). Helper em [src/lib/whatsapp-flow-settings.ts](src/lib/whatsapp-flow-settings.ts).
+
+**Múltiplos fluxos nomeados** (`whatsapp_flows`): a aba **Fluxo** tem
+seletor no canto superior direito (mostra "Fluxo: Padrão ATIVO") e botão
+**Configurações** abrindo modal com 3 abas — **Geral** (renomear,
+descrição, status, metadados, ações ativar/duplicar/criar/deletar),
+**Gatilhos** (lista os 5 tipos de trigger e quantos start nodes do grafo
+cobrem cada um), **Parâmetros** (settings JSONB editável com badge
+ativo/pendente por chave). Apenas UM fluxo é `is_active=true` por vez
+(constraint UNIQUE parcial). Operador pode editar variantes em paralelo
+(rascunhos) e trocar o ativo em 1 clique — o bot pega a mudança na
+próxima inbound. Migrations: [database/whatsapp_flows.sql](database/whatsapp_flows.sql)
++ [database/whatsapp_flows_settings.sql](database/whatsapp_flows_settings.sql).
