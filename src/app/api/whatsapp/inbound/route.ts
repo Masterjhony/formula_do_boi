@@ -24,6 +24,7 @@ import {
     type LeadShape,
 } from '@/lib/whatsapp-flow-engine'
 import { readPauseState } from '@/lib/whatsapp-pause'
+import { handleCampaignReply } from '@/lib/whatsapp-campaign-reply'
 
 export const maxDuration = 30
 
@@ -156,6 +157,14 @@ export async function POST(req: NextRequest) {
             .from('crm_leads')
             .update({ last_whatsapp_at: new Date().toISOString() })
             .eq('id', lead.id)
+
+        // Reação à resposta de campanha (fire-and-forget — não bloqueia
+        // a resposta do bot). Marca replied_at em recipients ativos do lead,
+        // aplica reply_tag e reply_handoff conforme regras da campanha.
+        // O cron usa replied_at + stop_on_reply pra decidir parar a sequência.
+        void handleCampaignReply(supabase, lead.id).catch(err =>
+            console.warn('[Inbound] handleCampaignReply falhou:', err instanceof Error ? err.message : err)
+        )
     }
 
     // Pausa global: a Central segue conectada e logando a inbound, mas

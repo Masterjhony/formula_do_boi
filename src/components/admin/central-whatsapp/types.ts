@@ -101,6 +101,37 @@ export interface Campaign {
     media_mime: string | null
     media_filename: string | null
     media_caption: string | null
+    // Sequência (multi-step) — regras de parada e reação à resposta
+    stop_on_reply: boolean
+    stop_on_optout: boolean
+    stop_on_handoff: boolean
+    stop_on_interest: boolean
+    reply_tag: string | null
+    reply_handoff: boolean
+    // Preenchido pela API quando lista campanhas (não vive na tabela campanhas)
+    steps_count?: number
+    replied_count?: number
+    stopped_count?: number
+}
+
+export type CampaignDelayUnit = 'minutes' | 'hours' | 'days'
+
+export interface CampaignStep {
+    id: string
+    campaign_id: string
+    step_order: number               // 1, 2, 3, ... (passo 0 é a própria campanha)
+    delay_value: number
+    delay_unit: CampaignDelayUnit
+    template_id: string | null
+    body: string | null
+    media_url: string | null
+    media_type: 'image' | 'video' | 'audio' | 'document' | null
+    media_mime: string | null
+    media_filename: string | null
+    media_caption: string | null
+    is_active: boolean
+    created_at: string
+    updated_at: string
 }
 
 export interface CentralMetrics {

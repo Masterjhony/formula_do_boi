@@ -61,8 +61,9 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 | `breeders` | Breeder registry. |
 | `whatsapp_messages` | Log conversacional. Colunas-chave: `direction` (inbound/outbound), `body`, `origin` (lp\|webhook\|manual\|campanha\|central-bot), `bot_step`, `campaign_id`, `template_id`, `lead_id`. |
 | `whatsapp_templates` | Biblioteca de mensagens prontas da Central (slug único, body com `{nome}`, category, archived, usage_count). |
-| `whatsapp_campaigns` | Campanhas/listas de transmissão segmentadas. `segment` (JSONB) traz filtros aplicados a `crm_leads`. Status: `rascunho\|enviando\|concluida\|cancelada\|erro`. |
-| `whatsapp_campaign_recipients` | Destinatários materializados ao disparar a campanha. Status: `pendente\|enviado\|falhou\|optout`. |
+| `whatsapp_campaigns` | Campanhas/listas de transmissão segmentadas. `segment` (JSONB) traz filtros aplicados a `crm_leads`. Status: `rascunho\|enviando\|concluida\|cancelada\|erro`. Inclui regras de parada (`stop_on_reply`, `stop_on_optout`, `stop_on_handoff`, `stop_on_interest`) e reação à resposta (`reply_tag`, `reply_handoff`) — migration `database/whatsapp_campaign_sequences.sql`. |
+| `whatsapp_campaign_steps` | Passos adicionais (1+) da sequência de follow-up; o passo 0 vive na própria campanha. Cada step tem `delay_value`/`delay_unit` (minutes\|hours\|days) relativo ao passo anterior + conteúdo (template ou body ou mídia). |
+| `whatsapp_campaign_recipients` | Destinatários materializados ao disparar a campanha. Status: `pendente\|enviado\|falhou\|optout`. Estado da sequência: `current_step`, `next_send_at`, `replied_at`, `stopped_at`, `stopped_reason` (`replied\|optout\|handoff\|interest\|completed\|cancelled\|error`). |
 | `whatsapp_optouts` | Cache rápido de opt-outs por número (PK = phone). Espelhado em `crm_leads.optout_whatsapp`. |
 | `site_settings` | Feature flags and configuration (key/JSONB). Key `whatsapp_flow` stores the automation flow config. |
 | `signup_verification_codes` | 6-digit signup codes (SHA-256 hash, expires_at, attempts). |
@@ -157,9 +158,12 @@ Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeir
 | `/api/whatsapp/central/lead-action` | POST | Ações rápidas no lead (`handoff_on/off`, `optout_on/off`, `set_interesse`). |
 | `/api/whatsapp/central/templates` | GET, POST | CRUD da biblioteca de templates. |
 | `/api/whatsapp/central/templates/[id]` | PUT, DELETE | Atualiza ou arquiva template. |
-| `/api/whatsapp/central/campaigns` | GET, POST | Lista e cria campanhas em rascunho. |
-| `/api/whatsapp/central/campaigns/[id]` | GET, DELETE | Detalhe + recipients (até 100). DELETE só em rascunho. |
-| `/api/whatsapp/central/campaigns/[id]/send` | POST | Resolve segmento → materializa em `whatsapp_campaign_recipients` → POST `/campaign-send` no VPS. |
+| `/api/whatsapp/central/campaigns` | GET, POST | Lista e cria campanhas em rascunho. GET retorna contadores agregados (`steps_count`, `replied_count`, `stopped_count`). |
+| `/api/whatsapp/central/campaigns/[id]` | GET, PUT, DELETE | Detalhe + recipients + steps. PUT edita rascunho (regras de parada / reply). DELETE só em rascunho. |
+| `/api/whatsapp/central/campaigns/[id]/steps` | GET, POST | Lista/cria passos (1+) da sequência (delay relativo + template/body/mídia). Só em rascunho. |
+| `/api/whatsapp/central/campaigns/[id]/steps/[stepId]` | PUT, DELETE | Edita ou remove um passo (reordena os sucessores). Só em rascunho. |
+| `/api/whatsapp/central/campaigns/[id]/send` | POST | Resolve segmento → materializa em `whatsapp_campaign_recipients` (com `current_step=1`, `next_send_at` se houver follow-up) → POST `/campaign-send` no VPS pro passo 0. |
+| `/api/whatsapp/central/campaigns/cron` | GET | **Vercel Cron** (`*/5 * * * *`). Processa recipients com `next_send_at <= now()`: aplica regras de parada, envia próximo step, avança `current_step`. Auth via `Authorization: Bearer ${CRON_SECRET}` ou `x-webhook-secret`. |
 | `/api/whatsapp/central/campaigns/preview` | POST | Pré-visualiza público (count + amostra) sem materializar. |
 | `/api/whatsapp/central/metrics` | GET | Métricas operacionais (novos contatos 7d, opt-outs, distribuição de interesse). |
 | `/api/whatsapp/central/flow` | GET, PUT, DELETE | Grafo do fluxo da Central (`FlowGraphV2` em `site_settings.whatsapp_flow_v2`). PUT valida via `validateGraph()`. DELETE reseta para o default em código. |
@@ -264,7 +268,8 @@ SUPABASE_SERVICE_ROLE_KEY         # Supabase service role key (bypasses RLS)
 # Webhooks & WhatsApp
 SHEETS_WEBHOOK_SECRET             # Validates Google Sheets webhook requests
 WHATSAPP_SERVER_URL               # default: http://localhost:3001
-WHATSAPP_GROUP_TASK_SECRET        # Shared secret for /tarefa, /decisao, /risco, /ia (Production only in Vercel)
+WHATSAPP_GROUP_TASK_SECRET        # Shared secret for /tarefa, /decisao, /risco, /ia + inbound + render-welcome (Production only in Vercel)
+CRON_SECRET                       # Token usado pelo Vercel Cron (vercel.json) ao chamar /api/whatsapp/central/campaigns/cron. Sem isso o cron funciona, mas o endpoint precisará do x-webhook-secret para autenticação manual.
 
 # AI (GLM-4.7 / Zhipu)
 GLM_API_KEY                       # Zhipu API key

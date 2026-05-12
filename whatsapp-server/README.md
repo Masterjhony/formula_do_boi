@@ -39,13 +39,27 @@ A comunicação é bidirecional: o Next.js empurra envios pelo VPS, e o VPS enca
    - faz dedup 24h em `whatsapp_messages` (skip se já houve welcome recente)
    - chama `POST /send` no VPS (somente se passou nos gates acima)
 3. VPS enfileira (4s entre envios) e, na vez do item, chama `POST /api/whatsapp/render-welcome` no Next.js
-4. O endpoint `render-welcome` verifica novamente pausa global + opt-out (cinto e suspensório) e devolve `{ body, media?, poll? }` renderizado a partir do template `welcome-default` (com overrides por audiência — vide abaixo)
-5. Se o Next.js responder `{ silent: true }`, o VPS aborta o envio. Se o `render-welcome` estiver INACESSÍVEL (timeout/5xx), o VPS cai no fallback `flowConfig.welcome_message` (texto puro, sem mídia)
+4. O endpoint `render-welcome` aplica:
+   - **gate de pausa global** + **opt-out por número/lead** (boundary de sistema, fora do grafo)
+   - **`resolveWelcomeDispatch(graph, lead)`** — caminha pelo subgrafo `trigger='new_lead'` aplicando condições (audiência, tags) e devolve o slug do `send_template` alcançado. Esse subgrafo é editável visualmente na aba **Fluxo** do admin
+   - busca o template (`body, media, poll`) pelo slug resolvido, renderiza `{nome}` e devolve `{ body, media?, poll? }`
+5. Se o Next.js responder `{ silent: true }` (opt-out, pausa, ou silence node no grafo), o VPS aborta. Se o `render-welcome` estiver INACESSÍVEL (timeout/5xx), o VPS cai no fallback `flowConfig.welcome_message` (texto puro, sem mídia)
 6. Caso contrário, monta a bubble composta (mídia → texto → poll) e envia
+
+### Gatilhos do grafo (multi-trigger)
+
+O grafo persistido em `site_settings.whatsapp_flow_v2` pode ter **mais de um start node**, cada um vinculado a um gatilho distinto. Hoje existem 2 gatilhos:
+
+| Trigger | Onde dispara | Função executada | O que o subgrafo decide |
+|---------|--------------|------------------|-------------------------|
+| `inbound` | `/api/whatsapp/inbound` (toda mensagem 1:1 recebida do VPS) | `runFlow(graph, { trigger: 'inbound', ... })` | Classifica intenção, aplica gates (opt-out/handoff), atualiza CRM e devolve resposta |
+| `new_lead` | `/api/whatsapp/render-welcome` (VPS pede template do welcome) | `resolveWelcomeDispatch(graph, lead)` | Anda só por **condições** e devolve o **slug** do `send_template` alcançado (audiência → variante do welcome) |
+
+Os dois subgrafos vivem no MESMO grafo e são editados juntos na aba **Fluxo**. O subgrafo `new_lead` é mais simples por design: só passos puros de decisão (condições) terminando em um `send_template` — actions/classify/send aqui são ignorados em runtime, porque efeitos colaterais (logging, tags, contact_history) acontecem no envio real, depois.
 
 ### Fluxo de inbound (Central WhatsApp)
 
-Toda mensagem individual recebida em chat 1:1 é encaminhada para o Next.js. A lógica de classificação e resposta vive em um **grafo data-driven** (`site_settings.whatsapp_flow_v2`), interpretado pelo engine em `src/lib/whatsapp-flow-engine.ts`. O grafo é editável em tempo real pela aba **Fluxo** da Central (`admin.formuladoboi.com/whatsapp?tab=fluxo`).
+Toda mensagem individual recebida em chat 1:1 é encaminhada para o Next.js. A lógica de classificação e resposta é o subgrafo `inbound` do grafo data-driven (`site_settings.whatsapp_flow_v2`), interpretado pelo engine em `src/lib/whatsapp-flow-engine.ts`. O grafo é editável em tempo real pela aba **Fluxo** da Central (`admin.formuladoboi.com/whatsapp?tab=fluxo`).
 
 ```
 Lead manda mensagem  →  Baileys (VPS)  ──POST /api/whatsapp/inbound──►  Next.js
@@ -55,8 +69,8 @@ Lead manda mensagem  →  Baileys (VPS)  ──POST /api/whatsapp/inbound──�
                                                                           ├ Gate de pausa global → {silent, reason:'paused'}
                                                                           ├ Carrega site_settings.whatsapp_flow_v2
                                                                           │   (ou buildDefaultGraph() se não houver linha)
-                                                                          └ Executa runFlow():
-                                                                              start → classify (5 saídas)
+                                                                          └ Executa runFlow(trigger='inbound'):
+                                                                              findStartId(graph,'inbound') → classify (5 saídas)
                                                                                 ├ opt-out  → marca opt-out → optout-confirmacao
                                                                                 ├ resub.   → reativa lead   → resubscribe-msg
                                                                                 ├ humano   → gates → handoff → consultor-handoff
@@ -70,7 +84,7 @@ Lead manda mensagem  →  Baileys (VPS)  ──POST /api/whatsapp/inbound──�
                        Baileys envia a resposta ────────────────────────►  WhatsApp
 ```
 
-O ramo **"sem match"** é o disparo número 2 da 1ª mensagem (welcome) — só envia se o lead NÃO está em opt-out, NÃO está em handoff, NÃO tem `interesse_principal` e NÃO tem a tag `whatsapp:menu_enviado`. Após enviar, o engine grava essa tag para não repetir.
+O ramo **"sem match"** é o segundo ponto onde o welcome pode ser disparado (o primeiro é `dispatchWelcome` → `render-welcome` rodando `resolveWelcomeDispatch` no subgrafo `new_lead`). Só envia se o lead NÃO está em opt-out, NÃO está em handoff, NÃO tem `interesse_principal` e NÃO tem a tag `whatsapp:menu_enviado`. Após enviar, o engine grava essa tag para não repetir.
 
 ## Endpoints
 
@@ -242,7 +256,9 @@ A partir de 2026-05-12, o menu default do welcome é o "voz do Matheus em 1ª pe
 | Academia Nelore P.O | `grupo_academia_nelore_po` | `welcome-academia-nelore-po` | `1`=sêmen `2`=embriões `3`=leilões `4`=ofertar genética `5`=oportunidades `6`=falar com Matheus |
 | Lista Matheus institucional | `lista_matheus_personalizada` | `welcome-matheus-institucional` | `1`=sêmen `2`=embriões `3`=central embriões `4`=leilões `5`=compra/venda genética `6`=todos |
 
-Audiência também troca os slugs de triagem/handoff/opt-out (vide `ACADEMIA_SLUG_OVERRIDES` em `src/lib/whatsapp-flow-engine.ts`). Quando a variante existe no banco e não está arquivada, ela é preferida; senão, cai no slug default.
+**Para o welcome (gatilho `new_lead`)**, o slug é resolvido pelo grafo via `resolveWelcomeDispatch()`: o subgrafo de novo lead tem nós de condição (`lead.is_academia_audience`, `lead.is_matheus_audience`) que direcionam para o `send_template` correto. Editar pela aba **Fluxo** → conectar/desconectar essas condições.
+
+**Para inbound (triagem, handoff, opt-out, resubscribe)**, os overrides continuam sendo aplicados em runtime pelo `ACADEMIA_SLUG_OVERRIDES` em `src/lib/whatsapp-flow-engine.ts`. Quando o engine vai buscar o body de um template via `send_template`, ele primeiro tenta a variante de audiência; se ela existe e não está arquivada no banco, usa essa; senão, cai no slug literal do nó.
 
 ### Templates
 
@@ -268,13 +284,79 @@ Quando o welcome ou um template envia uma enquete nativa, o voto do destinatári
 
 Assim o engine de classificação trata o voto como qualquer outra resposta de menu. Se o container reiniciar antes do voto chegar, o cache é perdido e o voto é ignorado — votos típicos chegam em segundos, mas é uma limitação a notar.
 
-### Campanhas (broadcasts segmentados)
+### Campanhas (broadcasts segmentados + sequência multi-step)
 
-`/api/whatsapp/central/campaigns/[id]/send` resolve o segmento contra `crm_leads` (sempre excluindo `optout_whatsapp=true`), materializa em `whatsapp_campaign_recipients` e POSTa lotes para o VPS via `/campaign-send`. O VPS processa em fila (4s entre envios) e POSTa um callback por destinatário em `/api/whatsapp/campaign-callback`, que atualiza o status e os contadores da campanha.
+#### Arquitetura geral
 
-A partir de **2026-05-11**, campanhas podem anexar mídia direto (sem precisar de template) — colunas `media_*` em `whatsapp_campaigns` (migration `database/whatsapp_campaigns_media.sql`). Se a campanha tem template **e** `media_url` próprio, a mídia da campanha sobrescreve a do template.
+A campanha tem 1 passo obrigatório (o **passo 0** = conteúdo gravado em `whatsapp_campaigns`) e 0+ passos adicionais (**passos 1+** = linhas em `whatsapp_campaign_steps`, cada um com delay relativo ao passo anterior).
 
-> A pausa global **não** bloqueia campanhas — elas são iniciadas explicitamente pelo operador e seguem em fila no VPS. Para impedir disparos, cancele a campanha antes de iniciar.
+```
+Disparo da campanha (operador clica "Disparar")
+  └─ /api/whatsapp/central/campaigns/[id]/send
+       ├─ Resolve segmento → whatsapp_campaign_recipients (current_step=1, next_send_at)
+       ├─ Renderiza passo 0 por destinatário → POST /campaign-send no VPS
+       └─ Marca campanha como "enviando"
+
+Cron a cada 5 min (Vercel Cron → /api/whatsapp/central/campaigns/cron)
+  └─ Pega recipients com next_send_at <= now() AND stopped_at IS NULL
+       ├─ Aplica regras de parada (replied / optout / handoff / interest)
+       │  → se alguma dispara: stopped_at + stopped_reason; pula
+       ├─ Resolve step do current_step → renderiza → POST /campaign-send
+       ├─ Avança current_step++ e recalcula next_send_at do próximo step
+       └─ Se foi o último step: stopped_reason='completed'
+
+Inbound do lead chega (/api/whatsapp/inbound)
+  └─ handleCampaignReply(lead) é chamado em fire-and-forget:
+       ├─ Marca replied_at em todos os recipients ativos do lead
+       ├─ Aplica reply_tag (se configurada) em crm_leads.tags_whatsapp
+       └─ Marca handoff_humano=true se reply_handoff
+     O cron, na próxima rodada, vê replied_at != null + stop_on_reply → para a sequência
+```
+
+#### Esquema das tabelas (migration `database/whatsapp_campaign_sequences.sql`)
+
+| Coluna em `whatsapp_campaigns` | Tipo | Padrão | Função |
+|--------------------------------|------|--------|--------|
+| `stop_on_reply` | bool | true | Para a sequência ao receber QUALQUER inbound desse destinatário |
+| `stop_on_optout` | bool | true | Para se o lead virar opt-out (PARAR, etc) — compliance |
+| `stop_on_handoff` | bool | true | Para se operador colocar o lead em handoff humano |
+| `stop_on_interest` | bool | false | Para se o engine gravar `interesse_principal` no lead |
+| `reply_tag` | text | null | Tag aplicada em `crm_leads.tags_whatsapp` ao responder |
+| `reply_handoff` | bool | false | Marca `handoff_humano=true` ao responder |
+
+| Tabela / coluna | Função |
+|-----------------|--------|
+| `whatsapp_campaign_steps` | Steps 1+ (o 0 vive na própria campanha). Colunas: `step_order`, `delay_value`, `delay_unit` (`minutes`\|`hours`\|`days`), `template_id` / `body` / `media_*`, `is_active` |
+| `whatsapp_campaign_recipients.current_step` | Próximo step a enviar pra esse destinatário (1 logo após o disparo inicial) |
+| `whatsapp_campaign_recipients.next_send_at` | Quando o cron deve acordar pra esse destinatário; `null` = terminou ou parou |
+| `whatsapp_campaign_recipients.replied_at` | Quando o lead respondeu durante a janela ativa (1ª resposta) |
+| `whatsapp_campaign_recipients.stopped_at` / `stopped_reason` | `replied` \| `optout` \| `handoff` \| `interest` \| `completed` \| `cancelled` \| `error` |
+
+#### Endpoints
+
+| Método | Path | Quem chama | Função |
+|--------|------|------------|--------|
+| GET    | `/api/whatsapp/central/campaigns` | UI | Lista campanhas + contadores (`steps_count`, `replied_count`, `stopped_count`) |
+| POST   | `/api/whatsapp/central/campaigns` | UI | Cria campanha em rascunho (com regras de parada e reply_*) |
+| GET    | `/api/whatsapp/central/campaigns/[id]` | UI | Detalhes + recipients + steps |
+| PUT    | `/api/whatsapp/central/campaigns/[id]` | UI | Edita rascunho |
+| DELETE | `/api/whatsapp/central/campaigns/[id]` | UI | Deleta rascunho |
+| GET/POST | `/api/whatsapp/central/campaigns/[id]/steps` | UI | Lista/cria passos da sequência |
+| PUT/DELETE | `/api/whatsapp/central/campaigns/[id]/steps/[stepId]` | UI | Edita/remove passo |
+| POST | `/api/whatsapp/central/campaigns/[id]/send` | UI | Dispara passo 0 + agenda steps |
+| GET | `/api/whatsapp/central/campaigns/cron` | **Vercel Cron** (`*/5 * * * *`) | Processa recipients elegíveis. Auth via `Authorization: Bearer ${CRON_SECRET}` |
+
+#### Pausa global vs. campanhas
+
+A **pausa global** da Central (`site_settings.whatsapp_central_paused`, aba **Conexão**) **não** bloqueia o cron de campanhas — campanhas são iniciadas explicitamente pelo operador. Para impedir disparos:
+- Antes de iniciar: cancele a campanha em rascunho
+- Em sequência ativa: cancele a campanha (marca status `cancelada`; o cron então para todos os recipients ativos no próximo tick com `stopped_reason='cancelled'`)
+
+#### Variáveis de ambiente novas
+
+| Variável | Função |
+|----------|--------|
+| `CRON_SECRET` | Token usado pelo Vercel Cron no header `Authorization: Bearer <secret>`. Configurado em `vercel.json`. Sem isso, qualquer um poderia hitar o endpoint de cron — o endpoint também aceita `x-webhook-secret=${WHATSAPP_GROUP_TASK_SECRET}` pra disparo manual em dev |
 
 ## Trocando o número conectado (sócio)
 
@@ -328,6 +410,16 @@ O Next.js **não** roda Baileys — apenas faz proxy HTTP para a VPS:
 - `WHATSAPP_SERVER_URL=http://165.232.142.37:3001` (env var na Vercel)
 - `src/lib/whatsapp.ts` — Proxy HTTP puro, zero imports de Baileys
 - `@whiskeysockets/baileys` **não** está no package.json do Next.js
+
+### Vercel Cron — sequência de campanhas
+
+O `vercel.json` na raiz define um cron `*/5 * * * *` apontando para `/api/whatsapp/central/campaigns/cron`. O Vercel chama esse endpoint com `Authorization: Bearer ${CRON_SECRET}` (Vercel injeta automaticamente quando o env var `CRON_SECRET` está configurado no projeto).
+
+Para disparar manualmente em dev:
+```bash
+curl -H "x-webhook-secret: <WHATSAPP_GROUP_TASK_SECRET>" \
+  https://admin.formuladoboi.com/api/whatsapp/central/campaigns/cron
+```
 
 ## Problemas conhecidos e soluções
 

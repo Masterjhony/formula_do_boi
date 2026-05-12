@@ -62,6 +62,7 @@ import type {
     FlowGraphV2,
     FlowNode as EngineNode,
     NodeType,
+    TriggerKind,
 } from "@/lib/whatsapp-flow-engine"
 import type { Template } from "./types"
 
@@ -78,6 +79,8 @@ interface NodeConfig {
     fallback?: string
     contact_note?: string
     reason?: string
+    /** Só usado em nós do tipo 'start'. Default = 'inbound' (backcompat). */
+    trigger?: TriggerKind
 }
 
 interface RFNodeData extends Record<string, unknown> {
@@ -122,7 +125,11 @@ function rfToEngine(graph: FlowGraphV2, rfNodes: RFFlowNode[], rfEdges: RFEdge[]
         const cfg = rf.data.config ?? undefined
         switch (rf.type as NodeType) {
             case "start":
-                return { ...base, type: "start" } as EngineNode
+                return {
+                    ...base,
+                    type: "start",
+                    ...(cfg?.trigger ? { data: { trigger: cfg.trigger } } : {}),
+                } as EngineNode
             case "classify":
                 return { ...base, type: "classify" } as EngineNode
             case "condition":
@@ -267,10 +274,29 @@ const handleStyle: React.CSSProperties = {
     border: "1.5px solid var(--muted-foreground, #64748b)",
 }
 
+const TRIGGER_BADGE: Record<TriggerKind, { label: string; cls: string; sub: string }> = {
+    inbound: {
+        label: "INBOUND",
+        cls: "bg-violet-500/15 text-violet-700 dark:text-violet-300 ring-1 ring-violet-500/30",
+        sub: "Entrada do fluxo — toda inbound do VPS cai aqui",
+    },
+    new_lead: {
+        label: "NOVO LEAD",
+        cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/30",
+        sub: "Disparado quando o VPS pede render-welcome (lead criado no CRM)",
+    },
+}
+
 function StartNodeView({ data }: NodeProps<RFFlowNode>) {
+    const trigger: TriggerKind = data.config?.trigger ?? "inbound"
+    const badge = TRIGGER_BADGE[trigger]
     return (
         <>
-            <NodeShell type="start" label={data.label} sub="Entrada do fluxo — toda inbound do VPS cai aqui" />
+            <NodeShell type="start" label={data.label} sub={badge.sub}>
+                <div className={`mt-1.5 inline-flex items-center text-[10px] font-semibold tracking-wide px-1.5 py-0.5 rounded ${badge.cls}`}>
+                    {badge.label}
+                </div>
+            </NodeShell>
             <Handle type="source" position={Position.Bottom} style={handleStyle} />
         </>
     )
@@ -484,8 +510,20 @@ export function FluxoTab({ templates }: Props) {
         if (!selectedId) return
         const node = rfNodes.find(n => n.id === selectedId)
         if (node?.type === "start") {
-            setFeedback({ type: "err", msg: "O nó Início não pode ser removido." })
-            return
+            // Permite remover start nodes EXTRA, mas barra a remoção do último
+            // start de cada gatilho. O grafo sem inbound = bot mudo; sem
+            // new_lead = welcome cai no fallback hardcoded.
+            const trigger = (node.data.config?.trigger ?? "inbound") as TriggerKind
+            const sameTrigger = rfNodes.filter(n =>
+                n.type === "start" && ((n.data.config?.trigger ?? "inbound") as TriggerKind) === trigger
+            )
+            if (sameTrigger.length <= 1) {
+                setFeedback({
+                    type: "err",
+                    msg: `Não dá pra remover o único start "${trigger}". Crie outro antes ou troque o trigger deste.`,
+                })
+                return
+            }
         }
         setRfNodes(nds => nds.filter(n => n.id !== selectedId))
         setRfEdges(eds => eds.filter(e => e.source !== selectedId && e.target !== selectedId))
@@ -496,18 +534,39 @@ export function FluxoTab({ templates }: Props) {
     function addNode(type: NodeType) {
         const id = `n_${crypto.randomUUID().slice(0, 8)}`
         const center = { x: 600 + Math.random() * 80, y: 400 + Math.random() * 80 }
+        // Quando o usuário adiciona um start novo, escolhemos o trigger que
+        // ainda falta no grafo (priorizando new_lead, já que inbound costuma
+        // existir). Se ambos já existem, default 'new_lead' — validateGraph
+        // sinaliza o conflito no save.
+        const existingTriggers = new Set<TriggerKind>()
+        for (const node of rfNodes) {
+            if (node.type === "start") {
+                existingTriggers.add((node.data.config?.trigger ?? "inbound") as TriggerKind)
+            }
+        }
+        const nextTrigger: TriggerKind = !existingTriggers.has("new_lead")
+            ? "new_lead"
+            : !existingTriggers.has("inbound")
+            ? "inbound"
+            : "new_lead"
+
         const cfg: NodeConfig | null =
+            type === "start" ? { trigger: nextTrigger } :
             type === "condition" ? { expr: "lead.exists" } :
             type === "action" ? { kind: "add_tag", tag: "" } :
             type === "send_template" ? { slug: "", bot_step: "" } :
             type === "silence" ? { reason: "flow_silence" } :
             type === "end" ? { bot_step: "" } :
             null
+        const labelOverride =
+            type === "start" && nextTrigger === "new_lead" ? "Início (novo lead)" :
+            type === "start" && nextTrigger === "inbound"  ? "Início (inbound)" :
+            defaultLabel(type)
         const newNode: RFFlowNode = {
             id,
             type,
             position: center,
-            data: { label: defaultLabel(type), config: cfg },
+            data: { label: labelOverride, config: cfg },
         }
         setRfNodes(nds => [...nds, newNode])
         setSelectedId(id)
@@ -747,6 +806,7 @@ export function FluxoTab({ templates }: Props) {
 
 function Palette({ onAdd }: { onAdd: (t: NodeType) => void }) {
     const items: { type: NodeType; label: string }[] = [
+        { type: "start",         label: "+ Início (gatilho)" },
         { type: "condition",     label: "+ Condição" },
         { type: "action",        label: "+ Ação CRM" },
         { type: "send_template", label: "+ Template" },
@@ -841,12 +901,14 @@ function TriggerInfoPanel({ open, onToggle }: { open: boolean; onToggle: () => v
 /* ─── Side panel ─────────────────────────────────────────────────── */
 
 const CONDITION_OPTIONS: { value: ConditionExpr; label: string }[] = [
-    { value: "lead.exists",            label: "Lead existe?" },
-    { value: "lead.optout_whatsapp",   label: "Lead em opt-out?" },
-    { value: "lead.handoff_humano",    label: "Lead em handoff humano?" },
-    { value: "lead.has_interesse",     label: "Lead já tem interesse_principal?" },
-    { value: "lead.has_menu_sent_tag", label: "Lead já recebeu o menu de welcome?" },
-    { value: "lead.welcome_eligible",  label: "Elegível p/ welcome (sem interesse e sem menu)?" },
+    { value: "lead.exists",                label: "Lead existe?" },
+    { value: "lead.optout_whatsapp",       label: "Lead em opt-out?" },
+    { value: "lead.handoff_humano",        label: "Lead em handoff humano?" },
+    { value: "lead.has_interesse",         label: "Lead já tem interesse_principal?" },
+    { value: "lead.has_menu_sent_tag",     label: "Lead já recebeu o menu de welcome?" },
+    { value: "lead.welcome_eligible",      label: "Elegível p/ welcome (sem interesse e sem menu)?" },
+    { value: "lead.is_academia_audience",  label: "Lead é Academia Nelore P.O? (tag grupo_academia_nelore_po)" },
+    { value: "lead.is_matheus_audience",   label: "Lead é Lista Matheus institucional? (tag lista_matheus_personalizada)" },
 ]
 
 const ACTION_OPTIONS: { value: ActionKind; label: string; needsTag?: boolean }[] = [
@@ -1052,22 +1114,37 @@ function SidePanel({
                 )}
 
                 {type === "start" && (
-                    <div className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-md">
-                        Nó de entrada do fluxo. Não pode ser removido nem editado — apenas rotulado e movido.
-                    </div>
+                    <>
+                        <Field label="Gatilho">
+                            <select
+                                value={cfg.trigger ?? "inbound"}
+                                onChange={e => onChangeConfig({ trigger: e.target.value as TriggerKind })}
+                                className="w-full px-2.5 py-1.5 rounded-md border bg-background text-sm"
+                            >
+                                <option value="inbound">Inbound — toda mensagem recebida do VPS</option>
+                                <option value="new_lead">Novo lead — VPS pede render-welcome (LP / admin / Sheets)</option>
+                            </select>
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                                Cada gatilho deve ter no máximo 1 nó de início. Os ramos abaixo de cada start formam fluxos independentes que rodam em momentos diferentes do ciclo do lead.
+                            </p>
+                        </Field>
+                        <div className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-md">
+                            <strong className="text-foreground">Inbound</strong> roda no <code>/api/whatsapp/inbound</code> — classifica intenção e responde.
+                            <br /><br />
+                            <strong className="text-foreground">Novo lead</strong> roda no <code>/api/whatsapp/render-welcome</code> via <code>resolveWelcomeDispatch()</code> — anda apenas por <strong>condição</strong> e termina num <strong>send_template</strong>, devolvendo o slug pro VPS renderizar. Actions/classify/send aqui são ignorados (efeitos colaterais e logging acontecem no envio real).
+                        </div>
+                    </>
                 )}
             </div>
 
-            {type !== "start" && (
-                <div className="border-t p-3 flex items-center gap-2">
-                    <button
-                        onClick={onDelete}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10 text-xs font-medium border border-rose-500/30 rounded-md px-3 py-2"
-                    >
-                        <Trash2 className="h-3.5 w-3.5" /> Excluir nó
-                    </button>
-                </div>
-            )}
+            <div className="border-t p-3 flex items-center gap-2">
+                <button
+                    onClick={onDelete}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10 text-xs font-medium border border-rose-500/30 rounded-md px-3 py-2"
+                >
+                    <Trash2 className="h-3.5 w-3.5" /> Excluir nó
+                </button>
+            </div>
         </div>
     )
 }

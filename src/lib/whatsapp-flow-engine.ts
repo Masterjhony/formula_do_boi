@@ -22,6 +22,7 @@ import {
     renderTemplate,
     firstName,
     ACADEMIA_TAG,
+    LISTA_MATHEUS_TAG,
     type Classification,
     type Interesse,
 } from './whatsapp-central'
@@ -63,6 +64,19 @@ export type NodeType =
     | 'silence'
     | 'end'
 
+/**
+ * Gatilhos suportados. O grafo pode ter um start node por gatilho — o engine
+ * acha o start node certo via `findStartId(graph, trigger)`. Backcompat: um
+ * start sem `data.trigger` é tratado como `'inbound'`.
+ *
+ *   - inbound:  toda inbound recebida pelo VPS (Central WhatsApp). Roda pelo
+ *               /api/whatsapp/inbound.
+ *   - new_lead: lead novo capturado no CRM (LP, admin, Sheets). Roda pelo
+ *               /api/whatsapp/render-welcome quando o VPS pede o template
+ *               do welcome — o grafo decide o slug por audiência/condição.
+ */
+export type TriggerKind = 'inbound' | 'new_lead'
+
 export type ConditionExpr =
     | 'lead.exists'
     | 'lead.optout_whatsapp'
@@ -70,6 +84,8 @@ export type ConditionExpr =
     | 'lead.has_interesse'
     | 'lead.has_menu_sent_tag'
     | 'lead.welcome_eligible' // !has_interesse && !has_menu_sent_tag
+    | 'lead.is_academia_audience'    // tags_whatsapp inclui grupo_academia_nelore_po
+    | 'lead.is_matheus_audience'     // tags_whatsapp inclui lista_matheus_personalizada
 
 export type ActionKind =
     | 'apply_optout'
@@ -84,7 +100,11 @@ export interface NodeBase {
     label?: string
 }
 
-export interface StartNode extends NodeBase { type: 'start' }
+export interface StartNode extends NodeBase {
+    type: 'start'
+    /** Gatilho que esse start node responde. Default 'inbound' quando ausente. */
+    data?: { trigger?: TriggerKind }
+}
 export interface ClassifyNode extends NodeBase { type: 'classify' }
 
 export interface ConditionNode extends NodeBase {
@@ -191,6 +211,7 @@ export interface LeadShape {
  * Estrutura do grafo (5 lanes, da esquerda pra direita: opt-out, resubscribe,
  * humano, interesse, sem match):
  *
+ *   ─── Subgrafo "Inbound" (trigger='inbound') ────────────────────────
  *   start → classify (5 saídas)
  *   classify[optout]      → action(marcar opt-out)   → send(optout-confirmacao) → end
  *   classify[resubscribe] → action(reativar lead)    → send(resubscribe-msg)    → end
@@ -201,9 +222,19 @@ export interface LeadShape {
  *   classify[unknown]     → mesmos gates → gate(elegível p/ welcome?)
  *                                              ─sim→ action(tag menu_enviado) → send(welcome-default) → end
  *                                              ─não→ silêncio (já foi atendido / já recebeu menu)
+ *
+ *   ─── Subgrafo "Boas-vindas" (trigger='new_lead') ────────────────────
+ *   start[new_lead] → gate(Academia?)─sim→ send(welcome-academia-nelore-po) → end
+ *                                     ─não→ gate(Lista Matheus?)
+ *                                              ─sim→ send(welcome-matheus-institucional) → end
+ *                                              ─não→ send(welcome-default) → end
+ *
+ *   O `resolveWelcomeDispatch()` percorre só este subgrafo a partir do start
+ *   'new_lead' para decidir qual slug o /api/whatsapp/render-welcome deve
+ *   renderizar quando o VPS pedir o welcome (chamada do dispatchWelcome).
  */
 export function buildDefaultGraph(): FlowGraphV2 {
-    // 5 colunas (uma por classificação), top→bottom em linhas regulares
+    // 5 colunas (uma por classificação) — o subgrafo new_lead vai abaixo
     const COL = [80, 380, 680, 980, 1280]
     const ROW = (n: number) => 60 + n * 120
 
@@ -225,8 +256,12 @@ export function buildDefaultGraph(): FlowGraphV2 {
     const e = (id: string, source: string, target: string, sourceHandle?: string, label?: string): FlowEdge =>
         ({ id, source, target, sourceHandle, label })
 
+    // Linha de base do subgrafo new_lead (abaixo do inbound)
+    const NL_BASE_ROW = 13
+
     const nodes: FlowNode[] = [
-        n('start', 'start', 2, 0, undefined, 'Início (inbound)'),
+        // ── Subgrafo INBOUND (trigger='inbound') ──────────────────────
+        n('start', 'start', 2, 0, { trigger: 'inbound' }, 'Início (inbound)'),
         n('classify', 'classify', 2, 1.2, undefined, 'Classifica intenção'),
 
         // ── Lane 0 — opt-out (cliente pediu para sair) ─────────────────
@@ -291,6 +326,34 @@ export function buildDefaultGraph(): FlowGraphV2 {
             fallback: 'Olá {nome}! Seja bem-vindo(a) à Fórmula do Boi.',
         }, 'Envia welcome (1ª mensagem)'),
         n('end_welcome', 'end', 4, 10.8, { bot_step: 'welcome' }, 'Resposta enviada (welcome)'),
+
+        // ── Subgrafo BOAS-VINDAS / NOVO LEAD (trigger='new_lead') ─────
+        // Disparado quando o lead é capturado (LP, admin, Sheets) e o VPS
+        // pede /api/whatsapp/render-welcome. O `resolveWelcomeDispatch()`
+        // anda este subgrafo e devolve o slug do template ao caller.
+        n('nl_start', 'start', 0, NL_BASE_ROW, { trigger: 'new_lead' }, 'Início (novo lead)'),
+        n('nl_gate_academia', 'condition', 0, NL_BASE_ROW + 1.2, { expr: 'lead.is_academia_audience' }, 'Lead é Academia Nelore P.O?'),
+        n('nl_send_academia', 'send_template', 0, NL_BASE_ROW + 2.4, {
+            slug: 'welcome-academia-nelore-po',
+            bot_step: 'welcome',
+            fallback: 'Olá {nome}! Boas-vindas à Academia Nelore P.O.',
+        }, 'Welcome — Academia'),
+        n('nl_end_academia', 'end', 0, NL_BASE_ROW + 3.6, { bot_step: 'welcome' }, 'Welcome resolvido'),
+
+        n('nl_gate_matheus', 'condition', 2, NL_BASE_ROW + 2.4, { expr: 'lead.is_matheus_audience' }, 'Lead é Lista Matheus?'),
+        n('nl_send_matheus', 'send_template', 2, NL_BASE_ROW + 3.6, {
+            slug: 'welcome-matheus-institucional',
+            bot_step: 'welcome',
+            fallback: 'Olá {nome}! Aqui é o Matheus, da Fórmula do Boi.',
+        }, 'Welcome — Matheus institucional'),
+        n('nl_end_matheus', 'end', 2, NL_BASE_ROW + 4.8, { bot_step: 'welcome' }, 'Welcome resolvido'),
+
+        n('nl_send_default', 'send_template', 4, NL_BASE_ROW + 3.6, {
+            slug: 'welcome-default',
+            bot_step: 'welcome',
+            fallback: 'Olá {nome}! Seja bem-vindo(a) à Fórmula do Boi.',
+        }, 'Welcome — Default'),
+        n('nl_end_default', 'end', 4, NL_BASE_ROW + 4.8, { bot_step: 'welcome' }, 'Welcome resolvido'),
     ]
 
     const edges: FlowEdge[] = [
@@ -334,6 +397,18 @@ export function buildDefaultGraph(): FlowGraphV2 {
         e('e_u_we_F', 'u_welcome_elig', 'u_sil3', 'false', 'não'),
         e('e_u_mark', 'u_mark_tag', 'send_welcome'),
         e('e_u_send', 'send_welcome', 'end_welcome'),
+
+        // ── Subgrafo new_lead ─────────────────────────────────────────
+        e('e_nl_start', 'nl_start', 'nl_gate_academia'),
+        e('e_nl_aca_T', 'nl_gate_academia', 'nl_send_academia', 'true', 'sim'),
+        e('e_nl_aca_F', 'nl_gate_academia', 'nl_gate_matheus', 'false', 'não'),
+        e('e_nl_aca_send', 'nl_send_academia', 'nl_end_academia'),
+
+        e('e_nl_mat_T', 'nl_gate_matheus', 'nl_send_matheus', 'true', 'sim'),
+        e('e_nl_mat_F', 'nl_gate_matheus', 'nl_send_default', 'false', 'não'),
+        e('e_nl_mat_send', 'nl_send_matheus', 'nl_end_matheus'),
+
+        e('e_nl_def_send', 'nl_send_default', 'nl_end_default'),
     ]
 
     return { version: 2, startId: 'start', nodes, edges }
@@ -354,7 +429,30 @@ export function validateGraph(graph: FlowGraphV2): GraphValidation {
 
     if (!ids.has(graph.startId)) errors.push(`startId "${graph.startId}" não existe nos nós`)
     const starts = graph.nodes.filter(n => n.type === 'start')
-    if (starts.length !== 1) errors.push(`grafo deve ter exatamente 1 nó "start" (encontrado: ${starts.length})`)
+    if (starts.length === 0) {
+        errors.push('grafo precisa de pelo menos 1 nó "start"')
+    } else {
+        // Múltiplos starts são permitidos, mas cada um deve ter um trigger
+        // único — senão o engine não saberia qual usar.
+        const triggersSeen = new Map<TriggerKind, string[]>()
+        for (const s of starts) {
+            const t = ((s as StartNode).data?.trigger ?? 'inbound') as TriggerKind
+            const list = triggersSeen.get(t) ?? []
+            list.push(s.id)
+            triggersSeen.set(t, list)
+        }
+        for (const [trigger, nodeIds] of triggersSeen) {
+            if (nodeIds.length > 1) {
+                errors.push(`múltiplos nós "start" com trigger="${trigger}" (${nodeIds.join(', ')}) — só pode existir 1 entry point por gatilho`)
+            }
+        }
+        if (!triggersSeen.has('inbound')) {
+            warnings.push('grafo sem start "inbound" — toda inbound do VPS cairá em silêncio')
+        }
+        if (!triggersSeen.has('new_lead')) {
+            warnings.push('grafo sem start "new_lead" — welcome dispatch usará o fallback hardcoded (welcome-default)')
+        }
+    }
 
     for (const edge of graph.edges) {
         if (!ids.has(edge.source)) errors.push(`edge ${edge.id}: source "${edge.source}" não existe`)
@@ -441,6 +539,10 @@ function evaluateCondition(expr: ConditionExpr, lead: LeadShape | null): boolean
             if (!lead) return false
             if (lead.interesse_principal) return false
             return !((lead.tags_whatsapp ?? []).includes('whatsapp:menu_enviado'))
+        case 'lead.is_academia_audience':
+            return (lead?.tags_whatsapp ?? []).includes(ACADEMIA_TAG)
+        case 'lead.is_matheus_audience':
+            return (lead?.tags_whatsapp ?? []).includes(LISTA_MATHEUS_TAG)
         default:                         return false
     }
 }
@@ -557,6 +659,8 @@ export interface FlowExecutionInput {
     senderName: string
     text: string
     lead: LeadShape | null
+    /** Qual gatilho disparou o fluxo. Default 'inbound'. */
+    trigger?: TriggerKind
 }
 
 export type FlowExecutionResult =
@@ -564,6 +668,22 @@ export type FlowExecutionResult =
     | { reply: string; bot_step: string }
 
 const MAX_HOPS = 60 // proteção anti-loop
+
+/**
+ * Resolve o id do start node para um gatilho específico. Procura nós do tipo
+ * 'start' com `data.trigger === trigger` (ou sem trigger se trigger==='inbound'
+ * — backcompat). Cai em `graph.startId` se nada bater.
+ */
+export function findStartId(graph: FlowGraphV2, trigger: TriggerKind): string | null {
+    for (const node of graph.nodes) {
+        if (node.type !== 'start') continue
+        const nodeTrigger = (node as StartNode).data?.trigger ?? 'inbound'
+        if (nodeTrigger === trigger) return node.id
+    }
+    // Fallback: pra trigger 'inbound', tenta o startId canônico do grafo
+    if (trigger === 'inbound') return graph.startId
+    return null
+}
 
 export async function runFlow(
     graph: FlowGraphV2,
@@ -578,7 +698,8 @@ export async function runFlow(
         edgesBySource.set(edge.source, list)
     }
 
-    let currentId: string | null = graph.startId
+    const trigger: TriggerKind = input.trigger ?? 'inbound'
+    let currentId: string | null = findStartId(graph, trigger) ?? graph.startId
     const lead = input.lead
     let classification: Classification | null = null
     let pendingReply: string | null = null
@@ -701,6 +822,120 @@ export async function runFlow(
 
     if (hops >= MAX_HOPS) {
         console.warn('[FlowEngine] limite de hops atingido')
+        return { silent: true, reason: 'flow_max_hops' }
+    }
+    return { silent: true, reason: 'flow_dead_end' }
+}
+
+/* ─── Welcome dispatch (gatilho new_lead) ──────────────────────────── */
+
+/**
+ * Resultado de `resolveWelcomeDispatch`. Quando o grafo direciona para um
+ * `send_template`, devolvemos o slug + metadados desse nó pra que o
+ * `/api/whatsapp/render-welcome` busque o body/mídia/poll do template e
+ * renderize. Quando o caminho termina em `silence` ou `end` sem template,
+ * devolvemos silent.
+ */
+export type WelcomeDispatchResult =
+    | { silent: true; reason: string }
+    | { slug: string; bot_step?: string; fallback?: string }
+
+/**
+ * Caminha o grafo a partir do start node com trigger='new_lead' aplicando
+ * SOMENTE condições (não roda actions, classify ou send_template). Quando
+ * encontra um `send_template`, retorna o slug pra que o caller decida o que
+ * fazer (no nosso caso, `/api/whatsapp/render-welcome` renderiza esse slug).
+ *
+ * Por que não usar `runFlow`? Welcome dispatch é uma decisão SÍNCRONA de
+ * qual template usar — não envia mensagem, não logra outbound, não atualiza
+ * CRM. O VPS pede o template, o Next.js diz qual usar. As ações (apply_tag,
+ * etc.) e logging acontecem no envio real, dentro do `dispatchWelcome` / VPS.
+ *
+ * Se não existir start node 'new_lead' no grafo, retornamos `silent` com
+ * razão `no_new_lead_trigger` — o caller cai no fallback hardcoded.
+ */
+export function resolveWelcomeDispatch(
+    graph: FlowGraphV2,
+    lead: LeadShape | null,
+): WelcomeDispatchResult {
+    const startId = findStartId(graph, 'new_lead')
+    if (!startId) return { silent: true, reason: 'no_new_lead_trigger' }
+
+    const nodeMap = new Map(graph.nodes.map(n => [n.id, n]))
+    const edgesBySource = new Map<string, FlowEdge[]>()
+    for (const edge of graph.edges) {
+        const list = edgesBySource.get(edge.source) ?? []
+        list.push(edge)
+        edgesBySource.set(edge.source, list)
+    }
+
+    function pickNext(nodeId: string, handle?: string): string | null {
+        const out = edgesBySource.get(nodeId) ?? []
+        if (handle) {
+            const m = out.find(e => e.sourceHandle === handle)
+            if (m) return m.target
+        }
+        const generic = out.find(e => !e.sourceHandle)
+        if (generic) return generic.target
+        if (out.length === 1 && !handle) return out[0].target
+        return null
+    }
+
+    let currentId: string | null = startId
+    let hops = 0
+
+    while (currentId && hops < MAX_HOPS) {
+        hops++
+        const node = nodeMap.get(currentId)
+        if (!node) return { silent: true, reason: 'flow_broken' }
+
+        switch (node.type) {
+            case 'start': {
+                currentId = pickNext(node.id)
+                break
+            }
+            case 'condition': {
+                const ok = evaluateCondition(node.data.expr, lead)
+                currentId = pickNext(node.id, ok ? 'true' : 'false')
+                break
+            }
+            case 'action': {
+                // Welcome dispatch ignora actions — efeitos colaterais (tags,
+                // contact_history) acontecem só DEPOIS do envio efetivo. Mas
+                // continuamos a caminhada pra não quebrar grafos legados.
+                currentId = pickNext(node.id)
+                break
+            }
+            case 'send_template': {
+                return {
+                    slug: node.data.slug,
+                    bot_step: node.data.bot_step,
+                    fallback: node.data.fallback,
+                }
+            }
+            case 'silence': {
+                return { silent: true, reason: node.data.reason || 'welcome_silence' }
+            }
+            case 'end': {
+                return { silent: true, reason: 'no_template_in_path' }
+            }
+            case 'classify': {
+                // classify não faz sentido em welcome dispatch (não há texto
+                // pra classificar). Tratamos como passthrough pra não travar.
+                console.warn('[WelcomeDispatch] classify node ignorado em trigger new_lead:', node.id)
+                currentId = pickNext(node.id, 'unknown')
+                break
+            }
+            default: {
+                const exhaustive: never = node
+                console.error('[WelcomeDispatch] tipo desconhecido:', exhaustive)
+                return { silent: true, reason: 'flow_unknown_node' }
+            }
+        }
+    }
+
+    if (hops >= MAX_HOPS) {
+        console.warn('[WelcomeDispatch] limite de hops atingido')
         return { silent: true, reason: 'flow_max_hops' }
     }
     return { silent: true, reason: 'flow_dead_end' }

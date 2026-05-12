@@ -12,6 +12,12 @@ import { createClient } from '@supabase/supabase-js'
 import { firstName, normalizePhone, phoneVariants, renderTemplate } from '@/lib/whatsapp-central'
 import { getR2DownloadUrl } from '@/lib/r2'
 import { readPauseState } from '@/lib/whatsapp-pause'
+import {
+    buildDefaultGraph,
+    resolveWelcomeDispatch,
+    type FlowGraphV2,
+    type LeadShape,
+} from '@/lib/whatsapp-flow-engine'
 
 export async function POST(req: NextRequest) {
     const SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
@@ -40,7 +46,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ silent: true, reason: 'paused' })
     }
 
-    // Verifica opt-out por número (cobre casos sem lead vinculado também)
+    // Verifica opt-out por número (cobre casos sem lead vinculado também).
+    // Mantemos esses gates fora do grafo: são checagens de sistema (compliance,
+    // dedup) que NÃO devem ser editáveis no editor visual.
     const variants = phoneVariants(phone)
     const { data: optoutMatch } = await supabase
         .from('whatsapp_optouts')
@@ -48,21 +56,60 @@ export async function POST(req: NextRequest) {
     if (optoutMatch && optoutMatch.length > 0) {
         return NextResponse.json({ silent: true, reason: 'optout' })
     }
-    const { data: leadMatch } = await supabase
+
+    // Carrega o lead pra alimentar o grafo (audiência, tags, status).
+    // Usamos o mesmo shape do engine — só os campos que conditions consultam.
+    const { data: leadRow } = await supabase
         .from('crm_leads')
-        .select('optout_whatsapp').in('telefone', variants).limit(1)
-    if (leadMatch?.[0]?.optout_whatsapp) {
+        .select('id, nome, telefone, interesse_principal, handoff_humano, handoff_at, optout_whatsapp, contact_history, contact_count, tags_whatsapp, stage, status, notes')
+        .in('telefone', variants)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+    const lead = (leadRow as LeadShape | null) ?? null
+    if (lead?.optout_whatsapp) {
         return NextResponse.json({ silent: true, reason: 'lead_optout' })
     }
+
+    // Carrega o grafo do fluxo. Welcome dispatch só usa o subgrafo new_lead
+    // (resolveWelcomeDispatch percorre a partir do start com trigger='new_lead').
+    let graph: FlowGraphV2
+    const { data: graphRow } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'whatsapp_flow_v2')
+        .maybeSingle()
+    const stored = graphRow?.value as FlowGraphV2 | undefined
+    if (stored && stored.version === 2 && Array.isArray(stored.nodes) && Array.isArray(stored.edges)) {
+        graph = stored
+    } else {
+        graph = buildDefaultGraph()
+    }
+
+    // Resolve o slug do welcome via grafo. Se o grafo não tiver subgrafo
+    // new_lead (legado antes do trigger field), cai no fallback hardcoded
+    // welcome-default — preserva compatibilidade pra setups antigos.
+    const dispatch = resolveWelcomeDispatch(graph, lead)
+    if ('silent' in dispatch) {
+        // Razões pertinentes vindas do grafo (silence node explícito, dead end)
+        // devolvem silent — só não silenciamos quando o motivo é "grafo legado
+        // sem subgrafo new_lead", aí caímos no fallback abaixo.
+        if (dispatch.reason !== 'no_new_lead_trigger') {
+            return NextResponse.json({ silent: true, reason: dispatch.reason })
+        }
+    }
+    const resolvedSlug = ('slug' in dispatch && dispatch.slug) ? dispatch.slug : 'welcome-default'
+    const fallbackBody = ('fallback' in dispatch && dispatch.fallback) ? dispatch.fallback : null
 
     const { data: tpl } = await supabase
         .from('whatsapp_templates')
         .select('body, media_url, media_type, media_mime, media_filename, media_caption, poll_question, poll_options, poll_selectable_count')
-        .eq('slug', 'welcome-default')
+        .eq('slug', resolvedSlug)
         .eq('archived', false)
         .single()
 
-    const tplBody = tpl?.body || `Olá {nome}! 👋\n\nAqui é da Fórmula do Boi.`
+    const tplBody = tpl?.body || fallbackBody || `Olá {nome}! 👋\n\nAqui é da Fórmula do Boi.`
     const vars = { nome: firstName(name), name }
     const rendered = renderTemplate(tplBody, vars)
 
