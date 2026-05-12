@@ -80,6 +80,25 @@ Plataforma do braço **Bula Assessoria**: CRM próprio, leilões, fechamentos, c
 
 ---
 
+## Convenções de UI (painel admin)
+
+- **Deep-link via query string** — telas com aba+detalhe têm o estado visível na URL (`useSearchParams` + `router.replace`, nunca `push`). Permite compartilhar o ponto exato. Aba default não emite param (URL fica limpa). Convenções vigentes:
+
+  | Tela | URL deep-linkável |
+  |---|---|
+  | Fechamento de leilão | `/leiloes/fechamento?id=<uuid>` |
+  | Central WhatsApp (abas) | `/whatsapp?tab=<inbox\|fluxo\|templates\|campanhas\|metricas\|conexao>` |
+  | Plano tático | `/tactical-plan?view=<kanban\|gantt\|whiteboard\|dashboard\|members>&task=<uuid>` |
+  | CRM | `/crm?view=<qualificacao\|kanban\|configuracoes>&lead=<uuid>` |
+
+  Páginas que consomem `useSearchParams` envolvem o cliente em `<Suspense>` (exigência do Next 16 para build estático). IDs inexistentes (registro deletado) não quebram — modal fica fechado.
+
+- **Paginação compartilhada** — [src/components/admin/Pagination.tsx](src/components/admin/Pagination.tsx) fornece controles `« ‹ 1 2 3 › »` + dropdown "Por página" (default `25 / 50 / 100 / 200`). Plugado em `/leads` ([CRMLeadsView](src/components/admin/crm/CRMLeadsView.tsx)) e na aba Qualificação do CRM ([CRMQualificacaoView](src/components/admin/crm/CRMQualificacaoView.tsx)).
+
+Detalhes em [CLAUDE.md → Notable Implementation Details](./CLAUDE.md#notable-implementation-details).
+
+---
+
 ## Arquitetura de serviços
 
 ```
