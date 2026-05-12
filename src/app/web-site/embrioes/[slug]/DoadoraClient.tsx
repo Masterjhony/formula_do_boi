@@ -180,8 +180,8 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                             </p>
 
                             <div className="flex flex-wrap gap-3">
-                                <Link href="/grupo-vip" className="fdb-btn-primary-static">
-                                    Solicitar pré-reserva
+                                <Link href={`/embrioes/${doadora.slug}/checkout`} className="fdb-btn-primary-static">
+                                    Reservar pacote
                                     <span aria-hidden style={{ marginLeft: 6 }}>→</span>
                                 </Link>
                                 <Link href="/embrioes" className="fdb-btn-ghost-static">
@@ -267,8 +267,8 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 ))}
                             </ul>
 
-                            <Link href="/grupo-vip" className="fdb-btn-primary-static">
-                                Solicitar proposta
+                            <Link href={`/embrioes/${doadora.slug}/checkout`} className="fdb-btn-primary-static">
+                                Reservar pacote
                                 <span aria-hidden style={{ marginLeft: 6 }}>→</span>
                             </Link>
                         </div>
@@ -404,12 +404,12 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                         público. Vagas limitadas por safra.
                     </p>
                     <div className="flex flex-wrap justify-center gap-3">
-                        <Link href="/grupo-vip" className="fdb-btn-primary-static">
-                            Candidatar-me ao grupo VIP
+                        <Link href={`/embrioes/${doadora.slug}/checkout`} className="fdb-btn-primary-static">
+                            Reservar pacote agora
                             <span aria-hidden style={{ marginLeft: 6 }}>→</span>
                         </Link>
-                        <Link href="/venda-conosco" className="fdb-btn-ghost-static">
-                            Falar com curador
+                        <Link href="/grupo-vip" className="fdb-btn-ghost-static">
+                            Entrar no grupo VIP
                         </Link>
                     </div>
                 </div>
