@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { Loader2, Mail, Lock, Info, ShieldCheck } from 'lucide-react'
 
@@ -13,6 +13,7 @@ export default function AdminLoginPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
+    const searchParams = useSearchParams()
     const supabase = createClient()
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -29,8 +30,10 @@ export default function AdminLoginPage() {
             if (signInError) throw signInError
 
             if (user) {
+                const raw = searchParams.get('redirectTo')
+                const safe = raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/'
                 router.refresh()
-                router.push('/')
+                router.push(safe)
             }
         } catch (err: any) {
             setError(err.message || 'Erro ao realizar login')

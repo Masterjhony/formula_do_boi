@@ -93,7 +93,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         const checkUser = async () => {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
-                if (!user) return router.push('/login');
+                if (!user) {
+                    const target = pathname && pathname !== '/'
+                        ? `/login?redirectTo=${encodeURIComponent(pathname)}`
+                        : '/login';
+                    return router.push(target);
+                }
             } catch (e) {
                 console.error(e);
             } finally {
@@ -101,7 +106,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }
         };
         checkUser();
-    }, [router, supabase]);
+    }, [router, supabase, pathname]);
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
