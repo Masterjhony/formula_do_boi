@@ -174,24 +174,38 @@ export interface LeadShape {
 /* ─── Default graph ────────────────────────────────────────────────── */
 
 /**
- * Reproduz exatamente o comportamento do inbound legado em forma de grafo.
+ * Reproduz o comportamento real do inbound da Central em forma de grafo.
  *
- * Estrutura:
- *   start → classify
- *   classify[optout]      → action(apply_optout)      → send(optout-confirmacao) → end
- *   classify[resubscribe] → action(apply_resubscribe) → send(resubscribe-msg)    → end
- *   classify[human]       → cond(optout?)─T→ silence
- *                                          ─F→ cond(handoff?)─T→ silence
- *                                                              ─F→ action(apply_handoff) → send(consultor-handoff) → end
- *   classify[interest]    → mesmo padrão de gates → action(apply_interest) → send(triagem-{kind}) → end
- *   classify[unknown]     → mesmo padrão → cond(welcome_eligible)
- *                                              ─T→ action(add_tag menu_enviado) → send(welcome-default) → end
- *                                              ─F→ silence(unknown_intent)
+ * A engine só roda quando uma inbound chega do VPS (após o gate de pausa global
+ * em /api/whatsapp/inbound). A primeira mensagem (welcome) é disparada em DOIS
+ * lugares e este grafo cobre apenas o segundo — o primeiro está documentado no
+ * painel "Como o welcome é disparado" no editor:
+ *   • LP/admin: lead novo → dispatchWelcome() respeita opt-out + dedup 24h e
+ *     pede ao VPS render-welcome (template welcome-default). NÃO passa por
+ *     esta engine.
+ *   • Inbound desconhecido: chega aqui, classifica como "sem match", aplica
+ *     gates (opt-out / handoff) e envia welcome SE o lead ainda não tem
+ *     interesse_principal e não tem a tag whatsapp:menu_enviado — ramo "Sem
+ *     match" deste grafo, abaixo.
+ *
+ * Estrutura do grafo (5 lanes, da esquerda pra direita: opt-out, resubscribe,
+ * humano, interesse, sem match):
+ *
+ *   start → classify (5 saídas)
+ *   classify[optout]      → action(marcar opt-out)   → send(optout-confirmacao) → end
+ *   classify[resubscribe] → action(reativar lead)    → send(resubscribe-msg)    → end
+ *   classify[human]       → gate(opt-out?)─sim→ silêncio
+ *                                          ─não→ gate(handoff?)─sim→ silêncio
+ *                                                                ─não→ action(marcar handoff) → send(consultor-handoff) → end
+ *   classify[interest]    → mesmos gates → action(aplicar interesse) → send(triagem dinâmica) → end
+ *   classify[unknown]     → mesmos gates → gate(elegível p/ welcome?)
+ *                                              ─sim→ action(tag menu_enviado) → send(welcome-default) → end
+ *                                              ─não→ silêncio (já foi atendido / já recebeu menu)
  */
 export function buildDefaultGraph(): FlowGraphV2 {
-    // Posicionamento em uma grade legível (5 colunas, top→bottom)
-    const COL = [80, 360, 640, 920, 1200]
-    const ROW = (n: number) => 60 + n * 110
+    // 5 colunas (uma por classificação), top→bottom em linhas regulares
+    const COL = [80, 380, 680, 980, 1280]
+    const ROW = (n: number) => 60 + n * 120
 
     const n = (
         id: string,
@@ -212,71 +226,71 @@ export function buildDefaultGraph(): FlowGraphV2 {
         ({ id, source, target, sourceHandle, label })
 
     const nodes: FlowNode[] = [
-        n('start', 'start', 2, 0, undefined, 'Início'),
-        n('classify', 'classify', 2, 1, undefined, 'Classifica intenção'),
+        n('start', 'start', 2, 0, undefined, 'Início (inbound)'),
+        n('classify', 'classify', 2, 1.2, undefined, 'Classifica intenção'),
 
-        // — Lane optout (col 0)
-        n('act_optout', 'action', 0, 3, { kind: 'apply_optout' }, 'Marcar opt-out'),
-        n('send_optout', 'send_template', 0, 4, {
+        // ── Lane 0 — opt-out (cliente pediu para sair) ─────────────────
+        n('act_optout', 'action', 0, 3, { kind: 'apply_optout' }, 'Aplica opt-out (CRM + tabela)'),
+        n('send_optout', 'send_template', 0, 4.1, {
             slug: 'optout-confirmacao',
             bot_step: 'optout',
             contact_note: 'Lead solicitou opt-out via WhatsApp',
             fallback: 'Tudo certo, {nome}! Você foi removido(a) da nossa lista.',
         }, 'Confirmação de opt-out'),
-        n('end_optout', 'end', 0, 5, { bot_step: 'optout' }, 'Resposta enviada'),
+        n('end_optout', 'end', 0, 5.2, { bot_step: 'optout' }, 'Resposta enviada (opt-out)'),
 
-        // — Lane resubscribe (col 1)
-        n('act_resub', 'action', 1, 2, { kind: 'apply_resubscribe' }, 'Reativar lead'),
-        n('send_resub', 'send_template', 1, 3, {
+        // ── Lane 1 — resubscribe (cliente quer voltar) ─────────────────
+        n('act_resub', 'action', 1, 3, { kind: 'apply_resubscribe' }, 'Reativa lead (limpa opt-out)'),
+        n('send_resub', 'send_template', 1, 4.1, {
             slug: 'resubscribe-msg',
             bot_step: 'resubscribe',
-            fallback: 'Que ótimo, {nome}! Você voltou a receber nossas comunicações. ✅',
+            fallback: 'Que ótimo, {nome}! Você voltou a receber nossas comunicações.',
         }, 'Mensagem de reativação'),
-        n('end_resub', 'end', 1, 4, { bot_step: 'resubscribe' }, 'Resposta enviada'),
+        n('end_resub', 'end', 1, 5.2, { bot_step: 'resubscribe' }, 'Resposta enviada (resubscribe)'),
 
-        // — Lane human (col 2)
+        // ── Lane 2 — humano (lead pediu falar com gente) ───────────────
         n('h_gate1', 'condition', 2, 3, { expr: 'lead.optout_whatsapp' }, 'Lead em opt-out?'),
-        n('h_sil1', 'silence', 2, 3.6, { reason: 'lead_optout' }, 'Silêncio'),
-        n('h_gate2', 'condition', 2, 4.5, { expr: 'lead.handoff_humano' }, 'Já em handoff?'),
-        n('h_sil2', 'silence', 2, 5.1, { reason: 'lead_handoff' }, 'Silêncio'),
-        n('act_handoff', 'action', 2, 6, { kind: 'apply_handoff' }, 'Marcar handoff'),
-        n('send_handoff', 'send_template', 2, 7, {
+        n('h_sil1', 'silence', 2, 3.9, { reason: 'lead_optout' }, 'Silêncio (lead em opt-out)'),
+        n('h_gate2', 'condition', 2, 5, { expr: 'lead.handoff_humano' }, 'Já em handoff humano?'),
+        n('h_sil2', 'silence', 2, 5.9, { reason: 'lead_handoff' }, 'Silêncio (já em handoff)'),
+        n('act_handoff', 'action', 2, 7, { kind: 'apply_handoff' }, 'Marca handoff humano'),
+        n('send_handoff', 'send_template', 2, 8.1, {
             slug: 'consultor-handoff',
             bot_step: 'handoff',
             contact_note: 'Lead pediu falar com consultor (handoff)',
-            fallback: 'Vou te encaminhar pra um consultor agora, {nome}.',
-        }, 'Encaminhamento'),
-        n('end_handoff', 'end', 2, 8, { bot_step: 'handoff' }, 'Resposta enviada'),
+            fallback: 'Já te chamo aqui mesmo, {nome}.',
+        }, 'Mensagem de handoff'),
+        n('end_handoff', 'end', 2, 9.2, { bot_step: 'handoff' }, 'Resposta enviada (handoff)'),
 
-        // — Lane interest (col 3)
+        // ── Lane 3 — interesse classificado ────────────────────────────
         n('i_gate1', 'condition', 3, 3, { expr: 'lead.optout_whatsapp' }, 'Lead em opt-out?'),
-        n('i_sil1', 'silence', 3, 3.6, { reason: 'lead_optout' }, 'Silêncio'),
-        n('i_gate2', 'condition', 3, 4.5, { expr: 'lead.handoff_humano' }, 'Já em handoff?'),
-        n('i_sil2', 'silence', 3, 5.1, { reason: 'lead_handoff' }, 'Silêncio'),
-        n('act_interest', 'action', 3, 6, { kind: 'apply_interest' }, 'Atualizar interesse'),
-        n('send_triagem', 'send_template', 3, 7, {
+        n('i_sil1', 'silence', 3, 3.9, { reason: 'lead_optout' }, 'Silêncio (lead em opt-out)'),
+        n('i_gate2', 'condition', 3, 5, { expr: 'lead.handoff_humano' }, 'Já em handoff humano?'),
+        n('i_sil2', 'silence', 3, 5.9, { reason: 'lead_handoff' }, 'Silêncio (já em handoff)'),
+        n('act_interest', 'action', 3, 7, { kind: 'apply_interest' }, 'Aplica interesse no CRM'),
+        n('send_triagem', 'send_template', 3, 8.1, {
             slug: '',
             dynamic: 'triagem_by_interesse',
             bot_step: 'triagem',
             contact_note: 'Interesse identificado',
             fallback: 'Anotado, {nome}! Vou repassar para o time comercial.',
-        }, 'Triagem dinâmica'),
-        n('end_interest', 'end', 3, 8, { bot_step: 'triagem' }, 'Resposta enviada'),
+        }, 'Triagem dinâmica (triagem-{interesse})'),
+        n('end_interest', 'end', 3, 9.2, { bot_step: 'triagem' }, 'Resposta enviada (triagem)'),
 
-        // — Lane unknown (col 4)
+        // ── Lane 4 — sem match (1ª mensagem / welcome) ────────────────
         n('u_gate1', 'condition', 4, 3, { expr: 'lead.optout_whatsapp' }, 'Lead em opt-out?'),
-        n('u_sil1', 'silence', 4, 3.6, { reason: 'lead_optout' }, 'Silêncio'),
-        n('u_gate2', 'condition', 4, 4.5, { expr: 'lead.handoff_humano' }, 'Já em handoff?'),
-        n('u_sil2', 'silence', 4, 5.1, { reason: 'lead_handoff' }, 'Silêncio'),
-        n('u_welcome_elig', 'condition', 4, 6, { expr: 'lead.welcome_eligible' }, 'Elegível p/ welcome?'),
-        n('u_sil3', 'silence', 4, 6.6, { reason: 'unknown_intent' }, 'Silêncio'),
-        n('u_mark_tag', 'action', 4, 7.3, { kind: 'add_tag', tag: 'whatsapp:menu_enviado' }, 'Marcar menu enviado'),
-        n('send_welcome', 'send_template', 4, 8.2, {
+        n('u_sil1', 'silence', 4, 3.9, { reason: 'lead_optout' }, 'Silêncio (lead em opt-out)'),
+        n('u_gate2', 'condition', 4, 5, { expr: 'lead.handoff_humano' }, 'Já em handoff humano?'),
+        n('u_sil2', 'silence', 4, 5.9, { reason: 'lead_handoff' }, 'Silêncio (já em handoff)'),
+        n('u_welcome_elig', 'condition', 4, 7, { expr: 'lead.welcome_eligible' }, '1ª mensagem? (sem interesse e sem menu_enviado)'),
+        n('u_sil3', 'silence', 4, 7.9, { reason: 'unknown_intent' }, 'Silêncio (já atendido — não repete welcome)'),
+        n('u_mark_tag', 'action', 4, 8.6, { kind: 'add_tag', tag: 'whatsapp:menu_enviado' }, 'Marca tag menu_enviado'),
+        n('send_welcome', 'send_template', 4, 9.7, {
             slug: 'welcome-default',
             bot_step: 'welcome',
-            fallback: 'Olá {nome}! Seja bem-vindo(a).',
-        }, 'Welcome'),
-        n('end_welcome', 'end', 4, 9.2, { bot_step: 'welcome' }, 'Resposta enviada'),
+            fallback: 'Olá {nome}! Seja bem-vindo(a) à Fórmula do Boi.',
+        }, 'Envia welcome (1ª mensagem)'),
+        n('end_welcome', 'end', 4, 10.8, { bot_step: 'welcome' }, 'Resposta enviada (welcome)'),
     ]
 
     const edges: FlowEdge[] = [

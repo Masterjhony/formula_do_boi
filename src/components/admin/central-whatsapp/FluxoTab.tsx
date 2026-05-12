@@ -51,6 +51,9 @@ import {
     Sparkles,
     Maximize2,
     Minimize2,
+    Info,
+    ChevronDown,
+    ChevronUp,
 } from "lucide-react"
 import type {
     ActionKind,
@@ -173,28 +176,68 @@ function defaultLabel(type: NodeType): string {
 }
 
 function edgeStyle(handle: string | undefined): React.CSSProperties {
+    // Cores escolhidas com luminância média — legíveis no claro e no escuro
     switch (handle) {
-        case "true":         return { stroke: "#10b981", strokeWidth: 1.5 }
-        case "false":        return { stroke: "#ef4444", strokeWidth: 1.5, strokeDasharray: "4 4" }
-        case "optout":       return { stroke: "#dc2626", strokeWidth: 1.5 }
-        case "resubscribe":  return { stroke: "#0ea5e9", strokeWidth: 1.5 }
-        case "human":        return { stroke: "#a855f7", strokeWidth: 1.5 }
-        case "interest":     return { stroke: "#f59e0b", strokeWidth: 1.5 }
-        case "unknown":      return { stroke: "#64748b", strokeWidth: 1.5 }
-        default:             return { stroke: "#64748b", strokeWidth: 1.4 }
+        case "true":         return { stroke: "#10b981", strokeWidth: 1.6 }
+        case "false":        return { stroke: "#f87171", strokeWidth: 1.6, strokeDasharray: "4 4" }
+        case "optout":       return { stroke: "#f43f5e", strokeWidth: 1.6 }
+        case "resubscribe":  return { stroke: "#38bdf8", strokeWidth: 1.6 }
+        case "human":        return { stroke: "#c084fc", strokeWidth: 1.6 }
+        case "interest":     return { stroke: "#fbbf24", strokeWidth: 1.6 }
+        case "unknown":      return { stroke: "#94a3b8", strokeWidth: 1.6 }
+        default:             return { stroke: "#94a3b8", strokeWidth: 1.5 }
     }
 }
 
 /* ─── Custom nodes ────────────────────────────────────────────────── */
 
-const NODE_THEME: Record<NodeType, { ring: string; bg: string; text: string; icon: typeof PlayCircle }> = {
-    start:         { ring: "ring-slate-400",  bg: "bg-slate-100",  text: "text-slate-900", icon: PlayCircle },
-    classify:      { ring: "ring-violet-400", bg: "bg-violet-50",  text: "text-violet-900", icon: Brain },
-    condition:     { ring: "ring-amber-400",  bg: "bg-amber-50",   text: "text-amber-900",  icon: GitBranch },
-    action:        { ring: "ring-blue-400",   bg: "bg-blue-50",    text: "text-blue-900",   icon: Wand2 },
-    send_template: { ring: "ring-emerald-400",bg: "bg-emerald-50", text: "text-emerald-900",icon: MessageSquareText },
-    silence:       { ring: "ring-zinc-400",   bg: "bg-zinc-100",   text: "text-zinc-700",   icon: Hand },
-    end:           { ring: "ring-slate-400",  bg: "bg-white",      text: "text-slate-700",  icon: Send },
+const NODE_THEME: Record<NodeType, { ring: string; bg: string; text: string; sub: string; icon: typeof PlayCircle }> = {
+    start:         { ring: "ring-slate-400/70 dark:ring-slate-400/50",
+                     bg:   "bg-slate-100 dark:bg-slate-800/70",
+                     text: "text-slate-900 dark:text-slate-100",
+                     sub:  "text-slate-700 dark:text-slate-300",
+                     icon: PlayCircle },
+    classify:      { ring: "ring-violet-400/70 dark:ring-violet-400/50",
+                     bg:   "bg-violet-50 dark:bg-violet-900/40",
+                     text: "text-violet-900 dark:text-violet-100",
+                     sub:  "text-violet-800 dark:text-violet-200",
+                     icon: Brain },
+    condition:     { ring: "ring-amber-400/70 dark:ring-amber-400/50",
+                     bg:   "bg-amber-50 dark:bg-amber-900/40",
+                     text: "text-amber-900 dark:text-amber-100",
+                     sub:  "text-amber-800 dark:text-amber-200",
+                     icon: GitBranch },
+    action:        { ring: "ring-blue-400/70 dark:ring-blue-400/50",
+                     bg:   "bg-blue-50 dark:bg-blue-900/40",
+                     text: "text-blue-900 dark:text-blue-100",
+                     sub:  "text-blue-800 dark:text-blue-200",
+                     icon: Wand2 },
+    send_template: { ring: "ring-emerald-400/70 dark:ring-emerald-400/50",
+                     bg:   "bg-emerald-50 dark:bg-emerald-900/40",
+                     text: "text-emerald-900 dark:text-emerald-100",
+                     sub:  "text-emerald-800 dark:text-emerald-200",
+                     icon: MessageSquareText },
+    silence:       { ring: "ring-zinc-400/70 dark:ring-zinc-500/50",
+                     bg:   "bg-zinc-100 dark:bg-zinc-800/70",
+                     text: "text-zinc-700 dark:text-zinc-200",
+                     sub:  "text-zinc-600 dark:text-zinc-300",
+                     icon: Hand },
+    end:           { ring: "ring-slate-400/70 dark:ring-slate-400/50",
+                     bg:   "bg-white dark:bg-zinc-900/70",
+                     text: "text-slate-700 dark:text-slate-200",
+                     sub:  "text-slate-600 dark:text-slate-400",
+                     icon: Send },
+}
+
+/** Rótulo PT-BR para o tipo de nó — exibido no header de cada card. */
+const NODE_TYPE_LABEL: Record<NodeType, string> = {
+    start:         "início",
+    classify:      "classificação",
+    condition:     "condição",
+    action:        "ação",
+    send_template: "envia template",
+    silence:       "silêncio",
+    end:           "fim",
 }
 
 function NodeShell({
@@ -203,24 +246,31 @@ function NodeShell({
     const theme = NODE_THEME[type]
     const Icon = theme.icon
     return (
-        <div className={`min-w-[180px] max-w-[220px] rounded-xl border ring-1 ${theme.ring} ${theme.bg} ${theme.text} shadow-sm px-3 py-2`}>
-            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide opacity-70">
+        <div className={`min-w-[190px] max-w-[230px] rounded-xl border border-black/10 dark:border-white/10 ring-1 ${theme.ring} ${theme.bg} ${theme.text} shadow-sm dark:shadow-black/40 px-3 py-2`}>
+            <div className={`flex items-center gap-1.5 text-[10px] uppercase tracking-wide ${theme.sub} opacity-80`}>
                 <Icon className="h-3 w-3" />
-                <span>{type.replace(/_/g, " ")}</span>
+                <span>{NODE_TYPE_LABEL[type]}</span>
             </div>
             <div className="font-semibold text-[12px] leading-tight mt-0.5">{label}</div>
-            {sub && <div className="text-[11px] opacity-80 mt-0.5 leading-tight">{sub}</div>}
+            {sub && <div className={`text-[11px] mt-0.5 leading-tight ${theme.sub}`}>{sub}</div>}
             {children}
         </div>
     )
 }
 
-const handleStyle = { width: 8, height: 8, background: "#fff", border: "1.5px solid #475569" }
+// Handle dots — usam variáveis CSS pra ficarem visíveis em ambos os temas.
+// O `background` aceita CSS var diretamente; cor de borda também.
+const handleStyle: React.CSSProperties = {
+    width: 9,
+    height: 9,
+    background: "var(--background, #fff)",
+    border: "1.5px solid var(--muted-foreground, #64748b)",
+}
 
 function StartNodeView({ data }: NodeProps<RFFlowNode>) {
     return (
         <>
-            <NodeShell type="start" label={data.label} sub="Entrada do fluxo" />
+            <NodeShell type="start" label={data.label} sub="Entrada do fluxo — toda inbound do VPS cai aqui" />
             <Handle type="source" position={Position.Bottom} style={handleStyle} />
         </>
     )
@@ -232,11 +282,11 @@ function ClassifyNodeView({ data }: NodeProps<RFFlowNode>) {
             <Handle type="target" position={Position.Top} style={handleStyle} />
             <NodeShell type="classify" label={data.label} sub="5 saídas: opt-out / resubscribe / humano / interesse / sem match" />
             {/* 5 source handles distribuídos no rodapé */}
-            <Handle id="optout"      type="source" position={Position.Bottom} style={{ ...handleStyle, left: "10%" }} />
-            <Handle id="resubscribe" type="source" position={Position.Bottom} style={{ ...handleStyle, left: "30%" }} />
-            <Handle id="human"       type="source" position={Position.Bottom} style={{ ...handleStyle, left: "50%" }} />
-            <Handle id="interest"    type="source" position={Position.Bottom} style={{ ...handleStyle, left: "70%" }} />
-            <Handle id="unknown"     type="source" position={Position.Bottom} style={{ ...handleStyle, left: "90%" }} />
+            <Handle id="optout"      type="source" position={Position.Bottom} style={{ ...handleStyle, left: "10%", background: "#f43f5e", border: "1.5px solid #be123c" }} />
+            <Handle id="resubscribe" type="source" position={Position.Bottom} style={{ ...handleStyle, left: "30%", background: "#38bdf8", border: "1.5px solid #0369a1" }} />
+            <Handle id="human"       type="source" position={Position.Bottom} style={{ ...handleStyle, left: "50%", background: "#c084fc", border: "1.5px solid #7e22ce" }} />
+            <Handle id="interest"    type="source" position={Position.Bottom} style={{ ...handleStyle, left: "70%", background: "#fbbf24", border: "1.5px solid #b45309" }} />
+            <Handle id="unknown"     type="source" position={Position.Bottom} style={{ ...handleStyle, left: "90%", background: "#94a3b8", border: "1.5px solid #475569" }} />
         </>
     )
 }
@@ -246,9 +296,9 @@ function ConditionNodeView({ data }: NodeProps<RFFlowNode>) {
     return (
         <>
             <Handle type="target" position={Position.Top} style={handleStyle} />
-            <NodeShell type="condition" label={data.label} sub={`expr: ${expr}`} />
-            <Handle id="true"  type="source" position={Position.Bottom} style={{ ...handleStyle, left: "30%", background: "#10b981" }} />
-            <Handle id="false" type="source" position={Position.Bottom} style={{ ...handleStyle, left: "70%", background: "#ef4444" }} />
+            <NodeShell type="condition" label={data.label} sub={`expressão: ${expr}`} />
+            <Handle id="true"  type="source" position={Position.Bottom} style={{ ...handleStyle, left: "30%", background: "#10b981", border: "1.5px solid #047857" }} />
+            <Handle id="false" type="source" position={Position.Bottom} style={{ ...handleStyle, left: "70%", background: "#f87171", border: "1.5px solid #b91c1c" }} />
         </>
     )
 }
@@ -284,7 +334,7 @@ function SilenceNodeView({ data }: NodeProps<RFFlowNode>) {
     return (
         <>
             <Handle type="target" position={Position.Top} style={handleStyle} />
-            <NodeShell type="silence" label={data.label} sub={`reason: ${reason}`} />
+            <NodeShell type="silence" label={data.label} sub={`motivo: ${reason}`} />
         </>
     )
 }
@@ -328,6 +378,8 @@ export function FluxoTab({ templates }: Props) {
     const [feedback, setFeedback] = useState<{ type: "ok" | "err"; msg: string } | null>(null)
     const [dirty, setDirty] = useState(false)
     const [fullscreen, setFullscreen] = useState(false)
+    const [triggerInfoOpen, setTriggerInfoOpen] = useState(true)
+    const [isDark, setIsDark] = useState(false)
 
     // ESC sai do modo tela cheia
     useEffect(() => {
@@ -338,6 +390,19 @@ export function FluxoTab({ templates }: Props) {
         window.addEventListener("keydown", onKey)
         return () => window.removeEventListener("keydown", onKey)
     }, [fullscreen])
+
+    // Detecta dark mode pela classe `dark` no <html> (padrão Tailwind do app).
+    // O ReactFlow recebe `colorMode` correspondente — assim Controls, MiniMap
+    // e Background ficam coerentes com o tema do admin.
+    useEffect(() => {
+        if (typeof document === "undefined") return
+        const root = document.documentElement
+        const update = () => setIsDark(root.classList.contains("dark"))
+        update()
+        const obs = new MutationObserver(update)
+        obs.observe(root, { attributes: true, attributeFilter: ["class"] })
+        return () => obs.disconnect()
+    }, [])
 
     // Carrega o grafo
     useEffect(() => {
@@ -521,15 +586,15 @@ export function FluxoTab({ templates }: Props) {
         <div
             className={`text-card-foreground border overflow-hidden flex flex-col ${
                 fullscreen
-                    ? "fixed inset-0 z-[9999] rounded-none bg-white dark:bg-[#0A0A0A]"
+                    ? "fixed inset-0 z-[9999] rounded-none bg-background"
                     : "flex-1 min-h-0 rounded-xl bg-card"
             }`}
         >
             <div className="px-5 py-3 border-b flex items-center gap-3 flex-wrap">
                 <div className="flex-1 min-w-0">
                     <h3 className="font-semibold flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-emerald-600" /> Editor de fluxo
-                        {dirty && <span className="text-[10px] text-amber-700 bg-amber-50 ring-1 ring-amber-200 px-1.5 py-0.5 rounded">não salvo</span>}
+                        <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Editor de fluxo
+                        {dirty && <span className="text-[10px] text-amber-800 dark:text-amber-200 bg-amber-500/15 ring-1 ring-amber-500/40 px-1.5 py-0.5 rounded">não salvo</span>}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
                         Cada inbound do bot executa este grafo. Edite nós, conecte handles, salve — vale na próxima mensagem.
@@ -563,9 +628,18 @@ export function FluxoTab({ templates }: Props) {
                 </div>
             </div>
 
+            {/* Painel "Como o welcome é disparado" — documenta os DOIS gatilhos
+                da 1ª mensagem (LP/admin via dispatchWelcome + inbound desconhecido
+                via este grafo), além do gate de pausa global. O engine só roda
+                no caminho inbound — mas operadores precisam enxergar o sistema
+                inteiro pra fazer ajustes manuais com confiança. */}
+            <TriggerInfoPanel open={triggerInfoOpen} onToggle={() => setTriggerInfoOpen(o => !o)} />
+
             {feedback && (
                 <div className={`px-5 py-2 text-xs flex items-start gap-1.5 border-b ${
-                    feedback.type === "ok" ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-800"
+                    feedback.type === "ok"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "bg-rose-500/10 text-rose-700 dark:text-rose-300"
                 }`}>
                     {feedback.type === "ok" ? <CheckCircle2 className="h-3.5 w-3.5 mt-0.5" /> : <AlertCircle className="h-3.5 w-3.5 mt-0.5" />}
                     <span>{feedback.msg}</span>
@@ -576,14 +650,14 @@ export function FluxoTab({ templates }: Props) {
             )}
 
             {validation && (validation.errors?.length || validation.warnings?.length) ? (
-                <div className="px-5 py-2 text-xs border-b bg-amber-50/40 space-y-0.5">
+                <div className="px-5 py-2 text-xs border-b bg-amber-500/10 space-y-0.5">
                     {validation.errors?.map((err, i) => (
-                        <div key={`e${i}`} className="text-rose-700 flex items-start gap-1">
+                        <div key={`e${i}`} className="text-rose-700 dark:text-rose-300 flex items-start gap-1">
                             <AlertCircle className="h-3 w-3 mt-0.5" /> {err}
                         </div>
                     ))}
                     {validation.warnings?.map((w, i) => (
-                        <div key={`w${i}`} className="text-amber-800 flex items-start gap-1">
+                        <div key={`w${i}`} className="text-amber-800 dark:text-amber-200 flex items-start gap-1">
                             <AlertCircle className="h-3 w-3 mt-0.5 opacity-60" /> {w}
                         </div>
                     ))}
@@ -609,16 +683,36 @@ export function FluxoTab({ templates }: Props) {
                         minZoom={0.3}
                         maxZoom={2}
                         proOptions={{ hideAttribution: true }}
+                        colorMode={isDark ? "dark" : "light"}
                     >
-                        <Background variant={BackgroundVariant.Dots} gap={18} size={1} />
+                        <Background
+                            variant={BackgroundVariant.Dots}
+                            gap={18}
+                            size={1}
+                            color={isDark ? "rgba(148,163,184,0.25)" : "rgba(100,116,139,0.35)"}
+                        />
                         <Controls position="bottom-left" />
                         <MiniMap
                             position="bottom-right"
                             zoomable
                             pannable
+                            maskColor={isDark ? "rgba(15,23,42,0.7)" : "rgba(241,245,249,0.7)"}
+                            style={{
+                                background: isDark ? "rgba(15,23,42,0.85)" : "rgba(255,255,255,0.92)",
+                                border: `1px solid ${isDark ? "rgba(148,163,184,0.2)" : "rgba(100,116,139,0.2)"}`,
+                            }}
                             nodeColor={n => {
                                 const t = n.type as NodeType
-                                return NODE_THEME[t]?.ring.replace("ring-", "").replace("-400", "") ? "#94a3b8" : "#cbd5e1"
+                                const palette: Record<NodeType, string> = {
+                                    start:         "#94a3b8",
+                                    classify:      "#a78bfa",
+                                    condition:     "#fbbf24",
+                                    action:        "#60a5fa",
+                                    send_template: "#34d399",
+                                    silence:       "#71717a",
+                                    end:           "#cbd5e1",
+                                }
+                                return palette[t] ?? "#94a3b8"
                             }}
                         />
                         <Panel position="top-left">
@@ -660,7 +754,7 @@ function Palette({ onAdd }: { onAdd: (t: NodeType) => void }) {
         { type: "end",           label: "+ Fim" },
     ]
     return (
-        <div className="bg-white/95 backdrop-blur rounded-lg border shadow-sm p-2 space-y-1">
+        <div className="bg-card/95 text-card-foreground backdrop-blur rounded-lg border shadow-sm dark:shadow-black/40 p-2 space-y-1">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground px-1">Adicionar nó</div>
             {items.map(i => {
                 const Icon = NODE_THEME[i.type].icon
@@ -676,6 +770,70 @@ function Palette({ onAdd }: { onAdd: (t: NodeType) => void }) {
                     </button>
                 )
             })}
+        </div>
+    )
+}
+
+/* ─── Trigger Info Panel ─────────────────────────────────────────── */
+
+/**
+ * Painel didático no topo do editor, explicando os DOIS pontos onde a 1ª
+ * mensagem (welcome) é disparada e o gate de pausa global que cobre os dois.
+ * O grafo abaixo cobre apenas o gatilho 2 (inbound). Manter este texto em
+ * sincronia com /api/lp/lead, /lib/whatsapp.ts e /api/whatsapp/inbound.
+ */
+function TriggerInfoPanel({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+    return (
+        <div className="border-b">
+            <button
+                type="button"
+                onClick={onToggle}
+                className="w-full px-5 py-2 flex items-center gap-2 text-xs text-left hover:bg-muted/40 transition-colors"
+            >
+                <Info className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                <span className="font-medium">Como o welcome é disparado &amp; o que este grafo cobre</span>
+                <span className="text-muted-foreground hidden sm:inline">— LP, inbound, pausa global</span>
+                <span className="ml-auto text-muted-foreground">
+                    {open ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                </span>
+            </button>
+            {open && (
+                <div className="px-5 pb-3 text-[12px] text-muted-foreground space-y-2.5 bg-muted/20">
+                    <div className="flex items-start gap-2">
+                        <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-700 dark:text-sky-300 shrink-0">
+                            Gatilho&nbsp;1
+                        </span>
+                        <div className="leading-relaxed">
+                            <strong className="text-foreground">Lead capturado na LP ou criado no admin</strong> — não passa por este grafo.
+                            O <code>dispatchWelcome()</code> em <code>/lib/whatsapp.ts</code> respeita opt-out, faz dedup
+                            de 24h e pede ao VPS renderizar o template <code>welcome-default</code> via <code>/api/whatsapp/render-welcome</code>.
+                            Editar o welcome aqui não afeta este caminho — edite o template na aba <strong>Templates</strong>.
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                        <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shrink-0">
+                            Gatilho&nbsp;2
+                        </span>
+                        <div className="leading-relaxed">
+                            <strong className="text-foreground">Inbound chega de um número desconhecido</strong> — entra
+                            neste grafo pelo nó <em>Início</em>. O classificador roteia em 5 saídas. Quando cai em
+                            <em> sem match</em> e o lead passa pelos gates (não está em opt-out, não está em handoff,
+                            não tem <code>interesse_principal</code> e não tem a tag <code>whatsapp:menu_enviado</code>),
+                            a engine envia o welcome e marca a tag — assim não repete.
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                        <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 shrink-0">
+                            Pausa
+                        </span>
+                        <div className="leading-relaxed">
+                            <strong className="text-foreground">Gate global</strong> em <code>site_settings.whatsapp_central_paused</code>:
+                            ativado pelo botão &quot;Pausar fluxo&quot; na aba <strong>Conexão</strong>, bloqueia welcome (gatilho 1) <em>e</em>
+                            qualquer execução deste grafo (gatilho 2) antes mesmo do nó Início. Inbound continua sendo logada no Inbox.
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
@@ -904,7 +1062,7 @@ function SidePanel({
                 <div className="border-t p-3 flex items-center gap-2">
                     <button
                         onClick={onDelete}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 text-rose-700 hover:bg-rose-50 text-xs font-medium border border-rose-200 rounded-md px-3 py-2"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10 text-xs font-medium border border-rose-500/30 rounded-md px-3 py-2"
                     >
                         <Trash2 className="h-3.5 w-3.5" /> Excluir nó
                     </button>
