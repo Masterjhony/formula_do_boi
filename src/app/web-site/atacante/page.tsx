@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { atacanteCss } from "./atacanteCss";
 
 const ASSET = (p: string) => `/assets/atacante/${p}`;
@@ -1134,9 +1135,15 @@ export default function AtacanteMatinhaPage() {
         }
     }, []);
 
+    const router = useRouter();
     const openReserve = (data?: { doses: number; type: string; total: number }) => {
+        // Redireciona para o checkout dedicado /atacante/checkout (padrão Sertanejo).
+        // Prefill via query string para o checkout pré-selecionar a faixa correspondente
+        // ao volume de doses clicado.
+        const query = data?.doses ? `?doses=${data.doses}` : "";
+        router.push(`/atacante/checkout${query}`);
+        // Mantém o drawer como fallback (não dispara — drawerOpen continua false).
         setPrefill(data || null);
-        setDrawerOpen(true);
     };
 
     return (
