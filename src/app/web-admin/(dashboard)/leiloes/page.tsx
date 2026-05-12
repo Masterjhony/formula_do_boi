@@ -115,6 +115,7 @@ type DbLeilao = {
   presencial: string; leiloeira: string; raca: string; qtd_animais: number | null; sexo: string
   comissao: string; contrato: string; faturamento_previsto: number | null
   faturamento_realizado: number | null; venda_bula: number | null; comissao_receber: string; recebido: string
+  img?: string | null
 }
 
 type MergedLeilao = {
@@ -159,7 +160,7 @@ function mergeLeiloes(bula: (BulaLeilao & { catalogo_url?: string })[], crono: D
       tipo: b.tipo || match?.raca, animais: b.animais || match?.qtd_animais || 0,
       sexo: match?.sexo, criador: match?.criador,
       presencial: b.modelo || match?.presencial, leiloeira: b.leiloeira || match?.leiloeira,
-      img: b.img && b.img.startsWith('http') ? b.img : undefined,
+      img: (b.img && b.img.startsWith('http')) ? b.img : (match?.img || undefined),
       status: b.status, tasks: b.tasks,
       expectativa: b.expectativa, meta_bula: b.meta_bula, realizado_bula: b.realizado_bula,
       transmissao: b.transmissao, condicao: b.condicao, frete_gratis: b.frete_gratis,
@@ -179,6 +180,7 @@ function mergeLeiloes(bula: (BulaLeilao & { catalogo_url?: string })[], crono: D
       nome: c.nome, data: c.data, dia_semana: c.dia_semana, hora: c.hora,
       tipo: c.raca, animais: c.qtd_animais ?? 0, sexo: c.sexo, criador: c.criador,
       presencial: c.presencial, leiloeira: c.leiloeira,
+      img: c.img || undefined,
       comissao: c.comissao, contrato: c.contrato,
       faturamento_previsto: c.faturamento_previsto ?? undefined,
       faturamento_realizado: c.faturamento_realizado ?? undefined,
@@ -1064,14 +1066,26 @@ function FormModal({ initial, onClose, onSaved }: {
 // ── CronogramaFormModal ───────────────────────────────────────────────────────
 
 type DbForm = Omit<DbLeilao, 'id'>
-const EMPTY_FORM: DbForm = { data: '', dia_semana: '', hora: '', nome: '', criador: '', presencial: '', leiloeira: '', raca: '', qtd_animais: null, sexo: '', comissao: '', contrato: '', faturamento_previsto: null, faturamento_realizado: null, venda_bula: null, comissao_receber: '', recebido: '' }
+const EMPTY_FORM: DbForm = { data: '', dia_semana: '', hora: '', nome: '', criador: '', presencial: '', leiloeira: '', raca: '', qtd_animais: null, sexo: '', comissao: '', contrato: '', faturamento_previsto: null, faturamento_realizado: null, venda_bula: null, comissao_receber: '', recebido: '', img: '' }
 
 function CronogramaFormModal({ initial, onClose, onSaved }: { initial: DbLeilao | null; onClose: () => void; onSaved: (row: DbLeilao) => void }) {
   const isEdit = !!initial
-  const [form, setForm] = useState<DbForm>(initial ? { ...initial } : { ...EMPTY_FORM })
+  const [form, setForm] = useState<DbForm>(initial ? { ...EMPTY_FORM, ...initial, img: initial.img ?? '' } : { ...EMPTY_FORM })
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const set = <K extends keyof DbForm>(k: K, v: DbForm[K]) => setForm(prev => ({ ...prev, [k]: v }))
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return
+    setUploading(true); setError(null)
+    try {
+      const fd = new FormData(); fd.append('file', file)
+      const res = await fetch('/api/bula/leiloes/upload', { method: 'POST', body: fd })
+      const json = await res.json()
+      if (json.url) set('img', json.url); else setError('Erro ao fazer upload')
+    } catch { setError('Erro ao fazer upload') } finally { setUploading(false); e.target.value = '' }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -1100,6 +1114,27 @@ function CronogramaFormModal({ initial, onClose, onSaved }: { initial: DbLeilao 
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-gray-400 transition-colors"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Capa do Leilão</label>
+            <label className="block cursor-pointer group">
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+              {form.img ? (
+                <div className="relative rounded-xl overflow-hidden h-44">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.img} alt="Capa" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 text-white text-sm font-semibold bg-black/60 px-4 py-2 rounded-xl"><Upload size={14} /> Trocar imagem</span>
+                  </div>
+                  {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Loader2 size={24} className="animate-spin text-white" /></div>}
+                </div>
+              ) : (
+                <div className={`flex flex-col items-center justify-center h-36 rounded-xl border-2 border-dashed transition-colors ${uploading ? 'border-[#A0792E]/50 bg-[#A0792E]/5' : 'border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/50 hover:bg-[#A0792E]/3'}`}>
+                  {uploading ? <Loader2 size={24} className="animate-spin text-[#A0792E]" /> : <><ImageIcon size={26} className="text-gray-300 dark:text-gray-700 mb-1.5" /><p className="text-sm font-semibold text-gray-400">Clique para adicionar capa</p><p className="text-xs text-gray-300 dark:text-gray-600 mt-0.5">JPG, PNG, WEBP</p></>}
+                </div>
+              )}
+            </label>
+            {form.img && <button type="button" onClick={() => set('img', '')} className="mt-1.5 text-xs text-red-400 hover:text-red-600 transition-colors">Remover capa</button>}
+          </div>
           <div className="grid grid-cols-3 gap-3">
             <Field label="Data *"><input type="date" className={inputCls} value={form.data} onChange={e => set('data', e.target.value)} required /></Field>
             <Field label="Hora"><input className={inputCls} value={form.hora} onChange={e => set('hora', e.target.value)} placeholder="19:30" /></Field>
