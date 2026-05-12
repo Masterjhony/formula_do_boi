@@ -9,6 +9,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/auth-helpers'
 import { buildDefaultGraph, validateGraph, type FlowGraphV2 } from '@/lib/whatsapp-flow-engine'
+import type { FlowSettings } from '@/lib/whatsapp-flow-settings'
+
+const FLOW_SELECT = 'id, name, description, graph, settings, is_active, created_by, created_at, updated_at, last_activated_at'
 
 function isGraphEmpty(g: unknown): boolean {
     if (!g || typeof g !== 'object') return true
@@ -31,7 +34,7 @@ export async function GET(
 
     const { data, error } = await supabase
         .from('whatsapp_flows')
-        .select('id, name, description, graph, is_active, created_at, updated_at')
+        .select(FLOW_SELECT)
         .eq('id', id)
         .maybeSingle()
 
@@ -52,7 +55,7 @@ export async function GET(
             .from('whatsapp_flows')
             .update({ graph: seeded })
             .eq('id', id)
-            .select('id, name, description, graph, is_active, created_at, updated_at')
+            .select(FLOW_SELECT)
             .single()
         const flow = healed ?? { ...data, graph: seeded }
         return NextResponse.json({ flow, validation: validateGraph(seeded), healed: true })
@@ -71,7 +74,12 @@ export async function PUT(
 
     const { id } = await params
 
-    let body: { name?: string; description?: string | null; graph?: FlowGraphV2 }
+    let body: {
+        name?: string
+        description?: string | null
+        graph?: FlowGraphV2
+        settings?: FlowSettings
+    }
     try { body = await req.json() } catch {
         return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
@@ -84,6 +92,9 @@ export async function PUT(
     const update: Record<string, unknown> = {}
     if (typeof body.name === 'string' && body.name.trim()) update.name = body.name.trim()
     if (body.description !== undefined) update.description = body.description?.trim() || null
+    if (body.settings !== undefined && body.settings !== null && typeof body.settings === 'object') {
+        update.settings = body.settings
+    }
 
     let validation = null
     if (body.graph) {
@@ -105,7 +116,7 @@ export async function PUT(
         .from('whatsapp_flows')
         .update(update)
         .eq('id', id)
-        .select('id, name, description, graph, is_active, created_at, updated_at')
+        .select(FLOW_SELECT)
         .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

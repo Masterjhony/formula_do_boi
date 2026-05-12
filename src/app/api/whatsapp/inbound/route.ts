@@ -23,7 +23,8 @@ import {
 } from '@/lib/whatsapp-flow-engine'
 import { readPauseState } from '@/lib/whatsapp-pause'
 import { handleCampaignReply } from '@/lib/whatsapp-campaign-reply'
-import { loadActiveFlow } from '@/lib/whatsapp-flows'
+import { loadActiveFlowWithSettings } from '@/lib/whatsapp-flows'
+import { isWithinAllowedHours } from '@/lib/whatsapp-flow-settings'
 
 export const maxDuration = 30
 
@@ -165,7 +166,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ silent: true, reason: 'paused' })
     }
 
-    const graph = await loadActiveFlow(supabase)
+    const { graph, settings } = await loadActiveFlowWithSettings(supabase)
+
+    // Janela permitida pra automação — fora do horário (no fuso do fluxo),
+    // logamos a inbound mas não respondemos. Inbox segue visível pro operador.
+    if (!isWithinAllowedHours(settings)) {
+        return NextResponse.json({ silent: true, reason: 'outside_allowed_hours' })
+    }
+
     const result = await runFlow(graph, { phone, senderName, text, lead })
 
     if ('silent' in result) {

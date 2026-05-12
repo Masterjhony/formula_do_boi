@@ -16,7 +16,8 @@ import {
     resolveWelcomeDispatch,
     type LeadShape,
 } from '@/lib/whatsapp-flow-engine'
-import { loadActiveFlow } from '@/lib/whatsapp-flows'
+import { loadActiveFlowWithSettings } from '@/lib/whatsapp-flows'
+import { isWithinAllowedHours } from '@/lib/whatsapp-flow-settings'
 
 export async function POST(req: NextRequest) {
     const SECRET = process.env.WHATSAPP_GROUP_TASK_SECRET || ''
@@ -74,7 +75,13 @@ export async function POST(req: NextRequest) {
     // Carrega o fluxo ATIVO (whatsapp_flows.is_active=true, com fallback
     // p/ site_settings.whatsapp_flow_v2 e por fim buildDefaultGraph).
     // Welcome dispatch só usa o subgrafo new_lead via resolveWelcomeDispatch().
-    const graph = await loadActiveFlow(supabase)
+    const { graph, settings } = await loadActiveFlowWithSettings(supabase)
+
+    // Mesma janela permitida pra welcome — fora dela, silent (lead cadastrado
+    // segue no CRM mas o welcome só dispara no próximo horário válido).
+    if (!isWithinAllowedHours(settings)) {
+        return NextResponse.json({ silent: true, reason: 'outside_allowed_hours' })
+    }
 
     // Resolve o slug do welcome via grafo. Se o grafo não tiver subgrafo
     // new_lead (legado antes do trigger field), cai no fallback hardcoded

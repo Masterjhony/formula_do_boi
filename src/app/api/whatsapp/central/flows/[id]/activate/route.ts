@@ -54,10 +54,10 @@ export async function POST(
         .eq('is_active', true)
     if (deErr) return NextResponse.json({ error: deErr.message }, { status: 500 })
 
-    // 2) ativa o novo
+    // 2) ativa o novo e marca timestamp de ativação (pra histórico/rollback)
     const { error: actErr } = await supabase
         .from('whatsapp_flows')
-        .update({ is_active: true })
+        .update({ is_active: true, last_activated_at: new Date().toISOString() })
         .eq('id', id)
     if (actErr) return NextResponse.json({ error: actErr.message }, { status: 500 })
 

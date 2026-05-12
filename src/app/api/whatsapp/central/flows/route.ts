@@ -18,7 +18,7 @@ import {
     type FlowGraphV2,
 } from '@/lib/whatsapp-flow-engine'
 
-const FLOW_SELECT = 'id, name, description, is_active, created_at, updated_at'
+const FLOW_SELECT = 'id, name, description, is_active, created_at, updated_at, last_activated_at, settings, created_by'
 
 export async function GET() {
     const auth = await requireAdmin()

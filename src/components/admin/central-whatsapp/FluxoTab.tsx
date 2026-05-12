@@ -59,6 +59,8 @@ import {
     Copy,
     CheckSquare,
     Pencil,
+    Zap,
+    SlidersHorizontal,
 } from "lucide-react"
 import type {
     ActionKind,
@@ -69,6 +71,11 @@ import type {
     NodeType,
     TriggerKind,
 } from "@/lib/whatsapp-flow-engine"
+import {
+    FLOW_SETTINGS_DEFAULTS,
+    withDefaults as withSettingsDefaults,
+    type FlowSettings,
+} from "@/lib/whatsapp-flow-settings"
 import type { Template } from "./types"
 
 /* ─── Tipos auxiliares ───────────────────────────────────────────── */
@@ -406,6 +413,9 @@ interface FlowMeta {
     is_active: boolean
     created_at: string
     updated_at: string
+    last_activated_at?: string | null
+    created_by?: string | null
+    settings?: import('@/lib/whatsapp-flow-settings').FlowSettings
 }
 
 export function FluxoTab({ templates }: Props) {
@@ -826,6 +836,7 @@ export function FluxoTab({ templates }: Props) {
                 <FlowSettingsModal
                     flow={currentFlow}
                     flows={flows}
+                    graph={graph}
                     onClose={() => setSettingsOpen(false)}
                     onChanged={async (selectAfter) => {
                         setSettingsOpen(false)
@@ -1014,22 +1025,35 @@ function FlowSelector({
 
 /* ─── Flow Settings Modal ──────────────────────────────────────── */
 
+type SettingsTab = "geral" | "gatilhos" | "parametros"
+
 function FlowSettingsModal({
-    flow, flows, onClose, onChanged, onFeedback,
+    flow, flows, graph, onClose, onChanged, onFeedback,
 }: {
     flow: FlowMeta
     flows: FlowMeta[]
+    graph: FlowGraphV2 | null
     onClose: () => void
     onChanged: (selectAfter?: string | null) => void | Promise<void>
     onFeedback: (type: "ok" | "err", msg: string) => void
 }) {
+    const [tab, setTab] = useState<SettingsTab>("geral")
     const [name, setName] = useState(flow.name)
     const [description, setDescription] = useState(flow.description ?? "")
+    const [settings, setSettings] = useState<FlowSettings>(flow.settings ?? {})
     const [busy, setBusy] = useState(false)
     const [createOpen, setCreateOpen] = useState(false)
 
-    async function handleRename() {
-        if (!name.trim() || (name.trim() === flow.name && description === (flow.description ?? ""))) return
+    const metaDirty =
+        name.trim() !== flow.name || description !== (flow.description ?? "")
+    const settingsDirty = useMemo(() => {
+        const a = JSON.stringify(flow.settings ?? {})
+        const b = JSON.stringify(settings ?? {})
+        return a !== b
+    }, [flow.settings, settings])
+
+    async function handleSaveGeral() {
+        if (!name.trim() || !metaDirty) return
         setBusy(true)
         try {
             const res = await fetch(`/api/whatsapp/central/flows/${flow.id}`, {
@@ -1040,6 +1064,24 @@ function FlowSettingsModal({
             const j = await res.json()
             if (!res.ok) throw new Error(j.error || "Falha ao salvar")
             onFeedback("ok", "Fluxo atualizado.")
+            await onChanged(flow.id)
+        } catch (e) {
+            onFeedback("err", e instanceof Error ? e.message : "Erro desconhecido")
+        } finally { setBusy(false) }
+    }
+
+    async function handleSaveSettings() {
+        if (!settingsDirty) return
+        setBusy(true)
+        try {
+            const res = await fetch(`/api/whatsapp/central/flows/${flow.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ settings }),
+            })
+            const j = await res.json()
+            if (!res.ok) throw new Error(j.error || "Falha ao salvar")
+            onFeedback("ok", "Parâmetros salvos.")
             await onChanged(flow.id)
         } catch (e) {
             onFeedback("err", e instanceof Error ? e.message : "Erro desconhecido")
@@ -1096,7 +1138,7 @@ function FlowSettingsModal({
             const j = await res.json().catch(() => ({}))
             if (!res.ok) throw new Error(j.error || "Falha ao deletar")
             onFeedback("ok", `"${flow.name}" removido.`)
-            await onChanged(null) // recarrega lista e seleciona o ativo
+            await onChanged(null)
         } catch (e) {
             onFeedback("err", e instanceof Error ? e.message : "Erro desconhecido")
         } finally { setBusy(false) }
@@ -1104,90 +1146,62 @@ function FlowSettingsModal({
 
     return (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl max-w-lg w-full max-h-[90vh] overflow-auto p-5 space-y-5">
-                <div className="flex items-center justify-between">
-                    <h3 className="font-semibold flex items-center gap-2">
-                        <Settings2 className="h-4 w-4" />
-                        Configurações de fluxo
-                    </h3>
-                    <button onClick={onClose} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+            <div className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <Settings2 className="h-4 w-4 shrink-0" />
+                        <div className="min-w-0">
+                            <h3 className="font-semibold leading-tight truncate">Configurações de fluxo</h3>
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                                {flow.name}
+                                {flow.is_active && <span className="ml-1.5 text-[9px] uppercase font-bold tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-1 rounded">ativo</span>}
+                            </p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 shrink-0">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
 
-                {/* Editar nome/descrição */}
-                <section className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-                        <Pencil className="h-3 w-3" /> Renomear este fluxo
-                    </h4>
-                    <input
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        placeholder="Nome do fluxo"
-                        className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
-                    />
-                    <textarea
-                        value={description}
-                        onChange={e => setDescription(e.target.value)}
-                        placeholder="Descrição (opcional)"
-                        rows={2}
-                        className="w-full px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
-                    />
-                    <button
-                        onClick={handleRename}
-                        disabled={busy || !name.trim() || (name.trim() === flow.name && description === (flow.description ?? ""))}
-                        className="text-xs px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
-                    >
-                        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
-                        Salvar nome/descrição
-                    </button>
-                </section>
+                {/* Tabs */}
+                <div className="flex items-center gap-1 px-3 pt-2 border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0">
+                    <TabButton active={tab === "geral"} onClick={() => setTab("geral")} icon={<Info className="h-3.5 w-3.5" />}>Geral</TabButton>
+                    <TabButton active={tab === "gatilhos"} onClick={() => setTab("gatilhos")} icon={<Zap className="h-3.5 w-3.5" />}>Gatilhos</TabButton>
+                    <TabButton active={tab === "parametros"} onClick={() => setTab("parametros")} icon={<SlidersHorizontal className="h-3.5 w-3.5" />}>Parâmetros</TabButton>
+                </div>
 
-                {/* Ações */}
-                <section className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-4">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Ações</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button
-                            onClick={handleActivate}
-                            disabled={busy || flow.is_active}
-                            className="text-sm px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
-                            title={flow.is_active ? "Este fluxo já é o ativo" : "Tornar este o fluxo ativo do bot"}
-                        >
-                            <CheckSquare className="h-3.5 w-3.5" />
-                            {flow.is_active ? "Já é o ativo" : "Ativar este fluxo"}
-                        </button>
-                        <button
-                            onClick={handleDuplicate}
-                            disabled={busy}
-                            className="text-sm px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
-                        >
-                            <Copy className="h-3.5 w-3.5" />
-                            Duplicar
-                        </button>
-                        <button
-                            onClick={() => setCreateOpen(true)}
-                            disabled={busy}
-                            className="text-sm px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
-                            title="Criar um fluxo novo a partir do default em código"
-                        >
-                            <Plus className="h-3.5 w-3.5" />
-                            Criar novo fluxo
-                        </button>
-                        <button
-                            onClick={handleDelete}
-                            disabled={busy || flow.is_active || flows.length <= 1}
-                            className="text-sm px-3 py-2 rounded-md border border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
-                            title={flow.is_active ? "Não dá pra deletar o ativo" : flows.length <= 1 ? "Precisa ter mais de um fluxo" : "Remover este fluxo"}
-                        >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Deletar
-                        </button>
-                    </div>
-                </section>
-
-                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    Apenas <strong>um fluxo é ativo</strong> por vez. Edite quantos quiser em paralelo e troque o ativo quando estiver pronto — o bot pega a mudança na próxima inbound.
-                </p>
+                {/* Body */}
+                <div className="flex-1 overflow-auto px-5 py-4">
+                    {tab === "geral" && (
+                        <GeralPanel
+                            flow={flow}
+                            flows={flows}
+                            name={name} setName={setName}
+                            description={description} setDescription={setDescription}
+                            metaDirty={metaDirty}
+                            busy={busy}
+                            onSave={handleSaveGeral}
+                            onActivate={handleActivate}
+                            onDuplicate={handleDuplicate}
+                            onCreateNew={() => setCreateOpen(true)}
+                            onDelete={handleDelete}
+                        />
+                    )}
+                    {tab === "gatilhos" && (
+                        <GatilhosPanel graph={graph} />
+                    )}
+                    {tab === "parametros" && (
+                        <ParametrosPanel
+                            settings={settings}
+                            onChange={setSettings}
+                            dirty={settingsDirty}
+                            busy={busy}
+                            onSave={handleSaveSettings}
+                            onReset={() => setSettings({})}
+                        />
+                    )}
+                </div>
             </div>
 
             {createOpen && (
@@ -1203,6 +1217,636 @@ function FlowSettingsModal({
                 />
             )}
         </div>
+    )
+}
+
+/* ─── Tab Button ─────────────────────────────────────────────────── */
+
+function TabButton({ active, onClick, icon, children }: {
+    active: boolean
+    onClick: () => void
+    icon: React.ReactNode
+    children: React.ReactNode
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className={`px-3 py-1.5 text-xs font-medium rounded-t-md inline-flex items-center gap-1.5 border-b-2 transition-colors ${
+                active
+                    ? "border-amber-600 text-amber-700 dark:text-amber-400"
+                    : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+            }`}
+        >
+            {icon}
+            {children}
+        </button>
+    )
+}
+
+/* ─── Aba "Geral" ────────────────────────────────────────────────── */
+
+function GeralPanel({
+    flow, flows, name, setName, description, setDescription, metaDirty, busy,
+    onSave, onActivate, onDuplicate, onCreateNew, onDelete,
+}: {
+    flow: FlowMeta
+    flows: FlowMeta[]
+    name: string
+    setName: (v: string) => void
+    description: string
+    setDescription: (v: string) => void
+    metaDirty: boolean
+    busy: boolean
+    onSave: () => void
+    onActivate: () => void
+    onDuplicate: () => void
+    onCreateNew: () => void
+    onDelete: () => void
+}) {
+    const fmt = (iso?: string | null) => {
+        if (!iso) return "—"
+        try { return new Date(iso).toLocaleString("pt-BR") } catch { return iso }
+    }
+    return (
+        <div className="space-y-5">
+            <section className="space-y-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+                    <Pencil className="h-3 w-3" /> Identificação
+                </h4>
+                <div>
+                    <label className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Nome do fluxo</label>
+                    <input
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        placeholder="Ex: Padrão, Campanha leilões, Black Friday"
+                        className="w-full mt-1 px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                    />
+                </div>
+                <div>
+                    <label className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Descrição</label>
+                    <textarea
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        placeholder="Explica pra que serve este fluxo, em que contexto ativar etc."
+                        rows={2}
+                        className="w-full mt-1 px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                    />
+                </div>
+                <button
+                    onClick={onSave}
+                    disabled={busy || !name.trim() || !metaDirty}
+                    className="text-xs px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                >
+                    {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                    Salvar nome/descrição
+                </button>
+            </section>
+
+            <section className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Metadados</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
+                    <MetaRow label="Status">
+                        {flow.is_active ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-medium">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Ativo
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 text-zinc-500 dark:text-zinc-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" /> Inativo (rascunho)
+                            </span>
+                        )}
+                    </MetaRow>
+                    <MetaRow label="ID interno">
+                        <code className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 truncate">{flow.id}</code>
+                    </MetaRow>
+                    <MetaRow label="Criado em">{fmt(flow.created_at)}</MetaRow>
+                    <MetaRow label="Última edição">{fmt(flow.updated_at)}</MetaRow>
+                    <MetaRow label="Última ativação">{fmt(flow.last_activated_at)}</MetaRow>
+                    <MetaRow label="Total de fluxos">{flows.length}</MetaRow>
+                </div>
+            </section>
+
+            <section className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Ações</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                        onClick={onActivate}
+                        disabled={busy || flow.is_active}
+                        className="text-sm px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
+                        title={flow.is_active ? "Este fluxo já é o ativo" : "Tornar este o fluxo ativo do bot"}
+                    >
+                        <CheckSquare className="h-3.5 w-3.5" />
+                        {flow.is_active ? "Já é o ativo" : "Ativar este fluxo"}
+                    </button>
+                    <button
+                        onClick={onDuplicate}
+                        disabled={busy}
+                        className="text-sm px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
+                    >
+                        <Copy className="h-3.5 w-3.5" />
+                        Duplicar
+                    </button>
+                    <button
+                        onClick={onCreateNew}
+                        disabled={busy}
+                        className="text-sm px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
+                        title="Criar um fluxo novo a partir do default em código"
+                    >
+                        <Plus className="h-3.5 w-3.5" />
+                        Criar novo fluxo
+                    </button>
+                    <button
+                        onClick={onDelete}
+                        disabled={busy || flow.is_active || flows.length <= 1}
+                        className="text-sm px-3 py-2 rounded-md border border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 justify-center"
+                        title={flow.is_active ? "Não dá pra deletar o ativo" : flows.length <= 1 ? "Precisa ter mais de um fluxo" : "Remover este fluxo"}
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Deletar
+                    </button>
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1">
+                    Apenas <strong>um fluxo é ativo</strong> por vez. Edite quantos quiser em paralelo e troque o ativo quando estiver pronto — o bot pega a mudança na próxima inbound.
+                </p>
+            </section>
+        </div>
+    )
+}
+
+function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <div className="flex items-baseline justify-between gap-2 px-2.5 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 min-w-0">
+            <span className="text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400 shrink-0">{label}</span>
+            <span className="text-zinc-900 dark:text-zinc-100 truncate text-right min-w-0">{children}</span>
+        </div>
+    )
+}
+
+/* ─── Aba "Gatilhos" ─────────────────────────────────────────────── */
+
+function GatilhosPanel({ graph }: { graph: FlowGraphV2 | null }) {
+    // Conta start nodes por trigger no grafo atual
+    const starts = useMemo(() => {
+        if (!graph) return { inbound: 0, new_lead: 0 }
+        let inbound = 0, newLead = 0
+        for (const n of graph.nodes) {
+            if (n.type !== "start") continue
+            const t = (n as { data?: { trigger?: string } }).data?.trigger ?? "inbound"
+            if (t === "new_lead") newLead++
+            else inbound++
+        }
+        return { inbound, new_lead: newLead }
+    }, [graph])
+
+    const total = starts.inbound + starts.new_lead
+
+    return (
+        <div className="space-y-4">
+            <p className="text-[12px] text-zinc-600 dark:text-zinc-300">
+                Cada gatilho é um ponto de entrada do grafo. Adicione um nó <strong>Início (gatilho)</strong>{" "}
+                no editor e escolha o tipo no painel lateral — o engine usa o subgrafo correspondente
+                quando esse evento acontece.
+            </p>
+
+            <div className="space-y-2">
+                <TriggerRow
+                    code="inbound"
+                    title="Mensagem recebida"
+                    desc="Toda inbound encaminhada pelo VPS pra /api/whatsapp/inbound."
+                    activeCount={starts.inbound}
+                    state="active"
+                />
+                <TriggerRow
+                    code="new_lead"
+                    title="Novo lead capturado"
+                    desc="LP, admin ou Sheets criou um lead — VPS pede o welcome via /render-welcome."
+                    activeCount={starts.new_lead}
+                    state="active"
+                />
+                <TriggerRow
+                    code="campaign_reply"
+                    title="Resposta a campanha"
+                    desc="Lead respondeu a uma mensagem de campanha. Hoje tratado em handleCampaignReply (lib separada)."
+                    activeCount={0}
+                    state="pending"
+                />
+                <TriggerRow
+                    code="manual_start"
+                    title="Disparo manual"
+                    desc="Operador inicia um fluxo de fora do CRM (UI futura, ainda não exposta)."
+                    activeCount={0}
+                    state="pending"
+                />
+                <TriggerRow
+                    code="group_command"
+                    title="Comando em grupo (/ia, /tarefa…)"
+                    desc="Comandos de grupo do WhatsApp. Hoje implementados como endpoints próprios — não passam pelo grafo."
+                    activeCount={0}
+                    state="external"
+                />
+            </div>
+
+            <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40 p-3 text-[11px] space-y-1">
+                <div className="font-semibold text-zinc-700 dark:text-zinc-200">Resumo do grafo atual</div>
+                <div className="text-zinc-600 dark:text-zinc-300">
+                    {total === 0
+                        ? "Nenhum nó de Início configurado — o engine não tem por onde começar."
+                        : `${total} ${total === 1 ? "ponto de entrada" : "pontos de entrada"} configurados (${starts.inbound} inbound, ${starts.new_lead} new_lead).`}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function TriggerRow({
+    code, title, desc, activeCount, state,
+}: {
+    code: string
+    title: string
+    desc: string
+    activeCount: number
+    state: "active" | "pending" | "external"
+}) {
+    const stateChip = {
+        active: { label: "ativo", cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-500/15" },
+        pending: { label: "em breve", cls: "text-amber-700 dark:text-amber-400 bg-amber-500/15" },
+        external: { label: "externo", cls: "text-sky-700 dark:text-sky-400 bg-sky-500/15" },
+    }[state]
+    return (
+        <div className="flex items-start gap-3 p-3 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40">
+            <code className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 shrink-0 mt-0.5">{code}</code>
+            <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-medium leading-tight">{title}</div>
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">{desc}</div>
+            </div>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+                <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${stateChip.cls}`}>
+                    {stateChip.label}
+                </span>
+                {state === "active" && (
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                        {activeCount === 0 ? "0 starts no grafo" : `${activeCount} start${activeCount > 1 ? "s" : ""}`}
+                    </span>
+                )}
+            </div>
+        </div>
+    )
+}
+
+/* ─── Aba "Parâmetros" ───────────────────────────────────────────── */
+
+function ParametrosPanel({
+    settings, onChange, dirty, busy, onSave, onReset,
+}: {
+    settings: FlowSettings
+    onChange: (s: FlowSettings) => void
+    dirty: boolean
+    busy: boolean
+    onSave: () => void
+    onReset: () => void
+}) {
+    // Helper que reescreve uma chave do settings preservando o resto.
+    const patch = <K extends keyof FlowSettings>(key: K, value: FlowSettings[K]) => {
+        const next = { ...settings, [key]: value }
+        if (value === undefined || value === null || value === "" || (typeof value === "number" && Number.isNaN(value))) {
+            delete next[key]
+        }
+        onChange(next)
+    }
+    const merged = withSettingsDefaults(settings)
+
+    return (
+        <div className="space-y-5">
+            <p className="text-[12px] text-zinc-600 dark:text-zinc-300">
+                Parâmetros aplicados <strong>antes</strong> de rodar o grafo. Mudam o comportamento global do fluxo
+                (compliance, anti-spam, horário de operação) sem precisar editar nós.
+            </p>
+
+            <section className="space-y-3">
+                <SectionHead>Welcome &amp; menu</SectionHead>
+                <ParamRow
+                    title="Dedup do welcome (horas)"
+                    desc="Não reenvia welcome se o número recebeu nas últimas N horas."
+                    status="active"
+                >
+                    <NumberInput
+                        value={merged.welcome_dedup_hours}
+                        onChange={v => patch("welcome_dedup_hours", v)}
+                        min={1}
+                        max={720}
+                        suffix="h"
+                    />
+                </ParamRow>
+                <ParamRow
+                    title="Enviar welcome em 'sem match'"
+                    desc="Quando o classifier não reconhece a 1ª mensagem, dispara welcome."
+                    status="active"
+                >
+                    <Toggle
+                        checked={merged.send_welcome_on_unknown}
+                        onChange={v => patch("send_welcome_on_unknown", v)}
+                    />
+                </ParamRow>
+                <ParamRow
+                    title="Tag 'menu enviado'"
+                    desc="Tag aplicada ao lead após enviar o menu — usada como gate p/ não repetir."
+                    status="active"
+                >
+                    <TextInput
+                        value={merged.menu_sent_tag}
+                        onChange={v => patch("menu_sent_tag", v)}
+                        placeholder={FLOW_SETTINGS_DEFAULTS.menu_sent_tag}
+                        mono
+                    />
+                </ParamRow>
+                <ParamRow
+                    title="Template fallback"
+                    desc="Slug usado se o template resolvido pelo grafo não existir no banco."
+                    status="active"
+                >
+                    <TextInput
+                        value={merged.fallback_template}
+                        onChange={v => patch("fallback_template", v)}
+                        placeholder={FLOW_SETTINGS_DEFAULTS.fallback_template}
+                        mono
+                    />
+                </ParamRow>
+                <ParamRow
+                    title="Reenviar menu depois de X dias"
+                    desc="Se o lead já recebeu menu há mais que X dias, reenvia. 0 = nunca reenviar."
+                    status="pending"
+                >
+                    <NumberInput
+                        value={merged.resend_menu_after_days}
+                        onChange={v => patch("resend_menu_after_days", v)}
+                        min={0}
+                        max={365}
+                        suffix="dias"
+                    />
+                </ParamRow>
+                <ParamRow
+                    title="Lead com interesse já definido recebe menu?"
+                    desc="Se ON, mesmo lead com interesse_principal preenchido recebe o welcome de novo."
+                    status="pending"
+                >
+                    <Toggle
+                        checked={merged.send_menu_if_interest_already_set}
+                        onChange={v => patch("send_menu_if_interest_already_set", v)}
+                    />
+                </ParamRow>
+            </section>
+
+            <section className="space-y-3 border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                <SectionHead>Rate limit (anti-spam)</SectionHead>
+                <ParamRow
+                    title="Máximo de respostas auto/lead/dia"
+                    desc="Após N respostas automáticas no mesmo dia, fica em silêncio. 0 = sem limite."
+                    status="pending"
+                >
+                    <NumberInput
+                        value={merged.max_auto_replies_per_lead_per_day}
+                        onChange={v => patch("max_auto_replies_per_lead_per_day", v)}
+                        min={0}
+                        max={50}
+                        suffix="msgs"
+                    />
+                </ParamRow>
+                <ParamRow
+                    title="Intervalo mínimo entre respostas (min)"
+                    desc="Se a última resposta foi há menos de N min, fica em silêncio."
+                    status="pending"
+                >
+                    <NumberInput
+                        value={merged.min_interval_minutes_between_replies}
+                        onChange={v => patch("min_interval_minutes_between_replies", v)}
+                        min={0}
+                        max={1440}
+                        suffix="min"
+                    />
+                </ParamRow>
+            </section>
+
+            <section className="space-y-3 border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                <SectionHead>Horário de operação</SectionHead>
+                <ParamRow
+                    title="Restringir automação a um horário"
+                    desc="Fora da janela definida, inbound logado mas sem resposta automática. Operador segue respondendo manual."
+                    status="active"
+                >
+                    <Toggle
+                        checked={merged.allowed_hours_enabled}
+                        onChange={v => patch("allowed_hours_enabled", v)}
+                    />
+                </ParamRow>
+                <ParamRow
+                    title="Janela permitida"
+                    desc="Início e fim no fuso configurado abaixo. Suporta cruzar meia-noite (ex: 22:00 → 06:00)."
+                    status="active"
+                    disabled={!merged.allowed_hours_enabled}
+                >
+                    <div className="flex items-center gap-1.5">
+                        <TimeInput
+                            value={merged.allowed_hours_start}
+                            onChange={v => patch("allowed_hours_start", v)}
+                            disabled={!merged.allowed_hours_enabled}
+                        />
+                        <span className="text-zinc-500 text-xs">até</span>
+                        <TimeInput
+                            value={merged.allowed_hours_end}
+                            onChange={v => patch("allowed_hours_end", v)}
+                            disabled={!merged.allowed_hours_enabled}
+                        />
+                    </div>
+                </ParamRow>
+                <ParamRow
+                    title="Fuso horário"
+                    desc="IANA timezone — afeta o cálculo da janela acima."
+                    status="active"
+                    disabled={!merged.allowed_hours_enabled}
+                >
+                    <TextInput
+                        value={merged.timezone}
+                        onChange={v => patch("timezone", v)}
+                        placeholder={FLOW_SETTINGS_DEFAULTS.timezone}
+                        mono
+                        disabled={!merged.allowed_hours_enabled}
+                    />
+                </ParamRow>
+            </section>
+
+            <section className="space-y-3 border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                <SectionHead>Handoff &amp; opt-out</SectionHead>
+                <ParamRow
+                    title="Opt-out bloqueia automação (compliance)"
+                    desc="Lead com opt-out NUNCA recebe automação. Recomendado manter ON."
+                    status="active"
+                >
+                    <Toggle
+                        checked={merged.optout_blocks_automation}
+                        onChange={v => patch("optout_blocks_automation", v)}
+                    />
+                </ParamRow>
+                <ParamRow
+                    title="Handoff humano bloqueia automação"
+                    desc="Lead em conversa com humano não recebe mais respostas do bot."
+                    status="active"
+                >
+                    <Toggle
+                        checked={merged.handoff_blocks_automation}
+                        onChange={v => patch("handoff_blocks_automation", v)}
+                    />
+                </ParamRow>
+                <ParamRow
+                    title="Handoff expira em X horas"
+                    desc="Após X horas sem atividade, devolve o lead pra automação. 0 = nunca expira."
+                    status="pending"
+                >
+                    <NumberInput
+                        value={merged.handoff_auto_expire_hours}
+                        onChange={v => patch("handoff_auto_expire_hours", v)}
+                        min={0}
+                        max={720}
+                        suffix="h"
+                    />
+                </ParamRow>
+            </section>
+
+            {/* Footer ações */}
+            <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4 flex items-center justify-between gap-2">
+                <button
+                    onClick={onReset}
+                    disabled={busy}
+                    className="text-xs px-3 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 inline-flex items-center gap-1.5"
+                    title="Limpa todas as configurações e volta pros defaults em código"
+                >
+                    <RotateCcw className="h-3 w-3" />
+                    Restaurar defaults
+                </button>
+                <button
+                    onClick={onSave}
+                    disabled={busy || !dirty}
+                    className="text-xs px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                >
+                    {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                    Salvar parâmetros
+                </button>
+            </div>
+        </div>
+    )
+}
+
+/* ─── Param Row primitivos ───────────────────────────────────────── */
+
+function SectionHead({ children }: { children: React.ReactNode }) {
+    return (
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{children}</h4>
+    )
+}
+
+function ParamRow({
+    title, desc, status, disabled, children,
+}: {
+    title: string
+    desc: string
+    status: "active" | "pending"
+    disabled?: boolean
+    children: React.ReactNode
+}) {
+    const statusChip = status === "active"
+        ? { label: "ativo", cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-500/15" }
+        : { label: "pendente", cls: "text-amber-700 dark:text-amber-400 bg-amber-500/15" }
+    return (
+        <div className={`flex items-start gap-3 p-3 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40 ${disabled ? "opacity-50" : ""}`}>
+            <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-medium leading-tight flex items-center gap-1.5">
+                    {title}
+                    <span
+                        className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${statusChip.cls}`}
+                        title={status === "active" ? "Este parâmetro já é respeitado pelo engine." : "Persiste no banco mas o engine ainda não consome — implementação pendente."}
+                    >
+                        {statusChip.label}
+                    </span>
+                </div>
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">{desc}</div>
+            </div>
+            <div className="shrink-0 flex items-center">{children}</div>
+        </div>
+    )
+}
+
+function NumberInput({ value, onChange, min, max, suffix }: {
+    value: number
+    onChange: (v: number) => void
+    min?: number
+    max?: number
+    suffix?: string
+}) {
+    return (
+        <div className="inline-flex items-center gap-1.5">
+            <input
+                type="number"
+                value={value}
+                min={min}
+                max={max}
+                onChange={e => onChange(parseInt(e.target.value, 10) || 0)}
+                className="w-20 px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-sm text-right"
+            />
+            {suffix && <span className="text-[11px] text-zinc-500 dark:text-zinc-400">{suffix}</span>}
+        </div>
+    )
+}
+
+function TextInput({ value, onChange, placeholder, mono, disabled }: {
+    value: string
+    onChange: (v: string) => void
+    placeholder?: string
+    mono?: boolean
+    disabled?: boolean
+}) {
+    return (
+        <input
+            type="text"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            disabled={disabled}
+            className={`w-48 px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-sm placeholder:text-zinc-400 dark:placeholder:text-zinc-500 disabled:opacity-50 ${mono ? "font-mono text-[12px]" : ""}`}
+        />
+    )
+}
+
+function TimeInput({ value, onChange, disabled }: {
+    value: string
+    onChange: (v: string) => void
+    disabled?: boolean
+}) {
+    return (
+        <input
+            type="time"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            disabled={disabled}
+            className="px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-sm disabled:opacity-50"
+        />
+    )
+}
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+    return (
+        <button
+            onClick={() => onChange(!checked)}
+            role="switch"
+            aria-checked={checked}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                checked ? "bg-amber-600" : "bg-zinc-300 dark:bg-zinc-700"
+            }`}
+        >
+            <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                    checked ? "translate-x-5" : "translate-x-1"
+                }`}
+            />
+        </button>
     )
 }
 
