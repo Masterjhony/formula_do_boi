@@ -1,0 +1,59 @@
+name: Cron — sequência de campanhas WhatsApp
+
+# Bate em /api/whatsapp/central/campaigns/cron pra processar follow-ups
+# agendados. Sem isso, só o passo 0 da campanha sai — passos 1+ ficam
+# parados em whatsapp_campaign_recipients.next_send_at.
+#
+# Vercel Hobby não permite cron sub-diário; por isso usamos GitHub Actions.
+# Granularidade real do Actions cron é ~3-5 min (com jitter), aceitável.
+#
+# Disparos:
+#   • cron a cada 5 min
+#   • workflow_dispatch (botão "Run workflow" na aba Actions, pra debug)
+#
+# Secret necessário no repo:
+#   WHATSAPP_GROUP_TASK_SECRET — mesmo valor configurado na Vercel
+#   (Settings → Secrets and variables → Actions → New repository secret)
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: campaign-cron
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Processar fila de sequência
+        env:
+          WHATSAPP_GROUP_TASK_SECRET: ${{ secrets.WHATSAPP_GROUP_TASK_SECRET }}
+          CRON_URL: https://admin.formuladoboi.com/api/whatsapp/central/campaigns/cron
+        run: |
+          if [ -z "$WHATSAPP_GROUP_TASK_SECRET" ]; then
+            echo "::error::Secret WHATSAPP_GROUP_TASK_SECRET ausente no repo."
+            exit 1
+          fi
+
+          # -sS: silencia progress mas mostra erro; -w: imprime status separado
+          # --fail-with-body: 4xx/5xx vira erro do curl mas mantém body no stdout
+          response=$(curl -sS -w "\n%{http_code}" --fail-with-body \
+            -H "x-webhook-secret: $WHATSAPP_GROUP_TASK_SECRET" \
+            "$CRON_URL")
+          status=$?
+
+          body=$(echo "$response" | head -n -1)
+          http_code=$(echo "$response" | tail -n 1)
+
+          echo "HTTP $http_code"
+          echo "Resposta: $body"
+
+          if [ "$status" -ne 0 ]; then
+            echo "::error::Cron endpoint respondeu com erro (HTTP $http_code)."
+            exit 1
+          fi
