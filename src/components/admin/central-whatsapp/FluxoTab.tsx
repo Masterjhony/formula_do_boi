@@ -76,7 +76,8 @@ import {
     withDefaults as withSettingsDefaults,
     type FlowSettings,
 } from "@/lib/whatsapp-flow-settings"
-import type { Template } from "./types"
+import type { Campaign, Template } from "./types"
+import { CampanhaFlowEditor } from "./CampanhaFlowEditor"
 
 /* ─── Tipos auxiliares ───────────────────────────────────────────── */
 
@@ -418,8 +419,31 @@ interface FlowMeta {
     settings?: import('@/lib/whatsapp-flow-settings').FlowSettings
 }
 
+/**
+ * Metadados mínimos de campanha pro seletor unificado. O grafo (passo 0 + steps)
+ * é carregado pelo CampanhaFlowEditor sob demanda quando o operador escolhe a
+ * campanha. Manter este shape em sincronia com /api/whatsapp/central/campaigns.
+ */
+interface CampaignMeta {
+    id: string
+    name: string
+    status: Campaign["status"]
+    steps_count?: number
+}
+
 export function FluxoTab({ templates }: Props) {
     const [flows, setFlows] = useState<FlowMeta[]>([])
+    const [campaigns, setCampaigns] = useState<CampaignMeta[]>([])
+    /**
+     * Seleção atual do seletor unificado. `mode` decide qual editor é montado:
+     *   - 'flow':     editor visual de fluxo (gatilhos inbound/new_lead)
+     *   - 'campaign': editor visual de campanha (sequência linear de envios)
+     *
+     * Quando o operador troca de modo pelo seletor, o componente do editor
+     * desmonta e o outro monta — cada um cuida do próprio carregamento.
+     */
+    const [mode, setMode] = useState<"flow" | "campaign">("flow")
+    const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null)
     const [currentFlowId, setCurrentFlowId] = useState<string | null>(null)
     const [graph, setGraph] = useState<FlowGraphV2 | null>(null)
     const [rfNodes, setRfNodes] = useState<RFFlowNode[]>([])
@@ -441,6 +465,28 @@ export function FluxoTab({ templates }: Props) {
         () => flows.find(f => f.id === currentFlowId) ?? null,
         [flows, currentFlowId]
     )
+
+    /** Recarrega a lista de campanhas (sem alterar a seleção atual). Best-effort
+     *  — falhas não derrubam o editor de fluxo. */
+    const loadCampaignsList = useCallback(async () => {
+        try {
+            const res = await fetch("/api/whatsapp/central/campaigns", { cache: "no-store" })
+            if (!res.ok) {
+                setCampaigns([])
+                return
+            }
+            const j = await res.json()
+            const list: CampaignMeta[] = (j.campaigns ?? []).map((c: Campaign) => ({
+                id: c.id,
+                name: c.name,
+                status: c.status,
+                steps_count: c.steps_count ?? 0,
+            }))
+            setCampaigns(list)
+        } catch {
+            setCampaigns([])
+        }
+    }, [])
 
     // ESC sai do modo tela cheia
     useEffect(() => {
@@ -521,7 +567,10 @@ export function FluxoTab({ templates }: Props) {
         ;(async () => {
             setLoading(true)
             try {
-                await loadFlowsList()
+                // Carrega flows + campaigns em paralelo. A lista de campanhas
+                // alimenta o seletor unificado e o editor de campanha; falhas
+                // dela não impedem o editor de fluxo de abrir.
+                await Promise.all([loadFlowsList(), loadCampaignsList()])
             } catch (e) {
                 if (cancelled) return
                 const msg = e instanceof Error ? e.message : "Erro desconhecido"
@@ -531,15 +580,17 @@ export function FluxoTab({ templates }: Props) {
             }
         })()
         return () => { cancelled = true }
-    }, [loadFlowsList])
+    }, [loadFlowsList, loadCampaignsList])
 
     async function handleSwitchFlow(id: string) {
-        if (dirty && !confirm("Você tem alterações não salvas. Trocar de fluxo descarta? Para manter, cancele e clique em Salvar.")) {
+        if (mode === "flow" && dirty && !confirm("Você tem alterações não salvas. Trocar de fluxo descarta? Para manter, cancele e clique em Salvar.")) {
             return
         }
         setLoading(true)
         try {
             await loadFlowById(id)
+            setMode("flow")
+            setSelectedCampaignId(null)
             setFlowSelectorOpen(false)
         } catch (e) {
             const msg = e instanceof Error ? e.message : "Erro desconhecido"
@@ -547,6 +598,26 @@ export function FluxoTab({ templates }: Props) {
         } finally {
             setLoading(false)
         }
+    }
+
+    /**
+     * Troca pro editor de campanha. Não carrega nada aqui — o CampanhaFlowEditor
+     * é desmontado/remontado quando `campaignId` muda e cuida do próprio
+     * fetch via /api/whatsapp/central/campaigns/[id].
+     *
+     * Aviso de descarte: se há mudanças não salvas no editor de fluxo, pede
+     * confirmação. O editor de campanha tem o próprio `dirty` interno e
+     * mostra "não salvo" no header, então a verificação aqui só cobre fluxo.
+     */
+    function handleSwitchCampaign(id: string) {
+        if (mode === "flow" && dirty && !confirm("Você tem alterações não salvas no fluxo. Trocar pra editor de campanha descarta? Para manter, cancele e clique em Salvar.")) {
+            return
+        }
+        setMode("campaign")
+        setSelectedCampaignId(id)
+        setSelectedId(null)
+        setFlowSelectorOpen(false)
+        setFeedback(null)
     }
 
     const onNodesChange = useCallback((changes: NodeChange<RFFlowNode>[]) => {
@@ -755,6 +826,34 @@ export function FluxoTab({ templates }: Props) {
         )
     }
 
+    // Modo campanha: o editor de campanha é autocontido (carrega passo 0 +
+    // steps, valida, salva). Passamos o seletor unificado como headerExtras
+    // pra que o operador consiga voltar pro editor de fluxo (ou trocar de
+    // campanha) sem sair desta aba.
+    if (mode === "campaign" && selectedCampaignId) {
+        return (
+            <CampanhaFlowEditor
+                key={selectedCampaignId}
+                campaignId={selectedCampaignId}
+                templates={templates}
+                onCampaignChanged={loadCampaignsList}
+                headerExtras={
+                    <FlowAndCampaignSelector
+                        flows={flows}
+                        campaigns={campaigns}
+                        mode={mode}
+                        currentFlowId={currentFlowId}
+                        currentCampaignId={selectedCampaignId}
+                        open={flowSelectorOpen}
+                        onOpenChange={setFlowSelectorOpen}
+                        onPickFlow={handleSwitchFlow}
+                        onPickCampaign={handleSwitchCampaign}
+                    />
+                }
+            />
+        )
+    }
+
     if (!graph) {
         return (
             <div className="flex items-center justify-center h-[400px] text-rose-600 text-sm">
@@ -786,13 +885,17 @@ export function FluxoTab({ templates }: Props) {
                     </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                    {flows.length > 0 && (
-                        <FlowSelector
+                    {(flows.length > 0 || campaigns.length > 0) && (
+                        <FlowAndCampaignSelector
                             flows={flows}
-                            currentId={currentFlowId}
+                            campaigns={campaigns}
+                            mode={mode}
+                            currentFlowId={currentFlowId}
+                            currentCampaignId={selectedCampaignId}
                             open={flowSelectorOpen}
                             onOpenChange={setFlowSelectorOpen}
-                            onPick={handleSwitchFlow}
+                            onPickFlow={handleSwitchFlow}
+                            onPickCampaign={handleSwitchCampaign}
                         />
                     )}
                     {flows.length > 0 && currentFlow && (
@@ -963,64 +1066,142 @@ export function FluxoTab({ templates }: Props) {
 
 /* ─── Flow Selector (dropdown) ─────────────────────────────────── */
 
-function FlowSelector({
-    flows, currentId, open, onOpenChange, onPick,
+/**
+ * Seletor unificado: lista fluxos (whatsapp_flows) e campanhas
+ * (whatsapp_campaigns) em dois grupos no mesmo dropdown. O label do botão
+ * reflete a seleção atual ("Fluxo: X" ou "Campanha: Y"). Quando clica num
+ * fluxo, o pai troca pra modo flow; quando clica numa campanha, troca pra
+ * modo campaign — cada modo monta um editor diferente.
+ *
+ * Status da campanha aparece como badge (rascunho/enviando/concluída/etc).
+ * Só rascunhos são editáveis — o editor de campanha entra em read-only nos
+ * outros casos, mas continua acessível pra visualização.
+ */
+function FlowAndCampaignSelector({
+    flows, campaigns, mode, currentFlowId, currentCampaignId,
+    open, onOpenChange, onPickFlow, onPickCampaign,
 }: {
     flows: FlowMeta[]
-    currentId: string | null
+    campaigns: CampaignMeta[]
+    mode: "flow" | "campaign"
+    currentFlowId: string | null
+    currentCampaignId: string | null
     open: boolean
     onOpenChange: (v: boolean) => void
-    onPick: (id: string) => void
+    onPickFlow: (id: string) => void
+    onPickCampaign: (id: string) => void
 }) {
-    const current = flows.find(f => f.id === currentId)
+    const currentFlow = flows.find(f => f.id === currentFlowId)
+    const currentCampaign = campaigns.find(c => c.id === currentCampaignId)
+
+    const buttonLabel = mode === "campaign" && currentCampaign
+        ? `Campanha: ${currentCampaign.name}`
+        : `Fluxo: ${currentFlow?.name ?? "—"}`
+
     return (
         <div className="relative">
             <button
                 onClick={() => onOpenChange(!open)}
-                className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 min-w-[180px] justify-between"
-                title="Trocar fluxo"
+                className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 min-w-[220px] justify-between"
+                title="Trocar fluxo ou campanha"
             >
                 <span className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-zinc-500 dark:text-zinc-400">Fluxo:</span>
-                    <span className="font-medium truncate">{current?.name ?? "—"}</span>
-                    {current?.is_active && (
+                    <span className="font-medium truncate">{buttonLabel}</span>
+                    {mode === "flow" && currentFlow?.is_active && (
                         <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-1 rounded">ativo</span>
+                    )}
+                    {mode === "campaign" && currentCampaign && (
+                        <span className={`text-[9px] uppercase font-bold tracking-wider px-1 rounded ${campaignStatusBadge(currentCampaign.status)}`}>
+                            {currentCampaign.status}
+                        </span>
                     )}
                 </span>
                 <ChevronDown className="h-3 w-3 opacity-60 shrink-0" />
             </button>
             {open && (
                 <>
-                    {/* backdrop: clicar fora fecha */}
                     <div className="fixed inset-0 z-40" onClick={() => onOpenChange(false)} />
-                    <div className="absolute right-0 mt-1 w-72 max-h-80 overflow-auto bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-xl z-50 py-1">
-                        {flows.map(f => (
-                            <button
-                                key={f.id}
-                                onClick={() => onPick(f.id)}
-                                className={`w-full text-left px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs flex items-start gap-2 ${
-                                    f.id === currentId ? "bg-zinc-100 dark:bg-zinc-800/70" : ""
-                                }`}
-                            >
-                                <div className="flex-1 min-w-0">
-                                    <div className="font-medium flex items-center gap-1.5">
-                                        <span className="truncate">{f.name}</span>
-                                        {f.is_active && (
-                                            <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-1 rounded">ativo</span>
-                                        )}
-                                    </div>
-                                    {f.description && (
-                                        <div className="text-zinc-500 dark:text-zinc-400 text-[10px] truncate mt-0.5">{f.description}</div>
-                                    )}
+                    <div className="absolute right-0 mt-1 w-80 max-h-96 overflow-auto bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-xl z-50 py-1">
+                        {flows.length > 0 && (
+                            <>
+                                <div className="px-3 py-1 text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400 font-semibold">
+                                    Fluxos (inbound)
                                 </div>
-                                {f.id === currentId && <CheckSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />}
-                            </button>
-                        ))}
+                                {flows.map(f => (
+                                    <button
+                                        key={f.id}
+                                        onClick={() => onPickFlow(f.id)}
+                                        className={`w-full text-left px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs flex items-start gap-2 ${
+                                            mode === "flow" && f.id === currentFlowId ? "bg-zinc-100 dark:bg-zinc-800/70" : ""
+                                        }`}
+                                    >
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-medium flex items-center gap-1.5">
+                                                <span className="truncate">{f.name}</span>
+                                                {f.is_active && (
+                                                    <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-1 rounded">ativo</span>
+                                                )}
+                                            </div>
+                                            {f.description && (
+                                                <div className="text-zinc-500 dark:text-zinc-400 text-[10px] truncate mt-0.5">{f.description}</div>
+                                            )}
+                                        </div>
+                                        {mode === "flow" && f.id === currentFlowId && <CheckSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />}
+                                    </button>
+                                ))}
+                            </>
+                        )}
+                        {campaigns.length > 0 && (
+                            <>
+                                <div className="px-3 py-1 mt-1 text-[10px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400 font-semibold border-t border-zinc-200 dark:border-zinc-800 pt-2">
+                                    Campanhas (envio em massa)
+                                </div>
+                                {campaigns.map(c => (
+                                    <button
+                                        key={c.id}
+                                        onClick={() => onPickCampaign(c.id)}
+                                        className={`w-full text-left px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs flex items-start gap-2 ${
+                                            mode === "campaign" && c.id === currentCampaignId ? "bg-zinc-100 dark:bg-zinc-800/70" : ""
+                                        }`}
+                                    >
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-medium flex items-center gap-1.5">
+                                                <span className="truncate">{c.name}</span>
+                                                <span className={`text-[9px] uppercase font-bold tracking-wider px-1 rounded ${campaignStatusBadge(c.status)}`}>
+                                                    {c.status}
+                                                </span>
+                                            </div>
+                                            {(c.steps_count ?? 0) > 0 && (
+                                                <div className="text-zinc-500 dark:text-zinc-400 text-[10px] mt-0.5">
+                                                    +{c.steps_count} follow-up{(c.steps_count ?? 0) > 1 ? "s" : ""}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {mode === "campaign" && c.id === currentCampaignId && <CheckSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />}
+                                    </button>
+                                ))}
+                            </>
+                        )}
+                        {flows.length === 0 && campaigns.length === 0 && (
+                            <div className="px-3 py-4 text-xs text-zinc-500 dark:text-zinc-400 italic text-center">
+                                Nenhum fluxo ou campanha disponível.
+                            </div>
+                        )}
                     </div>
                 </>
             )}
         </div>
     )
+}
+
+function campaignStatusBadge(status: Campaign["status"]): string {
+    switch (status) {
+        case "rascunho":  return "text-zinc-700 dark:text-zinc-300 bg-zinc-500/15"
+        case "enviando":  return "text-amber-700 dark:text-amber-300 bg-amber-500/15"
+        case "concluida": return "text-emerald-700 dark:text-emerald-300 bg-emerald-500/15"
+        case "cancelada": return "text-rose-700 dark:text-rose-300 bg-rose-500/15"
+        case "erro":      return "text-rose-700 dark:text-rose-300 bg-rose-500/15"
+    }
 }
 
 /* ─── Flow Settings Modal ──────────────────────────────────────── */
