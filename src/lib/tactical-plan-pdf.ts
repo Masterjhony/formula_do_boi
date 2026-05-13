@@ -150,7 +150,10 @@ export function computeMetrics(tasks: TacticalTask[]): Metrics {
         if (isStale(t, now)) paradas++
         if (!t.due_date) sem_prazo++
 
-        const assignees = (t.assignees && t.assignees.length > 0) ? t.assignees : ['Sem responsável']
+        const cleanAssignees = (t.assignees || [])
+            .map(a => (a ? String(a).trim() : ''))
+            .filter(Boolean)
+        const assignees = cleanAssignees.length > 0 ? cleanAssignees : ['Sem responsável']
         for (const a of assignees) {
             const rec = tocaResp(a)
             rec.total++
@@ -166,10 +169,19 @@ export function computeMetrics(tasks: TacticalTask[]): Metrics {
                 checklistPendentes++
                 if (c.due_date && new Date(c.due_date) < now) checklistAtrasadas++
             }
-            const cAssignee = c.assignee || (assignees[0])
-            const rec = tocaResp(cAssignee)
-            rec.checklistTotal++
-            if (!c.completed) rec.checklistPendentes++
+            // Atribuição do item de checklist:
+            //   • se o item tem assignee próprio → vale o do item;
+            //   • senão → herda TODOS os responsáveis do card pai (não só o primeiro).
+            // Quando o card pai também está sem responsável, o item cai em
+            // 'Sem responsável' — preservando visibilidade dos cards realmente
+            // órfãos.
+            const ownAssignee = (c.assignee && String(c.assignee).trim()) ? String(c.assignee).trim() : null
+            const cAssignees = ownAssignee ? [ownAssignee] : assignees
+            for (const cA of cAssignees) {
+                const rec = tocaResp(cA)
+                rec.checklistTotal++
+                if (!c.completed) rec.checklistPendentes++
+            }
         }
     }
 
