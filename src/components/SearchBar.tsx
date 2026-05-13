@@ -138,7 +138,7 @@ export default function SearchBar({ className = "", placeholder = "O que você e
                 name: l.nome,
                 subtitle: [l.tipo, l.criador, fmtData(l.data)].filter(Boolean).join(" · "),
                 image: l.img,
-                href: "/agenda",
+                href: `/agenda/${l.id}`,
             }));
 
         return [...leilaoHits.slice(0, 4), ...productHits.slice(0, 4), ...doadoraHits.slice(0, 4)].slice(0, 8);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock3, FileText, Tv, Users, Tag } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -15,11 +16,6 @@ const ASSESSOR_PHONE = "553184143874";
 
 function assessorLink(text: string) {
     return `https://wa.me/${ASSESSOR_PHONE}?text=${encodeURIComponent(text)}`;
-}
-
-function leilaoAssessorLink(nome: string, dia: number | string, mes: string) {
-    const dataStr = dia !== "?" && mes !== "—" ? ` (${dia} de ${mes})` : "";
-    return assessorLink(`Olá! Vim pela agenda do site e gostaria de saber mais sobre o leilão ${nome}${dataStr}.`);
 }
 
 export interface LeilaoPublico {
@@ -116,19 +112,13 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
         </div>
     );
 
-    const href = hasCatalogo
-        ? ev.catalogo_url!
-        : leilaoAssessorLink(ev.nome, ev.dia, ev.mes);
-    const ariaLabel = hasCatalogo
-        ? `Abrir catálogo do leilão ${ev.nome}`
-        : `Falar com assessor sobre o leilão ${ev.nome}`;
+    const href = `/agenda/${ev.id}`;
+    const ariaLabel = `Ver detalhes do leilão ${ev.nome}`;
 
     if (hasImage) {
         return (
-            <a
+            <Link
                 href={href}
-                target="_blank"
-                rel="noopener noreferrer"
                 aria-label={ariaLabel}
                 className="card-engraved group flex items-stretch rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300 overflow-hidden cursor-pointer"
             >
@@ -159,15 +149,13 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
                     </div>
                     <div className="hidden sm:block w-1 h-12 rounded-full bg-brand-gold/0 group-hover:bg-brand-gold/40 transition-all duration-300 flex-shrink-0" />
                 </div>
-            </a>
+            </Link>
         );
     }
 
     return (
-        <a
+        <Link
             href={href}
-            target="_blank"
-            rel="noopener noreferrer"
             aria-label={ariaLabel}
             className="card-engraved group grid grid-cols-[64px_1fr] sm:grid-cols-[64px_1fr_auto] items-center gap-4 sm:gap-6 p-5 rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300 cursor-pointer"
         >
@@ -185,7 +173,7 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
                 {meta}
             </div>
             <div className="hidden sm:block w-1 h-12 rounded-full bg-brand-gold/0 group-hover:bg-brand-gold/40 transition-all duration-300" />
-        </a>
+        </Link>
     );
 }
 
