@@ -30,9 +30,14 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
     const allProducts = useMemo(() => {
         const dbIds = new Set(dbProducts.map((p) => p.id));
         const staticKeep = EMBRYOS.filter((e) => !dbIds.has(e.id));
+        const visRegistros = new Set(DOADORAS.map((d) => d.rgd));
         return [...dbProducts, ...staticKeep].filter((p) => {
             const cat = p.category || "";
             const type = p.classificacao || "";
+            const reg = (p as any).registro ?? (p as any).details?.registro ?? "";
+            // VIS doadoras seeded in DB já aparecem na seção "Safra 2026" acima
+            // (renderizada do array DOADORAS) — não duplicar no catálogo geral.
+            if (p.tag === "SAFRA_VIS_2026" || visRegistros.has(reg)) return false;
             return (
                 (cat.includes("Embrião") || cat === "DOADORA" || type === "embriao") &&
                 !cat.includes("Sêmen")
