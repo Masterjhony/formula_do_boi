@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Calendar, Save, Plus, Trash2, CheckCircle2, MessageSquare, Send, Paperclip, Download, FileText, FileImage, FileVideo, File, Zap, Link, Map } from 'lucide-react';
+import { X, Calendar, Save, Plus, Trash2, CheckCircle2, MessageSquare, Send, Paperclip, Download, FileText, FileImage, FileVideo, File, Zap, Link, Map, Copy } from 'lucide-react';
 import { TacticalTask, TacticalComment, TacticalAttachment, getComments, addComment, getAttachments, saveAttachmentRecord, deleteAttachment } from '@/app/web-admin/actions/tactical-tasks';
 import { TacticalMember } from '@/app/web-admin/actions/tactical-strategic';
 import { createClient } from '@/utils/supabase/client';
@@ -15,12 +15,13 @@ interface TaskModalProps {
     defaultStatus?: string;
     onSave: (taskData: any) => Promise<void>;
     onDelete?: (taskId: string) => Promise<void>;
+    onDuplicate?: (taskData: any) => Promise<void>;
     columns: { title: string }[];
     allTasks?: TacticalTask[];
     members?: TacticalMember[];
 }
 
-export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDelete, columns, allTasks = [], members = [] }: TaskModalProps) {
+export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDelete, onDuplicate, columns, allTasks = [], members = [] }: TaskModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [status, setStatus] = useState('A fazer');
@@ -31,6 +32,8 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
     const [checklists, setChecklists] = useState<{ id: string, title: string, completed: boolean, assignee?: string | null, due_date?: string | null }[]>([]);
     const [newChecklistTitle, setNewChecklistTitle] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const initialSnapshotRef = useRef<string>('');
 
     // ICE Scoring
     const [iceImpact, setIceImpact] = useState(5);
@@ -57,24 +60,42 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
     const [activeSection, setActiveSection] = useState<'main' | 'scoring' | 'comments' | 'attachments'>('main');
 
     useEffect(() => {
+        setSaveError(null);
         if (task) {
-            setTitle(task.title);
-            setDescription(task.description || '');
-            setStatus(task.status);
-            setPriority(task.priority);
-            setStartDate(task.start_date ? new Date(task.start_date).toISOString().split('T')[0] : '');
-            setDueDate(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
-            setAssignees(task.assignees ? Array.from(new Set(task.assignees)) : []);
-            setChecklists(task.checklists || []);
-            setIceImpact(task.ice_impact ?? 5);
-            setIceConfidence(task.ice_confidence ?? 5);
-            setIceEase(task.ice_ease ?? 5);
-            setDependsOn(task.depends_on || []);
-            setStrategicStage(task.strategic_stage || '');
+            const next = {
+                title: task.title,
+                description: task.description || '',
+                status: task.status,
+                priority: task.priority,
+                startDate: task.start_date ? new Date(task.start_date).toISOString().split('T')[0] : '',
+                dueDate: task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '',
+                assignees: task.assignees ? Array.from(new Set(task.assignees)) : [],
+                checklists: task.checklists || [],
+                iceImpact: task.ice_impact ?? 5,
+                iceConfidence: task.ice_confidence ?? 5,
+                iceEase: task.ice_ease ?? 5,
+                dependsOn: task.depends_on || [],
+                strategicStage: task.strategic_stage || '',
+            };
+            setTitle(next.title);
+            setDescription(next.description);
+            setStatus(next.status);
+            setPriority(next.priority);
+            setStartDate(next.startDate);
+            setDueDate(next.dueDate);
+            setAssignees(next.assignees);
+            setChecklists(next.checklists);
+            setIceImpact(next.iceImpact);
+            setIceConfidence(next.iceConfidence);
+            setIceEase(next.iceEase);
+            setDependsOn(next.dependsOn);
+            setStrategicStage(next.strategicStage);
+            initialSnapshotRef.current = JSON.stringify(next);
 
+            const taskId = task.id;
             const loadComments = async () => {
                 setIsLoadingComments(true);
-                try { setComments(await getComments(task.id)); }
+                try { setComments(await getComments(taskId)); }
                 catch (e) { console.error(e); }
                 finally { setIsLoadingComments(false); }
             };
@@ -82,63 +103,142 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
 
             const loadAttachments = async () => {
                 setIsLoadingAttachments(true);
-                try { setAttachments(await getAttachments(task.id)); }
+                try { setAttachments(await getAttachments(taskId)); }
                 catch (e) { console.error(e); }
                 finally { setIsLoadingAttachments(false); }
             };
             loadAttachments();
         } else {
-            setTitle('');
-            setDescription('');
-            setStatus(defaultStatus || 'A fazer');
-            setPriority('Média');
-            setStartDate('');
-            setDueDate('');
-            setAssignees([]);
-            setChecklists([]);
-            setIceImpact(5);
-            setIceConfidence(5);
-            setIceEase(5);
-            setDependsOn([]);
-            setStrategicStage('');
+            const next = {
+                title: '',
+                description: '',
+                status: defaultStatus || 'A fazer',
+                priority: 'Média',
+                startDate: '',
+                dueDate: '',
+                assignees: [] as string[],
+                checklists: [] as { id: string, title: string, completed: boolean, assignee?: string | null, due_date?: string | null }[],
+                iceImpact: 5,
+                iceConfidence: 5,
+                iceEase: 5,
+                dependsOn: [] as string[],
+                strategicStage: '',
+            };
+            setTitle(next.title);
+            setDescription(next.description);
+            setStatus(next.status);
+            setPriority(next.priority);
+            setStartDate(next.startDate);
+            setDueDate(next.dueDate);
+            setAssignees(next.assignees);
+            setChecklists(next.checklists);
+            setIceImpact(next.iceImpact);
+            setIceConfidence(next.iceConfidence);
+            setIceEase(next.iceEase);
+            setDependsOn(next.dependsOn);
+            setStrategicStage(next.strategicStage);
             setComments([]);
             setNewComment('');
             setAttachments([]);
+            initialSnapshotRef.current = JSON.stringify(next);
         }
         setActiveSection('main');
-    }, [task, defaultStatus, isOpen]);
+    }, [task?.id, defaultStatus, isOpen]);
 
-    if (!isOpen) return null;
+    const buildPayload = () => ({
+        title,
+        description,
+        status,
+        priority,
+        start_date: startDate ? new Date(startDate).toISOString() : null,
+        due_date: dueDate ? new Date(dueDate).toISOString() : null,
+        assignees: Array.from(new Set(assignees)),
+        checklists,
+        ice_impact: iceImpact,
+        ice_confidence: iceConfidence,
+        ice_ease: iceEase,
+        depends_on: dependsOn,
+        strategic_stage: strategicStage || null,
+        status_changed_at: task?.status !== status ? new Date().toISOString() : undefined,
+    });
 
-    const iceScore = iceImpact * iceConfidence * iceEase;
+    const computeSnapshot = () => JSON.stringify({
+        title, description, status, priority, startDate, dueDate, assignees, checklists,
+        iceImpact, iceConfidence, iceEase, dependsOn, strategicStage,
+    });
+
+    const isDirty = () => computeSnapshot() !== initialSnapshotRef.current;
 
     const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
+        if (!title.trim() || isSaving) return;
         setIsSaving(true);
+        setSaveError(null);
         try {
-            await onSave({
-                title,
-                description,
-                status,
-                priority,
-                start_date: startDate ? new Date(startDate).toISOString() : null,
-                due_date: dueDate ? new Date(dueDate).toISOString() : null,
-                assignees: Array.from(new Set(assignees)),
-                checklists,
-                ice_impact: iceImpact,
-                ice_confidence: iceConfidence,
-                ice_ease: iceEase,
-                depends_on: dependsOn,
-                strategic_stage: strategicStage || null,
-                status_changed_at: task?.status !== status ? new Date().toISOString() : undefined,
-            });
+            await onSave(buildPayload());
             onClose();
-        } catch (error) {
-            console.error('Failed to save task', error);
+        } catch (error: any) {
+            setSaveError(error?.message || 'Não foi possível salvar. Tente novamente.');
         } finally {
             setIsSaving(false);
         }
     };
+
+    const requestClose = async () => {
+        if (isSaving) return;
+        if (title.trim() && isDirty()) {
+            setIsSaving(true);
+            setSaveError(null);
+            try {
+                await onSave(buildPayload());
+                onClose();
+            } catch (error: any) {
+                setSaveError(error?.message || 'Não foi possível salvar. Suas alterações ainda estão aqui.');
+                setIsSaving(false);
+                return;
+            }
+            setIsSaving(false);
+            return;
+        }
+        onClose();
+    };
+
+    const requestCloseRef = useRef(requestClose);
+    requestCloseRef.current = requestClose;
+
+    const handleDuplicate = async () => {
+        if (!task || !title.trim() || !onDuplicate || isSaving) return;
+        setIsSaving(true);
+        setSaveError(null);
+        try {
+            if (isDirty()) {
+                await onSave(buildPayload());
+            }
+            await onDuplicate({
+                ...buildPayload(),
+                title: `${title} (cópia)`,
+                status_changed_at: undefined,
+            });
+            onClose();
+        } catch (error: any) {
+            setSaveError(error?.message || 'Não foi possível duplicar a tarefa.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') requestCloseRef.current();
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    const iceScore = iceImpact * iceConfidence * iceEase;
 
     const toggleAssignee = (name: string) => {
         setAssignees(a => a.includes(name) ? a.filter(x => x !== name) : [...a, name]);
@@ -255,14 +355,17 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
     const otherTasks = allTasks.filter(t => t.id !== task?.id);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={(e) => { if (e.target === e.currentTarget) requestClose(); }}
+        >
             <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 dark:border-[#222222] flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-[#222222] shrink-0">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                         {task ? 'Editar Tarefa' : 'Nova Tarefa'}
                     </h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                    <button onClick={requestClose} disabled={isSaving} className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50">
                         <X size={24} />
                     </button>
                 </div>
@@ -612,29 +715,42 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                     )}
                 </form>
 
-                <div className="p-6 flex justify-between gap-3 shrink-0 bg-gray-50 dark:bg-[#1A1A1A] rounded-b-2xl border-t border-gray-200 dark:border-[#222222]">
-                    <div className="flex gap-3">
-                        {task && onDelete && (
-                            <button type="button" onClick={async () => {
-                                if (window.confirm("Tem certeza que deseja excluir esta tarefa?")) {
-                                    setIsSaving(true);
-                                    try { await onDelete(task.id); onClose(); }
-                                    finally { setIsSaving(false); }
-                                }
-                            }} disabled={isSaving}
-                                className="px-5 py-2.5 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-all flex items-center gap-2">
-                                <Trash2 size={18} /> Excluir
+                <div className="p-6 flex flex-col gap-3 shrink-0 bg-gray-50 dark:bg-[#1A1A1A] rounded-b-2xl border-t border-gray-200 dark:border-[#222222]">
+                    {saveError && (
+                        <div className="px-4 py-2.5 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 text-sm rounded-lg border border-red-200 dark:border-red-500/20">
+                            {saveError}
+                        </div>
+                    )}
+                    <div className="flex justify-between gap-3 flex-wrap">
+                        <div className="flex gap-3 flex-wrap">
+                            {task && onDelete && (
+                                <button type="button" onClick={async () => {
+                                    if (window.confirm("Tem certeza que deseja excluir esta tarefa?")) {
+                                        setIsSaving(true);
+                                        try { await onDelete(task.id); onClose(); }
+                                        finally { setIsSaving(false); }
+                                    }
+                                }} disabled={isSaving}
+                                    className="px-5 py-2.5 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-all flex items-center gap-2 disabled:opacity-50">
+                                    <Trash2 size={18} /> Excluir
+                                </button>
+                            )}
+                            {task && onDuplicate && (
+                                <button type="button" onClick={handleDuplicate} disabled={isSaving || !title.trim()}
+                                    className="px-5 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-200 dark:hover:bg-[#222222] border border-transparent hover:border-gray-300 dark:hover:border-[#333333] transition-all flex items-center gap-2 disabled:opacity-50">
+                                    <Copy size={18} /> Duplicar
+                                </button>
+                            )}
+                            <button type="button" onClick={requestClose} disabled={isSaving}
+                                className="px-5 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-200 dark:hover:bg-[#222222] transition-colors disabled:opacity-50">
+                                Fechar
                             </button>
-                        )}
-                        <button type="button" onClick={onClose}
-                            className="px-5 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-200 dark:hover:bg-[#222222] transition-colors">
-                            Cancelar
+                        </div>
+                        <button type="submit" form="task-form" disabled={isSaving || !title.trim()}
+                            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black font-bold shadow-lg shadow-[#A0792E]/20 hover:shadow-[#A0792E]/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            {isSaving ? <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <><Save size={18} /> Salvar</>}
                         </button>
                     </div>
-                    <button type="submit" form="task-form" disabled={isSaving}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black font-bold shadow-lg shadow-[#A0792E]/20 hover:shadow-[#A0792E]/40 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-                        {isSaving ? <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <><Save size={18} /> Salvar</>}
-                    </button>
                 </div>
             </div>
         </div>

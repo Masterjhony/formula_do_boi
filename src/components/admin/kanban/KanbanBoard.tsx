@@ -140,11 +140,20 @@ export function KanbanBoard({
     const handleSaveTask = async (taskData: any) => {
         if (editingTask) {
             const updated = await updateTask(editingTask.id, taskData);
-            setTasks(tasks.map(t => t.id === updated.id ? updated : t));
+            setTasks(prev => prev.map(t => t.id === updated.id ? {
+                ...updated,
+                tactical_task_comments: t.tactical_task_comments,
+                tactical_task_attachments: t.tactical_task_attachments,
+            } : t));
         } else {
             const newTask = await createTask(taskData);
-            setTasks([...tasks, newTask]);
+            setTasks(prev => [...prev, newTask]);
         }
+    };
+
+    const handleDuplicateTask = async (taskData: any) => {
+        const newTask = await createTask(taskData);
+        setTasks(prev => [...prev, newTask]);
     };
 
     const handleDeleteTask = async (taskId: string) => {
@@ -433,6 +442,7 @@ export function KanbanBoard({
                 defaultStatus={defaultStatus}
                 onSave={handleSaveTask}
                 onDelete={handleDeleteTask}
+                onDuplicate={handleDuplicateTask}
                 columns={columns}
                 allTasks={tasks}
                 members={members}
