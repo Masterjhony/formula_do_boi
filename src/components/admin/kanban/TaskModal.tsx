@@ -322,7 +322,7 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
         setNewChecklistTitle('');
     };
 
-    const updateChecklistItem = (id: string, updates: Partial<{ assignee: string | null, due_date: string | null }>) => {
+    const updateChecklistItem = (id: string, updates: Partial<{ title: string, assignee: string | null, due_date: string | null }>) => {
         setChecklists(c => c.map(ci => ci.id === id ? { ...ci, ...updates } : ci));
     };
 
@@ -545,7 +545,12 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                                             {check.completed && <CheckCircle2 size={14} />}
                                                         </div>
                                                     </button>
-                                                    <span className={`flex-1 text-sm pt-1 transition-all ${check.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>{check.title}</span>
+                                                    <input
+                                                        type="text"
+                                                        value={check.title}
+                                                        onChange={e => updateChecklistItem(check.id, { title: e.target.value })}
+                                                        className={`flex-1 text-sm pt-1 bg-transparent border-none outline-none focus:ring-0 transition-all ${check.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}
+                                                    />
                                                     <button type="button" onClick={() => setChecklists(c => c.filter(ci => ci.id !== check.id))}
                                                         className="p-1 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all mt-0.5">
                                                         <Trash2 size={16} />
