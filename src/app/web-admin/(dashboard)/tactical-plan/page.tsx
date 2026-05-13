@@ -2,15 +2,14 @@ import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { KanbanBoard } from '@/components/admin/kanban/KanbanBoard';
 import { getTasks, getColumns } from '@/app/web-admin/actions/tactical-tasks';
-import { getObjectives, getMembers } from '@/app/web-admin/actions/tactical-strategic';
+import { getMembers } from '@/app/web-admin/actions/tactical-strategic';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TacticalPlanPage() {
-    const [tasks, columns, objectives, members] = await Promise.all([
+    const [tasks, columns, members] = await Promise.all([
         getTasks(),
         getColumns(),
-        getObjectives(),
         getMembers(),
     ]);
 
@@ -32,7 +31,6 @@ export default async function TacticalPlanPage() {
                     <KanbanBoard
                         initialTasks={tasks || []}
                         initialColumns={columns || []}
-                        initialObjectives={objectives || []}
                         initialMembers={members || []}
                     />
                 </Suspense>

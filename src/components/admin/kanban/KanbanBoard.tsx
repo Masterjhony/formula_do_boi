@@ -21,7 +21,6 @@ import { TaskCard } from './TaskCard';
 import { TaskModal } from './TaskModal';
 import { GanttView } from './GanttView';
 import { WhiteboardView } from './WhiteboardView';
-import { ExecutiveDashboard } from './ExecutiveDashboard';
 import { MembersView } from './MembersView';
 import {
     TacticalTask, TacticalColumn,
@@ -29,33 +28,30 @@ import {
     createColumn, updateColumn, deleteColumn,
 } from '@/app/web-admin/actions/tactical-tasks';
 import {
-    TacticalObjective, TacticalMember,
+    TacticalMember,
 } from '@/app/web-admin/actions/tactical-strategic';
 import { createPortal } from 'react-dom';
 import {
     Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2,
-    Presentation, BarChart3, Eye, Users,
+    Presentation, Eye, Users,
 } from 'lucide-react';
 
-type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'dashboard' | 'members';
-const VALID_VIEWS: ViewMode[] = ['kanban', 'gantt', 'whiteboard', 'dashboard', 'members'];
+type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'members';
+const VALID_VIEWS: ViewMode[] = ['kanban', 'gantt', 'whiteboard', 'members'];
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];
     initialColumns: TacticalColumn[];
-    initialObjectives: TacticalObjective[];
     initialMembers: TacticalMember[];
 }
 
 export function KanbanBoard({
     initialTasks,
     initialColumns,
-    initialObjectives,
     initialMembers,
 }: KanbanBoardProps) {
     const [tasks, setTasks] = useState<TacticalTask[]>(initialTasks);
     const [columns, setColumns] = useState<TacticalColumn[]>(initialColumns);
-    const [objectives, setObjectives] = useState<TacticalObjective[]>(initialObjectives);
     const [members, setMembers] = useState<TacticalMember[]>(initialMembers);
 
     const [isCreatingColumn, setIsCreatingColumn] = useState(false);
@@ -238,7 +234,6 @@ export function KanbanBoard({
         { key: 'kanban', label: 'Kanban', icon: <LayoutGrid size={15} /> },
         { key: 'gantt', label: 'Gantt', icon: <CalendarIcon size={15} /> },
         { key: 'whiteboard', label: 'Lousa', icon: <Presentation size={15} /> },
-        { key: 'dashboard', label: 'Dashboard', icon: <BarChart3 size={15} /> },
         { key: 'members', label: `Equipe${members.length > 0 ? ` (${members.length})` : ''}`, icon: <Users size={15} /> },
     ];
 
@@ -419,11 +414,6 @@ export function KanbanBoard({
                 <div className="flex-1 min-h-[0px] pb-2 pr-2 h-full flex-col" style={{ display: viewMode === 'whiteboard' ? 'flex' : 'none' }}>
                     <WhiteboardView />
                 </div>
-
-                {/* DASHBOARD */}
-                {viewMode === 'dashboard' && (
-                    <ExecutiveDashboard tasks={tasks} columns={columns} objectives={objectives} />
-                )}
 
                 {/* MEMBERS */}
                 {viewMode === 'members' && (
