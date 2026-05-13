@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DOADORAS, getDoadora } from "@/data/doadoras";
+import { createClient } from "@/utils/supabase/server";
 import DoadoraClient from "./DoadoraClient";
 
 export const dynamicParams = false;
@@ -42,6 +43,19 @@ export default async function DoadoraPage({
     const { slug } = await params;
     const doadora = getDoadora(slug);
     if (!doadora) notFound();
+
+    // Respeita o toggle de visibilidade do admin (web-admin /lotes-doadoras).
+    // Se a linha correspondente em `products` (tag='SAFRA_VIS_2026', registro=rgd)
+    // estiver com active=false, a página vira 404 — mesmo comportamento da
+    // listagem em /embrioes.
+    const supabase = await createClient();
+    const { data: row } = await supabase
+        .from('products')
+        .select('active')
+        .eq('tag', 'SAFRA_VIS_2026')
+        .eq('details->>registro', doadora.rgd)
+        .maybeSingle();
+    if (row && row.active === false) notFound();
 
     return <DoadoraClient doadora={doadora} />;
 }

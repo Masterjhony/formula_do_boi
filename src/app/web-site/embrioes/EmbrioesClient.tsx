@@ -17,6 +17,7 @@ const FG = "#F5F0E4";
 
 interface EmbrioesClientProps {
     products: Product[];
+    visInactiveRegistros?: string[];
 }
 
 function fmtBRL(n: number) {
@@ -26,7 +27,13 @@ function fmtDecimal(n: number) {
     return n.toString().replace(".", ",");
 }
 
-export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientProps) {
+export default function EmbrioesClient({ products: dbProducts, visInactiveRegistros = [] }: EmbrioesClientProps) {
+    const visInactiveSet = useMemo(() => new Set(visInactiveRegistros), [visInactiveRegistros]);
+    const visibleDoadoras = useMemo(
+        () => DOADORAS.filter((d) => !visInactiveSet.has(d.rgd)),
+        [visInactiveSet]
+    );
+
     const allProducts = useMemo(() => {
         const dbIds = new Set(dbProducts.map((p) => p.id));
         const staticKeep = EMBRYOS.filter((e) => !dbIds.has(e.id));
@@ -106,6 +113,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
             </section>
 
             {/* SAFRA NELORE VISUAL 2026 ───────────────────── */}
+            {visibleDoadoras.length > 0 && (
             <section
                 style={{
                     background: INK_2,
@@ -139,7 +147,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                                     maxWidth: "26ch",
                                 }}
                             >
-                                Cinco doadoras de elite. {DOADORAS_CONDICOES.fazenda}, {DOADORAS_CONDICOES.municipio}.
+                                Doadoras de elite. {DOADORAS_CONDICOES.fazenda}, {DOADORAS_CONDICOES.municipio}.
                             </h2>
                         </div>
                         <p
@@ -156,7 +164,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {DOADORAS.map((d) => {
+                        {visibleDoadoras.map((d) => {
                             const nome = d.nomeAbcz ?? d.rgd;
                             return (
                                 <Link
@@ -355,6 +363,7 @@ export default function EmbrioesClient({ products: dbProducts }: EmbrioesClientP
                     </div>
                 </div>
             </section>
+            )}
 
             {/* CATÁLOGO GERAL (Supabase + EMBRYOS estáticos) ── */}
             {allProducts.length > 0 && (
