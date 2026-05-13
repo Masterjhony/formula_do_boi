@@ -116,6 +116,7 @@ type DbLeilao = {
   comissao: string; contrato: string; faturamento_previsto: number | null
   faturamento_realizado: number | null; venda_bula: number | null; comissao_receber: string; recebido: string
   img?: string | null
+  catalogo_url?: string | null
 }
 
 type MergedLeilao = {
@@ -164,7 +165,7 @@ function mergeLeiloes(bula: (BulaLeilao & { catalogo_url?: string })[], crono: D
       status: b.status, tasks: b.tasks,
       expectativa: b.expectativa, meta_bula: b.meta_bula, realizado_bula: b.realizado_bula,
       transmissao: b.transmissao, condicao: b.condicao, frete_gratis: b.frete_gratis,
-      acordo_comissao: b.acordo_comissao, catalogo_url: b.catalogo_url, local: b.local,
+      acordo_comissao: b.acordo_comissao, catalogo_url: b.catalogo_url || match?.catalogo_url || undefined, local: b.local,
       comissao: match?.comissao, contrato: match?.contrato,
       faturamento_previsto: match?.faturamento_previsto ?? undefined,
       faturamento_realizado: match?.faturamento_realizado ?? undefined,
@@ -181,6 +182,7 @@ function mergeLeiloes(bula: (BulaLeilao & { catalogo_url?: string })[], crono: D
       tipo: c.raca, animais: c.qtd_animais ?? 0, sexo: c.sexo, criador: c.criador,
       presencial: c.presencial, leiloeira: c.leiloeira,
       img: c.img || undefined,
+      catalogo_url: c.catalogo_url || undefined,
       comissao: c.comissao, contrato: c.contrato,
       faturamento_previsto: c.faturamento_previsto ?? undefined,
       faturamento_realizado: c.faturamento_realizado ?? undefined,
@@ -879,16 +881,19 @@ function UnifiedDrawer({ leilao, onClose, onEdit, onDelete, onTasksUpdate }: {
 
           {/* Catálogo */}
           {leilao.catalogo_url && (
-            <a href={leilao.catalogo_url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#A0792E]/25 bg-[#A0792E]/5 hover:bg-[#A0792E]/10 transition-colors group"
-            >
-              <BookOpen size={18} className="text-[#A0792E]" />
-              <div className="flex-1">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#A0792E]/25 bg-[#A0792E]/5">
+              <BookOpen size={18} className="text-[#A0792E] flex-shrink-0" />
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#A0792E]">Catálogo disponível</p>
                 <p className="text-xs text-gray-400 truncate">{leilao.catalogo_url}</p>
               </div>
-              <ExternalLink size={14} className="text-[#A0792E]/60 group-hover:text-[#A0792E] transition-colors" />
-            </a>
+              <a href={leilao.catalogo_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#A0792E]/10 hover:bg-[#A0792E]/20 text-[#A0792E] text-xs font-semibold transition-colors" title="Abrir">
+                <ExternalLink size={12} /> Abrir
+              </a>
+              <a href={leilao.catalogo_url} download className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#A0792E] hover:bg-[#D4A85C] text-black text-xs font-semibold transition-colors" title="Baixar">
+                <Download size={12} /> Baixar
+              </a>
+            </div>
           )}
 
           {/* Checklist */}
@@ -930,6 +935,7 @@ function FormModal({ initial, onClose, onSaved }: {
   )
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadingCatalogo, setUploadingCatalogo] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const set = (k: keyof FormState, v: string | number) => setForm(prev => ({ ...prev, [k]: v }))
@@ -943,6 +949,17 @@ function FormModal({ initial, onClose, onSaved }: {
       const json = await res.json()
       if (json.url) set('img', json.url); else setError('Erro ao fazer upload')
     } catch { setError('Erro ao fazer upload') } finally { setUploading(false); e.target.value = '' }
+  }
+
+  const handleCatalogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return
+    setUploadingCatalogo(true); setError(null)
+    try {
+      const fd = new FormData(); fd.append('file', file)
+      const res = await fetch('/api/leiloes/catalogo-upload', { method: 'POST', body: fd })
+      const json = await res.json()
+      if (json.url) set('catalogo_url', json.url); else setError(json.error || 'Erro ao enviar catálogo')
+    } catch { setError('Erro ao enviar catálogo') } finally { setUploadingCatalogo(false); e.target.value = '' }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1028,8 +1045,31 @@ function FormModal({ initial, onClose, onSaved }: {
             <Field label="Transmissão"><input className={iCls} value={form.transmissao} onChange={e => set('transmissao', e.target.value)} placeholder="Ex: RURALPLAY" /></Field>
           </div>
           <Field label="Local"><input className={iCls} value={form.local} onChange={e => set('local', e.target.value)} placeholder="Cidade / Fazenda" /></Field>
-          <Field label="URL do Catálogo">
-            <div className="relative"><Link2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" /><input className={`${iCls} pl-9`} value={form.catalogo_url} onChange={e => set('catalogo_url', e.target.value)} placeholder="https://..." type="url" /></div>
+          <Field label="Catálogo (PDF)">
+            {form.catalogo_url ? (
+              <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-[#A0792E]/30 bg-[#A0792E]/5">
+                <FileText size={18} className="text-[#A0792E] flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[#A0792E]">Catálogo anexado</p>
+                  <p className="text-[11px] text-gray-400 truncate">{form.catalogo_url}</p>
+                </div>
+                <a href={form.catalogo_url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-[#A0792E]/10 text-[#A0792E] transition-colors" title="Abrir"><ExternalLink size={14} /></a>
+                <button type="button" onClick={() => set('catalogo_url', '')} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-400 hover:text-red-600 transition-colors" title="Remover"><X size={14} /></button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label className={`flex items-center justify-center gap-2 h-20 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${uploadingCatalogo ? 'border-[#A0792E]/50 bg-[#A0792E]/5' : 'border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/50 hover:bg-[#A0792E]/5'}`}>
+                  <input type="file" accept="application/pdf,.pdf" className="hidden" onChange={handleCatalogoUpload} disabled={uploadingCatalogo} />
+                  {uploadingCatalogo
+                    ? <><Loader2 size={18} className="animate-spin text-[#A0792E]" /><span className="text-xs font-semibold text-[#A0792E]">Enviando…</span></>
+                    : <><Upload size={18} className="text-gray-400" /><span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Anexar PDF do catálogo</span><span className="text-[10px] text-gray-300 dark:text-gray-600">(máx. 25MB)</span></>}
+                </label>
+                <div className="relative">
+                  <Link2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input className={`${iCls} pl-9`} value={form.catalogo_url} onChange={e => set('catalogo_url', e.target.value)} placeholder="…ou cole uma URL externa" type="url" />
+                </div>
+              </div>
+            )}
           </Field>
           <div className="pt-1 border-t border-gray-100 dark:border-[#1E1E1E]">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">Financeiro (opcional)</p>
@@ -1066,13 +1106,14 @@ function FormModal({ initial, onClose, onSaved }: {
 // ── CronogramaFormModal ───────────────────────────────────────────────────────
 
 type DbForm = Omit<DbLeilao, 'id'>
-const EMPTY_FORM: DbForm = { data: '', dia_semana: '', hora: '', nome: '', criador: '', presencial: '', leiloeira: '', raca: '', qtd_animais: null, sexo: '', comissao: '', contrato: '', faturamento_previsto: null, faturamento_realizado: null, venda_bula: null, comissao_receber: '', recebido: '', img: '' }
+const EMPTY_FORM: DbForm = { data: '', dia_semana: '', hora: '', nome: '', criador: '', presencial: '', leiloeira: '', raca: '', qtd_animais: null, sexo: '', comissao: '', contrato: '', faturamento_previsto: null, faturamento_realizado: null, venda_bula: null, comissao_receber: '', recebido: '', img: '', catalogo_url: '' }
 
 function CronogramaFormModal({ initial, onClose, onSaved }: { initial: DbLeilao | null; onClose: () => void; onSaved: (row: DbLeilao) => void }) {
   const isEdit = !!initial
-  const [form, setForm] = useState<DbForm>(initial ? { ...EMPTY_FORM, ...initial, img: initial.img ?? '' } : { ...EMPTY_FORM })
+  const [form, setForm] = useState<DbForm>(initial ? { ...EMPTY_FORM, ...initial, img: initial.img ?? '', catalogo_url: initial.catalogo_url ?? '' } : { ...EMPTY_FORM })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadingCatalogo, setUploadingCatalogo] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const set = <K extends keyof DbForm>(k: K, v: DbForm[K]) => setForm(prev => ({ ...prev, [k]: v }))
 
@@ -1085,6 +1126,17 @@ function CronogramaFormModal({ initial, onClose, onSaved }: { initial: DbLeilao 
       const json = await res.json()
       if (json.url) set('img', json.url); else setError('Erro ao fazer upload')
     } catch { setError('Erro ao fazer upload') } finally { setUploading(false); e.target.value = '' }
+  }
+
+  const handleCatalogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return
+    setUploadingCatalogo(true); setError(null)
+    try {
+      const fd = new FormData(); fd.append('file', file)
+      const res = await fetch('/api/leiloes/catalogo-upload', { method: 'POST', body: fd })
+      const json = await res.json()
+      if (json.url) set('catalogo_url', json.url); else setError(json.error || 'Erro ao enviar catálogo')
+    } catch { setError('Erro ao enviar catálogo') } finally { setUploadingCatalogo(false); e.target.value = '' }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1177,6 +1229,32 @@ function CronogramaFormModal({ initial, onClose, onSaved }: { initial: DbLeilao 
               <Field label="Venda Bula (R$)"><input type="number" className={inputCls} value={form.venda_bula ?? ''} onChange={e => set('venda_bula', e.target.value ? Number(e.target.value) : null)} placeholder="0" min={0} /></Field>
             </div>
           </div>
+          <Field label="Catálogo (PDF)">
+            {form.catalogo_url ? (
+              <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-[#A0792E]/30 bg-[#A0792E]/5">
+                <FileText size={18} className="text-[#A0792E] flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[#A0792E]">Catálogo anexado</p>
+                  <p className="text-[11px] text-gray-400 truncate">{form.catalogo_url}</p>
+                </div>
+                <a href={form.catalogo_url || '#'} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-[#A0792E]/10 text-[#A0792E] transition-colors" title="Abrir"><ExternalLink size={14} /></a>
+                <button type="button" onClick={() => set('catalogo_url', '')} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-400 hover:text-red-600 transition-colors" title="Remover"><X size={14} /></button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label className={`flex items-center justify-center gap-2 h-20 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${uploadingCatalogo ? 'border-[#A0792E]/50 bg-[#A0792E]/5' : 'border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/50 hover:bg-[#A0792E]/5'}`}>
+                  <input type="file" accept="application/pdf,.pdf" className="hidden" onChange={handleCatalogoUpload} disabled={uploadingCatalogo} />
+                  {uploadingCatalogo
+                    ? <><Loader2 size={18} className="animate-spin text-[#A0792E]" /><span className="text-xs font-semibold text-[#A0792E]">Enviando…</span></>
+                    : <><Upload size={18} className="text-gray-400" /><span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Anexar PDF do catálogo</span><span className="text-[10px] text-gray-300 dark:text-gray-600">(máx. 25MB)</span></>}
+                </label>
+                <div className="relative">
+                  <Link2 size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input className={inputCls + ' pl-9'} value={form.catalogo_url ?? ''} onChange={e => set('catalogo_url', e.target.value)} placeholder="…ou cole uma URL externa" type="url" />
+                </div>
+              </div>
+            )}
+          </Field>
           {error && <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm"><AlertCircle size={15} /> {error}</div>}
         </form>
         <div className="px-6 py-4 border-t border-gray-100 dark:border-[#1E1E1E] flex justify-end gap-3">
