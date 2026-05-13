@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Search, X } from "lucide-react";
-import SearchDropdown from "./SearchDropdown";
-import { getProductsClient } from "@/services/products";
+import SearchDropdown, { type SearchItem } from "./SearchDropdown";
+import { getProductsClient, type Product } from "@/services/products";
 import { EMBRYOS } from "@/data/embryos";
+import { DOADORAS } from "@/data/doadoras";
 
 interface SearchBarProps {
     className?: string;
@@ -12,47 +13,137 @@ interface SearchBarProps {
     onSearch?: (term: string) => void;
 }
 
+type Leilao = {
+    id: string;
+    nome: string;
+    data: string;
+    tipo: string | null;
+    img: string | null;
+    leiloeira: string | null;
+    criador: string | null;
+};
+
+type SearchProduct = Pick<Product, "id" | "name" | "category" | "image" | "location" | "tag"> & {
+    classificacao?: string;
+    registro?: string;
+    details?: { registro?: string } | null;
+};
+
+function isEmbriaoLike(p: SearchProduct) {
+    const cat = p.category || "";
+    const type = p.classificacao || "";
+    return (cat.includes("Embrião") || cat === "DOADORA" || type === "embriao") && !cat.includes("Sêmen");
+}
+
+function isSemen(p: SearchProduct) {
+    return p.category === "Sêmen";
+}
+
+function productHref(p: SearchProduct): string {
+    if (isSemen(p)) return "/semen";
+    return "/embrioes";
+}
+
+function fmtData(iso: string) {
+    const [y, m, d] = iso.split("-").map(Number);
+    if (!y || !m || !d) return iso;
+    return `${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`;
+}
+
 export default function SearchBar({ className = "", placeholder = "O que você está procurando?" }: SearchBarProps) {
     const [searchTerm, setSearchTerm] = useState("");
-    const [searchResults, setSearchResults] = useState<any[]>([]);
-    const [allProducts, setAllProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<SearchProduct[]>([]);
+    const [leiloes, setLeiloes] = useState<Leilao[]>([]);
     const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Fetch products on mount
     useEffect(() => {
-        const fetchProducts = async () => {
-            const dbProducts = await getProductsClient();
-            // Combine DB products and static EMBRYOS
-            // Ensure no duplicates if ID collision (though unlikely with different sources, good to be safe)
-            // For now, just concatenating.
-            setAllProducts([...dbProducts, ...EMBRYOS]);
+        const fetchData = async () => {
+            const [dbProducts, leiloesRes] = await Promise.all([
+                getProductsClient(),
+                fetch("/api/site/leiloes-publicos", { cache: "no-store" })
+                    .then((r) => (r.ok ? r.json() : { leiloes: [] }))
+                    .catch(() => ({ leiloes: [] })),
+            ]);
+
+            const dbIds = new Set(dbProducts.map((p) => p.id));
+            const staticEmbryos = (EMBRYOS as unknown as SearchProduct[]).filter((e) => !dbIds.has(e.id));
+            const visRegistros = new Set(DOADORAS.map((d) => d.rgd));
+
+            const scoped = [...(dbProducts as SearchProduct[]), ...staticEmbryos]
+                .filter((p) => isSemen(p) || isEmbriaoLike(p))
+                .filter((p) => {
+                    const reg = p.registro ?? p.details?.registro ?? "";
+                    return p.tag !== "SAFRA_VIS_2026" && !visRegistros.has(reg);
+                });
+
+            setProducts(scoped);
+            setLeiloes((leiloesRes?.leiloes as Leilao[]) ?? []);
         };
 
-        fetchProducts();
+        fetchData();
     }, []);
 
-    // Filter products
-    useEffect(() => {
-        if (!searchTerm.trim()) {
-            setSearchResults([]);
-            return;
-        }
+    const doadoraItems = useMemo(() => {
+        return DOADORAS.map((d) => ({
+            kind: "product" as const,
+            id: `doadora-${d.slug}`,
+            name: `${d.nomeAbcz ?? d.rgd} — Pacote ${d.quantidadeEmbrioes} Embriões`,
+            category: "Embrião FIV",
+            image: d.foto ?? "/cattle/vaca_embrioes_og.webp",
+            location: "Esmeraldas - MG",
+            href: `/embrioes/${d.slug}`,
+            haystack: [d.rgd, d.nomeAbcz ?? "", d.cruzamento, d.classificacaoTop, "embriao", "embrião", "doadora"].join(" ").toLowerCase(),
+        }));
+    }, []);
 
-        const term = searchTerm.toLowerCase();
-        const results = allProducts.filter((product) => {
-            return (
-                product.name.toLowerCase().includes(term) ||
-                product.category.toLowerCase().includes(term) ||
-                (product.details?.registro && product.details.registro.toLowerCase().includes(term))
-            );
-        });
+    const searchResults = useMemo<SearchItem[]>(() => {
+        const term = searchTerm.trim().toLowerCase();
+        if (!term) return [];
 
-        // Limit results to 5
-        setSearchResults(results.slice(0, 5));
-    }, [searchTerm, allProducts]);
+        const productHits: SearchItem[] = products
+            .filter((p) => {
+                return (
+                    (p.name || "").toLowerCase().includes(term) ||
+                    (p.category || "").toLowerCase().includes(term) ||
+                    (p.details?.registro || "").toLowerCase().includes(term) ||
+                    (p.registro || "").toLowerCase().includes(term)
+                );
+            })
+            .map((p) => ({
+                kind: "product" as const,
+                id: `product-${p.id}`,
+                name: p.name,
+                category: p.category,
+                image: p.image,
+                location: p.location ?? "",
+                href: productHref(p),
+                haystack: "",
+            }));
 
-    // Handle click outside to close dropdown
+        const doadoraHits = doadoraItems.filter((d) => d.haystack.includes(term));
+
+        const leilaoHits: SearchItem[] = leiloes
+            .filter((l) => {
+                return (
+                    l.nome.toLowerCase().includes(term) ||
+                    (l.tipo || "").toLowerCase().includes(term) ||
+                    (l.criador || "").toLowerCase().includes(term) ||
+                    (l.leiloeira || "").toLowerCase().includes(term)
+                );
+            })
+            .map((l) => ({
+                kind: "leilao" as const,
+                id: `leilao-${l.id}`,
+                name: l.nome,
+                subtitle: [l.tipo, l.criador, fmtData(l.data)].filter(Boolean).join(" · "),
+                image: l.img,
+                href: "/agenda",
+            }));
+
+        return [...leilaoHits.slice(0, 4), ...productHits.slice(0, 4), ...doadoraHits.slice(0, 4)].slice(0, 8);
+    }, [searchTerm, products, leiloes, doadoraItems]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -68,7 +159,6 @@ export default function SearchBar({ className = "", placeholder = "O que você e
 
     const clearSearch = () => {
         setSearchTerm("");
-        setSearchResults([]);
     };
 
     return (
