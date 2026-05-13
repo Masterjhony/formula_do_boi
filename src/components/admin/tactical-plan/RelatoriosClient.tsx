@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
     FileBarChart, Download, FileText, RefreshCw, Filter,
     CheckCircle2, AlertTriangle, Clock, ListChecks, Users,
-    Briefcase, TrendingUp, Zap, ChevronRight,
+    Briefcase, TrendingUp, Zap, ChevronRight, Wand2,
 } from 'lucide-react'
 import type { TacticalTask } from '@/app/web-admin/actions/tactical-tasks'
 import type { TacticalMember } from '@/app/web-admin/actions/tactical-strategic'
@@ -162,6 +162,15 @@ export function RelatoriosClient({
     const [itemType, setItemType] = useState<'both' | 'task' | 'checklist'>('both')
     const [situation, setSituation] = useState<PdfFilters['situation']>('all')
     const [generating, setGenerating] = useState<ReportMode | null>(null)
+    const [normalizing, setNormalizing] = useState<'idle' | 'preview' | 'apply'>('idle')
+    const [normalizeResult, setNormalizeResult] = useState<{
+        dryRun: boolean
+        tasksScanned: number
+        tasksUpdated: number
+        itemsUpdated: number
+        totalChanges: number
+        changes: { taskId: string; taskTitle: string; item: { id: string; from: string; to: string; assignee: string } }[]
+    } | null>(null)
 
     const periodRange = useMemo(() => periodToRange(period, customFrom, customTo), [period, customFrom, customTo])
     const tasksInWindow = useMemo(() => tasksInPeriod(initialTasks, periodRange.from, periodRange.to), [initialTasks, periodRange])
@@ -202,6 +211,28 @@ export function RelatoriosClient({
             alert('Falha ao gerar o PDF. Veja o console para detalhes.')
         } finally {
             setGenerating(null)
+        }
+    }
+
+    async function handleNormalizeChecklists(dryRun: boolean) {
+        try {
+            setNormalizing(dryRun ? 'preview' : 'apply')
+            const res = await fetch('/api/admin/normalize-checklist-assignees', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ dryRun }),
+            })
+            const json = await res.json()
+            if (!res.ok) throw new Error(json?.error || 'Falha na normalização')
+            setNormalizeResult(json)
+            if (!dryRun) {
+                startTransition(() => router.refresh())
+            }
+        } catch (e) {
+            console.error('[normalize-checklists]', e)
+            alert('Falha ao normalizar checklists: ' + (e instanceof Error ? e.message : 'erro desconhecido'))
+        } finally {
+            setNormalizing('idle')
         }
     }
 
@@ -364,6 +395,87 @@ export function RelatoriosClient({
                         >
                             Limpar filtros
                         </button>
+                    )}
+                </div>
+            </div>
+
+            {/* ─── Manutenção: normalizar [Nome] em checklists ─── */}
+            <div className="bg-white dark:bg-[#0F0F0F] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] overflow-hidden" style={{ borderRadius: 3 }}>
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-[rgba(212,168,92,0.14)] flex items-center gap-2">
+                    <Wand2 size={14} className="text-[#A0792E] dark:text-[#D4A85C]" />
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-[#F5F0E4]">Manutenção · Responsáveis em checklists</h3>
+                    <span aria-hidden className="flex-1 h-px bg-gradient-to-r from-[#A0792E]/30 to-transparent" />
+                </div>
+                <div className="p-4">
+                    <p className="text-[12px] text-gray-600 dark:text-[#F5F0E4]/60 leading-relaxed mb-3">
+                        Vasculha todos os checklists e move o nome do responsável que está no título entre colchetes
+                        (ex.: <span className="font-mono text-[#A0792E] dark:text-[#D4A85C]">[João Eduardo] Leads — CPL</span>) para o campo
+                        próprio <span className="font-medium text-gray-800 dark:text-[#F5F0E4]/80">Responsável</span>. Só altera itens com
+                        responsável vazio e quando o nome bate com a aba <span className="font-mono">Equipe</span>. Idempotente.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => handleNormalizeChecklists(true)}
+                            disabled={normalizing !== 'idle'}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:border-[#A0792E] text-gray-700 dark:text-[#F5F0E4]/80 transition-colors disabled:opacity-50"
+                            style={{ borderRadius: 3 }}
+                        >
+                            <RefreshCw size={12} className={normalizing === 'preview' ? 'animate-spin' : ''} />
+                            {normalizing === 'preview' ? 'Analisando…' : 'Pré-visualizar'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (!confirm('Aplicar normalização? Vai mover nomes em [colchetes] para o campo Responsável dos checklists.')) return
+                                handleNormalizeChecklists(false)
+                            }}
+                            disabled={normalizing !== 'idle'}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] bg-[#A0792E] text-[#0A0A0A] hover:bg-[#8A6826] transition-colors disabled:opacity-50 font-medium"
+                            style={{ borderRadius: 3 }}
+                        >
+                            <Wand2 size={12} />
+                            {normalizing === 'apply' ? 'Aplicando…' : 'Aplicar correção'}
+                        </button>
+                        {normalizeResult && (
+                            <span className="text-[11px] font-mono text-gray-500 dark:text-[#F5F0E4]/50 ml-2">
+                                {normalizeResult.dryRun ? 'PRÉVIA · ' : 'APLICADO · '}
+                                {normalizeResult.itemsUpdated} item{normalizeResult.itemsUpdated === 1 ? '' : 's'} em {normalizeResult.tasksUpdated} tarefa{normalizeResult.tasksUpdated === 1 ? '' : 's'}
+                                {' · '}{normalizeResult.tasksScanned} analisadas
+                            </span>
+                        )}
+                    </div>
+
+                    {normalizeResult && normalizeResult.changes.length > 0 && (
+                        <div className="mt-4 border border-gray-100 dark:border-[rgba(212,168,92,0.14)] overflow-hidden" style={{ borderRadius: 3 }}>
+                            <div className="bg-gray-50 dark:bg-[#0A0A0A] px-3 py-2 text-[10px] font-mono uppercase tracking-[0.16em] text-gray-500 dark:text-[#F5F0E4]/40 flex items-center justify-between">
+                                <span>Mostrando {Math.min(normalizeResult.changes.length, 50)} de {normalizeResult.totalChanges} alterações</span>
+                                {normalizeResult.dryRun && <span className="text-amber-600 dark:text-amber-400">DRY RUN</span>}
+                            </div>
+                            <div className="max-h-64 overflow-y-auto">
+                                {normalizeResult.changes.map((c, i) => (
+                                    <div key={i} className="px-3 py-2 border-t border-gray-100 dark:border-[rgba(212,168,92,0.1)] text-[11px]">
+                                        <div className="text-gray-500 dark:text-[#F5F0E4]/50 mb-0.5">
+                                            <span className="font-mono">{c.taskTitle}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="text-gray-400 dark:text-[#F5F0E4]/40 line-through">{c.item.from}</span>
+                                            <ChevronRight size={11} className="text-gray-400" />
+                                            <span className="text-gray-800 dark:text-[#F5F0E4]/90">{c.item.to}</span>
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono bg-[#A0792E]/10 text-[#A0792E] dark:text-[#D4A85C] rounded-full border border-[#A0792E]/30">
+                                                → {c.item.assignee}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {normalizeResult && normalizeResult.changes.length === 0 && (
+                        <div className="mt-3 px-3 py-2 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/30 text-[12px] text-emerald-700 dark:text-emerald-400" style={{ borderRadius: 3 }}>
+                            ✓ Nenhum checklist com prefixo <span className="font-mono">[Nome]</span> pendente — tudo já está no campo correto.
+                        </div>
                     )}
                 </div>
             </div>
