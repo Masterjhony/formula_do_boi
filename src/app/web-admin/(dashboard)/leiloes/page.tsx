@@ -1644,9 +1644,6 @@ export default function LeiloesPage() {
           <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{merged.length} leilões na agenda 2026</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => { setEditCrono(null); setShowCronoForm(true) }} className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-[#2A2A2A] text-gray-600 dark:text-gray-300 rounded-xl font-semibold text-sm transition-colors hover:border-[#A0792E]/40 hover:text-[#A0792E]">
-            <Plus size={15} /> Cronograma
-          </button>
           <button onClick={() => { setEditBula(null); setShowBulaForm(true) }} className="flex items-center gap-2 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#A0792E]/20">
             <Plus size={16} /> Novo Leilão
           </button>
