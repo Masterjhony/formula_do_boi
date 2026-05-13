@@ -1,17 +1,19 @@
 import { OKRPageClient } from '@/components/admin/okr/OKRPageClient';
 import { getObjectives, getRisks, getDecisions, getFlows } from '@/app/web-admin/actions/tactical-strategic';
 import { getTasks, getColumns } from '@/app/web-admin/actions/tactical-tasks';
+import { getOKRSnapshot } from '@/app/web-admin/actions/okr-snapshot';
 
 export const dynamic = 'force-dynamic';
 
 export default async function OKRPage() {
-    const [objectives, risks, decisions, flows, tasks, columns] = await Promise.all([
+    const [objectives, risks, decisions, flows, tasks, columns, snapshot] = await Promise.all([
         getObjectives(),
         getRisks(),
         getDecisions(),
         getFlows(),
         getTasks(),
         getColumns(),
+        getOKRSnapshot(),
     ]);
 
     return (
@@ -24,6 +26,7 @@ export default async function OKRPage() {
                     initialFlows={flows || []}
                     initialTasks={tasks || []}
                     initialColumns={columns || []}
+                    snapshot={snapshot}
                 />
             </div>
         </div>

@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import {
     TacticalObjective, TacticalKeyResult,
     createObjective, deleteObjective,
     createKeyResult, updateKeyResult, deleteKeyResult,
 } from '@/app/web-admin/actions/tactical-strategic';
+import type { TacticalTask } from '@/app/web-admin/actions/tactical-tasks';
+import type { OKRSnapshot } from '@/app/web-admin/actions/okr-snapshot';
 import {
     Target, Plus, Trash2, Edit2, Check, X,
     ChevronDown, ChevronRight, TrendingUp, TrendingDown,
     Minus, AlertTriangle, CheckCircle2, Clock, Zap,
+    Briefcase, Gavel, Activity, ArrowRight, Users, MessageSquare, Trophy,
 } from 'lucide-react';
 
 const COLORS = ['#A0792E', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B', '#06B6D4'];
@@ -131,11 +135,123 @@ function krBadge(pct: number) {
 interface Props {
     objectives: TacticalObjective[];
     onObjectivesChange: (objs: TacticalObjective[]) => void;
+    /** Optional — when present, enriches each objective with linked projects,
+     *  auctions and real indicators. */
+    snapshot?: OKRSnapshot;
+    tasks?: TacticalTask[];
+    doneStatus?: string;
+}
+
+// ── Indicator detection from KR title (heuristic keyword match) ────────────────
+
+interface RealIndicator {
+    label: string;
+    value: string;
+    sub?: string;
+    icon: React.ReactNode;
+    color: string;
+    href: string;
+}
+
+function detectIndicatorsForObjective(obj: TacticalObjective, snapshot?: OKRSnapshot): RealIndicator[] {
+    if (!snapshot) return [];
+    const text = `${obj.title} ${obj.description ?? ''} ${(obj.key_results ?? []).map(k => k.title).join(' ')}`.toLowerCase();
+    const out: RealIndicator[] = [];
+
+    const matchAny = (...kws: string[]) => kws.some(k => text.includes(k));
+
+    if (matchAny('lead', 'capta', 'aquisi')) {
+        out.push({
+            label: 'Leads · 30d',
+            value: String(snapshot.leads.new30d),
+            sub: `${snapshot.leads.newMonth} no mês · ${snapshot.leads.prev30d > 0 ? `${snapshot.leads.trendDeltaPct >= 0 ? '+' : ''}${snapshot.leads.trendDeltaPct.toFixed(0)}%` : ''}`,
+            icon: <Users size={11} />,
+            color: '#A0792E',
+            href: '/crm',
+        });
+    }
+    if (matchAny('mql', 'qualifica', 'qualifi')) {
+        out.push({
+            label: 'MQLs ativos',
+            value: String(snapshot.leads.mqlActive),
+            sub: `conversão ${snapshot.leads.mqlConvPct.toFixed(0)}%`,
+            icon: <Activity size={11} />,
+            color: '#D4A85C',
+            href: '/crm',
+        });
+    }
+    if (matchAny('conver', 'fech', 'venda', 'cliente')) {
+        out.push({
+            label: 'Conversão geral',
+            value: `${snapshot.leads.conversionPct.toFixed(0)}%`,
+            sub: `pipeline ${fmtBRL(snapshot.leads.pipelineValue)}`,
+            icon: <CheckCircle2 size={11} />,
+            color: '#10B981',
+            href: '/crm',
+        });
+    }
+    if (matchAny('vgv', 'leil', 'receita', 'fatur', 'resultado')) {
+        out.push({
+            label: 'VGV · 90d',
+            value: fmtBRL(snapshot.auctions.vgv90d),
+            sub: `receita ${fmtBRL(snapshot.auctions.receita90d)} · ROI ${snapshot.auctions.roi90dPct.toFixed(0)}%`,
+            icon: <Trophy size={11} />,
+            color: '#7FD4A0',
+            href: '/leiloes',
+        });
+    }
+    if (matchAny('whatsapp', 'mensagem', 'engaj', 'resposta', 'atendimento')) {
+        out.push({
+            label: 'Resposta WhatsApp',
+            value: `${snapshot.whatsapp.replyRatePct.toFixed(0)}%`,
+            sub: `${snapshot.whatsapp.in30d}/${snapshot.whatsapp.out30d} em 30d`,
+            icon: <MessageSquare size={11} />,
+            color: '#3B82F6',
+            href: '/whatsapp',
+        });
+    }
+    if (matchAny('velocidade', 'velocity', 'tempo', 'ciclo')) {
+        if (snapshot.leads.velocityDays > 0) {
+            out.push({
+                label: 'Lead → Fechado',
+                value: `${snapshot.leads.velocityDays.toFixed(0)}d`,
+                sub: 'média de fechamento',
+                icon: <Zap size={11} />,
+                color: '#8B5CF6',
+                href: '/crm',
+            });
+        }
+    }
+    return out;
+}
+
+function fmtBRL(v: number) {
+    if (!v) return 'R$ 0';
+    if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(2).replace('.', ',')}M`;
+    if (v >= 1_000) return `R$ ${(v / 1_000).toFixed(0)}k`;
+    return `R$ ${v.toLocaleString('pt-BR')}`;
+}
+
+function fmtDateBR(d: string) {
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y.slice(2)}`;
+}
+
+// Map a quarter string to start/end ISO dates for matching leilões.
+function quarterRange(quarter: string): { start: string; end: string } | null {
+    const match = quarter.match(/Q(\d)\s+(\d{4})/);
+    if (!match) return null;
+    const q = parseInt(match[1]);
+    const year = parseInt(match[2]);
+    const startMonth = (q - 1) * 3;
+    const start = new Date(year, startMonth, 1).toISOString().split('T')[0];
+    const end = new Date(year, startMonth + 3, 0).toISOString().split('T')[0];
+    return { start, end };
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export function OKRView({ objectives, onObjectivesChange }: Props) {
+export function OKRView({ objectives, onObjectivesChange, snapshot, tasks, doneStatus }: Props) {
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const [showNewObj, setShowNewObj] = useState(false);
     const [newObjTitle, setNewObjTitle] = useState('');
@@ -508,6 +624,16 @@ export function OKRView({ objectives, onObjectivesChange }: Props) {
                                             );
                                         })}
 
+                                        {/* ── Operação ligada ao objetivo ─────────────────────── */}
+                                        {snapshot && (
+                                            <ObjectiveOperationPanel
+                                                objective={obj}
+                                                snapshot={snapshot}
+                                                tasks={tasks ?? []}
+                                                doneStatus={doneStatus}
+                                            />
+                                        )}
+
                                         {/* Add KR */}
                                         {addingKRForObj === obj.id ? (
                                             <div className="flex gap-2 flex-wrap pt-1">
@@ -746,6 +872,171 @@ function NewObjForm({ title, setTitle, desc, setDesc, quarter, setQuarter, color
                     Cancelar
                 </button>
             </div>
+        </div>
+    );
+}
+
+// ── Objective Operation Panel ──────────────────────────────────────────────────
+// Mostra projetos linkados (tasks via tactical_task_kr_links), leilões do
+// trimestre e indicadores reais detectados pelos títulos do objetivo/KRs.
+
+interface OpPanelProps {
+    objective: TacticalObjective;
+    snapshot: OKRSnapshot;
+    tasks: TacticalTask[];
+    doneStatus?: string;
+}
+
+function ObjectiveOperationPanel({ objective, snapshot, tasks, doneStatus }: OpPanelProps) {
+    // 1) Projetos linkados — agrega tasks de todos os KRs deste objetivo
+    const linkedTaskIds = new Set<string>();
+    for (const kr of objective.key_results ?? []) {
+        const ids = snapshot.krTaskLinks[kr.id] ?? [];
+        ids.forEach(id => linkedTaskIds.add(id));
+    }
+    const linkedTasks = tasks.filter(t => linkedTaskIds.has(t.id));
+    const linkedDone = linkedTasks.filter(t => t.status === doneStatus).length;
+    const linkedOverdue = linkedTasks.filter(t =>
+        t.status !== doneStatus && t.due_date && new Date(t.due_date) < new Date()
+    );
+
+    // 2) Leilões do trimestre
+    const range = quarterRange(objective.quarter);
+    const quarterAuctions = range
+        ? snapshot.auctions.upcoming.filter(l => l.data >= range.start && l.data <= range.end)
+        : [];
+    const quarterFechamentos = range
+        ? snapshot.auctions.recent.filter(f => f.data >= range.start && f.data <= range.end)
+        : [];
+
+    // 3) Indicadores reais
+    const indicators = detectIndicatorsForObjective(objective, snapshot);
+
+    const hasContent =
+        linkedTasks.length > 0 ||
+        quarterAuctions.length > 0 ||
+        quarterFechamentos.length > 0 ||
+        indicators.length > 0;
+
+    if (!hasContent) {
+        return (
+            <div className="mt-3 rounded-xl border border-dashed border-gray-200 dark:border-[#222] p-3 text-center">
+                <p className="text-[11px] text-gray-400">
+                    Nenhuma tarefa, leilão ou indicador vinculado.{' '}
+                    <Link href="/tactical-plan" className="text-[#A0792E] hover:underline">
+                        Vincular tarefa
+                    </Link>
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mt-3 space-y-3">
+
+            {/* Indicadores reais */}
+            {indicators.length > 0 && (
+                <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3 border border-gray-100 dark:border-[#222]">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <Activity size={11} className="text-[#A0792E]" /> Indicadores reais
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                        {indicators.map((ind, i) => (
+                            <Link key={i} href={ind.href} className="flex items-center gap-2 p-2 rounded-lg border border-gray-100 dark:border-[#222] hover:bg-gray-50 dark:hover:bg-[#111] transition-colors">
+                                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                                    style={{ backgroundColor: `${ind.color}14`, color: ind.color }}>
+                                    {ind.icon}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[9px] text-gray-500 uppercase tracking-wide font-bold">{ind.label}</p>
+                                    <p className="text-sm font-black text-gray-900 dark:text-white leading-tight">{ind.value}</p>
+                                    {ind.sub && <p className="text-[9px] text-gray-400 truncate">{ind.sub}</p>}
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Projetos linkados (tasks) */}
+            {linkedTasks.length > 0 && (
+                <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3 border border-gray-100 dark:border-[#222]">
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <Briefcase size={11} className="text-[#A0792E]" /> Projetos & Tarefas linkadas
+                        </p>
+                        <div className="flex items-center gap-1.5 text-[9px]">
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{linkedDone}/{linkedTasks.length}</span>
+                            <span className="text-gray-400">concluídas</span>
+                            {linkedOverdue.length > 0 && (
+                                <span className="ml-1 text-red-500 font-bold flex items-center gap-0.5">
+                                    <Clock size={9} /> {linkedOverdue.length}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    <ul className="space-y-1">
+                        {linkedTasks.slice(0, 5).map(t => {
+                            const isDone = t.status === doneStatus;
+                            const isOverdue = !isDone && t.due_date && new Date(t.due_date) < new Date();
+                            return (
+                                <li key={t.id} className="flex items-center gap-2 text-xs">
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                        isDone ? 'bg-emerald-500' : isOverdue ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'
+                                    }`} />
+                                    <span className={`flex-1 truncate ${
+                                        isDone ? 'text-gray-400 line-through' : 'text-gray-700 dark:text-gray-300'
+                                    }`}>{t.title}</span>
+                                    <span className="text-[9px] text-gray-400 shrink-0">{t.status}</span>
+                                </li>
+                            );
+                        })}
+                        {linkedTasks.length > 5 && (
+                            <li className="text-[10px] text-gray-400 pl-3.5">+{linkedTasks.length - 5} tarefa(s)</li>
+                        )}
+                    </ul>
+                </div>
+            )}
+
+            {/* Leilões do trimestre */}
+            {(quarterAuctions.length > 0 || quarterFechamentos.length > 0) && (
+                <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3 border border-gray-100 dark:border-[#222]">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <Gavel size={11} className="text-[#A0792E]" /> Leilões do trimestre
+                    </p>
+                    <ul className="space-y-1.5">
+                        {quarterAuctions.slice(0, 3).map(l => (
+                            <li key={l.id} className="flex items-center justify-between gap-2 text-xs">
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-gray-900 dark:text-white truncate">{l.nome}</p>
+                                    <p className="text-[9px] text-gray-400">
+                                        {fmtDateBR(l.data)} · {l.status} · meta {fmtBRL(l.meta_bula || l.expectativa)}
+                                    </p>
+                                </div>
+                                <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 shrink-0">
+                                    Próximo
+                                </span>
+                            </li>
+                        ))}
+                        {quarterFechamentos.slice(0, 3).map(f => (
+                            <li key={f.id} className="flex items-center justify-between gap-2 text-xs">
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-gray-900 dark:text-white truncate">{f.nome}</p>
+                                    <p className="text-[9px] text-gray-400">
+                                        {fmtDateBR(f.data)} · VGV {fmtBRL(f.vgv_total)} · receita {fmtBRL(f.receita_bula)}
+                                    </p>
+                                </div>
+                                <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 shrink-0">
+                                    Realizado
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                    <Link href="/leiloes" className="inline-flex items-center gap-0.5 mt-2 text-[10px] font-bold uppercase tracking-wider text-[#A0792E] hover:underline">
+                        Abrir leilões <ArrowRight size={10} />
+                    </Link>
+                </div>
+            )}
         </div>
     );
 }

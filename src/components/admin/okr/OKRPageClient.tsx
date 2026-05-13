@@ -4,13 +4,18 @@ import { useState, useMemo } from 'react';
 import { OKRView } from '@/components/admin/kanban/OKRView';
 import { StrategyView } from '@/components/admin/kanban/StrategyView';
 import { ReviewView } from '@/components/admin/kanban/ReviewView';
-import { Target, Compass, ClipboardList, Shield, AlertTriangle, Activity } from 'lucide-react';
+import { OperationDashboard } from '@/components/admin/okr/OperationDashboard';
+import {
+    Target, Compass, ClipboardList, Shield, AlertTriangle, Activity,
+    LayoutDashboard, Users, Trophy,
+} from 'lucide-react';
 import {
     TacticalObjective, TacticalRisk, TacticalDecision, StrategicFlow,
 } from '@/app/web-admin/actions/tactical-strategic';
 import { TacticalTask, TacticalColumn } from '@/app/web-admin/actions/tactical-tasks';
+import { OKRSnapshot } from '@/app/web-admin/actions/okr-snapshot';
 
-type OKRTab = 'okrs' | 'strategy' | 'review';
+type OKRTab = 'panel' | 'okrs' | 'strategy' | 'review';
 
 interface Props {
     initialObjectives: TacticalObjective[];
@@ -19,6 +24,7 @@ interface Props {
     initialFlows: StrategicFlow[];
     initialTasks: TacticalTask[];
     initialColumns: TacticalColumn[];
+    snapshot: OKRSnapshot;
 }
 
 function healthTheme(v: number) {
@@ -76,6 +82,13 @@ function RadialGauge({ pct, stroke, size = 52, sw = 4 }: {
     );
 }
 
+const fmtBRL = (v: number) => {
+    if (!v) return 'R$ 0';
+    if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')}M`;
+    if (v >= 1_000) return `R$ ${(v / 1_000).toFixed(0)}k`;
+    return `R$ ${v}`;
+};
+
 interface KPICardProps {
     label: string;
     value: string;
@@ -122,13 +135,14 @@ export function OKRPageClient({
     initialFlows,
     initialTasks,
     initialColumns,
+    snapshot,
 }: Props) {
     const [objectives, setObjectives] = useState(initialObjectives);
     const [risks, setRisks] = useState(initialRisks);
     const [decisions, setDecisions] = useState(initialDecisions);
     const [flows, setFlows] = useState(initialFlows);
     const [tasks, setTasks] = useState(initialTasks);
-    const [tab, setTab] = useState<OKRTab>('okrs');
+    const [tab, setTab] = useState<OKRTab>('panel');
 
     const doneStatus = useMemo(() =>
         initialColumns.find(c =>
@@ -162,10 +176,24 @@ export function OKRPageClient({
 
     const overallTheme = healthTheme(health.overall);
 
+    // Captação score: leads 30d vs 30d anteriores normalizado (0–100).
+    const captationScore = useMemo(() => {
+        if (snapshot.leads.prev30d === 0) {
+            return snapshot.leads.new30d > 0 ? 70 : 0;
+        }
+        const ratio = snapshot.leads.new30d / snapshot.leads.prev30d;
+        return Math.min(100, Math.max(0, Math.round(50 + (ratio - 1) * 50)));
+    }, [snapshot.leads]);
+
     const tabs: { key: OKRTab; label: string; icon: React.ReactNode; badge?: string; alertBadge?: boolean }[] = [
         {
+            key: 'panel',
+            label: 'Painel',
+            icon: <LayoutDashboard size={14} />,
+        },
+        {
             key: 'okrs',
-            label: 'OKRs',
+            label: 'Objetivos',
             icon: <Target size={14} />,
             badge: health.okrProgress > 0 ? `${health.okrProgress}%` : undefined,
         },
@@ -203,7 +231,7 @@ export function OKRPageClient({
                             Fórmula do Boi
                         </h1>
                         <p className="text-sm text-gray-400 mt-1">
-                            Gestão de OKRs, estratégia comercial e saúde operacional
+                            OKRs, execução, indicadores reais e saúde da operação — visão única.
                         </p>
                     </div>
 
@@ -219,43 +247,70 @@ export function OKRPageClient({
                     </div>
                 </div>
 
-                {/* KPI Cards */}
+                {/* KPI Cards — agora misturando saúde tática com indicadores reais */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
                     <KPICard
                         label="Saúde Geral"
                         value={`${health.overall}%`}
-                        sub={overallTheme.label}
+                        sub={`${overallTheme.label} · OKR ${health.okrProgress}% · execução ${health.execution}%`}
                         score={health.overall}
                         icon={<Shield size={13} />}
                     />
                     <KPICard
-                        label="Progresso OKR"
-                        value={`${health.okrProgress}%`}
-                        sub={`${health.totalKRs} resultado${health.totalKRs !== 1 ? 's' : ''}-chave`}
-                        score={health.okrProgress}
-                        icon={<Target size={13} />}
+                        label="Captação 30d"
+                        value={String(snapshot.leads.new30d)}
+                        sub={snapshot.leads.prev30d > 0
+                            ? `${snapshot.leads.trendDeltaPct >= 0 ? '+' : ''}${snapshot.leads.trendDeltaPct.toFixed(0)}% vs período anterior`
+                            : `${snapshot.leads.new7d} em 7d`}
+                        score={captationScore}
+                        icon={<Users size={13} />}
                     />
                     <KPICard
-                        label="Execução"
-                        value={`${health.execution}%`}
-                        sub="tarefas concluídas"
-                        score={health.execution}
+                        label="Conversão MQL"
+                        value={snapshot.leads.mqlTotal > 0 ? `${snapshot.leads.mqlConvPct.toFixed(0)}%` : '—'}
+                        sub={`${snapshot.leads.mqlActive} MQLs ativos · pipeline ${fmtBRL(snapshot.leads.pipelineValue)}`}
+                        score={snapshot.leads.mqlConvPct}
                         icon={<Activity size={13} />}
                     />
                     <KPICard
-                        label="Riscos Ativos"
-                        value={String(health.activeRisks)}
-                        sub={health.overdueCount > 0
-                            ? `${health.overdueCount} tarefa${health.overdueCount > 1 ? 's' : ''} atrasada${health.overdueCount > 1 ? 's' : ''}`
-                            : 'Nenhuma tarefa atrasada'}
-                        score={health.activeRisks === 0 ? 100 : 0}
-                        forceAlert={health.activeRisks > 0}
-                        icon={<AlertTriangle size={13} />}
+                        label="Resultado 90d"
+                        value={fmtBRL(snapshot.auctions.vgv90d)}
+                        sub={snapshot.auctions.roi90dPct > 0
+                            ? `ROI ${snapshot.auctions.roi90dPct.toFixed(0)}% · receita ${fmtBRL(snapshot.auctions.receita90d)}`
+                            : `${snapshot.auctions.recent.length} fechamento(s)`}
+                        score={snapshot.auctions.roi90dPct > 0 ? Math.min(100, snapshot.auctions.roi90dPct / 2) : 0}
+                        icon={<Trophy size={13} />}
                     />
                 </div>
 
+                {/* Alerta visual de bloqueios — uma faixa fininha acima das tabs */}
+                {(health.activeRisks > 0 || health.overdueCount > 0 || snapshot.leads.stalledCount >= 5) && (
+                    <div className="flex flex-wrap items-center gap-2 mb-3 -mt-1">
+                        {health.activeRisks > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
+                                <AlertTriangle size={10} /> {health.activeRisks} risco{health.activeRisks > 1 ? 's' : ''} ativo{health.activeRisks > 1 ? 's' : ''}
+                            </span>
+                        )}
+                        {health.overdueCount > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                {health.overdueCount} tarefa{health.overdueCount > 1 ? 's' : ''} atrasada{health.overdueCount > 1 ? 's' : ''}
+                            </span>
+                        )}
+                        {snapshot.leads.stalledCount >= 5 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                {snapshot.leads.stalledCount} leads parados +30d
+                            </span>
+                        )}
+                        {snapshot.leads.closingSoonCount > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                {snapshot.leads.closingSoonCount} fechando em 7d
+                            </span>
+                        )}
+                    </div>
+                )}
+
                 {/* Tab bar */}
-                <div className="flex gap-0">
+                <div className="flex gap-0 overflow-x-auto">
                     {tabs.map(t => (
                         <button
                             key={t.key}
@@ -284,8 +339,23 @@ export function OKRPageClient({
 
             {/* Tab content */}
             <div className="flex-1 overflow-auto p-6 bg-gray-50/40 dark:bg-[#0C0C0C]">
+                {tab === 'panel' && (
+                    <OperationDashboard
+                        snapshot={snapshot}
+                        objectives={objectives}
+                        risks={risks}
+                        tasks={tasks}
+                        columns={initialColumns}
+                    />
+                )}
                 {tab === 'okrs' && (
-                    <OKRView objectives={objectives} onObjectivesChange={setObjectives} />
+                    <OKRView
+                        objectives={objectives}
+                        onObjectivesChange={setObjectives}
+                        snapshot={snapshot}
+                        tasks={tasks}
+                        doneStatus={doneStatus}
+                    />
                 )}
                 {tab === 'strategy' && (
                     <StrategyView
