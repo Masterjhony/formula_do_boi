@@ -1496,6 +1496,8 @@ export default function LeiloesPage() {
   const [modalidadeFiltro, setModalidadeFiltro] = useState('Todas')
   const [leiloeiraFiltro, setLeiloeiraFiltro] = useState('Todas')
   const [statusFiltro, setStatusFiltro] = useState('Todos')
+  const [dataInicio, setDataInicio] = useState('')
+  const [dataFim, setDataFim] = useState('')
   const [showAdvFilters, setShowAdvFilters] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -1567,6 +1569,8 @@ export default function LeiloesPage() {
     if (modalidadeFiltro !== 'Todas' && (l.presencial?.toUpperCase() ?? '') !== modalidadeFiltro) return false
     if (leiloeiraFiltro !== 'Todas' && l.leiloeira !== leiloeiraFiltro) return false
     if (statusFiltro !== 'Todos' && l.status !== statusFiltro) return false
+    if (dataInicio && (!l.data || l.data < dataInicio)) return false
+    if (dataFim && (!l.data || l.data > dataFim)) return false
     if (buscaNorm) {
       const hay = normalize(`${l.nome} ${l.criador ?? ''} ${l.tipo ?? ''} ${l.leiloeira ?? ''}`)
       if (!hay.includes(buscaNorm)) return false
@@ -1574,13 +1578,16 @@ export default function LeiloesPage() {
     return true
   })
 
+  const periodoAtivo = !!(dataInicio || dataFim)
   const activeFiltersCount =
     (modalidadeFiltro !== 'Todas' ? 1 : 0) +
     (leiloeiraFiltro !== 'Todas' ? 1 : 0) +
     (statusFiltro !== 'Todos' ? 1 : 0) +
+    (periodoAtivo ? 1 : 0) +
     (busca.trim() ? 1 : 0)
   const clearFilters = () => {
     setBusca(''); setModalidadeFiltro('Todas'); setLeiloeiraFiltro('Todas'); setStatusFiltro('Todos')
+    setDataInicio(''); setDataFim('')
   }
 
   const grupos: Record<string, MergedLeilao[]> = {}
@@ -1735,7 +1742,7 @@ export default function LeiloesPage() {
 
         {/* Advanced filters panel */}
         {showAdvFilters && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-gray-50/50 dark:bg-[#0F0F0F] leilao-filters-panel">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-gray-50/50 dark:bg-[#0F0F0F] leilao-filters-panel">
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Modalidade</label>
               <select value={modalidadeFiltro} onChange={e => setModalidadeFiltro(e.target.value)} className={inputCls}>
@@ -1761,6 +1768,42 @@ export default function LeiloesPage() {
                 <option value="prospecto">Prospecto</option>
                 <option value="concluido">Concluído</option>
               </select>
+            </div>
+            <div className="sm:col-span-2 lg:col-span-3">
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Período</label>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500">— de uma data específica ou um intervalo</span>
+                {periodoAtivo && (
+                  <button
+                    onClick={() => { setDataInicio(''); setDataFim('') }}
+                    className="ml-auto text-[10px] font-semibold text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    Limpar período
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-wider text-gray-400 pointer-events-none">De</span>
+                  <input
+                    type="date"
+                    value={dataInicio}
+                    max={dataFim || undefined}
+                    onChange={e => setDataInicio(e.target.value)}
+                    className={`${inputCls} pl-10`}
+                  />
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-wider text-gray-400 pointer-events-none">Até</span>
+                  <input
+                    type="date"
+                    value={dataFim}
+                    min={dataInicio || undefined}
+                    onChange={e => setDataFim(e.target.value)}
+                    className={`${inputCls} pl-12`}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
