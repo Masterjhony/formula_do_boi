@@ -55,6 +55,7 @@ const navConfig: NavEntry[] = [
         label: 'Operações', icon: Calendar,
         items: [
             { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
+            { href: '/tactical-plan/relatorios', label: 'Relatórios', icon: FileBarChart },
             { href: '/okr', label: 'OKR', icon: Target },
             { href: '/contratos', label: 'Contratos', icon: FileText },
         ],
