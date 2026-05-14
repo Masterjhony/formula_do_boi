@@ -9,6 +9,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import ProductCard from "@/components/ProductCard";
 import PaywallOverlay from "@/components/PaywallOverlay";
 import PaywallLink from "@/components/PaywallLink";
+import ReservaButton from "@/components/site/ReservaButton";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -452,6 +453,28 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
 
                         {!(product.tag === 'Vendido' || product.details?.status === 'Vendido') && (
                             <div className="space-y-3 mb-8">
+                                {(categoryLabel === 'Sêmen' || categoryLabel === 'Embrião') && (() => {
+                                    const kind: 'semen' | 'embriao' = categoryLabel === 'Sêmen' ? 'semen' : 'embriao';
+                                    const unitPrice = (() => {
+                                        const raw = String(product.price ?? '').trim();
+                                        if (!raw || raw.toLowerCase() === 'consultar') return null;
+                                        const n = parseFloat(raw.replace(/\./g, '').replace(',', '.'));
+                                        return Number.isFinite(n) ? n : null;
+                                    })();
+                                    return (
+                                        <ReservaButton
+                                            product={{
+                                                id: product.id,
+                                                name: product.name,
+                                                category: product.category,
+                                                kind,
+                                                central: kind === 'semen' ? 'Central Bela Vista' : (product.details?.breeder || product.details?.proprietario || null),
+                                                unit_price: unitPrice,
+                                            }}
+                                        />
+                                    );
+                                })()}
+
                                 <PaywallLink
                                     isAuthenticated={isAuthenticated}
                                     redirectPath={redirectPath}
