@@ -150,7 +150,7 @@ export async function GET(req: NextRequest) {
             type: 'task',
             title: t.title || '(sem título)',
             subtitle: subtitleParts.join(' · ') || undefined,
-            href: '/tactical-plan',
+            href: '/projetos',
         });
     }
 

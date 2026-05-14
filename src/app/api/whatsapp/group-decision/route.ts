@@ -46,6 +46,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  revalidatePath('/web-admin/tactical-plan')
+  revalidatePath('/web-admin/projetos')
   return NextResponse.json({ success: true, decision_id: data.id, decision: data.decision })
 }

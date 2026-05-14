@@ -136,8 +136,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (!dryRun && tasksUpdated > 0) {
-        revalidatePath('/web-admin/tactical-plan');
-        revalidatePath('/web-admin/tactical-plan/relatorios');
+        revalidatePath('/web-admin/projetos');
+        revalidatePath('/web-admin/projetos/relatorios');
     }
 
     return NextResponse.json({

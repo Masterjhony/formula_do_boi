@@ -26,7 +26,7 @@ const ROUTE_MAP: Record<string, { label: string; section?: string }> = {
     'products': { label: 'Catálogo' },
     'new': { label: 'Novo' },
     'settings': { label: 'Configurações', section: 'Administração' },
-    'tactical-plan': { label: 'Projetos', section: 'Operações' },
+    'projetos': { label: 'Projetos', section: 'Operações' },
     'agenda': { label: 'Agenda Oficial', section: 'Operações' },
     'users': { label: 'Usuários', section: 'Administração' },
     'vendas-marketing': { label: 'Visão Geral', section: 'Vendas & Marketing' },

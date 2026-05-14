@@ -332,7 +332,7 @@ function Lane({ lane }: { lane: LaneData }) {
                             text="Nenhuma tarefa vinculada"
                             hint="Vincule tarefas aos KRs no plano tático para conectar execução ao objetivo"
                             cta="Vincular tarefa"
-                            href="/tactical-plan"
+                            href="/projetos"
                         />
                     ) : (
                         <div>
@@ -359,7 +359,7 @@ function Lane({ lane }: { lane: LaneData }) {
                                     </li>
                                 ))}
                             </ul>
-                            <Link href="/tactical-plan" className="text-[9px] font-bold text-[#A0792E] hover:underline flex items-center gap-0.5 mt-1.5">
+                            <Link href="/projetos" className="text-[9px] font-bold text-[#A0792E] hover:underline flex items-center gap-0.5 mt-1.5">
                                 abrir tarefas <ChevronRight size={9} />
                             </Link>
                         </div>
@@ -622,7 +622,7 @@ function EmptyChainPreview({ snapshot }: { snapshot: OKRSnapshot }) {
                             </ul>
                         </div>
                         <p className="text-[9px] text-gray-400 mt-2 leading-tight">
-                            Vincule tarefas a KRs no <Link href="/tactical-plan" className="text-[#A0792E] hover:underline">plano tático</Link>.
+                            Vincule tarefas a KRs no <Link href="/projetos" className="text-[#A0792E] hover:underline">plano tático</Link>.
                         </p>
                     </div>
 

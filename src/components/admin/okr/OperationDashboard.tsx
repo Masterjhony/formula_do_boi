@@ -168,7 +168,7 @@ export function OperationDashboard({ snapshot, objectives, risks, tasks, columns
                 title: `${overdueCount} tarefa${overdueCount > 1 ? 's' : ''} atrasada${overdueCount > 1 ? 's' : ''}`,
                 body: 'Execução do plano tático em risco. Revise prazos e responsáveis.',
                 cta: 'Plano tático',
-                href: '/tactical-plan',
+                href: '/projetos',
             });
         }
         if (out.length === 0) {
@@ -467,7 +467,7 @@ export function OperationDashboard({ snapshot, objectives, risks, tasks, columns
                 <ModuleLink href="/crm" icon={<Users size={14} />} label="CRM" hint="Pipeline + MQLs" color={BRAND.BRONZE} />
                 <ModuleLink href="/whatsapp" icon={<MessageSquare size={14} />} label="WhatsApp" hint="Inbox + campanhas" color={BRAND.TECH_GREEN} />
                 <ModuleLink href="/leiloes" icon={<Gavel size={14} />} label="Leilões" hint="Cronograma + VGV" color={BRAND.TECH_BLUE} />
-                <ModuleLink href="/tactical-plan" icon={<Target size={14} />} label="Plano Tático" hint="Tarefas e responsáveis" color={BRAND.BRONZE_PALE} />
+                <ModuleLink href="/projetos" icon={<Target size={14} />} label="Plano Tático" hint="Tarefas e responsáveis" color={BRAND.BRONZE_PALE} />
             </div>
         </div>
     );

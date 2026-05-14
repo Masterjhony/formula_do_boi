@@ -110,7 +110,7 @@ export async function createContract(input: ContractInput): Promise<Contract> {
         .select()
         .single();
     if (error) throw new Error(error.message);
-    revalidatePath('/web-admin/tactical-plan');
+    revalidatePath('/web-admin/projetos');
     return data as Contract;
 }
 
@@ -123,7 +123,7 @@ export async function updateContract(id: string, input: Partial<ContractInput>):
         .select()
         .single();
     if (error) throw new Error(error.message);
-    revalidatePath('/web-admin/tactical-plan');
+    revalidatePath('/web-admin/projetos');
     return data as Contract;
 }
 
@@ -134,7 +134,7 @@ export async function deleteContract(id: string): Promise<void> {
         .delete()
         .eq('id', id);
     if (error) throw new Error(error.message);
-    revalidatePath('/web-admin/tactical-plan');
+    revalidatePath('/web-admin/projetos');
 }
 
 // ────────────────────────────────────────────────────────────

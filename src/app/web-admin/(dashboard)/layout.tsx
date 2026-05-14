@@ -55,9 +55,9 @@ const navConfig: NavEntry[] = [
     {
         label: 'Operações', icon: Calendar,
         items: [
-            { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
+            { href: '/projetos', label: 'Projetos', icon: Calendar },
             { href: '/agenda', label: 'Agenda Oficial', icon: CalendarCheck },
-            { href: '/tactical-plan/relatorios', label: 'Relatórios', icon: FileBarChart },
+            { href: '/projetos/relatorios', label: 'Relatórios', icon: FileBarChart },
             { href: '/okr', label: 'OKR', icon: Target },
             { href: '/contratos', label: 'Contratos', icon: FileText },
         ],
@@ -146,7 +146,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const isCRM = pathname === '/crm';
     const isLeads = pathname === '/leads';
-    const isTactical = pathname === '/tactical-plan';
+    const isTactical = pathname === '/projetos';
     const isOKR = pathname === '/okr';
     const isContratos = pathname === '/contratos';
     const isWhatsapp = pathname === '/whatsapp';

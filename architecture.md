@@ -218,7 +218,7 @@ A sessão Baileys é persistida via `useMultiFileAuthState` em arquivos no volum
 
 Decisões arquiteturais relevantes do lado React/Next dentro do painel admin:
 
-- **URL como fonte de verdade** — em telas com aba+detalhe (`fechamento`, `whatsapp`, `tactical-plan`, `crm`), o estado visível vive em query params (`?id=`, `?tab=`, `?view=`, `?task=`, `?lead=`). O estado deriva de `useSearchParams`; mutações usam `router.replace` (não `push`) pra não inflar o histórico. Aba default não emite param.
+- **URL como fonte de verdade** — em telas com aba+detalhe (`fechamento`, `whatsapp`, `projetos`, `crm`), o estado visível vive em query params (`?id=`, `?tab=`, `?view=`, `?task=`, `?lead=`). O estado deriva de `useSearchParams`; mutações usam `router.replace` (não `push`) pra não inflar o histórico. Aba default não emite param.
 - **Suspense boundary obrigatório** — qualquer client component que chame `useSearchParams` precisa estar dentro de `<Suspense>` (exigência do Next 16 pra build estático). Quando a página é server component, o Suspense fica no `page.tsx`; quando é client, fica no próprio arquivo.
 - **Modal "criar novo" é estado local** — não vai pra URL, porque não há registro a referenciar até o save. Modal "editar" vive em URL e usa o id real.
 - **Componente `Pagination` compartilhado** — [src/components/admin/Pagination.tsx](src/components/admin/Pagination.tsx) provê controles `« ‹ 1 2 3 › »` + dropdown "Por página". Quem consome controla `page` e `pageSize` por props. Em uso: [`/leads`](src/components/admin/crm/CRMLeadsView.tsx), Qualificação do CRM ([CRMQualificacaoView](src/components/admin/crm/CRMQualificacaoView.tsx)).

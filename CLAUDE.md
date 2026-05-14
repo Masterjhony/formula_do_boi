@@ -95,7 +95,7 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 - **Deep-link URL params (admin panel)**: telas com aba+detalhe usam `useSearchParams`/`router.replace` (não `push`) como fonte de verdade para o estado visível, permitindo compartilhar a URL exata. Aba default não emite param (mantém URL limpa). Convenções:
   - `/leiloes/fechamento?id=<uuid>` — modal de detalhe ([src/app/web-admin/(dashboard)/leiloes/FechamentoView.tsx](src/app/web-admin/(dashboard)/leiloes/FechamentoView.tsx)).
   - `/whatsapp?tab=<inbox|fluxo|templates|campanhas|metricas|conexao>` — `inbox` é default ([src/app/web-admin/(dashboard)/whatsapp/page.tsx](src/app/web-admin/(dashboard)/whatsapp/page.tsx)).
-  - `/tactical-plan?view=<kanban|gantt|whiteboard|dashboard|members>&task=<uuid>` — `kanban` é default. Modal "nova tarefa" é estado local, não vai pra URL ([src/components/admin/kanban/KanbanBoard.tsx](src/components/admin/kanban/KanbanBoard.tsx)).
+  - `/projetos?view=<kanban|gantt|whiteboard|dashboard|members>&task=<uuid>` — `kanban` é default. Modal "nova tarefa" é estado local, não vai pra URL ([src/components/admin/kanban/KanbanBoard.tsx](src/components/admin/kanban/KanbanBoard.tsx)).
   - `/crm?view=<qualificacao|kanban|configuracoes>&lead=<uuid>` — `qualificacao` é default. Modal "novo lead" é estado local ([src/components/admin/crm/CRMDashboardClient.tsx](src/components/admin/crm/CRMDashboardClient.tsx)).
   - Todas as páginas que consomem `useSearchParams` envolvem o cliente em `<Suspense>` (Next 16 exige para build estático).
   - IDs inexistentes (registro deletado) não quebram — modal fica fechado, página carrega normal.
@@ -118,7 +118,7 @@ The route handler at [src/app/web-lp/route.ts](src/app/web-lp/route.ts) streams 
 `agenda`, `animais`, `atacante`, `auth`, `dashboard`, `embrioes`, `login`, `lote`, `matrizes`, `parceiros`, `pix-teste`, `quem-somos`, `rankings`, `semen`, `sertanejo`, `top-criadores`, `touros`, `venda-conosco`.
 
 ### `/web-admin` (`admin.*`)
-Dashboard segments under `(dashboard)`: `analytics`, `animal-availability`, `biblioteca-midia`, `breeders`, `central-bela-vista`, `contratos`, `crm`, `genealogia`, `ia`, `leads`, `leiloes`, `lotes-doadoras`, `lotes-touros`, `okr`, `products`, `settings`, `tactical-plan`, `users`, `vendas-marketing`, `whatsapp`. Auth pages live under `(auth)`. Server actions in [src/app/web-admin/actions/](src/app/web-admin/actions/).
+Dashboard segments under `(dashboard)`: `analytics`, `animal-availability`, `biblioteca-midia`, `breeders`, `central-bela-vista`, `contratos`, `crm`, `genealogia`, `ia`, `leads`, `leiloes`, `lotes-doadoras`, `lotes-touros`, `okr`, `products`, `projetos`, `reservas`, `settings`, `users`, `vendas-marketing`, `whatsapp`. Auth pages live under `(auth)`. Server actions in [src/app/web-admin/actions/](src/app/web-admin/actions/).
 
 ### `/web-erp` (`erp.*`)
 Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeiro`, `leiloes`. Auth under `(auth)`.
@@ -177,7 +177,7 @@ Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeir
 | `/api/whatsapp/group-risk` | POST | `/risco <title>` from a group → inserts into `tactical_risks` with default `media`/`medio`. |
 | `/api/whatsapp/group-ai` | POST | `/ia <pergunta>` from a group → GLM-4.7 with tool-calling answers via tables; reply pushed back to the group by the VPS. |
 
-All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET` and call `revalidatePath('/web-admin/tactical-plan')` (where applicable).
+All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET` and call `revalidatePath('/web-admin/projetos')` (where applicable).
 
 ### AI (admin)
 | Route | Methods | Purpose |

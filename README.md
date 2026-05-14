@@ -50,7 +50,7 @@ Auth via Supabase SSR. Segmentos sob `(dashboard)`:
 | `contratos` | Geração e envio de contratos via **ClickSign** (assinatura eletrônica) |
 | `biblioteca-midia` | Upload/download direto em Cloudflare R2 (presigned URLs) |
 | `breeders`, `genealogia` | Cadastro e visualização da genealogia |
-| `tactical-plan`, `okr`, `vendas-marketing` | Plano tático, OKRs, vendas/marketing |
+| `projetos`, `okr`, `vendas-marketing` | Projetos (plano tático), OKRs, vendas/marketing |
 | `leiloes`, `lotes-touros`, `lotes-doadoras` | Operação de leilões |
 | `ia` | Assistente GLM-4.7 com tool-calling nas 8 tabelas |
 
@@ -88,7 +88,7 @@ Plataforma do braço **Bula Assessoria**: CRM próprio, leilões, fechamentos, c
   |---|---|
   | Fechamento de leilão | `/leiloes/fechamento?id=<uuid>` |
   | Central WhatsApp (abas) | `/whatsapp?tab=<inbox\|fluxo\|templates\|campanhas\|metricas\|conexao>` |
-  | Plano tático | `/tactical-plan?view=<kanban\|gantt\|whiteboard\|dashboard\|members>&task=<uuid>` |
+  | Projetos | `/projetos?view=<kanban\|gantt\|whiteboard\|dashboard\|members>&task=<uuid>` |
   | CRM | `/crm?view=<qualificacao\|kanban\|configuracoes>&lead=<uuid>` |
 
   Páginas que consomem `useSearchParams` envolvem o cliente em `<Suspense>` (exigência do Next 16 para build estático). IDs inexistentes (registro deletado) não quebram — modal fica fechado.

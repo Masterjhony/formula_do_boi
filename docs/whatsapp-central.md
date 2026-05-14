@@ -450,7 +450,7 @@ Quando uma mensagem em um grupo (`@g.us`, `fromMe=false`) começa com um dos pre
 | `/risco <título>` | `/api/whatsapp/group-risk` | Linha em `tactical_risks` (`probability=media`, `impact=medio`, `status=active`) |
 | `/ia <pergunta>` | `/api/whatsapp/group-ai` | Envia "processando…", chama GLM-4.7 com tool-calling nas 8 tabelas, responde no grupo (≤ ~1000 chars). Timeout 30s. **Fire-and-forget no VPS** — não bloqueia outros comandos |
 
-Os endpoints fazem `revalidatePath('/web-admin/tactical-plan')` quando aplicável (tarefa/decisao/risco), de forma que o Kanban atualiza imediatamente para quem estiver vendo.
+Os endpoints fazem `revalidatePath('/web-admin/projetos')` quando aplicável (tarefa/decisao/risco), de forma que o Kanban atualiza imediatamente para quem estiver vendo.
 
 > **Pitfall conhecido**: ao adicionar `WHATSAPP_GROUP_TASK_SECRET` via `vercel env add`, conferir o tamanho (`echo $SECRET | wc -c`). A CLI pode anexar um `\n` deixando 65 em vez de 64, e todas as chamadas falham com 401.
 

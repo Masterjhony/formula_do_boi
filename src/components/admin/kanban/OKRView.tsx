@@ -923,7 +923,7 @@ function ObjectiveOperationPanel({ objective, snapshot, tasks, doneStatus }: OpP
             <div className="mt-3 rounded-xl border border-dashed border-gray-200 dark:border-[#222] p-3 text-center">
                 <p className="text-[11px] text-gray-400">
                     Nenhuma tarefa, leilão ou indicador vinculado.{' '}
-                    <Link href="/tactical-plan" className="text-[#A0792E] hover:underline">
+                    <Link href="/projetos" className="text-[#A0792E] hover:underline">
                         Vincular tarefa
                     </Link>
                 </p>
