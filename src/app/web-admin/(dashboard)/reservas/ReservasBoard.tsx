@@ -185,7 +185,7 @@ export default function ReservasBoard({ initial }: Props) {
                                 fontWeight: 500,
                             }}
                         >
-                            Operações · Reservas
+                            Produtos · Reservas
                         </p>
                         <h1 className="text-2xl font-medium text-gray-900 dark:text-[#F5F0E4] tracking-tight">
                             Gerenciamento de Reservas

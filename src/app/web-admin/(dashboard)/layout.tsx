@@ -45,10 +45,11 @@ const navConfig: NavEntry[] = [
         ],
     },
     {
-        label: 'Animais', icon: Dna,
+        label: 'Produtos', icon: Dna,
         items: [
-            { href: '/lotes-doadoras', label: 'Lotes Doadoras', icon: Dna },
-            { href: '/lotes-touros', label: 'Lotes Touros', icon: Award },
+            { href: '/lotes-doadoras', label: 'Doadoras', icon: Dna },
+            { href: '/lotes-touros', label: 'Touros Doadores', icon: Award },
+            { href: '/reservas', label: 'Reservas', icon: Package },
         ],
     },
     {
@@ -56,7 +57,6 @@ const navConfig: NavEntry[] = [
         items: [
             { href: '/tactical-plan', label: 'Projetos', icon: Calendar },
             { href: '/agenda', label: 'Agenda Oficial', icon: CalendarCheck },
-            { href: '/reservas', label: 'Reservas', icon: Package },
             { href: '/tactical-plan/relatorios', label: 'Relatórios', icon: FileBarChart },
             { href: '/okr', label: 'OKR', icon: Target },
             { href: '/contratos', label: 'Contratos', icon: FileText },
