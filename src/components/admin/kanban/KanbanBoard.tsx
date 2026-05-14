@@ -22,10 +22,12 @@ import { TaskModal } from './TaskModal';
 import { GanttView } from './GanttView';
 import { WhiteboardView } from './WhiteboardView';
 import { MembersView } from './MembersView';
+import { ArchivedTasksModal } from './ArchivedTasksModal';
 import {
     TacticalTask, TacticalColumn,
     updateTask, createTask, moveTask, deleteTask,
     createColumn, updateColumn, deleteColumn,
+    archiveTask,
 } from '@/app/web-admin/actions/tactical-tasks';
 import {
     TacticalMember,
@@ -33,7 +35,7 @@ import {
 import { createPortal } from 'react-dom';
 import {
     Plus, LayoutGrid, Calendar as CalendarIcon, Filter, Maximize2, Minimize2,
-    Presentation, Eye, Users,
+    Presentation, Eye, Users, Archive,
 } from 'lucide-react';
 
 type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'members';
@@ -95,6 +97,7 @@ export function KanbanBoard({
     const [filterPriority, setFilterPriority] = useState<string>('all');
     const [focusMode, setFocusMode] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isArchivedOpen, setIsArchivedOpen] = useState(false);
 
     const doneStatus = useMemo(() =>
         columns.find(c =>
@@ -161,6 +164,21 @@ export function KanbanBoard({
             await deleteTask(taskId);
             setTasks(tasks.filter(t => t.id !== taskId));
         } catch (e) { console.error('Failed to delete task', e); }
+    };
+
+    const handleArchiveTask = async (taskId: string) => {
+        try {
+            await archiveTask(taskId);
+            setTasks(prev => prev.filter(t => t.id !== taskId));
+        } catch (e) { console.error('Failed to archive task', e); }
+    };
+
+    const handleRestoreTask = (task: TacticalTask) => {
+        setTasks(prev => prev.some(t => t.id === task.id) ? prev : [...prev, task]);
+    };
+
+    const handleDeleteFromArchive = (taskId: string) => {
+        setTasks(prev => prev.filter(t => t.id !== taskId));
     };
 
     // Drag Handlers
@@ -313,6 +331,16 @@ export function KanbanBoard({
                             </>
                         )}
 
+                        {(viewMode === 'kanban' || viewMode === 'gantt') && (
+                            <button
+                                onClick={() => setIsArchivedOpen(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222]"
+                                title="Tarefas arquivadas"
+                            >
+                                <Archive size={14} /> Arquivados
+                            </button>
+                        )}
+
                         <button
                             onClick={() => setIsFullscreen(!isFullscreen)}
                             className="flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222]"
@@ -443,9 +471,17 @@ export function KanbanBoard({
                 onSave={handleSaveTask}
                 onDelete={handleDeleteTask}
                 onDuplicate={handleDuplicateTask}
+                onArchive={handleArchiveTask}
                 columns={columns}
                 allTasks={tasks}
                 members={members}
+            />
+
+            <ArchivedTasksModal
+                isOpen={isArchivedOpen}
+                onClose={() => setIsArchivedOpen(false)}
+                onRestore={handleRestoreTask}
+                onDelete={handleDeleteFromArchive}
             />
         </div>
     );

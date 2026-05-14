@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Calendar, Save, Plus, Trash2, CheckCircle2, MessageSquare, Send, Paperclip, Download, FileText, FileImage, FileVideo, File, Zap, Link, Map, Copy } from 'lucide-react';
+import { X, Calendar, Save, Plus, Trash2, CheckCircle2, MessageSquare, Send, Paperclip, Download, FileText, FileImage, FileVideo, File, Zap, Link, Map, Copy, Archive } from 'lucide-react';
 import { TacticalTask, TacticalComment, TacticalAttachment, getComments, addComment, getAttachments, saveAttachmentRecord, deleteAttachment } from '@/app/web-admin/actions/tactical-tasks';
 import { TacticalMember } from '@/app/web-admin/actions/tactical-strategic';
 import { createClient } from '@/utils/supabase/client';
@@ -16,12 +16,13 @@ interface TaskModalProps {
     onSave: (taskData: any) => Promise<void>;
     onDelete?: (taskId: string) => Promise<void>;
     onDuplicate?: (taskData: any) => Promise<void>;
+    onArchive?: (taskId: string) => Promise<void>;
     columns: { title: string }[];
     allTasks?: TacticalTask[];
     members?: TacticalMember[];
 }
 
-export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDelete, onDuplicate, columns, allTasks = [], members = [] }: TaskModalProps) {
+export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDelete, onDuplicate, onArchive, columns, allTasks = [], members = [] }: TaskModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [status, setStatus] = useState('A fazer');
@@ -744,6 +745,18 @@ export function TaskModal({ isOpen, onClose, task, defaultStatus, onSave, onDele
                                 <button type="button" onClick={handleDuplicate} disabled={isSaving || !title.trim()}
                                     className="px-5 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-200 dark:hover:bg-[#222222] border border-transparent hover:border-gray-300 dark:hover:border-[#333333] transition-all flex items-center gap-2 disabled:opacity-50">
                                     <Copy size={18} /> Duplicar
+                                </button>
+                            )}
+                            {task && onArchive && (
+                                <button type="button" onClick={async () => {
+                                    setIsSaving(true);
+                                    try { await onArchive(task.id); onClose(); }
+                                    catch (e: any) { setSaveError(e?.message || 'Não foi possível arquivar a tarefa.'); }
+                                    finally { setIsSaving(false); }
+                                }} disabled={isSaving}
+                                    className="px-5 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-200 dark:hover:bg-[#222222] border border-transparent hover:border-gray-300 dark:hover:border-[#333333] transition-all flex items-center gap-2 disabled:opacity-50"
+                                    title="Arquivar tarefa (mantém o histórico, some do board)">
+                                    <Archive size={18} /> Arquivar
                                 </button>
                             )}
                             <button type="button" onClick={requestClose} disabled={isSaving}

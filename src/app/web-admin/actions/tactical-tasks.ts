@@ -63,6 +63,8 @@ export interface TacticalTask {
     whatsapp_group_name?: string;
     whatsapp_sender?: string;
     whatsapp_sender_name?: string;
+    // Arquivamento
+    archived_at?: string | null;
 }
 
 export async function getTasks() {
@@ -70,6 +72,7 @@ export async function getTasks() {
     const { data, error } = await supabase
         .from('tactical_tasks')
         .select('*, tactical_task_comments(count), tactical_task_attachments(count)')
+        .is('archived_at', null)
         .order('position', { ascending: true }); // We might want to order by status then position, or handle sorting in JS
 
     if (error) {
@@ -78,6 +81,55 @@ export async function getTasks() {
     }
 
     return data as TacticalTask[];
+}
+
+export async function getArchivedTasks() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('tactical_tasks')
+        .select('*, tactical_task_comments(count), tactical_task_attachments(count)')
+        .not('archived_at', 'is', null)
+        .order('archived_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching archived tasks:', error);
+        return [];
+    }
+
+    return data as TacticalTask[];
+}
+
+export async function archiveTask(id: string) {
+    const supabase = await createClient();
+    const { error } = await supabase
+        .from('tactical_tasks')
+        .update({ archived_at: new Date().toISOString() })
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error archiving task:', error);
+        throw new Error('Failed to archive task');
+    }
+
+    revalidatePath('/web-admin/tactical-plan');
+}
+
+export async function unarchiveTask(id: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('tactical_tasks')
+        .update({ archived_at: null })
+        .eq('id', id)
+        .select('*, tactical_task_comments(count), tactical_task_attachments(count)')
+        .single();
+
+    if (error) {
+        console.error('Error unarchiving task:', error);
+        throw new Error('Failed to unarchive task');
+    }
+
+    revalidatePath('/web-admin/tactical-plan');
+    return data as TacticalTask;
 }
 
 export async function createTask(task: Omit<TacticalTask, 'id' | 'created_at'>) {
