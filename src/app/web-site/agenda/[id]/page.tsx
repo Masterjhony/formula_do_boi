@@ -189,6 +189,10 @@ export default async function LeilaoDetailPage({
     const isVirtual = leilao.modelo?.toLowerCase() === "virtual";
     const isConfirmado = leilao.status?.toLowerCase() === "confirmado";
     const catalogo = leilao.catalogo_url ? inferFileMeta(leilao.catalogo_url) : null;
+    const catalogoDisplayTitle = `Catálogo oficial · ${leilao.nome}`;
+    const catalogoPreviewUrl = catalogo && !catalogo.isImage
+        ? `${leilao.catalogo_url}#toolbar=0&navpanes=0&statusbar=0&view=FitH`
+        : leilao.catalogo_url;
 
     const assessorMsg = d
         ? `Olá! Vim pela página do leilão ${leilao.nome} (${d.dia} de ${d.mes}) e gostaria de saber mais.`
@@ -447,15 +451,15 @@ export default async function LeilaoDetailPage({
             {catalogo && leilao.catalogo_url && (
                 <section
                     style={{
-                        background: INK_2,
+                        background: `linear-gradient(180deg, ${INK} 0%, ${INK_2} 100%)`,
                         borderBottom: "1px solid rgba(212,168,92,0.10)",
                     }}
                 >
-                    <div className="container mx-auto px-4 py-14 md:py-20" style={{ maxWidth: 1200 }}>
-                        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-8">
+                    <div className="container mx-auto px-4 py-12 md:py-16" style={{ maxWidth: 1100 }}>
+                        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
                             <div>
                                 <div
-                                    className="inline-flex items-center gap-3 mb-4"
+                                    className="inline-flex items-center gap-3 mb-3"
                                     style={{
                                         fontFamily: "var(--font-mono)",
                                         fontSize: 11,
@@ -471,146 +475,172 @@ export default async function LeilaoDetailPage({
                                 <h2
                                     className="font-display"
                                     style={{
-                                        fontSize: "clamp(28px, 4vw, 44px)",
+                                        fontSize: "clamp(24px, 3.2vw, 36px)",
                                         fontWeight: 500,
                                         color: FG,
                                         letterSpacing: "-0.02em",
-                                        maxWidth: "26ch",
+                                        maxWidth: "28ch",
+                                        lineHeight: 1.1,
                                     }}
                                 >
                                     Catálogo oficial do leilão.
                                 </h2>
                             </div>
-                            <p
-                                style={{
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: 12,
-                                    letterSpacing: "0.10em",
-                                    color: "rgba(245,240,228,0.55)",
-                                    maxWidth: "34ch",
-                                }}
-                            >
-                                Preview embutido abaixo. Caso o navegador bloqueie, abra o arquivo em nova aba.
-                            </p>
-                        </div>
-
-                        {/* Cabeçalho do anexo */}
-                        <div
-                            className="card-engraved flex items-center gap-4 px-5 py-4 mb-0"
-                            style={{
-                                background: INK,
-                                border: "1px solid rgba(212,168,92,0.28)",
-                                borderBottom: "none",
-                            }}
-                        >
-                            <div
-                                className="flex items-center justify-center flex-shrink-0"
-                                style={{
-                                    width: 48,
-                                    height: 56,
-                                    background: BRONZE,
-                                    color: INK,
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    letterSpacing: "0.12em",
-                                }}
-                            >
-                                .{catalogo.ext.toUpperCase().slice(0, 4)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div
-                                    className="font-display truncate"
-                                    style={{
-                                        fontSize: 18,
-                                        fontWeight: 500,
-                                        color: FG,
-                                        letterSpacing: "-0.01em",
-                                    }}
-                                >
-                                    {catalogo.filename}
-                                </div>
-                                <div
-                                    className="truncate"
+                            {!catalogo.isImage && (
+                                <p
                                     style={{
                                         fontFamily: "var(--font-mono)",
                                         fontSize: 11,
-                                        letterSpacing: "0.16em",
-                                        textTransform: "uppercase",
+                                        letterSpacing: "0.10em",
                                         color: "rgba(245,240,228,0.45)",
-                                        marginTop: 3,
+                                        maxWidth: "32ch",
                                     }}
                                 >
-                                    {catalogo.host || "arquivo externo"}
-                                </div>
-                            </div>
-                            <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-                                <a
-                                    href={leilao.catalogo_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 transition-all hover:bg-white/5"
-                                    style={{
-                                        fontFamily: "var(--font-mono)",
-                                        fontSize: 11,
-                                        letterSpacing: "0.18em",
-                                        textTransform: "uppercase",
-                                        color: BRONZE_LIGHT,
-                                        border: "1px solid rgba(212,168,92,0.35)",
-                                        fontWeight: 600,
-                                    }}
-                                >
-                                    <ArrowRight className="w-3.5 h-3.5" />
-                                    Abrir em nova aba
-                                </a>
-                                <a
-                                    href={leilao.catalogo_url}
-                                    download
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 transition-all hover:opacity-90"
-                                    style={{
-                                        fontFamily: "var(--font-mono)",
-                                        fontSize: 11,
-                                        letterSpacing: "0.18em",
-                                        textTransform: "uppercase",
-                                        color: INK,
-                                        background: BRONZE,
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    <Download className="w-3.5 h-3.5" />
-                                    Baixar
-                                </a>
-                            </div>
+                                    Navegue o catálogo abaixo ou baixe em PDF para consultar offline.
+                                </p>
+                            )}
                         </div>
 
-                        {/* Preview embutido */}
+                        {/* Card unificado: header + preview */}
                         <div
-                            className="relative overflow-hidden"
+                            className="overflow-hidden"
                             style={{
                                 background: INK,
                                 border: "1px solid rgba(212,168,92,0.28)",
-                                borderTop: "1px solid rgba(212,168,92,0.14)",
-                                aspectRatio: "8 / 11",
-                                maxHeight: 900,
+                                borderRadius: 4,
+                                boxShadow: "0 24px 60px -28px rgba(0,0,0,0.65)",
                             }}
                         >
-                            {catalogo.isImage ? (
-                                /* eslint-disable-next-line @next/next/no-img-element */
-                                <img
-                                    src={leilao.catalogo_url}
-                                    alt={`Catálogo do leilão ${leilao.nome}`}
-                                    className="w-full h-full object-contain"
-                                />
-                            ) : (
-                                <iframe
-                                    src={leilao.catalogo_url}
-                                    title={`Catálogo · ${leilao.nome}`}
-                                    className="absolute inset-0 w-full h-full"
-                                    style={{ border: "none", background: INK }}
-                                />
-                            )}
+                            {/* Header */}
+                            <div
+                                className="flex items-center gap-4 px-5 py-4"
+                                style={{
+                                    borderBottom: "1px solid rgba(212,168,92,0.18)",
+                                    background:
+                                        "linear-gradient(180deg, rgba(212,168,92,0.06) 0%, rgba(212,168,92,0.00) 100%)",
+                                }}
+                            >
+                                <div
+                                    className="flex items-center justify-center flex-shrink-0"
+                                    style={{
+                                        width: 44,
+                                        height: 52,
+                                        background: BRONZE,
+                                        color: INK,
+                                        fontFamily: "var(--font-mono)",
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        letterSpacing: "0.12em",
+                                        borderRadius: 2,
+                                    }}
+                                >
+                                    .{catalogo.ext.toUpperCase().slice(0, 4)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div
+                                        className="font-display"
+                                        style={{
+                                            fontSize: 16,
+                                            fontWeight: 500,
+                                            color: FG,
+                                            letterSpacing: "-0.01em",
+                                            lineHeight: 1.25,
+                                            display: "-webkit-box",
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: "vertical",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        {catalogoDisplayTitle}
+                                    </div>
+                                    <div
+                                        className="flex items-center gap-2 mt-1"
+                                        style={{
+                                            fontFamily: "var(--font-mono)",
+                                            fontSize: 10,
+                                            letterSpacing: "0.18em",
+                                            textTransform: "uppercase",
+                                            color: "rgba(245,240,228,0.45)",
+                                        }}
+                                    >
+                                        <FileText className="w-3 h-3" style={{ color: BRONZE_LIGHT }} />
+                                        Documento PDF
+                                        {d && (
+                                            <>
+                                                <span style={{ width: 1, height: 10, background: "rgba(212,168,92,0.25)" }} />
+                                                <span>{d.dia} {d.mes.slice(0, 3)} {d.ano}</span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+                                    <a
+                                        href={leilao.catalogo_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-3.5 py-2 transition-all hover:bg-white/5"
+                                        style={{
+                                            fontFamily: "var(--font-mono)",
+                                            fontSize: 10,
+                                            letterSpacing: "0.18em",
+                                            textTransform: "uppercase",
+                                            color: BRONZE_LIGHT,
+                                            border: "1px solid rgba(212,168,92,0.35)",
+                                            fontWeight: 600,
+                                            borderRadius: 2,
+                                        }}
+                                    >
+                                        <ArrowRight className="w-3 h-3" />
+                                        Nova aba
+                                    </a>
+                                    <a
+                                        href={leilao.catalogo_url}
+                                        download
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-3.5 py-2 transition-all hover:opacity-90"
+                                        style={{
+                                            fontFamily: "var(--font-mono)",
+                                            fontSize: 10,
+                                            letterSpacing: "0.18em",
+                                            textTransform: "uppercase",
+                                            color: INK,
+                                            background: BRONZE,
+                                            fontWeight: 700,
+                                            borderRadius: 2,
+                                        }}
+                                    >
+                                        <Download className="w-3 h-3" />
+                                        Baixar
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* Preview */}
+                            <div
+                                className="relative"
+                                style={{
+                                    background: INK_2,
+                                    height: "min(82vh, 920px)",
+                                    minHeight: 520,
+                                }}
+                            >
+                                {catalogo.isImage ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                    <img
+                                        src={leilao.catalogo_url}
+                                        alt={`Catálogo do leilão ${leilao.nome}`}
+                                        className="w-full h-full object-contain"
+                                    />
+                                ) : (
+                                    <iframe
+                                        src={catalogoPreviewUrl ?? leilao.catalogo_url}
+                                        title={`Catálogo · ${leilao.nome}`}
+                                        className="absolute inset-0 w-full h-full"
+                                        style={{ border: "none", background: INK_2 }}
+                                    />
+                                )}
+                            </div>
                         </div>
 
                         {/* CTAs mobile */}
@@ -628,10 +658,30 @@ export default async function LeilaoDetailPage({
                                     color: INK,
                                     background: BRONZE,
                                     fontWeight: 700,
+                                    borderRadius: 2,
+                                }}
+                            >
+                                <Download className="w-3.5 h-3.5" />
+                                Baixar catálogo
+                            </a>
+                            <a
+                                href={leilao.catalogo_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 px-4 py-3 transition-all"
+                                style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: 11,
+                                    letterSpacing: "0.18em",
+                                    textTransform: "uppercase",
+                                    color: BRONZE_LIGHT,
+                                    border: "1px solid rgba(212,168,92,0.35)",
+                                    fontWeight: 600,
+                                    borderRadius: 2,
                                 }}
                             >
                                 <ArrowRight className="w-3.5 h-3.5" />
-                                Abrir catálogo em nova aba
+                                Abrir em nova aba
                             </a>
                         </div>
                     </div>

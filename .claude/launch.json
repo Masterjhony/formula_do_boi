@@ -5,6 +5,7 @@
       "name": "next-dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
+      "cwd": "C:/Users/Notebook-Acer/Desktop/formula_boi/formula_boi",
       "port": 3000
     }
   ]
