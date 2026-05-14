@@ -13,12 +13,17 @@ import {
     DragStartEvent,
 } from '@dnd-kit/core';
 import {
-    RESERVA_STAGES,
     RESERVA_SPECIAL_STAGES,
     isSpecialStatus,
     ProductReservation,
 } from '@/lib/reservations';
-import { moveReservation } from '@/app/web-admin/actions/reservations';
+import {
+    moveReservation,
+    ReservaColumn as ReservaColumnRow,
+    updateReservaColumn,
+    deleteReservaColumn,
+    createReservaColumn,
+} from '@/app/web-admin/actions/reservations';
 import ReservaColumn from './ReservaColumn';
 import ReservaCard from './ReservaCard';
 import ReservaDetail from './ReservaDetail';
@@ -27,6 +32,7 @@ import { Search, RefreshCw, Layers, X as XIcon, ChevronDown, SlidersHorizontal, 
 
 interface Props {
     initial: ProductReservation[];
+    initialColumns: ReservaColumnRow[];
 }
 
 type KindFilter = 'all' | 'semen' | 'embriao';
@@ -36,11 +42,53 @@ type OriginFilter = 'all' | 'site' | 'manual' | 'whatsapp' | 'leilao';
 type PeriodFilter = 'all' | '7d' | '30d' | '90d';
 type ExpiresFilter = 'all' | 'soon' | 'overdue';
 
-export default function ReservasBoard({ initial }: Props) {
+export default function ReservasBoard({ initial, initialColumns }: Props) {
     const [items, setItems] = useState<ProductReservation[]>(initial);
+    const [columns, setColumns] = useState<ReservaColumnRow[]>(initialColumns);
     const [activeDrag, setActiveDrag] = useState<ProductReservation | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [creating, setCreating] = useState(false);
+
+    async function renameColumn(id: string, title: string) {
+        const prev = columns;
+        setColumns(cs => cs.map(c => c.id === id ? { ...c, title } : c));
+        try {
+            await updateReservaColumn(id, { title });
+        } catch (err) {
+            console.error(err);
+            setColumns(prev);
+        }
+    }
+
+    async function dropColumn(id: string) {
+        const col = columns.find(c => c.id === id);
+        if (!col) return;
+        const cardCount = items.filter(r => r.status === id).length;
+        const msg = cardCount > 0
+            ? `Excluir a coluna "${col.title}"? Existem ${cardCount} reserva(s) com esse status — elas vão sumir do board até serem movidas para outro status.`
+            : `Excluir a coluna "${col.title}"?`;
+        if (!confirm(msg)) return;
+
+        const prev = columns;
+        setColumns(cs => cs.filter(c => c.id !== id));
+        try {
+            await deleteReservaColumn(id);
+        } catch (err) {
+            console.error(err);
+            setColumns(prev);
+        }
+    }
+
+    async function addColumn() {
+        const title = prompt('Nome da nova coluna:');
+        if (!title || !title.trim()) return;
+        try {
+            const created = await createReservaColumn(title.trim());
+            setColumns(cs => [...cs, created]);
+        } catch (err: any) {
+            alert(err?.message ?? 'Erro ao criar coluna.');
+        }
+    }
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -226,7 +274,7 @@ export default function ReservasBoard({ initial }: Props) {
 
     const grouped = useMemo(() => {
         const out: Record<string, ProductReservation[]> = {};
-        for (const s of RESERVA_STAGES) out[s.id] = [];
+        for (const c of columns) out[c.id] = [];
         for (const s of RESERVA_SPECIAL_STAGES) out[s.id] = [];
         for (const r of filtered) {
             (out[r.status] ??= []).push(r);
@@ -235,7 +283,7 @@ export default function ReservasBoard({ initial }: Props) {
             out[k].sort((a, b) => a.position - b.position);
         }
         return out;
-    }, [filtered]);
+    }, [filtered, columns]);
 
     // Métricas leves no header
     const metrics = useMemo(() => {
@@ -543,14 +591,31 @@ export default function ReservasBoard({ initial }: Props) {
             <div className="flex flex-col pb-2">
                 <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragEnd={onDragEnd}>
                     <div className="flex gap-3 overflow-x-auto items-start pr-2 pb-2">
-                        {RESERVA_STAGES.map(stage => (
+                        {columns.map(col => (
                             <ReservaColumn
-                                key={stage.id}
-                                stage={stage}
-                                items={grouped[stage.id] ?? []}
+                                key={col.id}
+                                stage={{ id: col.id, label: col.title, hint: col.hint ?? undefined }}
+                                items={grouped[col.id] ?? []}
                                 onCardClick={(r) => setSelectedId(r.id)}
+                                onRename={(title) => renameColumn(col.id, title)}
+                                onDelete={() => dropColumn(col.id)}
                             />
                         ))}
+
+                        {/* Botão de adicionar coluna no fim */}
+                        <button
+                            onClick={addColumn}
+                            className="shrink-0 w-[290px] flex flex-col items-center justify-center min-h-[200px] border border-dashed border-gray-300 dark:border-[rgba(232,203,133,0.18)] text-gray-500 dark:text-[#F5F0E4]/40 hover:border-[#D4A85C] hover:text-[#D4A85C] transition-colors"
+                            style={{
+                                borderRadius: 3,
+                                fontFamily: 'var(--font-mono), monospace',
+                                fontSize: 11,
+                                letterSpacing: '0.18em',
+                                textTransform: 'uppercase',
+                            }}
+                        >
+                            + nova coluna
+                        </button>
                     </div>
 
                     {/* Trilho lateral de status especiais */}
@@ -593,6 +658,7 @@ export default function ReservasBoard({ initial }: Props) {
             {selected && (
                 <ReservaDetail
                     reservation={selected}
+                    columns={columns}
                     onClose={() => setSelectedId(null)}
                     onPatch={(updates) => patchItem(selected.id, updates)}
                     onArchive={() => { removeItem(selected.id); setSelectedId(null); }}

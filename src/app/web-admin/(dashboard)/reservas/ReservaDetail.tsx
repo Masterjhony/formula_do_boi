@@ -17,16 +17,18 @@ import {
     updateReservation,
     archiveReservation,
     appendHistory,
+    ReservaColumn as ReservaColumnRow,
 } from '@/app/web-admin/actions/reservations';
 
 interface Props {
     reservation: ProductReservation;
+    columns?: ReservaColumnRow[];
     onClose: () => void;
     onPatch: (updates: Partial<ProductReservation>) => void;
     onArchive: () => void;
 }
 
-export default function ReservaDetail({ reservation, onClose, onPatch, onArchive }: Props) {
+export default function ReservaDetail({ reservation, columns, onClose, onPatch, onArchive }: Props) {
     const [r, setR] = useState<ProductReservation>(reservation);
     const [saving, setSaving] = useState(false);
     const [savedMsg, setSavedMsg] = useState<string | null>(null);
@@ -100,13 +102,19 @@ export default function ReservaDetail({ reservation, onClose, onPatch, onArchive
     const phoneDigits = r.customer_phone?.replace(/\D/g, '') ?? '';
 
     return (
-        <div className="fixed inset-0 z-[80] flex items-stretch justify-end bg-black/70 backdrop-blur-sm" onClick={onClose}>
+        <div
+            className="fixed inset-0 z-[80] flex items-start justify-center bg-black/70 backdrop-blur-sm p-4 sm:p-6 overflow-y-auto"
+            onClick={onClose}
+        >
             <div
-                className="w-full max-w-3xl bg-white dark:bg-[#0A0A0A] border-l border-[rgba(232,203,133,0.28)] overflow-y-auto"
+                className="relative w-full max-w-3xl my-4 sm:my-8 bg-white dark:bg-[#0A0A0A] border border-[rgba(232,203,133,0.28)] shadow-2xl shadow-black/60"
                 onClick={(e) => e.stopPropagation()}
+                style={{ borderRadius: 4 }}
             >
+                <span aria-hidden className="absolute top-0 left-0 block" style={{ width: 48, height: 1, background: '#A0792E' }} />
+                <span aria-hidden className="absolute top-0 right-0 block" style={{ width: 48, height: 1, background: '#A0792E' }} />
                 {/* ── Header ── */}
-                <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200 dark:border-[rgba(232,203,133,0.14)] px-6 py-4">
+                <div className="bg-white dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[rgba(232,203,133,0.14)] px-6 py-4" style={{ borderTopLeftRadius: 4, borderTopRightRadius: 4 }}>
                     <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -173,7 +181,9 @@ export default function ReservaDetail({ reservation, onClose, onPatch, onArchive
                             value={r.status}
                             onChange={(v) => set('status', v as any)}
                             options={[
-                                ...RESERVA_STAGES.map(s => ({ id: s.id, label: s.label })),
+                                ...(columns && columns.length > 0
+                                    ? columns.map(c => ({ id: c.id, label: c.title }))
+                                    : RESERVA_STAGES.map(s => ({ id: s.id, label: s.label }))),
                                 ...RESERVA_SPECIAL_STAGES.map(s => ({ id: s.id, label: '⚠ ' + s.label })),
                             ]}
                         />

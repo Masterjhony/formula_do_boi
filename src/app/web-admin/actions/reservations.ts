@@ -8,6 +8,13 @@ import {
     makeCode,
 } from '@/lib/reservations';
 
+export interface ReservaColumn {
+    id: string;
+    title: string;
+    hint: string | null;
+    position: number;
+}
+
 function hydrate(row: any): ProductReservation {
     return {
         ...row,
@@ -267,4 +274,105 @@ export async function createManualReservation(
     }
     revalidatePath('/web-admin/reservas');
     return hydrate(data);
+}
+
+// ── Colunas do Kanban ─────────────────────────────────────────────────────
+
+export async function getReservaColumns(): Promise<ReservaColumn[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('reserva_kanban_columns')
+        .select('id, title, hint, position')
+        .order('position', { ascending: true });
+
+    if (error) {
+        console.error('[reservations] columns list error', error);
+        return [];
+    }
+    return (data ?? []) as ReservaColumn[];
+}
+
+function slugify(s: string): string {
+    return s
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 48) || `col_${Date.now()}`;
+}
+
+export async function createReservaColumn(title: string, hint?: string): Promise<ReservaColumn> {
+    const supabase = await createClient();
+
+    const { data: maxPos } = await supabase
+        .from('reserva_kanban_columns')
+        .select('position')
+        .order('position', { ascending: false })
+        .limit(1);
+    const position = (maxPos?.[0]?.position ?? 1000) + 1000;
+
+    let id = slugify(title);
+    // Garante unicidade — se já existir, sufixa com timestamp curto
+    const { data: existing } = await supabase
+        .from('reserva_kanban_columns')
+        .select('id')
+        .eq('id', id)
+        .maybeSingle();
+    if (existing) {
+        id = `${id}_${Date.now().toString(36).slice(-4)}`;
+    }
+
+    const { data, error } = await supabase
+        .from('reserva_kanban_columns')
+        .insert({ id, title: title.trim(), hint: hint?.trim() || null, position })
+        .select('id, title, hint, position')
+        .single();
+
+    if (error || !data) {
+        console.error('[reservations] column create error', error);
+        throw new Error('Falha ao criar coluna.');
+    }
+    revalidatePath('/web-admin/reservas');
+    return data as ReservaColumn;
+}
+
+export async function updateReservaColumn(
+    id: string,
+    updates: { title?: string; hint?: string | null; position?: number },
+): Promise<ReservaColumn> {
+    const supabase = await createClient();
+
+    const payload: any = {};
+    if (updates.title !== undefined)    payload.title    = updates.title.trim();
+    if (updates.hint !== undefined)     payload.hint     = updates.hint?.toString().trim() || null;
+    if (updates.position !== undefined) payload.position = updates.position;
+
+    const { data, error } = await supabase
+        .from('reserva_kanban_columns')
+        .update(payload)
+        .eq('id', id)
+        .select('id, title, hint, position')
+        .single();
+
+    if (error || !data) {
+        console.error('[reservations] column update error', error);
+        throw new Error('Falha ao atualizar coluna.');
+    }
+    revalidatePath('/web-admin/reservas');
+    return data as ReservaColumn;
+}
+
+export async function deleteReservaColumn(id: string): Promise<void> {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+        .from('reserva_kanban_columns')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('[reservations] column delete error', error);
+        throw new Error('Falha ao excluir coluna.');
+    }
+    revalidatePath('/web-admin/reservas');
 }
