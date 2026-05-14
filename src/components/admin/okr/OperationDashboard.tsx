@@ -10,6 +10,7 @@ import {
 import { OKRSnapshot } from '@/app/web-admin/actions/okr-snapshot';
 import { TacticalObjective, TacticalRisk } from '@/app/web-admin/actions/tactical-strategic';
 import { TacticalTask, TacticalColumn } from '@/app/web-admin/actions/tactical-tasks';
+import { StrategyExecutionChain } from '@/components/admin/okr/StrategyExecutionChain';
 
 const BRAND = {
     BRONZE: '#A0792E',
@@ -257,6 +258,16 @@ export function OperationDashboard({ snapshot, objectives, risks, tasks, columns
                     <p className="text-[11px] text-gray-500 mt-1.5">Receita {fmtBRL(auctions.receita90d)}</p>
                 </div>
             </div>
+
+            {/* ── Fio de ligação: Estratégia → Projetos → Tarefas → Indicadores ── */}
+            <section className="rounded-2xl border border-gray-200 dark:border-[#1E1E1E] bg-gradient-to-br from-white via-white to-[#A0792E]/[0.025] dark:from-[#0F0F0F] dark:via-[#0F0F0F] dark:to-[#A0792E]/[0.04] p-4 lg:p-5">
+                <StrategyExecutionChain
+                    objectives={objectives}
+                    tasks={tasks}
+                    snapshot={snapshot}
+                    doneStatus={doneStatus}
+                />
+            </section>
 
             {/* ── Tendência + Insights ─────────────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-3">

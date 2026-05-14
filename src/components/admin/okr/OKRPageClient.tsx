@@ -231,7 +231,7 @@ export function OKRPageClient({
                             Fórmula do Boi
                         </h1>
                         <p className="text-sm text-gray-400 mt-1">
-                            OKRs, execução, indicadores reais e saúde da operação — visão única.
+                            Visão executiva: estratégia → projetos → tarefas → indicadores em uma só tela.
                         </p>
                     </div>
 
