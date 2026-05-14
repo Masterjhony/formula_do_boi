@@ -5,10 +5,21 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import {
     Search, X, Loader2, ArrowRight,
-    Users, Package, Gavel, BarChart3, ListChecks, Award, CornerDownLeft,
+    Users, Gavel, BarChart3, ListChecks, Award, CornerDownLeft,
+    ClipboardCheck, Calendar, FileSignature, Dna, Crown,
 } from 'lucide-react';
 
-type HitType = 'lead' | 'product' | 'leilao' | 'fechamento' | 'task' | 'breeder';
+type HitType =
+    | 'lead'
+    | 'reservation'
+    | 'agenda'
+    | 'task'
+    | 'contract'
+    | 'leilao'
+    | 'fechamento'
+    | 'breeder'
+    | 'lote_touro'
+    | 'lote_doadora';
 
 interface SearchHit {
     id: string;
@@ -19,15 +30,30 @@ interface SearchHit {
 }
 
 const TYPE_META: Record<HitType, { label: string; icon: React.ElementType }> = {
-    lead: { label: 'Lead', icon: Users },
-    product: { label: 'Produto', icon: Package },
-    leilao: { label: 'Leilão', icon: Gavel },
-    fechamento: { label: 'Fechamento', icon: BarChart3 },
-    task: { label: 'Tarefa', icon: ListChecks },
-    breeder: { label: 'Criador', icon: Award },
+    lead:         { label: 'Cliente',        icon: Users },
+    reservation:  { label: 'Reserva',        icon: ClipboardCheck },
+    agenda:       { label: 'Agenda',         icon: Calendar },
+    task:         { label: 'Tarefa',         icon: ListChecks },
+    contract:     { label: 'Contrato',       icon: FileSignature },
+    leilao:       { label: 'Leilão',         icon: Gavel },
+    fechamento:   { label: 'Fechamento',     icon: BarChart3 },
+    breeder:      { label: 'Criador',        icon: Award },
+    lote_touro:   { label: 'Touro Doador',   icon: Crown },
+    lote_doadora: { label: 'Doadora',        icon: Dna },
 };
 
-const TYPE_ORDER: HitType[] = ['lead', 'product', 'leilao', 'fechamento', 'task', 'breeder'];
+const TYPE_ORDER: HitType[] = [
+    'lead',
+    'reservation',
+    'agenda',
+    'task',
+    'contract',
+    'leilao',
+    'fechamento',
+    'breeder',
+    'lote_touro',
+    'lote_doadora',
+];
 
 function detectMac(): boolean {
     if (typeof window === 'undefined') return false;
@@ -159,7 +185,7 @@ export function GlobalSearch() {
                 style={{ borderRadius: 3, minWidth: 220 }}
             >
                 <Search size={13} className="text-gray-400 group-hover:text-[#A0792E] transition-colors" />
-                <span className="text-xs text-gray-400 dark:text-[#F5F0E4]/45 flex-1 text-left truncate">Buscar leads, produtos, leilões…</span>
+                <span className="text-xs text-gray-400 dark:text-[#F5F0E4]/45 flex-1 text-left truncate">Buscar clientes, reservas, tarefas…</span>
                 <kbd
                     className="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#1A1A1A]"
                     style={{
@@ -212,7 +238,7 @@ export function GlobalSearch() {
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
                                 onKeyDown={onKeyDown}
-                                placeholder="Buscar leads, produtos, leilões, contratos, tarefas…"
+                                placeholder="Buscar clientes, reservas, agenda, tarefas, contratos, leilões…"
                                 className="flex-1 bg-transparent text-sm text-gray-900 dark:text-[#F5F0E4] placeholder:text-gray-400 dark:placeholder:text-[#F5F0E4]/35 outline-none border-none"
                                 autoComplete="off"
                                 spellCheck={false}
@@ -372,10 +398,12 @@ function ShortcutHint({ label, children }: { label: string; children: React.Reac
 
 function EmptyHint({ shortcut }: { shortcut: string }) {
     const examples = [
-        { kind: 'Lead', value: 'Adil Júnior' },
-        { kind: 'Produto', value: 'Imperador da Matinha' },
-        { kind: 'Leilão', value: 'Genética Aditiva' },
-        { kind: 'Tarefa', value: 'Catálogo PO' },
+        { kind: 'Cliente',  value: 'Adil Júnior' },
+        { kind: 'Reserva',  value: 'RSV-1024 / sêmen Imperador' },
+        { kind: 'Doadora',  value: 'Marasca FIV Visual' },
+        { kind: 'Touro',    value: 'Astro FIV Nelore Eliza' },
+        { kind: 'Agenda',   value: 'Reunião comercial' },
+        { kind: 'Tarefa',   value: 'Catálogo PO' },
     ];
     return (
         <div className="px-5 py-8">
@@ -424,7 +452,7 @@ function NoResults({ query }: { query: string }) {
             <Search size={20} className="text-gray-300 dark:text-[#F5F0E4]/20" />
             <p className="text-sm font-bold text-gray-700 dark:text-[#F5F0E4]/80">Sem resultados para “{query}”</p>
             <p className="text-[11px] text-gray-400 dark:text-[#F5F0E4]/40">
-                Tente outro termo ou parte de um nome, telefone ou registro.
+                Tente outro termo — nome do cliente, código da reserva, título da tarefa ou contrato.
             </p>
         </div>
     );
