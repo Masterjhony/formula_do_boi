@@ -22,7 +22,8 @@ import { moveReservation } from '@/app/web-admin/actions/reservations';
 import ReservaColumn from './ReservaColumn';
 import ReservaCard from './ReservaCard';
 import ReservaDetail from './ReservaDetail';
-import { Search, RefreshCw, Layers } from 'lucide-react';
+import ReservaCreate from './ReservaCreate';
+import { Search, RefreshCw, Layers, X as XIcon, ChevronDown, SlidersHorizontal, Maximize2, Minimize2, Download, Plus } from 'lucide-react';
 
 interface Props {
     initial: ProductReservation[];
@@ -30,10 +31,16 @@ interface Props {
 
 type KindFilter = 'all' | 'semen' | 'embriao';
 type PriorityFilter = 'all' | 'baixa' | 'normal' | 'alta';
+type PaymentFilter = 'all' | 'pendente' | 'sinal_pago' | 'pago' | 'estornado';
+type OriginFilter = 'all' | 'site' | 'manual' | 'whatsapp' | 'leilao';
+type PeriodFilter = 'all' | '7d' | '30d' | '90d';
+type ExpiresFilter = 'all' | 'soon' | 'overdue';
 
 export default function ReservasBoard({ initial }: Props) {
     const [items, setItems] = useState<ProductReservation[]>(initial);
     const [activeDrag, setActiveDrag] = useState<ProductReservation | null>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [creating, setCreating] = useState(false);
 
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -59,23 +66,163 @@ export default function ReservasBoard({ initial }: Props) {
     const [query, setQuery] = useState('');
     const [kind, setKind] = useState<KindFilter>('all');
     const [priority, setPriority] = useState<PriorityFilter>('all');
+    const [paymentStatus, setPaymentStatus] = useState<PaymentFilter>('all');
+    const [origin, setOrigin] = useState<OriginFilter>('all');
+    const [period, setPeriod] = useState<PeriodFilter>('all');
+    const [expiresFilter, setExpiresFilter] = useState<ExpiresFilter>('all');
+    const [assignee, setAssignee] = useState<string>('all');
+    const [uf, setUf] = useState<string>('all');
     const [showSpecial, setShowSpecial] = useState(false);
+    const [showAdvanced, setShowAdvanced] = useState(false);
+
+    // Opções dinâmicas derivadas dos dados
+    const assigneeOptions = useMemo(() => {
+        const set = new Set<string>();
+        for (const r of items) if (r.assigned_to) set.add(r.assigned_to);
+        return Array.from(set).sort();
+    }, [items]);
+
+    const ufOptions = useMemo(() => {
+        const set = new Set<string>();
+        for (const r of items) if (r.customer_uf) set.add(r.customer_uf);
+        return Array.from(set).sort();
+    }, [items]);
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
+        const now = Date.now();
+        const periodMs = period === '7d' ? 7 : period === '30d' ? 30 : period === '90d' ? 90 : 0;
+
         return items.filter(r => {
             if (kind !== 'all' && r.product_kind !== kind) return false;
             if (priority !== 'all' && r.priority !== priority) return false;
+            if (paymentStatus !== 'all' && (r.payment_status ?? 'pendente') !== paymentStatus) return false;
+            if (origin !== 'all' && r.origin !== origin) return false;
+            if (assignee !== 'all' && (r.assigned_to ?? '') !== assignee) return false;
+            if (uf !== 'all' && (r.customer_uf ?? '') !== uf) return false;
+
+            if (periodMs > 0) {
+                const created = new Date(r.created_at).getTime();
+                if (now - created > periodMs * 86_400_000) return false;
+            }
+
+            if (expiresFilter !== 'all') {
+                if (!r.expires_at) return false;
+                const ms = new Date(r.expires_at).getTime() - now;
+                if (expiresFilter === 'overdue' && ms >= 0) return false;
+                if (expiresFilter === 'soon'    && (ms < 0 || ms > 3 * 86_400_000)) return false;
+            }
+
             if (!q) return true;
             return (
                 r.customer_name.toLowerCase().includes(q) ||
                 r.product_name.toLowerCase().includes(q) ||
                 r.code.toLowerCase().includes(q) ||
                 (r.customer_city ?? '').toLowerCase().includes(q) ||
-                (r.customer_fazenda ?? '').toLowerCase().includes(q)
+                (r.customer_fazenda ?? '').toLowerCase().includes(q) ||
+                (r.customer_phone ?? '').toLowerCase().includes(q) ||
+                (r.assigned_to ?? '').toLowerCase().includes(q)
             );
         });
-    }, [items, query, kind, priority]);
+    }, [items, query, kind, priority, paymentStatus, origin, assignee, uf, period, expiresFilter]);
+
+    // Quantos filtros ativos (excluindo busca/kind que já têm UI dedicada)
+    const activeAdvancedFilters = [
+        priority !== 'all',
+        paymentStatus !== 'all',
+        origin !== 'all',
+        assignee !== 'all',
+        uf !== 'all',
+        period !== 'all',
+        expiresFilter !== 'all',
+    ].filter(Boolean).length;
+
+    function clearAll() {
+        setQuery('');
+        setKind('all');
+        setPriority('all');
+        setPaymentStatus('all');
+        setOrigin('all');
+        setPeriod('all');
+        setExpiresFilter('all');
+        setAssignee('all');
+        setUf('all');
+    }
+
+    function exportCsv() {
+        const headers = [
+            'Código','Tipo','Status','Prioridade','Criado em',
+            'Produto','Central','Quantidade','Valor unitário','Valor total',
+            'Cliente','Telefone','E-mail','CPF/CNPJ','Fazenda','Cidade','UF',
+            'Forma pgto','Status pgto','Sinal',
+            'Responsável','Origem','Prazo validade',
+            'NF','Nº NF','Emitida em',
+            'Logística','Data prevista','Enviado em','Entregue em','Rastreio',
+            'UTM source','UTM medium','UTM campaign',
+            'Observações',
+        ];
+
+        const escape = (v: any) => {
+            if (v == null) return '';
+            const s = String(v).replace(/"/g, '""');
+            return /[";\n]/.test(s) ? `"${s}"` : s;
+        };
+
+        const fmtDate = (iso?: string | null) =>
+            iso ? new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '';
+
+        const fmtNum = (n?: number | null) =>
+            n == null ? '' : n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        const rows = filtered.map(r => [
+            r.code,
+            r.product_kind === 'semen' ? 'Sêmen' : 'Embrião',
+            r.status,
+            r.priority,
+            fmtDate(r.created_at),
+            r.product_name,
+            r.central ?? '',
+            r.quantity,
+            fmtNum(r.unit_price),
+            fmtNum(r.total_value),
+            r.customer_name,
+            r.customer_phone,
+            r.customer_email ?? '',
+            r.customer_doc ?? '',
+            r.customer_fazenda ?? '',
+            r.customer_city ?? '',
+            r.customer_uf ?? '',
+            r.payment_method ?? '',
+            r.payment_status ?? '',
+            fmtNum(r.down_payment),
+            r.assigned_to ?? '',
+            r.origin,
+            fmtDate(r.expires_at),
+            r.invoice_status ?? '',
+            r.invoice_number ?? '',
+            fmtDate(r.invoice_issued_at),
+            r.logistics_type ?? '',
+            r.expected_ship_at ?? '',
+            fmtDate(r.shipped_at),
+            fmtDate(r.delivered_at),
+            r.tracking_code ?? '',
+            r.utm_source ?? '',
+            r.utm_medium ?? '',
+            r.utm_campaign ?? '',
+            r.notes ?? '',
+        ]);
+
+        const csv = [headers, ...rows].map(row => row.map(escape).join(';')).join('\r\n');
+        // BOM pra Excel BR abrir UTF-8 corretamente
+        const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const stamp = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `reservas_${stamp}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 
     const grouped = useMemo(() => {
         const out: Record<string, ProductReservation[]> = {};
@@ -169,9 +316,12 @@ export default function ReservasBoard({ initial }: Props) {
     }
 
     return (
-        <div className="flex flex-col h-full">
+        <div className={isFullscreen
+            ? 'fixed inset-0 z-[80] bg-white dark:bg-[#0A0A0A] flex flex-col p-4 overflow-auto'
+            : 'flex flex-col'
+        }>
             {/* ── Header ── */}
-            <div className="flex flex-col gap-4 mb-5">
+            <div className="flex flex-col gap-4 mb-4 shrink-0">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div>
                         <p
@@ -205,7 +355,7 @@ export default function ReservasBoard({ initial }: Props) {
                     </div>
                 </div>
 
-                {/* Filtros */}
+                {/* ── Linha 1 de filtros: busca + tipo + ações ── */}
                 <div className="flex flex-wrap items-center gap-2">
                     <div className="relative flex-1 min-w-[240px] max-w-md">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -213,70 +363,186 @@ export default function ReservasBoard({ initial }: Props) {
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Buscar por código, cliente, produto, fazenda…"
+                            placeholder="Buscar por código, cliente, produto, telefone, fazenda…"
                             className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-[#141414] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-gray-900 dark:text-[#F5F0E4]"
                             style={{ borderRadius: 3 }}
                         />
                     </div>
 
-                    <FilterPill
-                        active={kind === 'all'}
-                        onClick={() => setKind('all')}
-                        label="Tudo"
-                    />
-                    <FilterPill
-                        active={kind === 'semen'}
-                        onClick={() => setKind('semen')}
-                        label="Sêmen"
-                    />
-                    <FilterPill
-                        active={kind === 'embriao'}
-                        onClick={() => setKind('embriao')}
-                        label="Embriões"
-                    />
+                    <FilterPill active={kind === 'all'}     onClick={() => setKind('all')}     label="Tudo" />
+                    <FilterPill active={kind === 'semen'}   onClick={() => setKind('semen')}   label="Sêmen" />
+                    <FilterPill active={kind === 'embriao'} onClick={() => setKind('embriao')} label="Embriões" />
 
                     <span className="w-px h-5 bg-gray-200 dark:bg-[rgba(232,203,133,0.18)] mx-1" />
 
-                    <select
-                        value={priority}
-                        onChange={(e) => setPriority(e.target.value as PriorityFilter)}
-                        className="px-3 py-2 text-xs uppercase tracking-wider bg-white dark:bg-[#141414] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/80 focus:outline-none focus:border-[#D4A85C]"
-                        style={{ borderRadius: 3, letterSpacing: '0.12em' }}
+                    <FilterButton
+                        active={showAdvanced || activeAdvancedFilters > 0}
+                        onClick={() => setShowAdvanced(s => !s)}
+                        icon={<SlidersHorizontal size={12} />}
                     >
-                        <option value="all">Todas as prioridades</option>
-                        <option value="alta">Alta</option>
-                        <option value="normal">Normal</option>
-                        <option value="baixa">Baixa</option>
-                    </select>
+                        Filtros
+                        {activeAdvancedFilters > 0 && (
+                            <span
+                                className="ml-1 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-[#0A0A0A] text-[#D4A85C] tabular-nums"
+                                style={{ borderRadius: 2 }}
+                            >
+                                {activeAdvancedFilters}
+                            </span>
+                        )}
+                        <ChevronDown size={11} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+                    </FilterButton>
 
-                    <button
+                    <FilterButton
+                        active={showSpecial}
                         onClick={() => setShowSpecial(s => !s)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-wider border transition-colors ${
-                            showSpecial
-                                ? 'bg-[#A0792E] border-[#A0792E] text-[#0A0A0A]'
-                                : 'bg-white dark:bg-[#141414] border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#D4A85C]'
-                        }`}
-                        style={{ borderRadius: 3, letterSpacing: '0.12em' }}
+                        icon={<Layers size={12} />}
                     >
-                        <Layers size={12} />
                         Status especiais
-                    </button>
+                    </FilterButton>
+
+                    <FilterButton
+                        active={false}
+                        onClick={() => router.refresh()}
+                        icon={<RefreshCw size={12} />}
+                    >
+                        Atualizar
+                    </FilterButton>
+
+                    <FilterButton
+                        active={false}
+                        onClick={exportCsv}
+                        icon={<Download size={12} />}
+                    >
+                        Exportar
+                    </FilterButton>
+
+                    <FilterButton
+                        active={isFullscreen}
+                        onClick={() => setIsFullscreen(f => !f)}
+                        icon={isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+                    >
+                        {isFullscreen ? 'Sair' : 'Tela cheia'}
+                    </FilterButton>
+
+                    {(query || activeAdvancedFilters > 0 || kind !== 'all') && (
+                        <button
+                            onClick={clearAll}
+                            className="inline-flex items-center gap-1 px-2 py-2 text-[11px] uppercase tracking-wider text-gray-500 dark:text-[#F5F0E4]/40 hover:text-red-400"
+                            style={{ fontFamily: 'var(--font-mono), monospace', letterSpacing: '0.14em' }}
+                        >
+                            <XIcon size={11} />
+                            Limpar
+                        </button>
+                    )}
 
                     <button
-                        onClick={() => router.refresh()}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-wider bg-white dark:bg-[#141414] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#D4A85C]"
-                        style={{ borderRadius: 3, letterSpacing: '0.12em' }}
+                        onClick={() => setCreating(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-wider bg-[#A0792E] hover:bg-[#D4A85C] text-[#0A0A0A] font-bold transition-colors"
+                        style={{ borderRadius: 3, letterSpacing: '0.14em' }}
                     >
-                        <RefreshCw size={12} />
-                        Atualizar
+                        <Plus size={13} />
+                        Nova reserva
                     </button>
                 </div>
+
+                {/* ── Linha 2 (avançada, expansível) ── */}
+                {showAdvanced && (
+                    <div
+                        className="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2 bg-gray-50 dark:bg-[#141414] border border-gray-200 dark:border-[rgba(232,203,133,0.14)]"
+                        style={{ borderRadius: 3 }}
+                    >
+                        <FilterSelect
+                            label="Prioridade"
+                            value={priority}
+                            onChange={(v) => setPriority(v as PriorityFilter)}
+                            options={[
+                                { id: 'all',    label: 'Todas' },
+                                { id: 'alta',   label: 'Alta' },
+                                { id: 'normal', label: 'Normal' },
+                                { id: 'baixa',  label: 'Baixa' },
+                            ]}
+                        />
+                        <FilterSelect
+                            label="Pagamento"
+                            value={paymentStatus}
+                            onChange={(v) => setPaymentStatus(v as PaymentFilter)}
+                            options={[
+                                { id: 'all',        label: 'Qualquer' },
+                                { id: 'pendente',   label: 'Pendente' },
+                                { id: 'sinal_pago', label: 'Sinal pago' },
+                                { id: 'pago',       label: 'Pago' },
+                                { id: 'estornado',  label: 'Estornado' },
+                            ]}
+                        />
+                        <FilterSelect
+                            label="Origem"
+                            value={origin}
+                            onChange={(v) => setOrigin(v as OriginFilter)}
+                            options={[
+                                { id: 'all',      label: 'Qualquer' },
+                                { id: 'site',     label: 'Site' },
+                                { id: 'manual',   label: 'Manual' },
+                                { id: 'whatsapp', label: 'WhatsApp' },
+                                { id: 'leilao',   label: 'Leilão' },
+                            ]}
+                        />
+                        <FilterSelect
+                            label="Período"
+                            value={period}
+                            onChange={(v) => setPeriod(v as PeriodFilter)}
+                            options={[
+                                { id: 'all', label: 'Sempre' },
+                                { id: '7d',  label: '7 dias' },
+                                { id: '30d', label: '30 dias' },
+                                { id: '90d', label: '90 dias' },
+                            ]}
+                        />
+                        <FilterSelect
+                            label="Prazo"
+                            value={expiresFilter}
+                            onChange={(v) => setExpiresFilter(v as ExpiresFilter)}
+                            options={[
+                                { id: 'all',     label: 'Todos' },
+                                { id: 'soon',    label: '≤ 3 dias' },
+                                { id: 'overdue', label: 'Vencidos' },
+                            ]}
+                        />
+                        <FilterSelect
+                            label="Responsável"
+                            value={assignee}
+                            onChange={setAssignee}
+                            options={[
+                                { id: 'all', label: 'Qualquer' },
+                                ...assigneeOptions.map(a => ({ id: a, label: a })),
+                            ]}
+                        />
+                        <FilterSelect
+                            label="UF"
+                            value={uf}
+                            onChange={setUf}
+                            options={[
+                                { id: 'all', label: 'Todas' },
+                                ...ufOptions.map(u => ({ id: u, label: u })),
+                            ]}
+                        />
+                    </div>
+                )}
+
+                {/* Counter de resultado quando filtrado */}
+                {(query || activeAdvancedFilters > 0 || kind !== 'all') && (
+                    <p
+                        className="text-[11px] text-gray-500 dark:text-[#F5F0E4]/50 -mt-1"
+                        style={{ fontFamily: 'var(--font-mono), monospace', letterSpacing: '0.14em' }}
+                    >
+                        <span className="text-[#D4A85C]">{filtered.length}</span> de {items.length} reservas
+                    </p>
+                )}
             </div>
 
             {/* ── Board ── */}
-            <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-                <div className="flex-1 overflow-x-auto pb-4">
-                    <div className="flex gap-3 h-full min-w-max">
+            <div className="flex flex-col pb-2">
+                <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+                    <div className="flex gap-3 overflow-x-auto items-start pr-2 pb-2">
                         {RESERVA_STAGES.map(stage => (
                             <ReservaColumn
                                 key={stage.id}
@@ -286,42 +552,42 @@ export default function ReservasBoard({ initial }: Props) {
                             />
                         ))}
                     </div>
-                </div>
 
-                {/* Trilho lateral de status especiais */}
-                {showSpecial && (
-                    <div className="border-t border-gray-200 dark:border-[rgba(232,203,133,0.14)] pt-4 mt-2">
-                        <p
-                            className="mb-2 px-1"
-                            style={{
-                                fontFamily: 'var(--font-mono), monospace',
-                                fontSize: 10,
-                                color: '#D4A85C',
-                                letterSpacing: '0.22em',
-                                textTransform: 'uppercase',
-                                fontWeight: 500,
-                            }}
-                        >
-                            Status especiais — fora do fluxo principal
-                        </p>
-                        <div className="flex gap-3 overflow-x-auto pb-2">
-                            {RESERVA_SPECIAL_STAGES.map(stage => (
-                                <ReservaColumn
-                                    key={stage.id}
-                                    stage={stage}
-                                    items={grouped[stage.id] ?? []}
-                                    onCardClick={(r) => setSelectedId(r.id)}
-                                    compact
-                                />
-                            ))}
+                    {/* Trilho lateral de status especiais */}
+                    {showSpecial && (
+                        <div className="border-t border-gray-200 dark:border-[rgba(232,203,133,0.14)] pt-3 mt-2 shrink-0">
+                            <p
+                                className="mb-2 px-1"
+                                style={{
+                                    fontFamily: 'var(--font-mono), monospace',
+                                    fontSize: 10,
+                                    color: '#D4A85C',
+                                    letterSpacing: '0.22em',
+                                    textTransform: 'uppercase',
+                                    fontWeight: 500,
+                                }}
+                            >
+                                Status especiais — fora do fluxo principal
+                            </p>
+                            <div className="flex gap-3 overflow-x-auto pb-2">
+                                {RESERVA_SPECIAL_STAGES.map(stage => (
+                                    <ReservaColumn
+                                        key={stage.id}
+                                        stage={stage}
+                                        items={grouped[stage.id] ?? []}
+                                        onCardClick={(r) => setSelectedId(r.id)}
+                                        compact
+                                    />
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                <DragOverlay>
-                    {activeDrag && <ReservaCard reservation={activeDrag} dragging />}
-                </DragOverlay>
-            </DndContext>
+                    <DragOverlay>
+                        {activeDrag && <ReservaCard reservation={activeDrag} dragging />}
+                    </DragOverlay>
+                </DndContext>
+            </div>
 
             {/* ── Detail Modal ── */}
             {selected && (
@@ -330,6 +596,18 @@ export default function ReservasBoard({ initial }: Props) {
                     onClose={() => setSelectedId(null)}
                     onPatch={(updates) => patchItem(selected.id, updates)}
                     onArchive={() => { removeItem(selected.id); setSelectedId(null); }}
+                />
+            )}
+
+            {/* ── Create Modal ── */}
+            {creating && (
+                <ReservaCreate
+                    onClose={() => setCreating(false)}
+                    onCreated={(r) => {
+                        setItems(prev => [r, ...prev]);
+                        setCreating(false);
+                        setSelectedId(r.id);
+                    }}
                 />
             )}
         </div>
@@ -379,5 +657,63 @@ function FilterPill({ active, onClick, label }: { active: boolean; onClick: () =
         >
             {label}
         </button>
+    );
+}
+
+function FilterButton({
+    active, onClick, icon, children,
+}: {
+    active: boolean;
+    onClick: () => void;
+    icon?: React.ReactNode;
+    children: React.ReactNode;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-wider border transition-colors ${
+                active
+                    ? 'bg-[#A0792E] border-[#A0792E] text-[#0A0A0A]'
+                    : 'bg-white dark:bg-[#141414] border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#D4A85C]'
+            }`}
+            style={{ borderRadius: 3, letterSpacing: '0.12em' }}
+        >
+            {icon}
+            {children}
+        </button>
+    );
+}
+
+function FilterSelect({
+    label, value, onChange, options,
+}: {
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    options: { id: string; label: string }[];
+}) {
+    return (
+        <label className="block">
+            <span
+                className="block mb-1 text-gray-500 dark:text-[#F5F0E4]/50"
+                style={{
+                    fontFamily: 'var(--font-mono), monospace',
+                    fontSize: 9,
+                    letterSpacing: '0.20em',
+                    textTransform: 'uppercase',
+                    fontWeight: 500,
+                }}
+            >
+                {label}
+            </span>
+            <select
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-gray-700 dark:text-[#F5F0E4]/80"
+                style={{ borderRadius: 3 }}
+            >
+                {options.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+            </select>
+        </label>
     );
 }

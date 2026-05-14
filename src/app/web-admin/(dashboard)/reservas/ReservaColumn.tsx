@@ -36,7 +36,7 @@ export default function ReservaColumn({ stage, items, onCardClick, compact }: Pr
 
     return (
         <div
-            className={`flex flex-col flex-shrink-0 ${compact ? 'w-[260px]' : 'w-[290px]'} bg-white dark:bg-[#141414] border ${toneBorder} relative`}
+            className={`flex flex-col shrink-0 ${compact ? 'w-[260px] h-auto' : 'w-[290px] min-h-[calc(100vh-220px)]'} bg-white dark:bg-[#141414] border ${toneBorder} relative`}
             style={{ borderRadius: 3 }}
         >
             {/* hairline tick brandbook */}
@@ -72,7 +72,7 @@ export default function ReservaColumn({ stage, items, onCardClick, compact }: Pr
 
             <div
                 ref={setNodeRef}
-                className={`flex-1 px-2 py-2 space-y-2 overflow-y-auto min-h-[200px] transition-colors ${isOver ? 'bg-[#A0792E]/5' : ''}`}
+                className={`flex-1 min-h-0 px-2 py-2 space-y-2 transition-colors ${isOver ? 'bg-[#A0792E]/5' : ''}`}
             >
                 <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
                     {items.map(r => (
@@ -85,7 +85,7 @@ export default function ReservaColumn({ stage, items, onCardClick, compact }: Pr
                 </SortableContext>
                 {items.length === 0 && (
                     <div
-                        className="flex items-center justify-center h-24 border border-dashed border-gray-200 dark:border-[rgba(232,203,133,0.12)] text-[11px] text-gray-400 dark:text-[#F5F0E4]/30 uppercase tracking-wider"
+                        className="flex items-center justify-center min-h-[80px] border border-dashed border-gray-200 dark:border-[rgba(232,203,133,0.12)] text-[11px] text-gray-400 dark:text-[#F5F0E4]/30 uppercase tracking-wider"
                         style={{
                             fontFamily: 'var(--font-mono), monospace',
                             letterSpacing: '0.18em',
