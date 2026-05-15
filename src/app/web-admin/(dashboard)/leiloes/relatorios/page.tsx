@@ -222,6 +222,45 @@ function RelatoriosPageInner() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
+  type PeriodPreset = 'mes' | 'mes_passado' | '3m' | '6m' | 'ano'
+  const applyPreset = (preset: PeriodPreset) => {
+    const today = new Date()
+    const y = today.getFullYear()
+    const m = today.getMonth()
+    const fmt = (d: Date) => d.toISOString().slice(0, 10)
+    if (preset === 'mes') {
+      setFrom(fmt(new Date(y, m, 1)))
+      setTo(fmt(today))
+    } else if (preset === 'mes_passado') {
+      setFrom(fmt(new Date(y, m - 1, 1)))
+      setTo(fmt(new Date(y, m, 0)))
+    } else if (preset === '3m') {
+      setFrom(fmt(new Date(y, m - 2, 1)))
+      setTo(fmt(today))
+    } else if (preset === '6m') {
+      setFrom(fmt(new Date(y, m - 5, 1)))
+      setTo(fmt(today))
+    } else {
+      setFrom(fmt(new Date(y, 0, 1)))
+      setTo(fmt(today))
+    }
+  }
+
+  const activePreset: PeriodPreset | null = (() => {
+    const today = new Date()
+    const y = today.getFullYear()
+    const m = today.getMonth()
+    const fmt = (d: Date) => d.toISOString().slice(0, 10)
+    const todayStr = fmt(today)
+    if (to !== todayStr && !(from === fmt(new Date(y, m - 1, 1)) && to === fmt(new Date(y, m, 0)))) return null
+    if (from === fmt(new Date(y, m, 1)) && to === todayStr) return 'mes'
+    if (from === fmt(new Date(y, m - 1, 1)) && to === fmt(new Date(y, m, 0))) return 'mes_passado'
+    if (from === fmt(new Date(y, m - 2, 1)) && to === todayStr) return '3m'
+    if (from === fmt(new Date(y, m - 5, 1)) && to === todayStr) return '6m'
+    if (from === fmt(new Date(y, 0, 1)) && to === todayStr) return 'ano'
+    return null
+  })()
+
   return (
     <div className="dcl-root rl-root">
       {/* Page header */}
@@ -231,6 +270,25 @@ function RelatoriosPageInner() {
           <div className="dcl-sub">Inteligência consolidada de fechamentos, cronograma e funil comercial</div>
         </div>
         <div className="dcl-pagehead-right">
+          <div className="rl-presets" role="group" aria-label="Atalhos de período">
+            {([
+              ['mes', 'Este mês'],
+              ['mes_passado', 'Mês passado'],
+              ['3m', '3 meses'],
+              ['6m', '6 meses'],
+              ['ano', 'Este ano'],
+            ] as [PeriodPreset, string][]).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => applyPreset(key)}
+                className={`rl-preset${activePreset === key ? ' rl-preset-on' : ''}`}
+                aria-pressed={activePreset === key}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <div className="rl-rangebox">
             <Calendar size={13} className="rl-rng-ico" />
             <input type="date" value={from} max={to} onChange={e => setFrom(e.target.value)} className="rl-rng-input" />
@@ -291,6 +349,25 @@ function RelatoriosPageInner() {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 6px 10px; border-radius: 10px;
           background: var(--dcl-bg-card); border: 1px solid var(--dcl-line);
+        }
+        .rl-presets {
+          display: inline-flex; gap: 4px; flex-wrap: wrap;
+          padding: 4px; border-radius: 10px;
+          background: var(--dcl-bg-card); border: 1px solid var(--dcl-line);
+        }
+        .rl-preset {
+          padding: 5px 9px; border-radius: 7px;
+          background: transparent; border: 1px solid transparent;
+          color: var(--dcl-ink-3); font-size: 11px; font-weight: 500;
+          letter-spacing: -0.005em; cursor: pointer; font-family: inherit;
+          white-space: nowrap;
+          transition: color .15s, background .15s, border-color .15s;
+        }
+        .rl-preset:hover { color: var(--dcl-ink); background: var(--dcl-bg-card-2); }
+        .rl-preset.rl-preset-on {
+          color: var(--dcl-gold);
+          background: var(--dcl-gold-bg);
+          border-color: var(--dcl-gold-line);
         }
         .rl-rng-ico { color: var(--dcl-gold); }
         .rl-rng-sep { color: var(--dcl-ink-3); font-size: 12px; }
@@ -1270,6 +1347,7 @@ type AssessorPerLeilao = {
 
 function ReportAssessor({ data, period }: { data: Payload; period: string }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [selectedAssessor, setSelectedAssessor] = useState<string>('')
 
   const { assessores, breakdownPorAssessor } = useMemo(() => {
     const map = new Map<string, {
@@ -1333,6 +1411,24 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
   const totalVgv = assessores.reduce((s, a) => s + a.vgv, 0)
   const maxVgv = assessores[0]?.vgv ?? 1
 
+  // Quando o filtro deixar de bater com a lista atual (mudou o período e o
+  // assessor selecionado não tem mais vendas), limpa pra não ficar vazio.
+  useEffect(() => {
+    if (selectedAssessor && !assessores.some(a => a.nome === selectedAssessor)) {
+      setSelectedAssessor('')
+    }
+  }, [assessores, selectedAssessor])
+
+  // Quando um assessor é selecionado, auto-expande pra já mostrar o detalhe.
+  useEffect(() => {
+    if (selectedAssessor) setExpanded(new Set([selectedAssessor]))
+  }, [selectedAssessor])
+
+  const filteredAssessor = selectedAssessor
+    ? assessores.find(a => a.nome === selectedAssessor) ?? null
+    : null
+  const visibleAssessores = filteredAssessor ? [filteredAssessor] : assessores
+
   function toggleExpand(nome: string) {
     setExpanded(prev => {
       const next = new Set(prev)
@@ -1345,9 +1441,9 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
   const exportCsv = () => {
     const rows: (string | number)[][] = [
       ['Posição', 'Assessor', 'Empresa', 'Leilões', 'Transações', 'Animais', 'VGV (R$)', 'Ticket médio', '% do total'],
-      ...assessores.map(a => [a.pos, a.nome, a.empresa, a.leiloesCount, a.transacoes, a.animais, Math.round(a.vgv), Math.round(a.ticket), (a.pct * 100).toFixed(2)]),
+      ...visibleAssessores.map(a => [a.pos, a.nome, a.empresa, a.leiloesCount, a.transacoes, a.animais, Math.round(a.vgv), Math.round(a.ticket), (a.pct * 100).toFixed(2)]),
     ]
-    downloadCSV('vendas-por-assessor.csv', rows)
+    downloadCSV(filteredAssessor ? `vendas-${normalize(filteredAssessor.nome)}.csv` : 'vendas-por-assessor.csv', rows)
   }
 
   // Export detalhado: 1 linha por assessor × leilão (para conferência de bônus)
@@ -1355,13 +1451,13 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
     const rows: (string | number)[][] = [
       ['Assessor', 'Empresa', 'Leilão', 'Data', 'Transações', 'Animais', 'VGV (R$)'],
     ]
-    for (const a of assessores) {
+    for (const a of visibleAssessores) {
       const list = breakdownPorAssessor.get(a.nome) ?? []
       for (const l of list) {
         rows.push([a.nome, a.empresa, l.nome, l.data, l.transacoes, l.animais, Math.round(l.vgv)])
       }
     }
-    downloadCSV('vendas-por-assessor-detalhado.csv', rows)
+    downloadCSV(filteredAssessor ? `vendas-${normalize(filteredAssessor.nome)}-detalhado.csv` : 'vendas-por-assessor-detalhado.csv', rows)
   }
 
   return (
@@ -1373,12 +1469,26 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
         onExport={exportCsv}
       />
 
-      <div className="rl-grid rl-grid-4">
-        <Stat label="Assessores ativos" value={String(assessores.length)} sub={assessores[0] ? `Líder: ${assessores[0].nome.split(' ')[0]}` : undefined} gold />
-        <Stat label="VGV vinculado" value={fmtBRLCompact(totalVgv)} />
-        <Stat label="Animais negociados" value={fmtNum(assessores.reduce((s, a) => s + a.animais, 0))} />
-        <Stat label="Transações" value={fmtNum(assessores.reduce((s, a) => s + a.transacoes, 0))} />
-      </div>
+      {filteredAssessor ? (
+        <div className="rl-grid rl-grid-4">
+          <Stat
+            label="Assessor"
+            value={filteredAssessor.nome}
+            sub={`Posição ${filteredAssessor.pos} de ${assessores.length} · ${normalizeEmpresaGrupo(filteredAssessor.empresa)}`}
+            gold
+          />
+          <Stat label="VGV no período" value={fmtBRLCompact(filteredAssessor.vgv)} sub={`${PCT(filteredAssessor.pct)} do total`} />
+          <Stat label="Leilões" value={String(filteredAssessor.leiloesCount)} sub={`${fmtNum(filteredAssessor.transacoes)} transações`} />
+          <Stat label="Animais" value={fmtNum(filteredAssessor.animais)} sub={`Ticket médio ${fmtBRL(filteredAssessor.ticket)}`} />
+        </div>
+      ) : (
+        <div className="rl-grid rl-grid-4">
+          <Stat label="Assessores ativos" value={String(assessores.length)} sub={assessores[0] ? `Líder: ${assessores[0].nome.split(' ')[0]}` : undefined} gold />
+          <Stat label="VGV vinculado" value={fmtBRLCompact(totalVgv)} />
+          <Stat label="Animais negociados" value={fmtNum(assessores.reduce((s, a) => s + a.animais, 0))} />
+          <Stat label="Transações" value={fmtNum(assessores.reduce((s, a) => s + a.transacoes, 0))} />
+        </div>
+      )}
 
       {assessores.length === 0 ? (
         <Empty title="Nenhum assessor com vendas no período" message="Cadastre fechamentos com a aba Assessores preenchida." />
@@ -1386,14 +1496,34 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
         <div className="rl-table-wrap">
           <div className="rl-table-head">
             <div>
-              <h3>Ranking · clique em um assessor para ver os leilões</h3>
+              <h3>{filteredAssessor ? `Leilões de ${filteredAssessor.nome}` : 'Ranking · clique em um assessor para ver os leilões'}</h3>
               <div className="rl-sub">Comissão e pagamento ficam restritos ao ERP</div>
             </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <label className="rl-assessor-filter">
+                <span className="rl-assessor-filter-label">Assessor</span>
+                <select
+                  value={selectedAssessor}
+                  onChange={e => setSelectedAssessor(e.target.value)}
+                  className="rl-assessor-filter-select"
+                >
+                  <option value="">Todos ({assessores.length})</option>
+                  {assessores.map(a => (
+                    <option key={a.nome} value={a.nome}>{a.nome}</option>
+                  ))}
+                </select>
+              </label>
+              {filteredAssessor && (
+                <button type="button" onClick={() => setSelectedAssessor('')} className="rl-export" title="Limpar filtro">
+                  Limpar
+                </button>
+              )}
               <button type="button" onClick={exportCsvDetalhado} className="rl-export" title="CSV detalhado: 1 linha por assessor × leilão">
                 <Download size={12} /> Detalhado (CSV)
               </button>
-              <span className="rl-tag rl-tag-gold">{assessores.length} assessores</span>
+              <span className="rl-tag rl-tag-gold">
+                {filteredAssessor ? '1 selecionado' : `${assessores.length} assessores`}
+              </span>
             </div>
           </div>
           <div className="rl-table-scroll">
@@ -1413,7 +1543,7 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
                 </tr>
               </thead>
               <tbody>
-                {assessores.map(a => {
+                {visibleAssessores.map(a => {
                   const isOpen = expanded.has(a.nome)
                   const breakdown = breakdownPorAssessor.get(a.nome) ?? []
                   return (
@@ -1503,6 +1633,24 @@ function ReportAssessor({ data, period }: { data: Payload; period: string }) {
       )}
 
       <style jsx>{`
+        .rl-assessor-filter {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 4px 10px; border-radius: 8px;
+          background: var(--dcl-bg-card-2); border: 1px solid var(--dcl-line);
+        }
+        .rl-assessor-filter-label {
+          font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+          color: var(--dcl-ink-3); font-weight: 600;
+        }
+        .rl-assessor-filter-select {
+          background: transparent; border: none; outline: none;
+          color: var(--dcl-ink); font-size: 12px; font-weight: 500;
+          font-family: inherit; cursor: pointer;
+          padding: 4px 2px; max-width: 200px;
+        }
+        :global(.rl-assessor-filter-select option) {
+          background: var(--dcl-bg-card); color: var(--dcl-ink);
+        }
         .rl-row-open td { background: rgba(212,168,92,0.05); }
         .rl-row-detail td { background: var(--dcl-bg-card-2); }
         .rl-detail-inner { padding: 14px 18px 18px; }

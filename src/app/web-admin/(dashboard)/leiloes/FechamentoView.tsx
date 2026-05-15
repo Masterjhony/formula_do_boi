@@ -74,13 +74,15 @@ export type Fechamento = {
   id: string; nome: string; data: string; local: string
   lotes_ofertados: number; lotes_vendidos: number; animais_vendidos: number
   vgv_total: number; ticket_medio: number; maior_lance: number
+  faturamento_total_leilao: number | null
   compradores_unicos: number; estados_alcancados: number
   por_assessor: Assessor[]; por_estado: Estado[]
   compradores: Comprador[]; lances: Lance[]
   perfil_genetico: PerfilGenetico | null
   lotes_catalogo?: LoteCatalogo[]
   distribuicao_empresa?: EmpresaDistribuicao[]
-  comissao_assessoria: number; observacoes: string; created_at: string
+  comissao_assessoria: number; receita_bula: number | null; sobra_bruta: number | null
+  observacoes: string; created_at: string
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -150,9 +152,11 @@ function emptyForm(): Omit<Fechamento, 'id' | 'created_at'> {
     nome: '', data: '', local: '',
     lotes_ofertados: 0, lotes_vendidos: 0, animais_vendidos: 0,
     vgv_total: 0, ticket_medio: 0, maior_lance: 0,
+    faturamento_total_leilao: null,
     compradores_unicos: 0, estados_alcancados: 0,
     por_assessor: [], por_estado: [], compradores: [], lances: [],
-    perfil_genetico: null, comissao_assessoria: 0, observacoes: '',
+    perfil_genetico: null, comissao_assessoria: 0,
+    receita_bula: null, sobra_bruta: null, observacoes: '',
   }
 }
 
@@ -400,7 +404,14 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { icon: DollarSign, label: 'VGV Total', value: R(f.vgv_total), gold: true },
+                  ...(f.faturamento_total_leilao ? [{
+                    icon: DollarSign,
+                    label: 'Faturamento Total do Leilão',
+                    value: R(f.faturamento_total_leilao),
+                    sub: f.vgv_total ? `cobertura ${PCT(f.vgv_total / f.faturamento_total_leilao)} (${R(f.vgv_total)})` : 'oficial da leiloeira',
+                    gold: true as const,
+                  }] : []),
+                  { icon: DollarSign, label: 'VGV Cobertura (Fórmula+Bula)', value: R(f.vgv_total), gold: !f.faturamento_total_leilao },
                   { icon: TrendingUp, label: 'Ticket Médio', value: R(f.ticket_medio) },
                   { icon: BarChart3, label: 'Lotes Vendidos', value: `${f.lotes_vendidos}/${f.lotes_ofertados}`, sub: `${pct}% de cobertura` },
                   { icon: Hash, label: 'Animais Vendidos', value: f.animais_vendidos.toString() },
@@ -832,13 +843,17 @@ function toFormData(f: Fechamento | null): FormData {
     lotes_ofertados: f.lotes_ofertados, lotes_vendidos: f.lotes_vendidos,
     animais_vendidos: f.animais_vendidos, vgv_total: f.vgv_total,
     ticket_medio: f.ticket_medio, maior_lance: f.maior_lance,
+    faturamento_total_leilao: f.faturamento_total_leilao ?? null,
     compradores_unicos: f.compradores_unicos, estados_alcancados: f.estados_alcancados,
     por_assessor: f.por_assessor ?? [], por_estado: f.por_estado ?? [],
     compradores: f.compradores ?? [], lances: f.lances ?? [],
     perfil_genetico: f.perfil_genetico ?? null,
     lotes_catalogo: f.lotes_catalogo,
     distribuicao_empresa: f.distribuicao_empresa,
-    comissao_assessoria: f.comissao_assessoria, observacoes: f.observacoes,
+    comissao_assessoria: f.comissao_assessoria,
+    receita_bula: f.receita_bula ?? null,
+    sobra_bruta: f.sobra_bruta ?? null,
+    observacoes: f.observacoes,
   }
 }
 
@@ -912,8 +927,11 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
         lotes_ofertados: form.lotes_ofertados, lotes_vendidos: form.lotes_vendidos,
         animais_vendidos: form.animais_vendidos, vgv_total: form.vgv_total,
         ticket_medio: form.ticket_medio, maior_lance: form.maior_lance,
+        faturamento_total_leilao: form.faturamento_total_leilao,
         compradores_unicos: form.compradores_unicos, estados_alcancados: form.estados_alcancados,
-        comissao_assessoria: form.comissao_assessoria, observacoes: form.observacoes,
+        comissao_assessoria: form.comissao_assessoria,
+        receita_bula: form.receita_bula, sobra_bruta: form.sobra_bruta,
+        observacoes: form.observacoes,
         por_assessor: form.por_assessor, por_estado: form.por_estado,
         compradores: form.compradores, lances: form.lances,
         perfil_genetico: form.perfil_genetico,
@@ -972,9 +990,14 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
                 <FormField label="Animais Vendidos"><input type="number" className={inputCls} value={form.animais_vendidos || ''} onChange={e => set('animais_vendidos', Number(e.target.value))} min={0} /></FormField>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <FormField label="VGV Total (R$)"><input type="number" className={inputCls} value={form.vgv_total || ''} onChange={e => set('vgv_total', Number(e.target.value))} min={0} /></FormField>
+                <FormField label="VGV Cobertura (R$)"><input type="number" className={inputCls} value={form.vgv_total || ''} onChange={e => set('vgv_total', Number(e.target.value))} min={0} /></FormField>
                 <FormField label="Ticket Médio (R$)"><input type="number" className={inputCls} value={form.ticket_medio || ''} onChange={e => set('ticket_medio', Number(e.target.value))} min={0} /></FormField>
                 <FormField label="Maior Lance (R$/parc.)"><input type="number" className={inputCls} value={form.maior_lance || ''} onChange={e => set('maior_lance', Number(e.target.value))} min={0} /></FormField>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <FormField label="Faturamento Total do Leilão (R$)"><input type="number" className={inputCls} value={form.faturamento_total_leilao ?? ''} onChange={e => set('faturamento_total_leilao', e.target.value === '' ? null : Number(e.target.value))} min={0} placeholder="oficial da leiloeira" /></FormField>
+                <FormField label="Receita Bula (R$)"><input type="number" className={inputCls} value={form.receita_bula ?? ''} onChange={e => set('receita_bula', e.target.value === '' ? null : Number(e.target.value))} min={0} placeholder="fee a receber" /></FormField>
+                <FormField label="Sobra Bruta (R$)"><input type="number" className={inputCls} value={form.sobra_bruta ?? ''} onChange={e => set('sobra_bruta', e.target.value === '' ? null : Number(e.target.value))} placeholder="receita − comissões" /></FormField>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <FormField label="Compradores Únicos"><input type="number" className={inputCls} value={form.compradores_unicos || ''} onChange={e => set('compradores_unicos', Number(e.target.value))} min={0} /></FormField>
