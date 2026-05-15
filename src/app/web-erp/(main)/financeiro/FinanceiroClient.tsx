@@ -7,7 +7,7 @@ import {
     Building2, CheckCircle2, Tag, X, Trash2,
     Loader2, Pencil, AlertTriangle, PiggyBank, Banknote,
     CreditCard, Gavel, Trophy, CheckCheck, ChevronRight, Users, Sparkles,
-    Filter, Clock, Percent,
+    Filter, Clock, Percent, Download, RotateCcw,
 } from 'lucide-react';
 import {
     saveTransaction, updateTransactionStatus, deleteTransaction,
@@ -1929,6 +1929,112 @@ export function LeiloesIntegracao({
           .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
     }, [fechamentos, payables, linkedSet]);
 
+    // ── Filtros do "Resumo por Fechamento" ──────────────────────────────────
+    const [fechSearch, setFechSearch] = useState('');
+    const [fechDataFrom, setFechDataFrom] = useState('');
+    const [fechDataTo, setFechDataTo] = useState('');
+    const [fechStatusReceber, setFechStatusReceber] = useState<'all' | 'pendente' | 'lancado' | 'sem'>('all');
+    const [fechStatusPagar, setFechStatusPagar] = useState<'all' | 'pendente' | 'parcial' | 'lancado' | 'sem'>('all');
+
+    const filteredFechamentoPnL = useMemo(() => {
+        const q = fechSearch.trim().toLowerCase();
+        return fechamentoPnL.filter(p => {
+            if (q && !p.nome.toLowerCase().includes(q)) return false;
+            if (fechDataFrom && (!p.data || p.data < fechDataFrom)) return false;
+            if (fechDataTo && (!p.data || p.data > fechDataTo)) return false;
+
+            if (fechStatusReceber !== 'all') {
+                if (fechStatusReceber === 'sem' && p.receita > 0) return false;
+                if (fechStatusReceber === 'pendente' && (p.receita <= 0 || p.receberLancado)) return false;
+                if (fechStatusReceber === 'lancado' && (p.receita <= 0 || !p.receberLancado)) return false;
+            }
+
+            if (fechStatusPagar !== 'all') {
+                const tot = p.pagarTags.length;
+                const lanc = p.pagarLancados;
+                if (fechStatusPagar === 'sem' && tot > 0) return false;
+                if (fechStatusPagar === 'pendente' && (tot === 0 || lanc > 0)) return false;
+                if (fechStatusPagar === 'parcial' && (tot === 0 || lanc === 0 || lanc >= tot)) return false;
+                if (fechStatusPagar === 'lancado' && (tot === 0 || lanc < tot)) return false;
+            }
+
+            return true;
+        });
+    }, [fechamentoPnL, fechSearch, fechDataFrom, fechDataTo, fechStatusReceber, fechStatusPagar]);
+
+    const fechFiltersActive =
+        fechSearch.trim() !== '' || fechDataFrom !== '' || fechDataTo !== '' ||
+        fechStatusReceber !== 'all' || fechStatusPagar !== 'all';
+
+    const limparFiltrosFech = () => {
+        setFechSearch('');
+        setFechDataFrom('');
+        setFechDataTo('');
+        setFechStatusReceber('all');
+        setFechStatusPagar('all');
+    };
+
+    // ── Export CSV do "Resumo por Fechamento" ───────────────────────────────
+    const exportFechamentosCSV = () => {
+        if (filteredFechamentoPnL.length === 0) {
+            alert('Nada para exportar.');
+            return;
+        }
+        const head = [
+            'Data', 'Leilão', 'Acordo', 'Fat. Leiloeira', 'VGV Cobertura',
+            'Fat. Bula (nosso)', 'Comissão', 'Lucro Bruto', 'Margem %',
+            'Receber (status)', 'Pagar (lançados/total)',
+        ];
+        const esc = (v: unknown) => {
+            const s = v == null ? '' : String(v);
+            if (/[";\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+            return s;
+        };
+        const numBR = (n: number) =>
+            n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const rows = filteredFechamentoPnL.map(p => {
+            const margem = p.receita > 0 ? (p.sobra / p.receita) * 100 : 0;
+            const receberStatus = p.receita <= 0 ? '—' : p.receberLancado ? 'Lançado' : 'Pendente';
+            const pagarStatus = p.pagarTags.length === 0
+                ? '—'
+                : `${p.pagarLancados}/${p.pagarTags.length}`;
+            return [
+                p.data ? fmtDate(p.data) : '',
+                p.nome,
+                p.acordo ? formatarAcordoCurto(p.acordo) : '',
+                p.fatLeiloeira != null ? numBR(p.fatLeiloeira) : '',
+                p.vgv > 0 ? numBR(p.vgv) : '',
+                p.receita > 0 ? numBR(p.receita) : '',
+                p.comissao > 0 ? numBR(p.comissao) : '',
+                p.sobra !== 0 ? numBR(p.sobra) : '',
+                p.receita > 0 ? `${margem.toFixed(1)}%` : '',
+                receberStatus,
+                pagarStatus,
+            ].map(esc).join(';');
+        });
+        const totFat = filteredFechamentoPnL.reduce((s, x) => s + (x.fatLeiloeira || 0), 0);
+        const totVgv = filteredFechamentoPnL.reduce((s, x) => s + x.vgv, 0);
+        const totRec = filteredFechamentoPnL.reduce((s, x) => s + x.receita, 0);
+        const totCom = filteredFechamentoPnL.reduce((s, x) => s + x.comissao, 0);
+        const totSob = filteredFechamentoPnL.reduce((s, x) => s + x.sobra, 0);
+        const totalRow = [
+            '', 'TOTAIS', '',
+            numBR(totFat), numBR(totVgv), numBR(totRec), numBR(totCom), numBR(totSob),
+            '', '', '',
+        ].map(esc).join(';');
+
+        const csv = '﻿' + [head.map(esc).join(';'), ...rows, totalRow].join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `resumo-fechamentos-${today()}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     // ── Lançar um único ──────────────────────────────────────────────────────
     const lancarUm = async (tipo: 'income' | 'expense', itemTag: string) => {
         if (!accountId) { alert('Selecione uma conta ERP primeiro.'); return; }
@@ -2089,7 +2195,7 @@ export function LeiloesIntegracao({
             {/* ── P&L por Fechamento ────────────────────────────────────── */}
             {fechamentoPnL.length > 0 && (
                 <div className="bg-white dark:bg-[#111] border border-gray-200 dark:border-[#222] rounded-2xl overflow-hidden">
-                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
+                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between gap-3 flex-wrap">
                         <div className="flex items-center gap-2">
                             <div className="p-2 bg-[#A0792E]/10 rounded-xl">
                                 <Trophy className="w-4 h-4 text-[#A0792E]" />
@@ -2099,10 +2205,90 @@ export function LeiloesIntegracao({
                                 <p className="text-[10px] text-gray-500 mt-0.5">Acordo · Fat. Leiloeira (referência) · VGV Cobertura · <span className="text-emerald-500 font-bold">Faturamento Bula (nosso)</span> · Comissões · Lucro Bruto</p>
                             </div>
                         </div>
-                        <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">
-                            {fechamentoPnL.length} fechamento(s)
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">
+                                {filteredFechamentoPnL.length === fechamentoPnL.length
+                                    ? `${fechamentoPnL.length} fechamento(s)`
+                                    : `${filteredFechamentoPnL.length} de ${fechamentoPnL.length} fechamento(s)`}
+                            </span>
+                            <button
+                                onClick={exportFechamentosCSV}
+                                disabled={filteredFechamentoPnL.length === 0}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#A0792E]/10 text-[#A0792E] border border-[#A0792E]/30 rounded-lg text-xs font-bold hover:bg-[#A0792E] hover:text-black transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                title="Exportar CSV (Excel)"
+                            >
+                                <Download className="w-3.5 h-3.5" />
+                                Exportar CSV
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Filtros */}
+                    <div className="px-5 py-3 border-b border-gray-100 dark:border-[#1E1E1E] bg-gray-50/50 dark:bg-[#0A0A0A] flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-gray-500 mr-1">
+                            <Filter className="w-3 h-3" />
+                            Filtros
+                        </div>
+                        <div className="relative">
+                            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                                type="text"
+                                value={fechSearch}
+                                onChange={e => setFechSearch(e.target.value)}
+                                placeholder="Buscar leilão…"
+                                className="pl-7 pr-3 py-1.5 text-xs font-semibold bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-[#A0792E] outline-none w-44"
+                            />
+                        </div>
+                        <input
+                            type="date"
+                            value={fechDataFrom}
+                            onChange={e => setFechDataFrom(e.target.value)}
+                            title="Data inicial"
+                            className="px-2.5 py-1.5 text-xs font-semibold bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-[#A0792E] outline-none"
+                        />
+                        <span className="text-[10px] text-gray-400">até</span>
+                        <input
+                            type="date"
+                            value={fechDataTo}
+                            onChange={e => setFechDataTo(e.target.value)}
+                            title="Data final"
+                            className="px-2.5 py-1.5 text-xs font-semibold bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-[#A0792E] outline-none"
+                        />
+                        <select
+                            value={fechStatusReceber}
+                            onChange={e => setFechStatusReceber(e.target.value as typeof fechStatusReceber)}
+                            title="Status do A Receber"
+                            className="px-2.5 py-1.5 text-xs font-semibold bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none"
+                        >
+                            <option value="all">Receber: todos</option>
+                            <option value="pendente">Receber: pendente</option>
+                            <option value="lancado">Receber: lançado</option>
+                            <option value="sem">Receber: sem receita</option>
+                        </select>
+                        <select
+                            value={fechStatusPagar}
+                            onChange={e => setFechStatusPagar(e.target.value as typeof fechStatusPagar)}
+                            title="Status do A Pagar"
+                            className="px-2.5 py-1.5 text-xs font-semibold bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-lg text-gray-900 dark:text-white focus:ring-1 focus:ring-rose-500 outline-none"
+                        >
+                            <option value="all">Pagar: todos</option>
+                            <option value="pendente">Pagar: pendente</option>
+                            <option value="parcial">Pagar: parcial</option>
+                            <option value="lancado">Pagar: lançado</option>
+                            <option value="sem">Pagar: sem comissão</option>
+                        </select>
+                        {fechFiltersActive && (
+                            <button
+                                onClick={limparFiltrosFech}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                title="Limpar filtros"
+                            >
+                                <RotateCcw className="w-3 h-3" />
+                                Limpar
+                            </button>
+                        )}
+                    </div>
+
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-gray-50 dark:bg-[#0A0A0A] text-[10px] uppercase tracking-wider text-gray-500">
@@ -2120,7 +2306,14 @@ export function LeiloesIntegracao({
                                 </tr>
                             </thead>
                             <tbody>
-                                {fechamentoPnL.map(p => {
+                                {filteredFechamentoPnL.length === 0 && (
+                                    <tr>
+                                        <td colSpan={10} className="px-3 py-12 text-center text-xs text-gray-400">
+                                            Nenhum fechamento corresponde aos filtros aplicados.
+                                        </td>
+                                    </tr>
+                                )}
+                                {filteredFechamentoPnL.map(p => {
                                     const margemPct = p.receita > 0 ? (p.sobra / p.receita) * 100 : 0;
                                     const pagarTotalCount = p.pagarTags.length;
                                     const pagarAllDone = pagarTotalCount > 0 && p.pagarLancados === pagarTotalCount;
@@ -2185,11 +2378,11 @@ export function LeiloesIntegracao({
                             <tfoot className="bg-gray-50 dark:bg-[#0A0A0A] text-xs font-black">
                                 <tr>
                                     <td className="px-3 py-3 text-gray-500 uppercase tracking-wider" colSpan={3}>Totais</td>
-                                    <td className="px-3 py-3 text-right text-gray-500 dark:text-[#666]">{fmt(fechamentoPnL.reduce((s, x) => s + (x.fatLeiloeira || 0), 0))}</td>
-                                    <td className="px-3 py-3 text-right text-gray-700 dark:text-gray-300">{fmt(fechamentoPnL.reduce((s, x) => s + x.vgv, 0))}</td>
-                                    <td className="px-3 py-3 text-right text-emerald-500">{fmt(fechamentoPnL.reduce((s, x) => s + x.receita, 0))}</td>
-                                    <td className="px-3 py-3 text-right text-rose-500">{fmt(fechamentoPnL.reduce((s, x) => s + x.comissao, 0))}</td>
-                                    <td className="px-3 py-3 text-right text-[#A0792E]">{fmt(fechamentoPnL.reduce((s, x) => s + x.sobra, 0))}</td>
+                                    <td className="px-3 py-3 text-right text-gray-500 dark:text-[#666]">{fmt(filteredFechamentoPnL.reduce((s, x) => s + (x.fatLeiloeira || 0), 0))}</td>
+                                    <td className="px-3 py-3 text-right text-gray-700 dark:text-gray-300">{fmt(filteredFechamentoPnL.reduce((s, x) => s + x.vgv, 0))}</td>
+                                    <td className="px-3 py-3 text-right text-emerald-500">{fmt(filteredFechamentoPnL.reduce((s, x) => s + x.receita, 0))}</td>
+                                    <td className="px-3 py-3 text-right text-rose-500">{fmt(filteredFechamentoPnL.reduce((s, x) => s + x.comissao, 0))}</td>
+                                    <td className="px-3 py-3 text-right text-[#A0792E]">{fmt(filteredFechamentoPnL.reduce((s, x) => s + x.sobra, 0))}</td>
                                     <td className="px-3 py-3" colSpan={2} />
                                 </tr>
                             </tfoot>
