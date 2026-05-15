@@ -16,6 +16,7 @@ import {
     registrarLeiloesLote, saveAccount, deleteAccount,
 } from './actions';
 import { normalizeAssessorNome } from '@/lib/assessor-normalize';
+import { resolverAcordo, formatarAcordoCurto, type AcordoLeilao } from '@/lib/leilao-acordos';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Account {
@@ -65,9 +66,13 @@ interface FechamentoLite {
     nome: string;
     data: string;
     vgv_total: number | null;
+    faturamento_total_leilao?: number | null;
     comissao_assessoria: number | null;
     receita_bula: number | null;
     sobra_bruta: number | null;
+    acordo_pct_faturamento?: number | null;
+    acordo_pct_venda_cobertura?: number | null;
+    acordo_descricao?: string | null;
     por_assessor: Array<{ nome?: string; empresa?: string; vgv?: number; transacoes?: number; animais?: number; pct_total?: number }> | null;
     lances: Array<{ lote?: string | number; fazenda?: string; comprador?: string; uf?: string; assessor?: string; empresa?: string; animais?: number; parcela?: number; vgv?: number }> | null;
 }
@@ -1891,7 +1896,9 @@ export function LeiloesIntegracao({
     // ── P&L por fechamento ──────────────────────────────────────────────────
     type FechamentoPnL = {
         id: string; nome: string; data: string;
-        vgv: number; receita: number; comissao: number; sobra: number;
+        vgv: number; fatLeiloeira: number | null;
+        acordo: AcordoLeilao | null;
+        receita: number; comissao: number; sobra: number;
         receberTag: string; receberLancado: boolean; receberAmt: number;
         pagarTags: string[]; pagarLancados: number; pagarTotal: number;
     };
@@ -1908,6 +1915,8 @@ export function LeiloesIntegracao({
             return {
                 id: f.id, nome: f.nome, data: f.data,
                 vgv: Number(f.vgv_total) || 0,
+                fatLeiloeira: f.faturamento_total_leilao ?? null,
+                acordo: resolverAcordo(f),
                 receita, comissao, sobra,
                 receberTag,
                 receberLancado: linkedSet.has(receberTag),
@@ -2087,7 +2096,7 @@ export function LeiloesIntegracao({
                             </div>
                             <div>
                                 <h3 className="font-bold text-gray-900 dark:text-white">Resumo por Fechamento</h3>
-                                <p className="text-[10px] text-gray-500 mt-0.5">Receita Bula (a receber) · Comissão assessores (a pagar) · Sobra bruta (margem líquida esperada)</p>
+                                <p className="text-[10px] text-gray-500 mt-0.5">Acordo · Fat. Leiloeira (referência) · VGV Cobertura · <span className="text-emerald-500 font-bold">Faturamento Bula (nosso)</span> · Comissões · Lucro Bruto</p>
                             </div>
                         </div>
                         <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">
@@ -2098,14 +2107,16 @@ export function LeiloesIntegracao({
                         <table className="w-full text-sm">
                             <thead className="bg-gray-50 dark:bg-[#0A0A0A] text-[10px] uppercase tracking-wider text-gray-500">
                                 <tr>
-                                    <th className="px-4 py-3 text-left font-bold">Data</th>
-                                    <th className="px-4 py-3 text-left font-bold">Leilão</th>
-                                    <th className="px-4 py-3 text-right font-bold">VGV Bula</th>
-                                    <th className="px-4 py-3 text-right font-bold">Receita Bula</th>
-                                    <th className="px-4 py-3 text-right font-bold">Comissão</th>
-                                    <th className="px-4 py-3 text-right font-bold">Sobra</th>
-                                    <th className="px-4 py-3 text-center font-bold">Receber</th>
-                                    <th className="px-4 py-3 text-center font-bold">Pagar</th>
+                                    <th className="px-3 py-3 text-left font-bold">Data</th>
+                                    <th className="px-3 py-3 text-left font-bold">Leilão</th>
+                                    <th className="px-3 py-3 text-left font-bold">Acordo</th>
+                                    <th className="px-3 py-3 text-right font-bold">Fat. Leiloeira</th>
+                                    <th className="px-3 py-3 text-right font-bold">VGV Cobertura</th>
+                                    <th className="px-3 py-3 text-right font-bold text-emerald-500">Fat. Bula (nosso)</th>
+                                    <th className="px-3 py-3 text-right font-bold">Comissão</th>
+                                    <th className="px-3 py-3 text-right font-bold">Lucro Bruto</th>
+                                    <th className="px-3 py-3 text-center font-bold">Receber</th>
+                                    <th className="px-3 py-3 text-center font-bold">Pagar</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2116,18 +2127,28 @@ export function LeiloesIntegracao({
                                     const pagarPartial = p.pagarLancados > 0 && p.pagarLancados < pagarTotalCount;
                                     return (
                                         <tr key={p.id} className="border-b border-gray-100 dark:border-[#1A1A1A] hover:bg-gray-50/50 dark:hover:bg-[#0E0E0E]">
-                                            <td className="px-4 py-3 font-mono text-xs text-gray-500">{fmtDate(p.data)}</td>
-                                            <td className="px-4 py-3">
+                                            <td className="px-3 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{fmtDate(p.data)}</td>
+                                            <td className="px-3 py-3">
                                                 <p className="font-bold text-gray-900 dark:text-white">{p.nome}</p>
                                                 <p className="text-[10px] text-gray-500">margem {margemPct.toFixed(1)}%</p>
                                             </td>
-                                            <td className="px-4 py-3 text-right font-mono text-xs text-gray-500">{p.vgv > 0 ? fmt(p.vgv) : '—'}</td>
-                                            <td className="px-4 py-3 text-right font-black text-emerald-500">{p.receita > 0 ? fmt(p.receita) : '—'}</td>
-                                            <td className="px-4 py-3 text-right font-black text-rose-500">{p.comissao > 0 ? fmt(p.comissao) : '—'}</td>
-                                            <td className={`px-4 py-3 text-right font-black ${p.sobra >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>
+                                            <td className="px-3 py-3">
+                                                {p.acordo ? (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#A0792E]/15 text-[#A0792E] text-[10px] font-black tracking-wide" title={p.acordo.descricao}>
+                                                        {formatarAcordoCurto(p.acordo)}
+                                                    </span>
+                                                ) : <span className="text-gray-300 text-[10px]">—</span>}
+                                            </td>
+                                            <td className="px-3 py-3 text-right font-mono text-xs text-gray-400 dark:text-[#666]">
+                                                {p.fatLeiloeira ? fmt(p.fatLeiloeira) : <span className="text-gray-300 dark:text-gray-700">—</span>}
+                                            </td>
+                                            <td className="px-3 py-3 text-right font-mono text-xs text-gray-700 dark:text-gray-300">{p.vgv > 0 ? fmt(p.vgv) : '—'}</td>
+                                            <td className="px-3 py-3 text-right font-black text-emerald-500">{p.receita > 0 ? fmt(p.receita) : '—'}</td>
+                                            <td className="px-3 py-3 text-right font-black text-rose-500">{p.comissao > 0 ? fmt(p.comissao) : '—'}</td>
+                                            <td className={`px-3 py-3 text-right font-black ${p.sobra >= 0 ? 'text-[#A0792E]' : 'text-rose-500'}`}>
                                                 {p.sobra !== 0 ? `${p.sobra >= 0 ? '+' : ''}${fmt(p.sobra)}` : '—'}
                                             </td>
-                                            <td className="px-4 py-3 text-center">
+                                            <td className="px-3 py-3 text-center">
                                                 {p.receita <= 0 ? (
                                                     <span className="text-[10px] text-gray-400">—</span>
                                                 ) : p.receberLancado ? (
@@ -2140,7 +2161,7 @@ export function LeiloesIntegracao({
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-3 text-center">
+                                            <td className="px-3 py-3 text-center">
                                                 {pagarTotalCount === 0 ? (
                                                     <span className="text-[10px] text-gray-400">—</span>
                                                 ) : pagarAllDone ? (
@@ -2163,12 +2184,13 @@ export function LeiloesIntegracao({
                             </tbody>
                             <tfoot className="bg-gray-50 dark:bg-[#0A0A0A] text-xs font-black">
                                 <tr>
-                                    <td className="px-4 py-3 text-gray-500 uppercase tracking-wider" colSpan={2}>Totais</td>
-                                    <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">{fmt(fechamentoPnL.reduce((s, x) => s + x.vgv, 0))}</td>
-                                    <td className="px-4 py-3 text-right text-emerald-500">{fmt(fechamentoPnL.reduce((s, x) => s + x.receita, 0))}</td>
-                                    <td className="px-4 py-3 text-right text-rose-500">{fmt(fechamentoPnL.reduce((s, x) => s + x.comissao, 0))}</td>
-                                    <td className="px-4 py-3 text-right text-[#A0792E]">{fmt(fechamentoPnL.reduce((s, x) => s + x.sobra, 0))}</td>
-                                    <td className="px-4 py-3" colSpan={2} />
+                                    <td className="px-3 py-3 text-gray-500 uppercase tracking-wider" colSpan={3}>Totais</td>
+                                    <td className="px-3 py-3 text-right text-gray-500 dark:text-[#666]">{fmt(fechamentoPnL.reduce((s, x) => s + (x.fatLeiloeira || 0), 0))}</td>
+                                    <td className="px-3 py-3 text-right text-gray-700 dark:text-gray-300">{fmt(fechamentoPnL.reduce((s, x) => s + x.vgv, 0))}</td>
+                                    <td className="px-3 py-3 text-right text-emerald-500">{fmt(fechamentoPnL.reduce((s, x) => s + x.receita, 0))}</td>
+                                    <td className="px-3 py-3 text-right text-rose-500">{fmt(fechamentoPnL.reduce((s, x) => s + x.comissao, 0))}</td>
+                                    <td className="px-3 py-3 text-right text-[#A0792E]">{fmt(fechamentoPnL.reduce((s, x) => s + x.sobra, 0))}</td>
+                                    <td className="px-3 py-3" colSpan={2} />
                                 </tr>
                             </tfoot>
                         </table>

@@ -25,7 +25,7 @@ export default async function LeiloesPage() {
             .select('id, nome, data, criador, status, comissao, comissao_receber, recebido, faturamento_realizado, venda_bula, realizado_bula')
             .order('data', { ascending: false }),
         supabase.from('bula_leilao_fechamento')
-            .select('id, nome, data, vgv_total, comissao_assessoria, receita_bula, sobra_bruta, por_assessor, lances')
+            .select('id, nome, data, vgv_total, faturamento_total_leilao, comissao_assessoria, receita_bula, sobra_bruta, por_assessor, lances')
             .order('data', { ascending: false }),
     ]);
 

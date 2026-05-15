@@ -1,8 +1,12 @@
 import { Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 import FechamentoView from '../FechamentoView'
+import { getIsFinanceAdmin } from '@/lib/auth-helpers'
 
-export default function FechamentoPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function FechamentoPage() {
+  const canSeeFinance = await getIsFinanceAdmin()
   return (
     <Suspense
       fallback={
@@ -11,7 +15,7 @@ export default function FechamentoPage() {
         </div>
       }
     >
-      <FechamentoView />
+      <FechamentoView canSeeFinance={canSeeFinance} />
     </Suspense>
   )
 }

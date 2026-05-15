@@ -7,6 +7,7 @@ import {
 import { createClient } from '@/utils/supabase/server'
 import { buildReceivables, buildPayables } from './financeiro/_lib/helpers'
 import type { Account, Transaction, BulaLeilao, FechamentoLite, UnifiedItem } from './financeiro/_lib/types'
+import { resolverAcordo, formatarAcordoCurto } from '@/lib/leilao-acordos'
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -65,7 +66,7 @@ export default async function ERPDashboard() {
             .select('id, nome, data, criador, status, comissao, comissao_receber, recebido, faturamento_realizado, venda_bula, realizado_bula')
             .order('data', { ascending: false }),
         supabase.from('bula_leilao_fechamento')
-            .select('id, nome, data, vgv_total, comissao_assessoria, receita_bula, sobra_bruta, por_assessor, lances')
+            .select('id, nome, data, vgv_total, faturamento_total_leilao, comissao_assessoria, receita_bula, sobra_bruta, por_assessor, lances')
             .order('data', { ascending: false }),
     ])
 
@@ -81,7 +82,8 @@ export default async function ERPDashboard() {
         transaction_date: t.transaction_date,
         description: t.description,
     }))
-    const fechamentos = fechamentosList.slice(0, 6)
+    // Top 6 só pra render da tabela "Últimos Fechamentos" — KPI 12m soma a lista cheia.
+    const fechamentosTop = fechamentosList.slice(0, 6)
 
     const totalInitial = accountsList.reduce((s, a) => s + (Number(a.initial_balance) || 0), 0)
     const txs = allTx ?? []
@@ -315,15 +317,15 @@ export default async function ERPDashboard() {
         return acc
     }, [])
 
-    // Leilões (top fechamentos)
-    const fechs = fechamentos ?? []
-    const receitaLeiloes12m = fechs
-        .filter(f => {
-            if (!f.data) return false
-            const diff = (now.getTime() - new Date(f.data).getTime()) / (1000 * 60 * 60 * 24)
-            return diff <= 365
-        })
-        .reduce((s, f) => s + (Number(f.receita_bula) || 0), 0)
+    // Leilões — KPIs somam TODOS os fechamentos dos últimos 12m (não só os 6 do topo)
+    const fechs = fechamentosTop
+    const fechs12m = fechamentosList.filter(f => {
+        if (!f.data) return false
+        const diff = (now.getTime() - new Date(f.data).getTime()) / (1000 * 60 * 60 * 24)
+        return diff <= 365
+    })
+    const faturamentoBula12m = fechs12m.reduce((s, f) => s + (Number(f.receita_bula) || 0), 0)
+    const lucroBruto12m = fechs12m.reduce((s, f) => s + (Number(f.sobra_bruta) || 0), 0)
 
     const modules = [
         {
@@ -495,22 +497,26 @@ export default async function ERPDashboard() {
                     </div>
                 </Link>
 
-                {/* Receita Leilões 12m */}
+                {/* Faturamento Bula (12m) — receita_bula somada dos últimos 12 meses */}
                 <Link
                     href="/leiloes"
                     className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group"
                 >
                     <div className="flex items-center justify-between mb-3">
-                        <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Receita Leilões (12m)</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Faturamento Bula (12m)</p>
                         <Gavel className="w-5 h-5 text-[#D4A85C]" />
                     </div>
                     <p className="text-2xl font-extrabold text-[#D4A85C] tracking-tight">
-                        {formatCurrency(receitaLeiloes12m)}
+                        {formatCurrency(faturamentoBula12m)}
                     </p>
                     <div className="mt-4 space-y-1.5 text-[11px]">
                         <div className="flex justify-between text-gray-500 dark:text-[#777]">
-                            <span>Fechamentos recentes</span>
-                            <span className="font-bold text-gray-700 dark:text-gray-300">{fechs.length}</span>
+                            <span>Lucro bruto 12m</span>
+                            <span className={`font-bold ${lucroBruto12m >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{formatCurrency(lucroBruto12m)}</span>
+                        </div>
+                        <div className="flex justify-between text-gray-500 dark:text-[#777]">
+                            <span>Fechamentos 12m</span>
+                            <span className="font-bold text-gray-700 dark:text-gray-300">{fechs12m.length}</span>
                         </div>
                     </div>
                 </Link>
@@ -892,36 +898,73 @@ export default async function ERPDashboard() {
                             Ver todos <ArrowRight className="w-3 h-3" />
                         </Link>
                     </div>
+                    {/* Legenda — deixa explícito o que é da leiloeira e o que é nosso */}
+                    <div className="px-5 py-3 bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-100 dark:border-[#1A1A1A] flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-widest">
+                        <span className="text-gray-500 dark:text-[#777]">
+                            <span className="text-gray-400 dark:text-[#555]">Fat. Leiloeira</span> = total do leilão inteiro (referência)
+                        </span>
+                        <span className="text-gray-300 dark:text-[#333]">·</span>
+                        <span className="text-gray-500 dark:text-[#777]">
+                            <span className="text-gray-400 dark:text-[#555]">VGV Cobertura</span> = venda Fórmula+Bula
+                        </span>
+                        <span className="text-gray-300 dark:text-[#333]">·</span>
+                        <span className="text-emerald-500">
+                            Faturamento Bula = NOSSA receita
+                        </span>
+                    </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="text-[10px] text-gray-500 dark:text-[#888] bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#222] uppercase tracking-widest">
                                 <tr>
-                                    <th className="px-6 py-3 text-left font-bold">Data</th>
-                                    <th className="px-6 py-3 text-left font-bold">Leilão</th>
-                                    <th className="px-6 py-3 text-right font-bold">VGV</th>
-                                    <th className="px-6 py-3 text-right font-bold">Receita</th>
-                                    <th className="px-6 py-3 text-right font-bold">Sobra</th>
+                                    <th className="px-4 py-3 text-left font-bold">Data</th>
+                                    <th className="px-4 py-3 text-left font-bold">Leilão</th>
+                                    <th className="px-4 py-3 text-left font-bold">Acordo</th>
+                                    <th className="px-4 py-3 text-right font-bold">Fat. Leiloeira</th>
+                                    <th className="px-4 py-3 text-right font-bold">VGV Cobertura</th>
+                                    <th className="px-4 py-3 text-right font-bold text-emerald-500">Fat. Bula (nosso)</th>
+                                    <th className="px-4 py-3 text-right font-bold">Lucro Bruto</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {fechs.slice(0, 5).map(f => (
+                                {fechs.slice(0, 6).map(f => {
+                                    const acordo = resolverAcordo(f as { id?: string | null })
+                                    const fatLeiloeira = (f as { faturamento_total_leilao?: number | null }).faturamento_total_leilao
+                                    return (
                                     <tr key={f.id} className="border-b border-gray-100 dark:border-[#1A1A1A] hover:bg-gray-50 dark:hover:bg-[#141414] transition-colors">
-                                        <td className="px-6 py-4 text-gray-500 dark:text-[#888] font-mono text-xs">
+                                        <td className="px-4 py-4 text-gray-500 dark:text-[#888] font-mono text-xs whitespace-nowrap">
                                             {f.data ? fmtDateBR(f.data) : '—'}
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{f.nome || '—'}</td>
-                                        <td className="px-6 py-4 text-right text-gray-700 dark:text-gray-300 font-mono">
+                                        <td className="px-4 py-4 font-bold text-gray-900 dark:text-white">{f.nome || '—'}</td>
+                                        <td className="px-4 py-4">
+                                            {acordo ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#A0792E]/10 text-[#D4A85C] text-[10px] font-bold tracking-wide" title={acordo.descricao}>
+                                                    {formatarAcordoCurto(acordo)}
+                                                </span>
+                                            ) : <span className="text-gray-300 dark:text-gray-600 text-[10px]">—</span>}
+                                        </td>
+                                        <td className="px-4 py-4 text-right text-gray-400 dark:text-[#666] font-mono text-xs">
+                                            {fatLeiloeira ? formatCurrency(Number(fatLeiloeira)) : <span className="text-gray-300 dark:text-gray-700">—</span>}
+                                        </td>
+                                        <td className="px-4 py-4 text-right text-gray-700 dark:text-gray-300 font-mono">
                                             {formatCurrency(Number(f.vgv_total) || 0)}
                                         </td>
-                                        <td className="px-6 py-4 text-right text-emerald-500 font-extrabold">
+                                        <td className="px-4 py-4 text-right text-emerald-500 font-extrabold">
                                             {formatCurrency(Number(f.receita_bula) || 0)}
                                         </td>
-                                        <td className="px-6 py-4 text-right text-[#D4A85C] font-extrabold">
-                                            +{formatCurrency(Number(f.sobra_bruta) || 0)}
+                                        <td className={`px-4 py-4 text-right font-extrabold ${(Number(f.sobra_bruta) || 0) < 0 ? 'text-rose-500' : 'text-[#D4A85C]'}`}>
+                                            {(Number(f.sobra_bruta) || 0) >= 0 ? '+' : ''}{formatCurrency(Number(f.sobra_bruta) || 0)}
                                         </td>
                                     </tr>
-                                ))}
+                                    )
+                                })}
                             </tbody>
+                            <tfoot className="bg-gray-50 dark:bg-[#0A0A0A] border-t-2 border-gray-200 dark:border-[#222]">
+                                <tr>
+                                    <td colSpan={5} className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-[#777]">Total 12 meses</td>
+                                    <td className="px-4 py-3 text-right text-emerald-500 font-extrabold text-base">{formatCurrency(faturamentoBula12m)}</td>
+                                    <td className={`px-4 py-3 text-right font-extrabold text-base ${lucroBruto12m < 0 ? 'text-rose-500' : 'text-[#D4A85C]'}`}>{formatCurrency(lucroBruto12m)}</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>

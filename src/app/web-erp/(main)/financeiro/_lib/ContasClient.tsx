@@ -12,6 +12,7 @@ import {
 import {
     fmt, fmtDate, today, daysOverdue, bucketOf, BUCKET_LABELS,
     BUCKET_COLORS, buildReceivables, buildPayables, toCSV, downloadCSV,
+    A_PAGAR_INICIO, A_RECEBER_INICIO,
     type AgingBucket,
 } from './helpers';
 import type { Account, Category, Transaction, BulaLeilao, FechamentoLite, UnifiedItem } from './types';
@@ -406,6 +407,9 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                         </h2>
                         <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
                             Gestão de {cfg.actionSubject}s · aging · baixas · leilões
+                        </p>
+                        <p className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#A0792E]/10 text-[#A0792E] text-[10px] font-bold uppercase tracking-widest">
+                            <Calendar className="w-3 h-3" /> Validade: itens a partir de {new Date((mode === 'receber' ? A_RECEBER_INICIO : A_PAGAR_INICIO) + 'T00:00:00').toLocaleDateString('pt-BR')}
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2 w-full md:w-auto">

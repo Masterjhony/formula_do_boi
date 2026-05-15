@@ -4,6 +4,16 @@ import {
     isFdbAssessor,
 } from '@/lib/assessor-normalize';
 
+// ─── Validade dos rolos de A Pagar / A Receber ───────────────────────────
+// Decisão de reunião 2026-05-15: ERP em geral, A Pagar conta de maio em diante;
+// A Receber conta de abril em diante. Itens anteriores ficam no histórico
+// (fluxo de caixa) mas não entram nas listas operacionais nem nos KPIs.
+export const A_PAGAR_INICIO   = '2026-05-01';
+export const A_RECEBER_INICIO = '2026-04-01';
+
+const dentroDaValidade = (date: string | null | undefined, inicio: string) =>
+    !date ? false : date >= inicio;
+
 export const fmt = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
@@ -186,7 +196,9 @@ export function buildReceivables(
         });
     }
 
-    return out.sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+    return out
+        .filter(i => dentroDaValidade(i.dueDate, A_RECEBER_INICIO))
+        .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
 }
 
 // ─── Constrói lista unificada: A PAGAR ───────────────────────────────────
@@ -321,7 +333,9 @@ export function buildPayables(
         }
     }
 
-    return out.sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+    return out
+        .filter(i => dentroDaValidade(i.dueDate, A_PAGAR_INICIO))
+        .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
 }
 
 // ─── Export CSV ─────────────────────────────────────────────────────────

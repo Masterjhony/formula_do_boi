@@ -1,8 +1,17 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, createContext, useContext } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+
+// ── Finance visibility context ────────────────────────────────────────────────
+// O chefe pediu (2026-05-15) para esconder dados financeiros (Faturamento Bula,
+// comissões pagas, lucro bruto, acordos com criadores) dos assessores. Eles
+// continuam vendo cobertura, VGV vendido, % do leilão — só não vêem o que a
+// empresa fatura nem o que cada outro assessor recebe. A flag chega do server
+// via getIsFinanceAdmin() (whitelist por email).
+const FinanceVisibilityCtx = createContext<boolean>(false)
+const useCanSeeFinance = () => useContext(FinanceVisibilityCtx)
 import {
   Plus, Edit2, Trash2, X, Loader2, AlertCircle, Save,
   MapPin, Users, TrendingUp, BarChart3, DollarSign,
@@ -11,6 +20,7 @@ import {
   Eye, LayoutGrid, Table as TableIcon,
 } from 'lucide-react'
 import { normalizeAssessorNome } from '@/lib/assessor-normalize'
+import { resolverAcordo, calcularReceitaBulaEsperada, formatarAcordoCurto } from '@/lib/leilao-acordos'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -82,6 +92,12 @@ export type Fechamento = {
   lotes_catalogo?: LoteCatalogo[]
   distribuicao_empresa?: EmpresaDistribuicao[]
   comissao_assessoria: number; receita_bula: number | null; sobra_bruta: number | null
+  /** % decimal sobre faturamento da leiloeira (acordo). Ex: 0.0033 = 0,33%. */
+  acordo_pct_faturamento?: number | null
+  /** % decimal sobre VGV de cobertura (acordo). Ex: 0.03 = 3%. */
+  acordo_pct_venda_cobertura?: number | null
+  /** Texto livre do acordo conforme F.xlsx. */
+  acordo_descricao?: string | null
   observacoes: string; created_at: string
 }
 
@@ -156,7 +172,9 @@ function emptyForm(): Omit<Fechamento, 'id' | 'created_at'> {
     compradores_unicos: 0, estados_alcancados: 0,
     por_assessor: [], por_estado: [], compradores: [], lances: [],
     perfil_genetico: null, comissao_assessoria: 0,
-    receita_bula: null, sobra_bruta: null, observacoes: '',
+    receita_bula: null, sobra_bruta: null,
+    acordo_pct_faturamento: null, acordo_pct_venda_cobertura: null, acordo_descricao: '',
+    observacoes: '',
   }
 }
 
@@ -190,6 +208,7 @@ function KpiCard({ icon: Icon, label, value, sub, gold }: {
 function FechamentoTable({ items, selectedId, onSelect }: {
   items: Fechamento[]; selectedId: string | null; onSelect: (id: string) => void
 }) {
+  const canSeeFinance = useCanSeeFinance()
   if (!items.length) return null
   return (
     <div className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#0E0E0E] overflow-x-auto">
@@ -204,9 +223,11 @@ function FechamentoTable({ items, selectedId, onSelect }: {
               { label: 'Cob.', cls: 'text-right whitespace-nowrap' },
               { label: 'Animais', cls: 'text-right' },
               { label: 'VGV Cobertura', cls: 'text-right whitespace-nowrap' },
-              { label: 'Faturamento Total', cls: 'text-right whitespace-nowrap' },
-              { label: 'Receita Bula', cls: 'text-right whitespace-nowrap' },
-              { label: 'Sobra', cls: 'text-right whitespace-nowrap' },
+              { label: 'Fat. Leiloeira', cls: 'text-right whitespace-nowrap' },
+              ...(canSeeFinance ? [
+                { label: 'Fat. Bula (nosso)', cls: 'text-right whitespace-nowrap' },
+                { label: 'Lucro Bruto', cls: 'text-right whitespace-nowrap' },
+              ] : []),
               { label: 'Assessores', cls: 'text-left' },
             ].map(h => (
               <th key={h.label} className={`px-3 py-2.5 text-[9px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 ${h.cls}`}>
@@ -257,16 +278,20 @@ function FechamentoTable({ items, selectedId, onSelect }: {
                 <td className="px-3 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">
                   {f.faturamento_total_leilao ? R(f.faturamento_total_leilao) : <span className="text-gray-300 dark:text-gray-600">—</span>}
                 </td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">
-                  {f.receita_bula ? R(f.receita_bula) : <span className="text-gray-300 dark:text-gray-600">—</span>}
-                </td>
-                <td className="px-3 py-2.5 text-right tabular-nums">
-                  {f.sobra_bruta !== null && f.sobra_bruta !== undefined ? (
-                    <span className={f.sobra_bruta < 0 ? 'text-red-500 font-semibold' : 'text-emerald-600 dark:text-emerald-400 font-semibold'}>
-                      {R(f.sobra_bruta)}
-                    </span>
-                  ) : <span className="text-gray-300 dark:text-gray-600">—</span>}
-                </td>
+                {canSeeFinance && (
+                  <td className="px-3 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">
+                    {f.receita_bula ? R(f.receita_bula) : <span className="text-gray-300 dark:text-gray-600">—</span>}
+                  </td>
+                )}
+                {canSeeFinance && (
+                  <td className="px-3 py-2.5 text-right tabular-nums">
+                    {f.sobra_bruta !== null && f.sobra_bruta !== undefined ? (
+                      <span className={f.sobra_bruta < 0 ? 'text-red-500 font-semibold' : 'text-emerald-600 dark:text-emerald-400 font-semibold'}>
+                        {R(f.sobra_bruta)}
+                      </span>
+                    ) : <span className="text-gray-300 dark:text-gray-600">—</span>}
+                  </td>
+                )}
                 <td className="px-3 py-2.5">
                   <div className="flex flex-wrap gap-1">
                     {assessorNomes.slice(0, 3).map(n => (
@@ -441,6 +466,7 @@ function CatalogoTab({ lots }: { lots: LoteCatalogo[] }) {
 function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
   f: Fechamento; onClose: () => void; onEdit: () => void; onDelete: () => void
 }) {
+  const canSeeFinance = useCanSeeFinance()
   const [tab, setTab] = useState<DrawerTab>('resumo')
   const dt = fmtDate(f.data)
   const pct = coveragePct(f.lotes_vendidos, f.lotes_ofertados)
@@ -503,16 +529,62 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
           {/* ── RESUMO ── */}
           {tab === 'resumo' && (
             <div className="space-y-5">
+              {/* Bloco do Acordo Comercial — visível apenas para finance-admin (chefe).
+                  Assessores não veem o acordo nem a Receita Bula esperada. */}
+              {canSeeFinance && (() => {
+                const acordo = resolverAcordo(f)
+                const esperado = calcularReceitaBulaEsperada(acordo, f.faturamento_total_leilao, f.vgv_total)
+                if (!acordo) return null
+                const diff = esperado != null && f.receita_bula != null ? f.receita_bula - esperado : null
+                const ok = diff != null ? Math.abs(diff) < 1 : true
+                return (
+                  <div className="rounded-xl border border-[#A0792E]/30 bg-gradient-to-br from-[#A0792E]/10 to-[#A0792E]/4 p-4">
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#A0792E]">Acordo Comercial</p>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#A0792E] text-black text-[10px] font-black tracking-wide">
+                        {formatarAcordoCurto(acordo)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 font-semibold leading-snug">{acordo.descricao}</p>
+                    {esperado != null && (
+                      <div className="mt-3 pt-3 border-t border-[#A0792E]/20 text-[11px] space-y-1">
+                        {acordo.pct_faturamento != null && f.faturamento_total_leilao ? (
+                          <div className="flex justify-between text-gray-600 dark:text-gray-400 font-mono">
+                            <span>{(acordo.pct_faturamento * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% × Fat. Leiloeira ({R(f.faturamento_total_leilao)})</span>
+                            <span className="font-bold text-gray-800 dark:text-gray-200">{R(acordo.pct_faturamento * f.faturamento_total_leilao)}</span>
+                          </div>
+                        ) : null}
+                        {acordo.pct_venda_cobertura != null && f.vgv_total ? (
+                          <div className="flex justify-between text-gray-600 dark:text-gray-400 font-mono">
+                            <span>{(acordo.pct_venda_cobertura * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% × VGV Cobertura ({R(f.vgv_total)})</span>
+                            <span className="font-bold text-gray-800 dark:text-gray-200">{R(acordo.pct_venda_cobertura * f.vgv_total)}</span>
+                          </div>
+                        ) : null}
+                        <div className="flex justify-between border-t border-[#A0792E]/20 pt-1.5 mt-1">
+                          <span className="font-bold text-[#A0792E] uppercase tracking-widest text-[10px]">Receita Esperada</span>
+                          <span className="font-black text-[#A0792E]">{R(esperado)}</span>
+                        </div>
+                        {!ok && diff != null && (
+                          <div className="mt-1 text-amber-600 dark:text-amber-400 font-bold">
+                            ⚠ Receita Bula lançada ({R(f.receita_bula!)}) diverge em {R(Math.abs(diff))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+
               <div className="grid grid-cols-2 gap-3">
                 {[
                   ...(f.faturamento_total_leilao ? [{
                     icon: DollarSign,
-                    label: 'Faturamento Total do Leilão',
+                    label: 'Faturamento Leiloeira (referência)',
                     value: R(f.faturamento_total_leilao),
-                    sub: f.vgv_total ? `cobertura ${PCT(f.vgv_total / f.faturamento_total_leilao)} (${R(f.vgv_total)})` : 'oficial da leiloeira',
-                    gold: true as const,
+                    sub: f.vgv_total ? `cobertura nossa: ${PCT(f.vgv_total / f.faturamento_total_leilao)} (${R(f.vgv_total)})` : 'total do leilão inteiro',
                   }] : []),
-                  { icon: DollarSign, label: 'VGV Cobertura (Fórmula+Bula)', value: R(f.vgv_total), gold: !f.faturamento_total_leilao },
+                  { icon: DollarSign, label: 'VGV Cobertura (Fórmula+Bula)', value: R(f.vgv_total) },
+                  ...(canSeeFinance && f.receita_bula ? [{ icon: TrendingUp, label: 'Faturamento Bula (nosso)', value: R(f.receita_bula), sub: 'receita a receber neste leilão', gold: true as const }] : []),
                   { icon: TrendingUp, label: 'Ticket Médio', value: R(f.ticket_medio) },
                   { icon: BarChart3, label: 'Lotes Vendidos', value: `${f.lotes_vendidos}/${f.lotes_ofertados}`, sub: `${pct}% de cobertura` },
                   { icon: Hash, label: 'Animais Vendidos', value: f.animais_vendidos.toString() },
@@ -919,15 +991,17 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="sticky bottom-0 bg-white dark:bg-[#111111] border-t border-gray-100 dark:border-[#1E1E1E] px-6 py-4 flex gap-3">
-          <button onClick={onDelete} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-red-100 dark:border-red-500/20 transition-colors">
-            <Trash2 size={14} /> Excluir
-          </button>
-          <button onClick={onEdit} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#A0792E] hover:bg-[#D4A85C] text-black text-sm font-semibold transition-colors">
-            <Edit2 size={14} /> Editar
-          </button>
-        </div>
+        {/* Footer — só finance-admin pode editar/excluir (API também bloqueia) */}
+        {canSeeFinance && (
+          <div className="sticky bottom-0 bg-white dark:bg-[#111111] border-t border-gray-100 dark:border-[#1E1E1E] px-6 py-4 flex gap-3">
+            <button onClick={onDelete} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-red-100 dark:border-red-500/20 transition-colors">
+              <Trash2 size={14} /> Excluir
+            </button>
+            <button onClick={onEdit} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#A0792E] hover:bg-[#D4A85C] text-black text-sm font-semibold transition-colors">
+              <Edit2 size={14} /> Editar
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -954,6 +1028,9 @@ function toFormData(f: Fechamento | null): FormData {
     comissao_assessoria: f.comissao_assessoria,
     receita_bula: f.receita_bula ?? null,
     sobra_bruta: f.sobra_bruta ?? null,
+    acordo_pct_faturamento: f.acordo_pct_faturamento ?? null,
+    acordo_pct_venda_cobertura: f.acordo_pct_venda_cobertura ?? null,
+    acordo_descricao: f.acordo_descricao ?? '',
     observacoes: f.observacoes,
   }
 }
@@ -1032,6 +1109,9 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
         compradores_unicos: form.compradores_unicos, estados_alcancados: form.estados_alcancados,
         comissao_assessoria: form.comissao_assessoria,
         receita_bula: form.receita_bula, sobra_bruta: form.sobra_bruta,
+        acordo_pct_faturamento: form.acordo_pct_faturamento,
+        acordo_pct_venda_cobertura: form.acordo_pct_venda_cobertura,
+        acordo_descricao: (form.acordo_descricao ?? '').trim() || null,
         observacoes: form.observacoes,
         por_assessor: form.por_assessor, por_estado: form.por_estado,
         compradores: form.compradores, lances: form.lances,
@@ -1096,9 +1176,62 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
                 <FormField label="Maior Lance (R$/parc.)"><input type="number" className={inputCls} value={form.maior_lance || ''} onChange={e => set('maior_lance', Number(e.target.value))} min={0} /></FormField>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <FormField label="Faturamento Total do Leilão (R$)"><input type="number" className={inputCls} value={form.faturamento_total_leilao ?? ''} onChange={e => set('faturamento_total_leilao', e.target.value === '' ? null : Number(e.target.value))} min={0} placeholder="oficial da leiloeira" /></FormField>
-                <FormField label="Receita Bula (R$)"><input type="number" className={inputCls} value={form.receita_bula ?? ''} onChange={e => set('receita_bula', e.target.value === '' ? null : Number(e.target.value))} min={0} placeholder="fee a receber" /></FormField>
-                <FormField label="Sobra Bruta (R$)"><input type="number" className={inputCls} value={form.sobra_bruta ?? ''} onChange={e => set('sobra_bruta', e.target.value === '' ? null : Number(e.target.value))} placeholder="receita − comissões" /></FormField>
+                <FormField label="Faturamento Leiloeira (R$)"><input type="number" className={inputCls} value={form.faturamento_total_leilao ?? ''} onChange={e => set('faturamento_total_leilao', e.target.value === '' ? null : Number(e.target.value))} min={0} placeholder="total do leilão inteiro" /></FormField>
+                <FormField label="Faturamento Bula — nosso (R$)"><input type="number" className={inputCls} value={form.receita_bula ?? ''} onChange={e => set('receita_bula', e.target.value === '' ? null : Number(e.target.value))} min={0} placeholder="receita a receber" /></FormField>
+                <FormField label="Lucro Bruto (R$)"><input type="number" className={inputCls} value={form.sobra_bruta ?? ''} onChange={e => set('sobra_bruta', e.target.value === '' ? null : Number(e.target.value))} placeholder="receita − comissões" /></FormField>
+              </div>
+
+              {/* Acordo comercial — variável por leilão (F.xlsx) */}
+              <div className="rounded-xl border border-[#A0792E]/25 bg-[#A0792E]/5 p-4 space-y-3">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-[#A0792E]">Acordo comercial com o promotor</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                  Cada leilão pode ter acordo diferente. Preencha um ou os dois percentuais conforme combinado e descreva o acordo livremente.
+                </p>
+                <FormField label="Descrição do acordo (texto livre)">
+                  <input
+                    className={inputCls}
+                    value={form.acordo_descricao ?? ''}
+                    onChange={e => set('acordo_descricao', e.target.value)}
+                    placeholder='Ex: "1% do faturamento total + 3% da venda da cobertura"'
+                  />
+                </FormField>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField label="% sobre Faturamento Leiloeira">
+                    <input
+                      type="number" step="0.001" min={0}
+                      className={inputCls}
+                      value={form.acordo_pct_faturamento != null ? (form.acordo_pct_faturamento * 100) : ''}
+                      onChange={e => set('acordo_pct_faturamento', e.target.value === '' ? null : Number(e.target.value) / 100)}
+                      placeholder="Ex: 0.33 → 0,33%"
+                    />
+                  </FormField>
+                  <FormField label="% sobre VGV Cobertura (venda)">
+                    <input
+                      type="number" step="0.001" min={0}
+                      className={inputCls}
+                      value={form.acordo_pct_venda_cobertura != null ? (form.acordo_pct_venda_cobertura * 100) : ''}
+                      onChange={e => set('acordo_pct_venda_cobertura', e.target.value === '' ? null : Number(e.target.value) / 100)}
+                      placeholder="Ex: 3 → 3%"
+                    />
+                  </FormField>
+                </div>
+                {(() => {
+                  const a = (form.acordo_pct_faturamento ?? 0) * (form.faturamento_total_leilao ?? 0)
+                  const b = (form.acordo_pct_venda_cobertura ?? 0) * (form.vgv_total ?? 0)
+                  const esperado = a + b
+                  if (!esperado) return null
+                  const diff = (form.receita_bula ?? 0) - esperado
+                  const ok = Math.abs(diff) < 1
+                  return (
+                    <div className={`text-[11px] px-3 py-2 rounded-lg border ${ok ? 'border-emerald-500/30 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400' : 'border-amber-500/40 bg-amber-500/8 text-amber-700 dark:text-amber-400'}`}>
+                      <span className="font-bold">Receita esperada pelo acordo:</span>{' '}
+                      R$ {esperado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {!ok && form.receita_bula != null && (
+                        <span className="ml-2 font-bold">⚠ diverge da Receita Bula lançada em R$ {Math.abs(diff).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <FormField label="Compradores Únicos"><input type="number" className={inputCls} value={form.compradores_unicos || ''} onChange={e => set('compradores_unicos', Number(e.target.value))} min={0} /></FormField>
@@ -1857,7 +1990,16 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
 type SortKey = 'recent' | 'vgv' | 'cobertura'
 type ViewMode = 'cards' | 'table'
 
-export default function FechamentoView() {
+export default function FechamentoView({ canSeeFinance = false }: { canSeeFinance?: boolean }) {
+  return (
+    <FinanceVisibilityCtx.Provider value={canSeeFinance}>
+      <FechamentoViewInner />
+    </FinanceVisibilityCtx.Provider>
+  )
+}
+
+function FechamentoViewInner() {
+  const canSeeFinance = useCanSeeFinance()
   const [items, setItems] = useState<Fechamento[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -1986,12 +2128,14 @@ export default function FechamentoView() {
               : `${items.length} ${items.length !== 1 ? 'leilões' : 'leilão'} com resultado registrado`}
           </p>
         </div>
-        <button
-          onClick={() => { setEditItem(null); setShowForm(true) }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#A0792E]/20"
-        >
-          <Plus size={16} /> Novo Fechamento
-        </button>
+        {canSeeFinance && (
+          <button
+            onClick={() => { setEditItem(null); setShowForm(true) }}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] text-black rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-[#A0792E]/20"
+          >
+            <Plus size={16} /> Novo Fechamento
+          </button>
+        )}
       </div>
 
       {/* Filtros — data, leilão e assessor */}
@@ -2079,12 +2223,14 @@ export default function FechamentoView() {
             <p className="text-sm font-semibold text-gray-500">Nenhum fechamento registrado</p>
             <p className="text-xs text-gray-400 mt-1">Adicione o resultado de um leilão para começar</p>
           </div>
-          <button
-            onClick={() => { setEditItem(null); setShowForm(true) }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] text-black rounded-xl font-semibold text-sm transition-colors"
-          >
-            <Plus size={15} /> Adicionar primeiro fechamento
-          </button>
+          {canSeeFinance && (
+            <button
+              onClick={() => { setEditItem(null); setShowForm(true) }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] text-black rounded-xl font-semibold text-sm transition-colors"
+            >
+              <Plus size={15} /> Adicionar primeiro fechamento
+            </button>
+          )}
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
@@ -2186,8 +2332,8 @@ export default function FechamentoView() {
         </div>
       )}
 
-      {/* Form Modal */}
-      {showForm && (
+      {/* Form Modal — só finance-admin acessa */}
+      {showForm && canSeeFinance && (
         <FechamentoFormModal
           initial={editItem}
           onClose={() => { setShowForm(false); setEditItem(null) }}

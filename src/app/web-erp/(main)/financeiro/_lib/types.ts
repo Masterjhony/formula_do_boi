@@ -45,6 +45,7 @@ export interface FechamentoLite {
     nome: string;
     data: string;
     vgv_total: number | null;
+    faturamento_total_leilao?: number | null;
     comissao_assessoria: number | null;
     receita_bula: number | null;
     sobra_bruta: number | null;
