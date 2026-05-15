@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Save, Trash2, ChevronDown, ChevronUp, Crown } from 'lucide-react';
+import { X, Save, Trash2, ChevronDown, ChevronUp, Crown, User, TrendingUp, Phone, Target, SlidersHorizontal, BarChart3, type LucideIcon } from 'lucide-react';
 import { CRMLead, deleteLead } from '@/app/web-admin/actions/crm-leads';
 import { CRM_COLUMNS } from './CRMKanbanBoard';
 import type { CRMCustomField, CRMFunnel, CRMResponsavel } from '@/lib/crm-types';
@@ -20,6 +20,19 @@ interface CRMModalProps {
     onSave: (data: any) => Promise<void>;
     onDelete?: () => void;
     onLeadUpdated?: (lead: CRMLead) => void;
+}
+
+/** Cartão de seção do formulário — agrupa campos relacionados sob um cabeçalho com ícone. */
+function FormSection({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
+    return (
+        <section className="border border-gray-200 dark:border-[#333] rounded-xl overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-[#333]">
+                <Icon size={15} className="text-[#A0792E]" />
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{title}</span>
+            </div>
+            <div className="p-4 space-y-4">{children}</div>
+        </section>
+    );
 }
 
 export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId, stages, customFields = [], responsaveis = [], funnels = [], onSave, onDelete, onLeadUpdated }: CRMModalProps) {
@@ -119,16 +132,23 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white dark:bg-[#111111] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-gray-200 dark:border-[#222222] shadow-2xl">
-                <div className="sticky top-0 bg-white/80 dark:bg-[#111111]/80 backdrop-blur-md p-6 border-b border-gray-200 dark:border-[#222222] flex justify-between items-center z-10">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-xl font-bold dark:text-white">
-                            {lead ? 'Editar Lead' : 'Novo Lead'}
-                        </h2>
-                        {formData.is_preferencial && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#A0792E]/15 text-[#A0792E]">
-                                <Crown size={10} /> Preferencial
-                            </span>
+            <div className="relative bg-white dark:bg-[#111111] w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-gray-200 dark:border-[#222222] shadow-2xl">
+                <div className="sticky top-0 bg-white/80 dark:bg-[#111111]/80 backdrop-blur-md p-6 border-b border-gray-200 dark:border-[#222222] flex justify-between items-start z-10">
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-xl font-bold dark:text-white">
+                                {lead ? 'Editar Lead' : 'Novo Lead'}
+                            </h2>
+                            {formData.is_preferencial && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#A0792E]/15 text-[#A0792E]">
+                                    <Crown size={10} /> Preferencial
+                                </span>
+                            )}
+                        </div>
+                        {lead?.data_entrada && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Entrada em {new Date(lead.data_entrada).toLocaleDateString('pt-BR')} às {new Date(lead.data_entrada).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
                         )}
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-full transition-colors text-gray-500">
@@ -138,395 +158,392 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     <div className="space-y-4">
-                        {/* Data de entrada (exibido apenas se existir) */}
-                        {lead?.data_entrada && (
-                            <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg px-3 py-2 border border-gray-200 dark:border-[#333]">
-                                <span>📅 Entrada:</span>
-                                <span className="font-medium text-gray-700 dark:text-gray-300">
-                                    {new Date(lead.data_entrada).toLocaleDateString('pt-BR')} às {new Date(lead.data_entrada).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                            </div>
-                        )}
-
-                        <div>
-                            <label className={labelClass}>Nome do Lead / Contato *</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.nome || ''}
-                                onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                                className={inputClass}
-                                placeholder="Ex: [Local] Nome do Cliente"
-                            />
-                        </div>
-
-                        {funnels.length > 1 && (
+                        {/* ───── Identificação ───── */}
+                        <FormSection icon={User} title="Identificação">
                             <div>
-                                <label className={labelClass}>Funil</label>
-                                <select
-                                    value={formData.funnel_id || 'default'}
-                                    onChange={e => setFormData({ ...formData, funnel_id: e.target.value })}
-                                    className={`${inputClass} appearance-none`}
-                                >
-                                    {funnels.map(f => (
-                                        <option key={f.id} value={f.id}>{f.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className={labelClass}>Status</label>
-                                <select
-                                    value={formData.status || 'Lead'}
-                                    onChange={e => setFormData({ ...formData, status: e.target.value })}
-                                    className={`${inputClass} appearance-none`}
-                                >
-                                    {activeStages.map(col => (
-                                        <option key={col} value={col}>{col}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className={labelClass}>Prioridade</label>
-                                <select
-                                    value={formData.prioridade || ''}
-                                    onChange={e => setFormData({ ...formData, prioridade: e.target.value })}
-                                    className={`${inputClass} appearance-none`}
-                                >
-                                    <option value="">Nenhuma</option>
-                                    <option value="Alta">Alta</option>
-                                    <option value="Baixa">Baixa</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Lead preferencial */}
-                        <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, is_preferencial: !formData.is_preferencial })}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
-                                formData.is_preferencial
-                                    ? 'border-[#A0792E]/50 bg-[#A0792E]/8 dark:bg-[#A0792E]/10'
-                                    : 'border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#1A1A1A] hover:border-[#A0792E]/30'
-                            }`}
-                        >
-                            <span className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                formData.is_preferencial ? 'bg-[#A0792E] text-black' : 'bg-gray-200 dark:bg-[#222] text-gray-400'
-                            }`}>
-                                <Crown size={16} />
-                            </span>
-                            <div className="flex-1 text-left">
-                                <p className={`text-sm font-bold ${formData.is_preferencial ? 'text-[#A0792E]' : 'text-gray-700 dark:text-gray-300'}`}>
-                                    Lead preferencial
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
-                                    Marca este lead para aparecer em destaque no topo do CRM principal.
-                                </p>
-                            </div>
-                            <div className={`w-10 h-6 rounded-full p-0.5 transition-colors flex-shrink-0 ${
-                                formData.is_preferencial ? 'bg-[#A0792E]' : 'bg-gray-300 dark:bg-[#333]'
-                            }`}>
-                                <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                                    formData.is_preferencial ? 'translate-x-4' : ''
-                                }`} />
-                            </div>
-                        </button>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className={labelClass}>Valor estimado (R$)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={formData.valor_estimado ?? ''}
-                                    onChange={e => setFormData({ ...formData, valor_estimado: e.target.value === '' ? null : Number(e.target.value) })}
-                                    className={inputClass}
-                                    placeholder="Ex: 25000"
-                                />
-                            </div>
-                            <div>
-                                <label className={labelClass}>Probabilidade (%)</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={formData.probabilidade ?? ''}
-                                    onChange={e => setFormData({ ...formData, probabilidade: e.target.value === '' ? null : Number(e.target.value) })}
-                                    className={inputClass}
-                                    placeholder="Herda do estágio se vazio"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className={labelClass}>Data estimada fechamento</label>
-                                <input
-                                    type="date"
-                                    value={formData.data_estimada_fechamento ? formData.data_estimada_fechamento.slice(0, 10) : ''}
-                                    onChange={e => setFormData({ ...formData, data_estimada_fechamento: e.target.value || null })}
-                                    className={inputClass}
-                                />
-                            </div>
-                            <div>
-                                <label className={labelClass}>Último contato</label>
-                                <input
-                                    type="date"
-                                    value={formData.ultimo_contato ? formData.ultimo_contato.slice(0, 10) : ''}
-                                    onChange={e => setFormData({ ...formData, ultimo_contato: e.target.value || null })}
-                                    className={inputClass}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className={labelClass}>Interesse / Momento Pecuária</label>
-                            <textarea
-                                value={formData.interesse || ''}
-                                onChange={e => setFormData({ ...formData, interesse: e.target.value })}
-                                rows={2}
-                                className={inputClass}
-                                placeholder="O que o cliente deseja comprar?"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className={labelClass}>Celular / WhatsApp</label>
+                                <label className={labelClass}>Nome do Lead / Contato *</label>
                                 <input
                                     type="text"
-                                    value={formData.celular || ''}
-                                    onChange={e => setFormData({ ...formData, celular: e.target.value })}
+                                    required
+                                    value={formData.nome || ''}
+                                    onChange={e => setFormData({ ...formData, nome: e.target.value })}
                                     className={inputClass}
+                                    placeholder="Ex: [Local] Nome do Cliente"
                                 />
                             </div>
-                            <div>
-                                <label className={labelClass}>Telefone Fixo</label>
-                                <input
-                                    type="text"
-                                    value={formData.telefone || ''}
-                                    onChange={e => setFormData({ ...formData, telefone: e.target.value })}
-                                    className={inputClass}
-                                />
-                            </div>
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className={labelClass}>Instagram</label>
-                                <input
-                                    type="text"
-                                    value={formData.instagram || ''}
-                                    onChange={e => setFormData({ ...formData, instagram: e.target.value })}
-                                    className={inputClass}
-                                    placeholder="@usuario"
-                                />
-                            </div>
-                            <div>
-                                <label className={labelClass}>Empresa / Fazenda</label>
-                                <input
-                                    type="text"
-                                    value={formData.empresa || ''}
-                                    onChange={e => setFormData({ ...formData, empresa: e.target.value })}
-                                    className={inputClass}
-                                />
-                            </div>
-                        </div>
+                            {funnels.length > 1 && (
+                                <div>
+                                    <label className={labelClass}>Funil</label>
+                                    <select
+                                        value={formData.funnel_id || 'default'}
+                                        onChange={e => setFormData({ ...formData, funnel_id: e.target.value })}
+                                        className={`${inputClass} appearance-none`}
+                                    >
+                                        {funnels.map(f => (
+                                            <option key={f.id} value={f.id}>{f.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
 
-                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className={labelClass}>Cidade</label>
-                                <input
-                                    type="text"
-                                    value={formData.cidade || ''}
-                                    onChange={e => setFormData({ ...formData, cidade: e.target.value })}
-                                    className={inputClass}
-                                />
+                                <label className={labelClass}>Responsável pela Conta</label>
+                                {responsaveis.length > 0 ? (
+                                    <select
+                                        value={formData.responsavel || ''}
+                                        onChange={e => setFormData({ ...formData, responsavel: e.target.value })}
+                                        className={inputClass}
+                                    >
+                                        <option value="">Selecionar responsável...</option>
+                                        {responsaveis.map(r => (
+                                            <option key={r.id} value={r.name}>{r.name}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        value={formData.responsavel || ''}
+                                        onChange={e => setFormData({ ...formData, responsavel: e.target.value })}
+                                        className={inputClass}
+                                        placeholder="Ex: Matheus Amormino"
+                                    />
+                                )}
                             </div>
-                            <div>
-                                <label className={labelClass}>Estado (UF)</label>
-                                <input
-                                    type="text"
-                                    value={formData.estado || ''}
-                                    onChange={e => setFormData({ ...formData, estado: e.target.value })}
-                                    className={inputClass}
-                                    placeholder="MG, SP, etc."
-                                />
-                            </div>
-                        </div>
+                        </FormSection>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className={labelClass}>O que busca</label>
-                                <input
-                                    type="text"
-                                    value={formData.o_que_busca || ''}
-                                    onChange={e => setFormData({ ...formData, o_que_busca: e.target.value })}
-                                    className={inputClass}
-                                    placeholder="Touro, Matrizes, etc."
-                                />
+                        {/* ───── Pipeline & Negócio ───── */}
+                        <FormSection icon={TrendingUp} title="Pipeline & Negócio">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>Status</label>
+                                    <select
+                                        value={formData.status || 'Lead'}
+                                        onChange={e => setFormData({ ...formData, status: e.target.value })}
+                                        className={`${inputClass} appearance-none`}
+                                    >
+                                        {activeStages.map(col => (
+                                            <option key={col} value={col}>{col}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Prioridade</label>
+                                    <select
+                                        value={formData.prioridade || ''}
+                                        onChange={e => setFormData({ ...formData, prioridade: e.target.value })}
+                                        className={`${inputClass} appearance-none`}
+                                    >
+                                        <option value="">Nenhuma</option>
+                                        <option value="Alta">Alta</option>
+                                        <option value="Baixa">Baixa</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label className={labelClass}>Qtd. Animais</label>
-                                <input
-                                    type="text"
-                                    value={formData.quantidade_animais || ''}
-                                    onChange={e => {
-                                        const v = e.target.value;
-                                        const MQL_FAIXAS = new Set(['100-300','300-500','500+','100 a 300','300 a 500','500 ou mais']);
-                                        const num = v.match(/^(\d+)\s*$/);
-                                        const isMqlNow = MQL_FAIXAS.has(v) || (num ? Number(num[1]) >= 100 : false);
-                                        setFormData({ ...formData, quantidade_animais: v, is_mql: isMqlNow });
-                                    }}
-                                    className={inputClass}
-                                    placeholder="0 a 100"
-                                />
-                            </div>
-                        </div>
 
-                        <div className="grid grid-cols-3 gap-4">
-                            <div>
-                                <label className={labelClass}>Momento na pecuária</label>
-                                <select
-                                    value={formData.momento_pecuaria || ''}
-                                    onChange={e => setFormData({ ...formData, momento_pecuaria: e.target.value })}
-                                    className={inputClass}
-                                >
-                                    <option value="">— selecionar —</option>
-                                    <option value="nao-trabalho-quero-aprender">Quer aprender</option>
-                                    <option value="pecuaria-de-corte">Pecuária de corte</option>
-                                    <option value="corte-e-po">Corte + P.O.</option>
-                                    <option value="criador-renomado-po">Criador P.O.</option>
-                                </select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>Valor estimado (R$)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={formData.valor_estimado ?? ''}
+                                        onChange={e => setFormData({ ...formData, valor_estimado: e.target.value === '' ? null : Number(e.target.value) })}
+                                        className={inputClass}
+                                        placeholder="Ex: 25000"
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Probabilidade (%)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={formData.probabilidade ?? ''}
+                                        onChange={e => setFormData({ ...formData, probabilidade: e.target.value === '' ? null : Number(e.target.value) })}
+                                        className={inputClass}
+                                        placeholder="Herda do estágio se vazio"
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className={labelClass}>Intenção de investimento</label>
-                                <select
-                                    value={formData.intencao_investimento || ''}
-                                    onChange={e => setFormData({ ...formData, intencao_investimento: e.target.value })}
-                                    className={inputClass}
-                                >
-                                    <option value="">—</option>
-                                    <option value="ate-10k">Até R$ 10k</option>
-                                    <option value="10k-50k">R$ 10k – R$ 50k</option>
-                                    <option value="acima-50k">Acima de R$ 50k</option>
-                                    <option value="nao-sei">Ainda não sei</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className={labelClass}>Quer assessoria</label>
-                                <select
-                                    value={formData.assessoria || ''}
-                                    onChange={e => setFormData({ ...formData, assessoria: e.target.value })}
-                                    className={inputClass}
-                                >
-                                    <option value="">—</option>
-                                    <option value="sim">Sim</option>
-                                    <option value="talvez">Talvez</option>
-                                    <option value="nao">Não</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#A0792E]/30 bg-[#A0792E]/5">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#A0792E] flex-1">
-                                MQL — Marketing Qualified Lead
-                                <span className="block font-normal normal-case text-[11px] text-gray-500 dark:text-gray-400 tracking-normal mt-0.5">
-                                    Definido automaticamente quando o lead tem ≥100 cabeças. Você pode ajustar manualmente.
-                                </span>
-                            </span>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>Data estimada fechamento</label>
+                                    <input
+                                        type="date"
+                                        value={formData.data_estimada_fechamento ? formData.data_estimada_fechamento.slice(0, 10) : ''}
+                                        onChange={e => setFormData({ ...formData, data_estimada_fechamento: e.target.value || null })}
+                                        className={inputClass}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Último contato</label>
+                                    <input
+                                        type="date"
+                                        value={formData.ultimo_contato ? formData.ultimo_contato.slice(0, 10) : ''}
+                                        onChange={e => setFormData({ ...formData, ultimo_contato: e.target.value || null })}
+                                        className={inputClass}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Lead preferencial */}
                             <button
                                 type="button"
-                                onClick={() => setFormData({ ...formData, is_mql: !formData.is_mql })}
-                                className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${formData.is_mql ? 'bg-[#A0792E]' : 'bg-gray-300 dark:bg-[#333]'}`}
-                                aria-label="Alternar MQL"
+                                onClick={() => setFormData({ ...formData, is_preferencial: !formData.is_preferencial })}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+                                    formData.is_preferencial
+                                        ? 'border-[#A0792E]/50 bg-[#A0792E]/8 dark:bg-[#A0792E]/10'
+                                        : 'border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#1A1A1A] hover:border-[#A0792E]/30'
+                                }`}
                             >
-                                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${formData.is_mql ? 'translate-x-5' : ''}`} />
-                            </button>
-                        </div>
-
-                        <div>
-                            <label className={labelClass}>Responsável pela Conta</label>
-                            {responsaveis.length > 0 ? (
-                                <select
-                                    value={formData.responsavel || ''}
-                                    onChange={e => setFormData({ ...formData, responsavel: e.target.value })}
-                                    className={inputClass}
-                                >
-                                    <option value="">Selecionar responsável...</option>
-                                    {responsaveis.map(r => (
-                                        <option key={r.id} value={r.name}>{r.name}</option>
-                                    ))}
-                                </select>
-                            ) : (
-                                <input
-                                    type="text"
-                                    value={formData.responsavel || ''}
-                                    onChange={e => setFormData({ ...formData, responsavel: e.target.value })}
-                                    className={inputClass}
-                                    placeholder="Ex: Matheus Amormino"
-                                />
-                            )}
-                        </div>
-
-                        {/* Campos personalizados */}
-                        {customFields.length > 0 && (
-                            <div className="border border-gray-200 dark:border-[#333] rounded-xl overflow-hidden">
-                                <div className="px-4 py-3 bg-gray-50 dark:bg-[#1A1A1A] text-sm font-medium text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-[#333]">
-                                    🔧 Campos personalizados
+                                <span className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                    formData.is_preferencial ? 'bg-[#A0792E] text-black' : 'bg-gray-200 dark:bg-[#222] text-gray-400'
+                                }`}>
+                                    <Crown size={16} />
+                                </span>
+                                <div className="flex-1 text-left">
+                                    <p className={`text-sm font-bold ${formData.is_preferencial ? 'text-[#A0792E]' : 'text-gray-700 dark:text-gray-300'}`}>
+                                        Lead preferencial
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
+                                        Marca este lead para aparecer em destaque no topo do CRM principal.
+                                    </p>
                                 </div>
-                                <div className="p-4 space-y-3">
-                                    {customFields.map(field => (
-                                        <div key={field.id}>
-                                            <label className={labelClass}>
-                                                {field.label}
-                                                {field.required && <span className="text-red-500 ml-1">*</span>}
-                                            </label>
-                                            {field.type === 'textarea' ? (
-                                                <textarea
-                                                    required={field.required}
-                                                    rows={2}
-                                                    value={formData.extra_data?.[field.id] ?? ''}
-                                                    onChange={e => setFormData({
-                                                        ...formData,
-                                                        extra_data: { ...formData.extra_data, [field.id]: e.target.value }
-                                                    })}
-                                                    className={inputClass}
-                                                />
-                                            ) : field.type === 'select' ? (
-                                                <select
-                                                    required={field.required}
-                                                    value={formData.extra_data?.[field.id] ?? ''}
-                                                    onChange={e => setFormData({
-                                                        ...formData,
-                                                        extra_data: { ...formData.extra_data, [field.id]: e.target.value }
-                                                    })}
-                                                    className={`${inputClass} appearance-none`}
-                                                >
-                                                    <option value="">Selecione...</option>
-                                                    {(field.options || []).map(opt => (
-                                                        <option key={opt} value={opt}>{opt}</option>
-                                                    ))}
-                                                </select>
-                                            ) : (
-                                                <input
-                                                    type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
-                                                    required={field.required}
-                                                    value={formData.extra_data?.[field.id] ?? ''}
-                                                    onChange={e => setFormData({
-                                                        ...formData,
-                                                        extra_data: { ...formData.extra_data, [field.id]: e.target.value }
-                                                    })}
-                                                    className={inputClass}
-                                                />
-                                            )}
-                                        </div>
-                                    ))}
+                                <div className={`w-10 h-6 rounded-full p-0.5 transition-colors flex-shrink-0 ${
+                                    formData.is_preferencial ? 'bg-[#A0792E]' : 'bg-gray-300 dark:bg-[#333]'
+                                }`}>
+                                    <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                                        formData.is_preferencial ? 'translate-x-4' : ''
+                                    }`} />
+                                </div>
+                            </button>
+                        </FormSection>
+
+                        {/* ───── Contato ───── */}
+                        <FormSection icon={Phone} title="Contato">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>Celular / WhatsApp</label>
+                                    <input
+                                        type="text"
+                                        value={formData.celular || ''}
+                                        onChange={e => setFormData({ ...formData, celular: e.target.value })}
+                                        className={inputClass}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Telefone Fixo</label>
+                                    <input
+                                        type="text"
+                                        value={formData.telefone || ''}
+                                        onChange={e => setFormData({ ...formData, telefone: e.target.value })}
+                                        className={inputClass}
+                                    />
                                 </div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>Instagram</label>
+                                    <input
+                                        type="text"
+                                        value={formData.instagram || ''}
+                                        onChange={e => setFormData({ ...formData, instagram: e.target.value })}
+                                        className={inputClass}
+                                        placeholder="@usuario"
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Empresa / Fazenda</label>
+                                    <input
+                                        type="text"
+                                        value={formData.empresa || ''}
+                                        onChange={e => setFormData({ ...formData, empresa: e.target.value })}
+                                        className={inputClass}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>Cidade</label>
+                                    <input
+                                        type="text"
+                                        value={formData.cidade || ''}
+                                        onChange={e => setFormData({ ...formData, cidade: e.target.value })}
+                                        className={inputClass}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Estado (UF)</label>
+                                    <input
+                                        type="text"
+                                        value={formData.estado || ''}
+                                        onChange={e => setFormData({ ...formData, estado: e.target.value })}
+                                        className={inputClass}
+                                        placeholder="MG, SP, etc."
+                                    />
+                                </div>
+                            </div>
+                        </FormSection>
+
+                        {/* ───── Perfil & Qualificação ───── */}
+                        <FormSection icon={Target} title="Perfil & Qualificação">
+                            <div>
+                                <label className={labelClass}>Interesse / Momento Pecuária</label>
+                                <textarea
+                                    value={formData.interesse || ''}
+                                    onChange={e => setFormData({ ...formData, interesse: e.target.value })}
+                                    rows={2}
+                                    className={inputClass}
+                                    placeholder="O que o cliente deseja comprar?"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClass}>O que busca</label>
+                                    <input
+                                        type="text"
+                                        value={formData.o_que_busca || ''}
+                                        onChange={e => setFormData({ ...formData, o_que_busca: e.target.value })}
+                                        className={inputClass}
+                                        placeholder="Touro, Matrizes, etc."
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Qtd. Animais</label>
+                                    <input
+                                        type="text"
+                                        value={formData.quantidade_animais || ''}
+                                        onChange={e => {
+                                            const v = e.target.value;
+                                            const MQL_FAIXAS = new Set(['100-300','300-500','500+','100 a 300','300 a 500','500 ou mais']);
+                                            const num = v.match(/^(\d+)\s*$/);
+                                            const isMqlNow = MQL_FAIXAS.has(v) || (num ? Number(num[1]) >= 100 : false);
+                                            setFormData({ ...formData, quantidade_animais: v, is_mql: isMqlNow });
+                                        }}
+                                        className={inputClass}
+                                        placeholder="0 a 100"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label className={labelClass}>Momento na pecuária</label>
+                                    <select
+                                        value={formData.momento_pecuaria || ''}
+                                        onChange={e => setFormData({ ...formData, momento_pecuaria: e.target.value })}
+                                        className={inputClass}
+                                    >
+                                        <option value="">— selecionar —</option>
+                                        <option value="nao-trabalho-quero-aprender">Quer aprender</option>
+                                        <option value="pecuaria-de-corte">Pecuária de corte</option>
+                                        <option value="corte-e-po">Corte + P.O.</option>
+                                        <option value="criador-renomado-po">Criador P.O.</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Intenção de investimento</label>
+                                    <select
+                                        value={formData.intencao_investimento || ''}
+                                        onChange={e => setFormData({ ...formData, intencao_investimento: e.target.value })}
+                                        className={inputClass}
+                                    >
+                                        <option value="">—</option>
+                                        <option value="ate-10k">Até R$ 10k</option>
+                                        <option value="10k-50k">R$ 10k – R$ 50k</option>
+                                        <option value="acima-50k">Acima de R$ 50k</option>
+                                        <option value="nao-sei">Ainda não sei</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Quer assessoria</label>
+                                    <select
+                                        value={formData.assessoria || ''}
+                                        onChange={e => setFormData({ ...formData, assessoria: e.target.value })}
+                                        className={inputClass}
+                                    >
+                                        <option value="">—</option>
+                                        <option value="sim">Sim</option>
+                                        <option value="talvez">Talvez</option>
+                                        <option value="nao">Não</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#A0792E]/30 bg-[#A0792E]/5">
+                                <span className="text-xs font-bold uppercase tracking-wider text-[#A0792E] flex-1">
+                                    MQL — Marketing Qualified Lead
+                                    <span className="block font-normal normal-case text-[11px] text-gray-500 dark:text-gray-400 tracking-normal mt-0.5">
+                                        Definido automaticamente quando o lead tem ≥100 cabeças. Você pode ajustar manualmente.
+                                    </span>
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, is_mql: !formData.is_mql })}
+                                    className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${formData.is_mql ? 'bg-[#A0792E]' : 'bg-gray-300 dark:bg-[#333]'}`}
+                                    aria-label="Alternar MQL"
+                                >
+                                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${formData.is_mql ? 'translate-x-5' : ''}`} />
+                                </button>
+                            </div>
+                        </FormSection>
+
+                        {/* ───── Campos personalizados ───── */}
+                        {customFields.length > 0 && (
+                            <FormSection icon={SlidersHorizontal} title="Campos personalizados">
+                                {customFields.map(field => (
+                                    <div key={field.id}>
+                                        <label className={labelClass}>
+                                            {field.label}
+                                            {field.required && <span className="text-red-500 ml-1">*</span>}
+                                        </label>
+                                        {field.type === 'textarea' ? (
+                                            <textarea
+                                                required={field.required}
+                                                rows={2}
+                                                value={formData.extra_data?.[field.id] ?? ''}
+                                                onChange={e => setFormData({
+                                                    ...formData,
+                                                    extra_data: { ...formData.extra_data, [field.id]: e.target.value }
+                                                })}
+                                                className={inputClass}
+                                            />
+                                        ) : field.type === 'select' ? (
+                                            <select
+                                                required={field.required}
+                                                value={formData.extra_data?.[field.id] ?? ''}
+                                                onChange={e => setFormData({
+                                                    ...formData,
+                                                    extra_data: { ...formData.extra_data, [field.id]: e.target.value }
+                                                })}
+                                                className={`${inputClass} appearance-none`}
+                                            >
+                                                <option value="">Selecione...</option>
+                                                {(field.options || []).map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <input
+                                                type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
+                                                required={field.required}
+                                                value={formData.extra_data?.[field.id] ?? ''}
+                                                onChange={e => setFormData({
+                                                    ...formData,
+                                                    extra_data: { ...formData.extra_data, [field.id]: e.target.value }
+                                                })}
+                                                className={inputClass}
+                                            />
+                                        )}
+                                    </div>
+                                ))}
+                            </FormSection>
                         )}
 
                         {/* Histórico de contatos (apenas em edição) */}
@@ -539,9 +556,12 @@ export function CRMModal({ isOpen, onClose, lead, defaultStatus, defaultFunnelId
                             <button
                                 type="button"
                                 onClick={() => setShowOrigemSection(!showOrigemSection)}
-                                className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-[#1A1A1A] hover:bg-gray-100 dark:hover:bg-[#222] transition-colors text-sm font-medium text-gray-700 dark:text-gray-300"
+                                className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-[#1A1A1A] hover:bg-gray-100 dark:hover:bg-[#222] transition-colors text-sm font-semibold text-gray-700 dark:text-gray-300"
                             >
-                                <span>📊 Origem / Campanha</span>
+                                <span className="flex items-center gap-2">
+                                    <BarChart3 size={15} className="text-[#A0792E]" />
+                                    Origem / Campanha
+                                </span>
                                 {showOrigemSection ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                             </button>
                             {showOrigemSection && (
