@@ -1982,7 +1982,7 @@ export function LeiloesIntegracao({
         }
         const head = [
             'Data', 'Leilão', 'Acordo', 'Fat. Leiloeira', 'VGV Cobertura',
-            'Fat. Bula (nosso)', 'Comissão', 'Lucro Bruto', 'Margem %',
+            'Fat. Bula', 'Comissão', 'Lucro Bruto', 'Margem %',
             'Receber (status)', 'Pagar (lançados/total)',
         ];
         const esc = (v: unknown) => {
@@ -2202,7 +2202,7 @@ export function LeiloesIntegracao({
                             </div>
                             <div>
                                 <h3 className="font-bold text-gray-900 dark:text-white">Resumo por Fechamento</h3>
-                                <p className="text-[10px] text-gray-500 mt-0.5">Acordo · Fat. Leiloeira (referência) · VGV Cobertura · <span className="text-emerald-500 font-bold">Faturamento Bula (nosso)</span> · Comissões · Lucro Bruto</p>
+                                <p className="text-[10px] text-gray-500 mt-0.5">Acordo · Fat. Leiloeira (referência) · VGV Cobertura · <span className="text-emerald-500 font-bold">Faturamento Bula</span> · Comissões · Lucro Bruto</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -2298,7 +2298,7 @@ export function LeiloesIntegracao({
                                     <th className="px-3 py-3 text-left font-bold">Acordo</th>
                                     <th className="px-3 py-3 text-right font-bold">Fat. Leiloeira</th>
                                     <th className="px-3 py-3 text-right font-bold">VGV Cobertura</th>
-                                    <th className="px-3 py-3 text-right font-bold text-emerald-500">Fat. Bula (nosso)</th>
+                                    <th className="px-3 py-3 text-right font-bold text-emerald-500">Fat. Bula</th>
                                     <th className="px-3 py-3 text-right font-bold">Comissão</th>
                                     <th className="px-3 py-3 text-right font-bold">Lucro Bruto</th>
                                     <th className="px-3 py-3 text-center font-bold">Receber</th>
