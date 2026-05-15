@@ -8,7 +8,7 @@ import {
   MapPin, Users, TrendingUp, BarChart3, DollarSign,
   ChevronRight, Calendar, Target, Percent, Hash, Star,
   ArrowUp, ArrowDown, Minus, Dna, ShoppingCart, Briefcase, Activity,
-  Eye,
+  Eye, LayoutGrid, Table as TableIcon,
 } from 'lucide-react'
 import { normalizeAssessorNome } from '@/lib/assessor-normalize'
 
@@ -184,6 +184,107 @@ function KpiCard({ icon: Icon, label, value, sub, gold }: {
 }
 
 // ── Fechamento Card ────────────────────────────────────────────────────────────
+
+// ── Table View ─────────────────────────────────────────────────────────────────
+
+function FechamentoTable({ items, selectedId, onSelect }: {
+  items: Fechamento[]; selectedId: string | null; onSelect: (id: string) => void
+}) {
+  if (!items.length) return null
+  return (
+    <div className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#0E0E0E] overflow-x-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#0A0A0A]">
+            {[
+              { label: 'Data', cls: 'text-left' },
+              { label: 'Leilão', cls: 'text-left' },
+              { label: 'Local', cls: 'text-left' },
+              { label: 'Lotes', cls: 'text-right whitespace-nowrap' },
+              { label: 'Cob.', cls: 'text-right whitespace-nowrap' },
+              { label: 'Animais', cls: 'text-right' },
+              { label: 'VGV Cobertura', cls: 'text-right whitespace-nowrap' },
+              { label: 'Faturamento Total', cls: 'text-right whitespace-nowrap' },
+              { label: 'Receita Bula', cls: 'text-right whitespace-nowrap' },
+              { label: 'Sobra', cls: 'text-right whitespace-nowrap' },
+              { label: 'Assessores', cls: 'text-left' },
+            ].map(h => (
+              <th key={h.label} className={`px-3 py-2.5 text-[9px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 ${h.cls}`}>
+                {h.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {items.map(f => {
+            const dt = fmtDate(f.data)
+            const pct = coveragePct(f.lotes_vendidos, f.lotes_ofertados)
+            const isSelected = selectedId === f.id
+            const assessorNomes = (f.por_assessor ?? [])
+              .map(a => a.nome)
+              .filter(Boolean)
+              .map(n => n.split(' ')[0])
+            return (
+              <tr
+                key={f.id}
+                onClick={() => onSelect(f.id)}
+                className={`border-b border-gray-50 dark:border-[#171717] cursor-pointer transition-colors
+                  ${isSelected
+                    ? 'bg-[#A0792E]/8'
+                    : 'hover:bg-gray-50 dark:hover:bg-[#141414]'}`}
+              >
+                <td className="px-3 py-2.5 whitespace-nowrap">
+                  <span className="font-bold text-[#A0792E]">{dt.dia} {dt.mes}</span>
+                  <span className="text-gray-400 ml-1">/{dt.ano.slice(-2)}</span>
+                </td>
+                <td className="px-3 py-2.5 max-w-[260px]">
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 truncate" title={f.nome}>{f.nome}</p>
+                </td>
+                <td className="px-3 py-2.5 text-gray-500 dark:text-gray-400 max-w-[160px] truncate" title={f.local}>{f.local || '—'}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">
+                  {f.lotes_vendidos}/{f.lotes_ofertados}
+                </td>
+                <td className="px-3 py-2.5 text-right tabular-nums">
+                  <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold
+                    ${pct >= 60 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
+                      : pct >= 30 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                      : 'bg-gray-100 text-gray-600 dark:bg-[#1A1A1A] dark:text-gray-400'}`}>
+                    {pct}%
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">{f.animais_vendidos}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums font-bold text-[#A0792E]">{R(f.vgv_total)}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">
+                  {f.faturamento_total_leilao ? R(f.faturamento_total_leilao) : <span className="text-gray-300 dark:text-gray-600">—</span>}
+                </td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">
+                  {f.receita_bula ? R(f.receita_bula) : <span className="text-gray-300 dark:text-gray-600">—</span>}
+                </td>
+                <td className="px-3 py-2.5 text-right tabular-nums">
+                  {f.sobra_bruta !== null && f.sobra_bruta !== undefined ? (
+                    <span className={f.sobra_bruta < 0 ? 'text-red-500 font-semibold' : 'text-emerald-600 dark:text-emerald-400 font-semibold'}>
+                      {R(f.sobra_bruta)}
+                    </span>
+                  ) : <span className="text-gray-300 dark:text-gray-600">—</span>}
+                </td>
+                <td className="px-3 py-2.5">
+                  <div className="flex flex-wrap gap-1">
+                    {assessorNomes.slice(0, 3).map(n => (
+                      <span key={n} className="px-1.5 py-0.5 rounded bg-[#A0792E]/10 text-[#A0792E] text-[9px] font-bold uppercase tracking-wider">{n}</span>
+                    ))}
+                    {assessorNomes.length > 3 && (
+                      <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 text-[9px] font-bold">+{assessorNomes.length - 3}</span>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
 
 function FechamentoCard({ f, selected, onClick }: { f: Fechamento; selected: boolean; onClick: () => void }) {
   const dt = fmtDate(f.data)
@@ -1754,6 +1855,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
 // ── Main View ──────────────────────────────────────────────────────────────────
 
 type SortKey = 'recent' | 'vgv' | 'cobertura'
+type ViewMode = 'cards' | 'table'
 
 export default function FechamentoView() {
   const [items, setItems] = useState<Fechamento[]>([])
@@ -1782,6 +1884,16 @@ export default function FechamentoView() {
     const params = new URLSearchParams(searchParams.toString())
     if (id) params.set('id', id)
     else params.delete('id')
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }, [router, pathname, searchParams])
+
+  // View mode (cards default, "tabela" via ?view=tabela — convenção do projeto).
+  const viewMode: ViewMode = searchParams.get('view') === 'tabela' ? 'table' : 'cards'
+  const setViewMode = useCallback((v: ViewMode) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (v === 'table') params.set('view', 'tabela')
+    else params.delete('view')
     const qs = params.toString()
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }, [router, pathname, searchParams])
@@ -2013,17 +2125,47 @@ export default function FechamentoView() {
                 </button>
               ))}
             </div>
+            <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-gray-50 dark:bg-[#0A0A0A] border border-gray-100 dark:border-[#1E1E1E]">
+              <button
+                onClick={() => setViewMode('cards')}
+                title="Visualização em cards"
+                className={`flex items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all
+                  ${viewMode === 'cards'
+                    ? 'bg-white dark:bg-[#1A1A1A] text-[#A0792E] shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+              >
+                <LayoutGrid size={11} /> Cards
+              </button>
+              <button
+                onClick={() => setViewMode('table')}
+                title="Visualização em tabela"
+                className={`flex items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all
+                  ${viewMode === 'table'
+                    ? 'bg-white dark:bg-[#1A1A1A] text-[#A0792E] shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+              >
+                <TableIcon size={11} /> Tabela
+              </button>
+            </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {sortedItems.map(f => (
-              <FechamentoCard
-                key={f.id}
-                f={f}
-                selected={selected?.id === f.id}
-                onClick={() => setSelectedId(selected?.id === f.id ? null : f.id)}
-              />
-            ))}
-          </div>
+          {viewMode === 'cards' ? (
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {sortedItems.map(f => (
+                <FechamentoCard
+                  key={f.id}
+                  f={f}
+                  selected={selected?.id === f.id}
+                  onClick={() => setSelectedId(selected?.id === f.id ? null : f.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <FechamentoTable
+              items={sortedItems}
+              selectedId={selected?.id ?? null}
+              onSelect={(id) => setSelectedId(selected?.id === id ? null : id)}
+            />
+          )}
         </>
       )}
 
