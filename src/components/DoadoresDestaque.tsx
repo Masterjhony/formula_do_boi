@@ -35,10 +35,11 @@ export default function DoadoresDestaque({ products, isAuthenticated = true }: D
         return true;
     });
 
-    const doadoras = unique
+    const allDoadoras = unique
         .filter((p) => p.category === "Embrião" || p.category === "DOADORA")
-        .sort((a, b) => a.id - b.id)
-        .slice(0, 4);
+        .sort((a, b) => a.id - b.id);
+    const doadoras = allDoadoras.slice(0, 6);
+    const restantes = Math.max(0, allDoadoras.length - doadoras.length);
 
     if (doadoras.length === 0) return null;
 
@@ -170,15 +171,77 @@ export default function DoadoresDestaque({ products, isAuthenticated = true }: D
                     larga do que te contaram.
                 </p>
 
-                {/* Grid de cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                {/* Scroll horizontal editorial — alinhado ao padrão Sêmen */}
+                <div
+                    className="no-scrollbar flex overflow-x-auto gap-4 -mx-4 px-4 pb-4 mb-10"
+                    style={{ scrollSnapType: "x mandatory" }}
+                >
                     {doadoras.map((product) => (
-                        <PremiumCatalogCard
+                        <div
                             key={product.id}
-                            product={product}
-                            isAuthenticated={isAuthenticated}
-                        />
+                            className="shrink-0 snap-start"
+                            style={{ width: 260 }}
+                        >
+                            <PremiumCatalogCard
+                                product={product}
+                                isAuthenticated={isAuthenticated}
+                            />
+                        </div>
                     ))}
+
+                    {/* Card "+N restantes" (brandbook minicard) */}
+                    {restantes > 0 && (
+                        <Link
+                            href="/embrioes"
+                            className="shrink-0 flex flex-col items-center justify-center text-center snap-start group"
+                            style={{
+                                width: 240,
+                                padding: 30,
+                                minHeight: 300,
+                                background: INK,
+                                border: `1px solid rgba(212,168,92,0.22)`,
+                                borderRadius: 4,
+                                transition: "border-color 200ms ease",
+                            }}
+                        >
+                            <div
+                                className="font-display"
+                                style={{
+                                    fontSize: 48,
+                                    color: BRONZE_LIGHT,
+                                    marginBottom: 10,
+                                    fontWeight: 500,
+                                    letterSpacing: "-0.02em",
+                                }}
+                            >
+                                +{restantes}
+                            </div>
+                            <div style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: 11,
+                                color: "rgba(245,240,228,0.62)",
+                                marginBottom: 18,
+                                letterSpacing: "0.12em",
+                                textTransform: "uppercase",
+                            }}>
+                                no catálogo
+                            </div>
+                            <span
+                                style={{
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    color: FG,
+                                    fontFamily: "var(--font-mono)",
+                                    letterSpacing: "0.08em",
+                                    textTransform: "uppercase",
+                                    borderBottom: `1px solid ${BRONZE}`,
+                                    paddingBottom: 2,
+                                }}
+                            >
+                                Ver doadoras →
+                            </span>
+                        </Link>
+                    )}
                 </div>
 
                 {/* CTAs brandbook */}
