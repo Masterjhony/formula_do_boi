@@ -22,6 +22,7 @@ interface ProductProps {
     mgte?: string;
     iqg?: string;
     special_price?: boolean;
+    gallery?: string[];
     details?: {
         registro?: string;
         raca?: string;
@@ -201,17 +202,28 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                     {/* Check if image is a video */}
                     {product.image?.endsWith('.mp4') ? (
                         <>
-                            <video
-                                ref={videoRef}
-                                src={product.image}
-                                poster={product.image.replace('.mp4', '.jpg')}
-                                muted
-                                loop
-                                playsInline
-                                preload="none"
-                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
-                                style={{ objectPosition: product.video_object_position || 'center center' }}
-                            />
+                            {(() => {
+                                const galleryPoster = product.gallery?.find(
+                                    (g) => typeof g === 'string' && !g.toLowerCase().endsWith('.mp4')
+                                );
+                                const poster = galleryPoster || product.image.replace('.mp4', '.jpg');
+                                // #t=0.1 força o browser a fazer seek na frame 0.1s e renderizá-la
+                                // mesmo sem poster válido — funciona em Chrome, Firefox, Safari.
+                                const videoSrc = `${product.image}#t=0.1`;
+                                return (
+                                    <video
+                                        ref={videoRef}
+                                        src={videoSrc}
+                                        poster={poster}
+                                        muted
+                                        loop
+                                        playsInline
+                                        preload="metadata"
+                                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        style={{ objectPosition: product.video_object_position || 'center center' }}
+                                    />
+                                );
+                            })()}
                             {/* Play Icon Overlay - Visible when paused/not hovered */}
                             <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
                                 <div className="bg-black/30 backdrop-blur-sm rounded-full p-3 border border-white/30">
