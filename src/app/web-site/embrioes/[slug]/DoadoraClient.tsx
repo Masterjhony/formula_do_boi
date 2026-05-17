@@ -3,7 +3,13 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { type Doadora, DOADORAS_CONDICOES } from "@/data/doadoras";
+import {
+    type Doadora,
+    type AvalRow,
+    type PedigreeNode,
+    type Avaliacao,
+    DOADORAS_CONDICOES,
+} from "@/data/doadoras";
 
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
@@ -17,10 +23,18 @@ function fmtBRL(n: number) {
 function fmtDecimal(n: number) {
     return n.toString().replace(".", ",");
 }
+function fmtDep(n: number) {
+    return n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+}
 
 export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
     const nome = doadora.nomeAbcz ?? doadora.rgd;
     const nomeHero = doadora.nomeAbcz ?? "Nome ABCZ a confirmar";
+    const hasPedigree = !!doadora.pedigree;
+    const hasAvaliacao = !!doadora.avaliacao;
+    // Numeração de seção dinâmica: 04 sempre é Genealogia, 05 é Avaliação (se houver),
+    // 06 (ou 05 se não tiver avaliação) é a CTA final.
+    const ctaNumber = hasAvaliacao ? "06" : "05";
 
     return (
         <main className="min-h-screen" style={{ background: INK }}>
@@ -287,98 +301,123 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                 </div>
             </section>
 
-            {/* GENEALOGIA / PEDIGREE ─────────────────────── */}
+            {/* GENEALOGIA ─────────────────────────── */}
             <section>
-                <div className="container mx-auto px-4 py-14 md:py-20" style={{ maxWidth: 1100 }}>
-                    <SectionLabel>04 · Genealogia & DEPs</SectionLabel>
-                    <h2
-                        className="font-display mt-5"
-                        style={{
-                            fontSize: "clamp(28px, 4vw, 48px)",
-                            fontWeight: 500,
-                            color: FG,
-                            letterSpacing: "-0.02em",
-                            marginBottom: 14,
-                        }}
-                    >
-                        Pedigree em validação.
-                    </h2>
-                    <p
-                        style={{
-                            color: "rgba(245,240,228,0.65)",
-                            fontSize: 16,
-                            lineHeight: 1.55,
-                            marginBottom: 28,
-                            maxWidth: "62ch",
-                        }}
-                    >
-                        Os dados completos de pedigree (3 gerações com RGN, MGTe e percentil), reprodução
-                        (filhos, partos, IPP, IDUP) e DEPs detalhados (PD-ED, PA-ED, AOL, ACAB, MAR) estão
-                        em validação direta na ABCZ. Liberados após confirmação oficial.
-                    </p>
+                <div className="container mx-auto px-4 py-14 md:py-20" style={{ maxWidth: 1300 }}>
+                    <SectionLabel>04 · Genealogia</SectionLabel>
 
-                    <div
-                        className="card-engraved"
-                        style={{
-                            background: INK_2,
-                            border: "1px solid rgba(212,168,92,0.22)",
-                            padding: "26px 24px",
-                        }}
-                    >
-                        <div
-                            style={{
-                                fontFamily: "var(--font-mono)",
-                                fontSize: 11,
-                                letterSpacing: "0.22em",
-                                textTransform: "uppercase",
-                                color: BRONZE_LIGHT,
-                                marginBottom: 14,
-                                fontWeight: 500,
-                            }}
-                        >
-                            ⚠ Pendências identificadas
-                        </div>
-                        <ul className="flex flex-col gap-2.5">
-                            {doadora.pendencias.map((p) => (
-                                <li
-                                    key={p}
-                                    className="flex items-start gap-3"
-                                    style={{
-                                        color: "rgba(245,240,228,0.78)",
-                                        fontSize: 14.5,
-                                        lineHeight: 1.5,
-                                    }}
-                                >
-                                    <span
-                                        aria-hidden
-                                        style={{
-                                            display: "inline-block",
-                                            width: 8, height: 8,
-                                            border: `1px solid ${BRONZE}`,
-                                            marginTop: 7,
-                                            flexShrink: 0,
-                                        }}
-                                    />
-                                    {p}
-                                </li>
-                            ))}
-                        </ul>
-                        {doadora.idAbcz && (
-                            <p
-                                className="mt-5"
+                    {hasPedigree && doadora.pedigree ? (
+                        <>
+                            <h2
+                                className="font-display mt-5"
                                 style={{
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: 12,
-                                    color: "rgba(245,240,228,0.52)",
-                                    letterSpacing: "0.06em",
+                                    fontSize: "clamp(28px, 4vw, 48px)",
+                                    fontWeight: 500,
+                                    color: FG,
+                                    letterSpacing: "-0.02em",
+                                    marginBottom: 14,
+                                    maxWidth: "22ch",
                                 }}
                             >
-                                Consulta pública ABCZ · ID {doadora.idAbcz}
+                                Pedigree de três gerações.
+                            </h2>
+                            <p
+                                style={{
+                                    color: "rgba(245,240,228,0.65)",
+                                    fontSize: 16,
+                                    lineHeight: 1.55,
+                                    marginBottom: 36,
+                                    maxWidth: "62ch",
+                                }}
+                            >
+                                Linhagem registrada junto à Associação Brasileira dos Criadores de Zebu (ABCZ){" "}
+                                — origem paterna e materna documentadas com RG oficial para cada ancestral
+                                até a terceira geração (bisavós).
                             </p>
-                        )}
-                    </div>
+
+                            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+                                <PedigreeBranch side="paterna" root={doadora.pedigree.pai} />
+                                <PedigreeBranch side="materna" root={doadora.pedigree.mae} />
+                            </div>
+
+                            <p
+                                className="mt-8"
+                                style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: 11,
+                                    letterSpacing: "0.18em",
+                                    textTransform: "uppercase",
+                                    color: "rgba(245,240,228,0.50)",
+                                }}
+                            >
+                                Consulta pública ABCZ · RGD {doadora.rgd}
+                                {doadora.idAbcz ? ` · ID ${doadora.idAbcz}` : ""}
+                            </p>
+                        </>
+                    ) : (
+                        <PedigreeEmValidacao doadora={doadora} />
+                    )}
                 </div>
             </section>
+
+            {/* AVALIAÇÃO GENÉTICA ABCZ ─────────────────────────── */}
+            {hasAvaliacao && doadora.avaliacao && (
+                <section
+                    style={{
+                        background: INK_2,
+                        borderTop: "1px solid rgba(212,168,92,0.10)",
+                        borderBottom: "1px solid rgba(212,168,92,0.10)",
+                    }}
+                >
+                    <div className="container mx-auto px-4 py-14 md:py-20" style={{ maxWidth: 1300 }}>
+                        <SectionLabel>05 · Avaliação genética ABCZ · Corte {doadora.avaliacao.corte}</SectionLabel>
+                        <h2
+                            className="font-display mt-5"
+                            style={{
+                                fontSize: "clamp(28px, 4vw, 48px)",
+                                fontWeight: 500,
+                                color: FG,
+                                letterSpacing: "-0.02em",
+                                marginBottom: 14,
+                                maxWidth: "22ch",
+                            }}
+                        >
+                            Diferenças esperadas na progênie.
+                        </h2>
+                        <p
+                            style={{
+                                color: "rgba(245,240,228,0.65)",
+                                fontSize: 16,
+                                lineHeight: 1.55,
+                                marginBottom: 36,
+                                maxWidth: "62ch",
+                            }}
+                        >
+                            DEPs oficiais publicadas pela ABCZ no corte {doadora.avaliacao.corte}.
+                            Cada característica vem acompanhada de acurácia (AC), decil dentro da raça (DECA)
+                            e percentil populacional (P%).
+                        </p>
+
+                        <AvaliacaoHeadline aval={doadora.avaliacao} />
+
+                        <div className="mt-10">
+                            <GroupSubheader>Características que compõem o iABCZ</GroupSubheader>
+                            <DepGroup title="Crescimento" rows={doadora.avaliacao.grupos.crescimento} />
+                            <DepGroup title="Maternas" rows={doadora.avaliacao.grupos.maternas} />
+                            <DepGroup title="Reprodutivas" rows={doadora.avaliacao.grupos.reprodutivas} />
+                            <DepGroup title="Acabamento" rows={doadora.avaliacao.grupos.acabamento} />
+                        </div>
+
+                        <div className="mt-10">
+                            <GroupSubheader>Características que não compõem o iABCZ</GroupSubheader>
+                            <DepGroup title="Crescimento" rows={doadora.avaliacao.grupos.crescimentoExtra} />
+                            <DepGroup title="Reprodutivas" rows={doadora.avaliacao.grupos.reprodutivasExtra} />
+                            <DepGroup title="Carcaça" rows={doadora.avaliacao.grupos.carcaca} />
+                            <DepGroup title="Morfológicas" rows={doadora.avaliacao.grupos.morfologicas} />
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* CTA FINAL ───────────────────────────────── */}
             <section
@@ -388,7 +427,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                 }}
             >
                 <div className="container mx-auto px-4 py-14 md:py-20 text-center" style={{ maxWidth: 800 }}>
-                    <SectionLabel>05 · Próximo passo</SectionLabel>
+                    <SectionLabel>{ctaNumber} · Próximo passo</SectionLabel>
                     <h2
                         className="font-display mt-5"
                         style={{
@@ -471,6 +510,10 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
         </main>
     );
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * Sub-componentes
+ * ───────────────────────────────────────────────────────────── */
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
     return (
@@ -577,6 +620,415 @@ function DataRow({
         </div>
     );
 }
+
+/* ─── Pedigree ─────────────────────────────────────────────── */
+
+function PedigreeBranch({
+    side, root,
+}: { side: "paterna" | "materna"; root: PedigreeNode }) {
+    const isPaterna = side === "paterna";
+    const headerLabel = isPaterna ? "Origem paterna" : "Origem materna";
+    const rootLabel = isPaterna ? "Pai" : "Mãe";
+    const avoLabel = isPaterna ? "Avô paterno" : "Avô materno";
+    const avoaLabel = isPaterna ? "Avó paterna" : "Avó materna";
+
+    return (
+        <div
+            className="card-engraved relative"
+            style={{
+                background: INK_2,
+                border: "1px solid rgba(212,168,92,0.22)",
+                overflow: "hidden",
+            }}
+        >
+            {/* Header */}
+            <div
+                className="px-5 py-3"
+                style={{
+                    borderBottom: "1px solid rgba(212,168,92,0.18)",
+                    background: "rgba(212,168,92,0.04)",
+                }}
+            >
+                <div
+                    style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 11,
+                        letterSpacing: "0.22em",
+                        textTransform: "uppercase",
+                        color: BRONZE_LIGHT,
+                        fontWeight: 600,
+                    }}
+                >
+                    {headerLabel}
+                </div>
+            </div>
+
+            {/* Gen 1 — Pai/Mãe */}
+            <PedigreeRowCard
+                tier="parent"
+                tierLabel={rootLabel}
+                node={root}
+            />
+
+            {/* Gen 2 — Avós */}
+            <div
+                className="grid grid-cols-2"
+                style={{ borderTop: "1px solid rgba(212,168,92,0.12)" }}
+            >
+                <PedigreeRowCard
+                    tier="grand"
+                    tierLabel={avoLabel}
+                    node={root.pai}
+                />
+                <PedigreeRowCard
+                    tier="grand"
+                    tierLabel={avoaLabel}
+                    node={root.mae}
+                    leftBorder
+                />
+            </div>
+
+            {/* Gen 3 — Bisavós */}
+            <div
+                className="grid grid-cols-2 md:grid-cols-4"
+                style={{ borderTop: "1px solid rgba(212,168,92,0.12)" }}
+            >
+                <PedigreeRowCard tier="great" tierLabel="Bisavô" node={root.pai?.pai} />
+                <PedigreeRowCard tier="great" tierLabel="Bisavó" node={root.pai?.mae} leftBorder />
+                <PedigreeRowCard tier="great" tierLabel="Bisavô" node={root.mae?.pai} leftBorder />
+                <PedigreeRowCard tier="great" tierLabel="Bisavó" node={root.mae?.mae} leftBorder />
+            </div>
+        </div>
+    );
+}
+
+function PedigreeRowCard({
+    tier,
+    tierLabel,
+    node,
+    leftBorder,
+}: {
+    tier: "parent" | "grand" | "great";
+    tierLabel: string;
+    node?: PedigreeNode;
+    leftBorder?: boolean;
+}) {
+    const isParent = tier === "parent";
+    const isGreat = tier === "great";
+
+    const padX = isParent ? "px-5" : isGreat ? "px-3.5" : "px-4";
+    const padY = isParent ? "py-5" : isGreat ? "py-3.5" : "py-4";
+
+    const labelColor = isParent ? BRONZE_LIGHT : "rgba(212,168,92,0.78)";
+    const nameSize = isParent ? "clamp(20px, 2vw, 26px)" : isGreat ? 13 : 16;
+    const nameColor = node ? FG : "rgba(245,240,228,0.32)";
+    const rgSize = isParent ? 12 : isGreat ? 10 : 11;
+
+    return (
+        <div
+            className={`${padX} ${padY}`}
+            style={{
+                borderLeft: leftBorder ? "1px solid rgba(212,168,92,0.12)" : undefined,
+                background: isParent ? "rgba(212,168,92,0.03)" : undefined,
+            }}
+        >
+            <div
+                style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: isGreat ? 9 : 10,
+                    letterSpacing: "0.20em",
+                    textTransform: "uppercase",
+                    color: labelColor,
+                    fontWeight: 500,
+                    marginBottom: isParent ? 8 : 5,
+                }}
+            >
+                {tierLabel}
+            </div>
+            <div
+                className={isParent ? "font-display" : undefined}
+                style={{
+                    fontSize: nameSize,
+                    fontWeight: isParent ? 500 : 400,
+                    color: nameColor,
+                    letterSpacing: isParent ? "-0.015em" : 0,
+                    lineHeight: isParent ? 1.1 : 1.25,
+                    wordBreak: "break-word",
+                }}
+            >
+                {node?.nome ?? "—"}
+            </div>
+            <div
+                style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: rgSize,
+                    letterSpacing: "0.08em",
+                    color: "rgba(245,240,228,0.45)",
+                    marginTop: 4,
+                }}
+            >
+                {node?.rg ? `RG ${node.rg}` : ""}
+            </div>
+        </div>
+    );
+}
+
+/* ─── Pedigree fallback (em validação) ─────────────────────── */
+
+function PedigreeEmValidacao({ doadora }: { doadora: Doadora }) {
+    return (
+        <>
+            <h2
+                className="font-display mt-5"
+                style={{
+                    fontSize: "clamp(28px, 4vw, 48px)",
+                    fontWeight: 500,
+                    color: FG,
+                    letterSpacing: "-0.02em",
+                    marginBottom: 14,
+                }}
+            >
+                Pedigree em validação.
+            </h2>
+            <p
+                style={{
+                    color: "rgba(245,240,228,0.65)",
+                    fontSize: 16,
+                    lineHeight: 1.55,
+                    marginBottom: 28,
+                    maxWidth: "62ch",
+                }}
+            >
+                Os dados completos de pedigree (3 gerações com RGN) e a avaliação genética
+                ABCZ detalhada estão em validação direta na ABCZ. Liberados após
+                confirmação oficial.
+            </p>
+
+            <div
+                className="card-engraved"
+                style={{
+                    background: INK_2,
+                    border: "1px solid rgba(212,168,92,0.22)",
+                    padding: "26px 24px",
+                    maxWidth: 720,
+                }}
+            >
+                <div
+                    style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 11,
+                        letterSpacing: "0.22em",
+                        textTransform: "uppercase",
+                        color: BRONZE_LIGHT,
+                        marginBottom: 14,
+                        fontWeight: 500,
+                    }}
+                >
+                    ⚠ Pendências identificadas
+                </div>
+                <ul className="flex flex-col gap-2.5">
+                    {doadora.pendencias.map((p) => (
+                        <li
+                            key={p}
+                            className="flex items-start gap-3"
+                            style={{
+                                color: "rgba(245,240,228,0.78)",
+                                fontSize: 14.5,
+                                lineHeight: 1.5,
+                            }}
+                        >
+                            <span
+                                aria-hidden
+                                style={{
+                                    display: "inline-block",
+                                    width: 8, height: 8,
+                                    border: `1px solid ${BRONZE}`,
+                                    marginTop: 7,
+                                    flexShrink: 0,
+                                }}
+                            />
+                            {p}
+                        </li>
+                    ))}
+                </ul>
+                {doadora.idAbcz && (
+                    <p
+                        className="mt-5"
+                        style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: 12,
+                            color: "rgba(245,240,228,0.52)",
+                            letterSpacing: "0.06em",
+                        }}
+                    >
+                        Consulta pública ABCZ · ID {doadora.idAbcz}
+                    </p>
+                )}
+            </div>
+        </>
+    );
+}
+
+/* ─── Avaliação Genética ──────────────────────────────────── */
+
+function AvaliacaoHeadline({ aval }: { aval: Avaliacao }) {
+    return (
+        <div
+            className="grid grid-cols-2 lg:grid-cols-4 gap-0"
+            style={{
+                border: "1px solid rgba(212,168,92,0.22)",
+                borderRadius: 4,
+                overflow: "hidden",
+                background: INK,
+            }}
+        >
+            <Metric label="iABCZ" value={fmtDecimal(aval.iabcz)} badge={`Corte ABCZ ${aval.corte}`} />
+            <Metric label="DECA" value={String(aval.deca)} badge="Decil da raça" divider />
+            <Metric label="P%" value={String(aval.pPct)} badge="Percentil populacional" divider />
+            <Metric label="F (endogamia)" value={`${fmtDecimal(aval.fPct)}%`} badge="Coef. endogamia" divider />
+        </div>
+    );
+}
+
+function GroupSubheader({ children }: { children: React.ReactNode }) {
+    return (
+        <div
+            className="mb-4"
+            style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: BRONZE_LIGHT,
+                fontWeight: 600,
+                paddingBottom: 8,
+                borderBottom: "1px solid rgba(212,168,92,0.18)",
+            }}
+        >
+            {children}
+        </div>
+    );
+}
+
+function DepGroup({ title, rows }: { title: string; rows: AvalRow[] }) {
+    if (!rows.length) return null;
+    return (
+        <div className="mb-6">
+            <div
+                style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10,
+                    letterSpacing: "0.24em",
+                    textTransform: "uppercase",
+                    color: "rgba(245,240,228,0.55)",
+                    fontWeight: 500,
+                    marginBottom: 10,
+                }}
+            >
+                {title}
+            </div>
+            <div
+                className="card-engraved"
+                style={{
+                    background: INK,
+                    border: "1px solid rgba(212,168,92,0.16)",
+                    overflow: "hidden",
+                }}
+            >
+                {rows.map((r, i) => (
+                    <DepRow key={r.code} row={r} last={i === rows.length - 1} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function DepRow({ row, last }: { row: AvalRow; last?: boolean }) {
+    const decaIsTop = row.deca <= 2;
+    const decaColor = row.deca === 1
+        ? BRONZE_LIGHT
+        : decaIsTop ? "rgba(212,168,92,0.78)" : "rgba(245,240,228,0.55)";
+    const depColor = row.dep >= 0 ? FG : "rgba(245,240,228,0.85)";
+
+    return (
+        <div
+            className="grid grid-cols-[1fr_auto] items-center gap-4 sm:gap-6 px-4 sm:px-5 py-3.5"
+            style={{
+                borderBottom: last ? undefined : "1px solid rgba(212,168,92,0.10)",
+            }}
+        >
+            {/* Esquerda: código + label + badges */}
+            <div className="min-w-0">
+                <div className="flex items-baseline gap-3 flex-wrap">
+                    <span
+                        style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: 11,
+                            color: BRONZE_LIGHT,
+                            fontWeight: 600,
+                            letterSpacing: "0.10em",
+                            flexShrink: 0,
+                        }}
+                    >
+                        {row.code}
+                    </span>
+                    <span
+                        style={{
+                            color: "rgba(245,240,228,0.82)",
+                            fontSize: 13.5,
+                            lineHeight: 1.3,
+                        }}
+                    >
+                        {row.label}
+                    </span>
+                </div>
+                <div
+                    className="flex flex-wrap gap-x-4 gap-y-1 mt-2"
+                    style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 10,
+                        letterSpacing: "0.10em",
+                        color: "rgba(245,240,228,0.50)",
+                    }}
+                >
+                    <span>AC {row.ac}%</span>
+                    <span style={{ color: decaColor, fontWeight: 600 }}>DECA {row.deca}</span>
+                    {row.pct !== null && <span>P% {row.pct}</span>}
+                </div>
+            </div>
+
+            {/* Direita: valor DEP */}
+            <div className="text-right whitespace-nowrap">
+                <span
+                    className="font-display"
+                    style={{
+                        fontSize: "clamp(20px, 2.2vw, 26px)",
+                        color: depColor,
+                        fontWeight: 500,
+                        letterSpacing: "-0.01em",
+                    }}
+                >
+                    {fmtDep(row.dep)}
+                </span>
+                {row.unit && (
+                    <span
+                        style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: 11,
+                            color: "rgba(245,240,228,0.50)",
+                            marginLeft: 5,
+                            letterSpacing: "0.06em",
+                        }}
+                    >
+                        {row.unit}
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ─── Placeholder de foto ─────────────────────────────────── */
 
 function DoadoraPlaceholder({ rgd }: { rgd: string }) {
     return (
