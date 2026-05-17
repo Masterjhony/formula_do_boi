@@ -1,15 +1,3 @@
-"use client";
-
-import { useRef, useState, useEffect, useCallback } from "react";
-
-const CLD = "https://res.cloudinary.com/dkh2nsugb/video/upload";
-const VID = "v1775568904/cam_1_lifky2";
-const POSTER = `${CLD}/f_jpg,q_75,w_1280,so_0/${VID}.jpg`;
-const SRC_MP4  = `${CLD}/f_mp4,w_960,q_auto:low,vc_h264,br_600k/${VID}.mp4`;
-const SRC_WEBM = `${CLD}/f_webm,w_960,q_auto:low,vc_vp9,br_400k/${VID}.webm`;
-
-const WA_LINK = "https://wa.me/5531984143874?text=Ol%C3%A1%2C%20quero%20entrar%20no%20grupo%20Selo%20Ouro";
-
 // Brandbook tokens
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
@@ -17,79 +5,107 @@ const BRONZE_PALE = "#E8CB85";
 const INK = "#0A0A0A";
 const FG = "#F5F0E4";
 
+const WA_LINK =
+    "https://wa.me/5531984143874?text=Ol%C3%A1%2C%20quero%20entrar%20no%20grupo%20Selo%20Ouro";
+
+// Hero hero image — golden-hour Nelore (Cloudinary)
+const HERO_BASE = "https://res.cloudinary.com/dny0ibgbn/image/upload";
+const HERO_ID = "v1778985663/IMGbonita_q5tw3w";
+const HERO_DESKTOP = `${HERO_BASE}/f_auto,q_auto:good,w_2400/${HERO_ID}.png`;
+const HERO_TABLET = `${HERO_BASE}/f_auto,q_auto:good,w_1600/${HERO_ID}.png`;
+const HERO_MOBILE = `${HERO_BASE}/f_auto,q_auto:good,w_960/${HERO_ID}.png`;
+const HERO_LQIP = `${HERO_BASE}/f_auto,q_30,w_60,e_blur:600/${HERO_ID}.png`;
+
 export default function Hero() {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [videoReady, setVideoReady] = useState(false);
-    const [videoFailed, setVideoFailed] = useState(false);
-
-    const handlePlaying = useCallback(() => setVideoReady(true), []);
-    const handleError   = useCallback(() => setVideoFailed(true), []);
-
-    useEffect(() => {
-        const v = videoRef.current;
-        if (!v) return;
-        const tryPlay = () => v.play().catch(() => setVideoFailed(true));
-        if (v.readyState >= 3) {
-            tryPlay();
-        } else {
-            v.addEventListener("canplaythrough", tryPlay, { once: true });
-            return () => v.removeEventListener("canplaythrough", tryPlay);
-        }
-    }, []);
-
     return (
         <section
             className="relative flex items-end overflow-hidden"
-            style={{ minHeight: "92vh", padding: "120px 20px 56px", color: FG, background: INK }}
+            style={{
+                minHeight: "92vh",
+                padding: "120px 20px 56px",
+                color: FG,
+                background: INK,
+            }}
         >
-            {/* Poster */}
+            {/* LQIP placeholder — blurred bg pra evitar flash de preto puro */}
             <img
-                src={POSTER}
+                src={HERO_LQIP}
                 alt=""
                 aria-hidden
-                fetchPriority="high"
-                className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${videoReady ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+                className="absolute inset-0 w-full h-full object-cover object-center scale-110"
+                style={{ filter: "blur(20px)" }}
             />
 
-            {/* Vídeo */}
-            {!videoFailed && (
-                <video
-                    ref={videoRef}
-                    autoPlay muted loop playsInline disablePictureInPicture preload="auto"
-                    className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ${videoReady ? "opacity-100" : "opacity-0"}`}
-                    onPlaying={handlePlaying}
-                    onError={handleError}
-                >
-                    <source src={SRC_MP4}  type="video/mp4" />
-                    <source src={SRC_WEBM} type="video/webm" />
-                </video>
-            )}
+            {/* Foto hero responsiva */}
+            <picture>
+                <source media="(min-width: 1280px)" srcSet={HERO_DESKTOP} />
+                <source media="(min-width: 768px)" srcSet={HERO_TABLET} />
+                <img
+                    src={HERO_MOBILE}
+                    alt="Nelores PO em pasto ao pôr do sol"
+                    fetchPriority="high"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ objectPosition: "center 35%" }}
+                />
+            </picture>
 
-            {/* Gradient overlay — deep ink */}
+            {/* Overlay 1 — horizontal: darken na esquerda pra legibilidade do texto,
+                                          deixa o lado direito (vacas + céu) respirar */}
             <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: "linear-gradient(180deg, rgba(10,10,10,0.45) 0%, rgba(10,10,10,0.78) 55%, rgba(10,10,10,0.98) 100%)" }}
-            />
-
-            {/* Radial bronze glow (brandbook tint-radial) */}
-            <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.18) 0%, rgba(10,10,10,0) 60%)" }}
-            />
-
-            {/* Dot grid brandbook pattern */}
-            <div
-                className="absolute inset-0 pointer-events-none opacity-40"
+                className="absolute inset-0 pointer-events-none hidden md:block"
                 style={{
-                    backgroundImage: "radial-gradient(circle at 1px 1px, rgba(232,203,133,0.14) 1px, transparent 0)",
+                    background:
+                        "linear-gradient(90deg, rgba(10,10,10,0.82) 0%, rgba(10,10,10,0.55) 35%, rgba(10,10,10,0.18) 65%, rgba(10,10,10,0) 100%)",
+                }}
+            />
+
+            {/* Overlay 1 mobile — uniforme um pouco mais escuro */}
+            <div
+                className="absolute inset-0 pointer-events-none md:hidden"
+                style={{
+                    background:
+                        "linear-gradient(180deg, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.75) 100%)",
+                }}
+            />
+
+            {/* Overlay 2 — vertical: fade pro INK em cima (transição c/ header)
+                                       e embaixo (transição c/ próxima section) */}
+            <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                    background:
+                        "linear-gradient(180deg, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0) 18%, rgba(10,10,10,0) 65%, rgba(10,10,10,0.92) 100%)",
+                }}
+            />
+
+            {/* Glow bronze sutil no topo — brandbook tint-radial */}
+            <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                    background:
+                        "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.14) 0%, rgba(10,10,10,0) 55%)",
+                }}
+            />
+
+            {/* Dot grid brandbook — bem discreto, só no canto inferior esquerdo */}
+            <div
+                className="absolute inset-0 pointer-events-none opacity-30"
+                style={{
+                    backgroundImage:
+                        "radial-gradient(circle at 1px 1px, rgba(232,203,133,0.12) 1px, transparent 0)",
                     backgroundSize: "28px 28px",
-                    maskImage: "linear-gradient(180deg, transparent 0%, black 40%, black 85%, transparent 100%)",
+                    maskImage:
+                        "linear-gradient(135deg, black 0%, transparent 45%)",
+                    WebkitMaskImage:
+                        "linear-gradient(135deg, black 0%, transparent 45%)",
                 }}
             />
 
             {/* Conteúdo */}
-            <div className="relative z-10 w-full" style={{ maxWidth: 1200, margin: "0 auto" }}>
-
+            <div
+                className="relative z-10 w-full"
+                style={{ maxWidth: 1200, margin: "0 auto" }}
+            >
                 {/* Eyebrow brandbook — mono uppercase tracking 0.24em */}
                 <div
                     className="inline-flex items-center gap-3 mb-6"
@@ -102,8 +118,23 @@ export default function Hero() {
                         fontWeight: 500,
                     }}
                 >
-                    <span style={{ width: 32, height: 1, background: BRONZE, display: "inline-block", flexShrink: 0 }} />
-                    <span style={{ width: 6, height: 6, background: BRONZE, borderRadius: "50%" }} />
+                    <span
+                        style={{
+                            width: 32,
+                            height: 1,
+                            background: BRONZE,
+                            display: "inline-block",
+                            flexShrink: 0,
+                        }}
+                    />
+                    <span
+                        style={{
+                            width: 6,
+                            height: 6,
+                            background: BRONZE,
+                            borderRadius: "50%",
+                        }}
+                    />
                     Curadoria · Nelore PO
                 </div>
 
@@ -118,25 +149,29 @@ export default function Hero() {
                         marginBottom: 20,
                         maxWidth: "16ch",
                         color: FG,
+                        textShadow: "0 2px 40px rgba(0,0,0,0.45)",
                     }}
                 >
-                    Genética de elite.<br/>
+                    Genética de elite.
+                    <br />
                     <span style={{ color: BRONZE_LIGHT }}>Precisão de dados.</span>
                 </h1>
 
-                {/* Subtítulo — body-lg brandbook */}
+                {/* Subtítulo */}
                 <p
                     style={{
                         fontSize: "clamp(16px, 2.1vw, 20px)",
                         lineHeight: 1.5,
-                        color: "rgba(245,240,228,0.82)",
+                        color: "rgba(245,240,228,0.86)",
                         marginBottom: 28,
                         maxWidth: "54ch",
                         letterSpacing: "-0.005em",
+                        textShadow: "0 1px 20px rgba(0,0,0,0.45)",
                     }}
                 >
                     Curadoria de Nelore PO de alto padrão, sêmen top 0.1% e embriões FIV
-                    selecionados. O filtro de confiança entre o topo do ranking e o pecuarista seletor.
+                    selecionados. O filtro de confiança entre o topo do ranking e o
+                    pecuarista seletor.
                 </p>
 
                 {/* Mono data chips — brandbook signature */}
@@ -151,25 +186,25 @@ export default function Hero() {
                     ].map(({ k, v }) => (
                         <span
                             key={k}
-                            className="inline-flex items-center gap-2"
+                            className="inline-flex items-center gap-2 backdrop-blur-sm"
                             style={{
                                 padding: "6px 10px",
-                                border: "1px solid rgba(212,168,92,0.28)",
+                                border: "1px solid rgba(212,168,92,0.32)",
                                 borderRadius: 2,
                                 fontSize: 11,
                                 letterSpacing: "0.12em",
                                 textTransform: "uppercase",
                                 color: BRONZE_LIGHT,
-                                background: "rgba(10,10,10,0.35)",
+                                background: "rgba(10,10,10,0.55)",
                             }}
                         >
-                            <span style={{ color: "rgba(245,240,228,0.55)" }}>{k}</span>
+                            <span style={{ color: "rgba(245,240,228,0.6)" }}>{k}</span>
                             <span style={{ color: BRONZE_PALE, fontWeight: 500 }}>{v}</span>
                         </span>
                     ))}
                 </div>
 
-                {/* CTAs — sem adorno, brandbook style */}
+                {/* CTAs */}
                 <div className="flex flex-wrap gap-3 mb-12">
                     <a
                         href={WA_LINK}
@@ -185,31 +220,48 @@ export default function Hero() {
                             fontSize: 14,
                             letterSpacing: "0.02em",
                             border: `1px solid ${BRONZE}`,
-                            boxShadow: "0 0 0 1px rgba(212,168,92,0.35), 0 0 60px rgba(212,168,92,0.18)",
+                            boxShadow:
+                                "0 0 0 1px rgba(212,168,92,0.35), 0 10px 40px rgba(212,168,92,0.22)",
                         }}
                     >
                         Acessar Grupo Selo Ouro
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition-transform group-hover:translate-x-0.5">
-                            <path d="M5 12h14M13 6l6 6-6 6"/>
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="transition-transform group-hover:translate-x-0.5"
+                        >
+                            <path d="M5 12h14M13 6l6 6-6 6" />
                         </svg>
                     </a>
                     <a
                         href="#semen"
-                        className="group inline-flex items-center justify-center gap-2.5 transition-all"
+                        className="group inline-flex items-center justify-center gap-2.5 transition-all backdrop-blur-sm hover:border-[rgba(245,240,228,0.45)]"
                         style={{
-                            background: "transparent",
+                            background: "rgba(10,10,10,0.35)",
                             color: FG,
                             padding: "16px 26px",
                             borderRadius: 2,
                             fontWeight: 500,
                             fontSize: 14,
                             letterSpacing: "0.02em",
-                            border: "1px solid rgba(245,240,228,0.22)",
+                            border: "1px solid rgba(245,240,228,0.28)",
                         }}
                     >
                         Ver catálogo
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition-transform group-hover:translate-x-0.5">
-                            <path d="M5 12h14M13 6l6 6-6 6"/>
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="transition-transform group-hover:translate-x-0.5"
+                        >
+                            <path d="M5 12h14M13 6l6 6-6 6" />
                         </svg>
                     </a>
                 </div>
@@ -228,15 +280,17 @@ export default function Hero() {
                         aria-hidden
                         style={{
                             position: "absolute",
-                            top: -1, left: 0,
-                            width: 48, height: 1,
+                            top: -1,
+                            left: 0,
+                            width: 48,
+                            height: 1,
                             background: BRONZE,
                         }}
                     />
                     {[
-                        { value: "+10",     label: "anos no PO" },
+                        { value: "+10", label: "anos no PO" },
                         { value: "R$ 300M", label: "em gado assessorado" },
-                        { value: "18",      label: "leilões em 2026" },
+                        { value: "18", label: "leilões em 2026" },
                     ].map(({ value, label }) => (
                         <div key={label} className="flex flex-col gap-1">
                             <b
@@ -257,7 +311,7 @@ export default function Hero() {
                                     fontSize: 10.5,
                                     textTransform: "uppercase",
                                     letterSpacing: "0.2em",
-                                    color: "rgba(245,240,228,0.65)",
+                                    color: "rgba(245,240,228,0.7)",
                                     fontWeight: 500,
                                 }}
                             >
