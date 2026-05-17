@@ -194,43 +194,151 @@ export function AgendaClient({ leiloes }: { leiloes: LeilaoPublico[] }) {
     }
 
     return (
-        <main className="min-h-screen bg-[#0a0a0a] text-white">
+        <main className="min-h-screen bg-[var(--ink)] text-[var(--fg)]">
             <Header />
 
-            <section className="pt-32 pb-24">
-                <div className="container mx-auto px-4">
+            {/* HERO BRANDBOOK ─────────────────────────────── */}
+            <section
+                className="relative overflow-hidden"
+                style={{
+                    background: "var(--ink)",
+                    borderBottom: "1px solid rgba(212,168,92,0.18)",
+                }}
+            >
+                {/* Radial bronze glow */}
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        background:
+                            "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.16) 0%, transparent 60%)",
+                    }}
+                />
+                {/* Faint grid texture pra dar densidade ao espaço vazio */}
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-0 pointer-events-none opacity-[0.05]"
+                    style={{
+                        backgroundImage:
+                            "linear-gradient(rgba(212,168,92,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(212,168,92,0.5) 1px, transparent 1px)",
+                        backgroundSize: "56px 56px",
+                        maskImage:
+                            "radial-gradient(ellipse at 50% 30%, black 35%, transparent 75%)",
+                        WebkitMaskImage:
+                            "radial-gradient(ellipse at 50% 30%, black 35%, transparent 75%)",
+                    }}
+                />
 
-                    {/* Header */}
-                    <div className="mb-12">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-gold/25 bg-brand-gold/6 mb-5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse" />
-                            <span className="text-brand-gold text-[10px] font-black tracking-[0.22em] uppercase">
-                                Temporada 2026
-                            </span>
-                        </div>
-                        <h1 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tight leading-none mb-4">
-                            Agenda de<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200">
-                                Leilões
-                            </span>
-                        </h1>
-                        <p className="text-gray-400 text-base mt-4">
-                            {parsed.length} eventos · {total.toLocaleString("pt-BR")} animais curados pela Bula Remates × Fórmula do Boi
-                        </p>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex gap-3 mb-10">
-                        {[
-                            { label: "Leilões", value: String(parsed.length) },
-                            { label: "Animais", value: total.toLocaleString("pt-BR") },
-                        ].map((s) => (
-                            <div key={s.label} className="card-engraved rounded-2xl border border-white/8 bg-[#0f0f0f] px-8 py-5 text-center w-40 md:w-52">
-                                <p className="text-3xl md:text-4xl font-black text-brand-gold leading-none mb-1.5">{s.value}</p>
-                                <p className="text-[11px] text-gray-500 uppercase tracking-wider font-medium">{s.label}</p>
+                <div
+                    className="container mx-auto px-4 pt-16 pb-12 md:pt-20 md:pb-14 relative"
+                    style={{ maxWidth: 1200 }}
+                >
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 lg:gap-16 items-end">
+                        {/* Lado esquerdo — eyebrow + título + descrição */}
+                        <div>
+                            <div
+                                className="inline-flex items-center gap-3 mb-6"
+                                style={{
+                                    fontFamily: "var(--font-mono)",
+                                    fontSize: 12,
+                                    letterSpacing: "0.24em",
+                                    textTransform: "uppercase",
+                                    color: "var(--bronze-light)",
+                                    fontWeight: 500,
+                                }}
+                            >
+                                <span
+                                    className="animate-pulse"
+                                    style={{
+                                        width: 6,
+                                        height: 6,
+                                        background: "var(--bronze)",
+                                        borderRadius: "50%",
+                                    }}
+                                />
+                                Temporada 2026 · Curadoria Bula × Fórmula do Boi
                             </div>
-                        ))}
+                            <h1
+                                className="font-display"
+                                style={{
+                                    fontSize: "clamp(40px, 7vw, 88px)",
+                                    fontWeight: 500,
+                                    lineHeight: 0.98,
+                                    letterSpacing: "-0.03em",
+                                    color: "var(--fg)",
+                                    marginBottom: 22,
+                                    maxWidth: "14ch",
+                                }}
+                            >
+                                Agenda de{" "}
+                                <span style={{ color: "var(--bronze-light)" }}>leilões.</span>
+                            </h1>
+                            <p
+                                style={{
+                                    color: "rgba(245,240,228,0.78)",
+                                    fontSize: 18,
+                                    lineHeight: 1.55,
+                                    maxWidth: "56ch",
+                                    letterSpacing: "-0.005em",
+                                }}
+                            >
+                                {parsed.length} eventos selecionados · {total.toLocaleString("pt-BR")} animais
+                                curados, com catálogo, leiloeira e transmissão verificados pelo nosso time.
+                            </p>
+                        </div>
+
+                        {/* Lado direito — stats compactos em coluna */}
+                        <div className="flex lg:flex-col gap-3 lg:gap-3">
+                            {[
+                                { label: "Leilões", value: String(parsed.length) },
+                                { label: "Animais", value: total.toLocaleString("pt-BR") },
+                            ].map((s) => (
+                                <div
+                                    key={s.label}
+                                    className="flex-1 lg:flex-none rounded-2xl px-6 py-5 lg:px-8 lg:py-6 text-center lg:text-left lg:min-w-[180px]"
+                                    style={{
+                                        background:
+                                            "linear-gradient(180deg, rgba(20,20,20,0.85) 0%, rgba(10,10,10,0.85) 100%)",
+                                        border: "1px solid rgba(212,168,92,0.18)",
+                                        boxShadow:
+                                            "inset 0 1px 0 rgba(245,240,228,0.04), 0 1px 0 rgba(0,0,0,0.4)",
+                                    }}
+                                >
+                                    <p
+                                        className="font-display"
+                                        style={{
+                                            color: "var(--bronze-light)",
+                                            fontSize: "clamp(28px, 3.4vw, 40px)",
+                                            fontWeight: 500,
+                                            lineHeight: 1,
+                                            letterSpacing: "-0.02em",
+                                            marginBottom: 6,
+                                        }}
+                                    >
+                                        {s.value}
+                                    </p>
+                                    <p
+                                        style={{
+                                            fontFamily: "var(--font-mono)",
+                                            fontSize: 10,
+                                            letterSpacing: "0.22em",
+                                            textTransform: "uppercase",
+                                            color: "rgba(245,240,228,0.55)",
+                                            fontWeight: 500,
+                                        }}
+                                    >
+                                        {s.label}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
+                </div>
+            </section>
+
+            {/* CONTEÚDO ─────────────────────────────── */}
+            <section className="pt-10 pb-24">
+                <div className="container mx-auto px-4" style={{ maxWidth: 1200 }}>
 
                     {/* Month filter */}
                     <div className="flex gap-2 flex-wrap mb-10">
