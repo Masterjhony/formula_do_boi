@@ -400,6 +400,7 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
                             onClearFilters={() => {}}
                             hasFilters={false}
                             theme="premium"
+                            cardVariant="premium-genetic"
                         />
                     </div>
                 </section>

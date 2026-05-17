@@ -1,4 +1,5 @@
 import ProductCard from "./ProductCard";
+import PremiumCatalogCard from "./PremiumCatalogCard";
 
 interface Product {
     id: number;
@@ -33,6 +34,7 @@ interface CatalogGridProps {
     onNeloreFilterChange?: (filter: string | null) => void;
     isAuthenticated?: boolean;
     theme?: 'default' | 'premium';
+    cardVariant?: 'default' | 'premium-genetic';
 }
 
 export default function CatalogGrid({
@@ -44,6 +46,7 @@ export default function CatalogGrid({
     onNeloreFilterChange,
     isAuthenticated = true,
     theme = 'premium',
+    cardVariant = 'default',
 }: CatalogGridProps) {
     return (
         <div className="flex-1">
@@ -99,7 +102,11 @@ export default function CatalogGrid({
             {products.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     {products.map((product) => (
-                        <ProductCard key={product.id} product={product} isAuthenticated={isAuthenticated} theme={theme} />
+                        cardVariant === 'premium-genetic' ? (
+                            <PremiumCatalogCard key={product.id} product={product as any} isAuthenticated={isAuthenticated} />
+                        ) : (
+                            <ProductCard key={product.id} product={product} isAuthenticated={isAuthenticated} theme={theme} />
+                        )
                     ))}
                 </div>
             ) : (

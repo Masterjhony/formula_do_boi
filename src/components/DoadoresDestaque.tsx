@@ -1,5 +1,5 @@
 import Link from "next/link";
-import ProductCard from "./ProductCard";
+import PremiumCatalogCard from "./PremiumCatalogCard";
 import { EMBRYOS } from "@/data/embryos";
 
 // Brandbook tokens
@@ -173,10 +173,9 @@ export default function DoadoresDestaque({ products, isAuthenticated = true }: D
                 {/* Grid de cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
                     {doadoras.map((product) => (
-                        <ProductCard
+                        <PremiumCatalogCard
                             key={product.id}
                             product={product}
-                            theme="premium"
                             isAuthenticated={isAuthenticated}
                         />
                     ))}

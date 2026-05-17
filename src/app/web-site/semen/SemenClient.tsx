@@ -108,6 +108,7 @@ export default function SemenClient({ products }: { products: any[] }) {
                                 onClearFilters={() => {}}
                                 hasFilters={false}
                                 theme="premium"
+                                cardVariant="premium-genetic"
                             />
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import ProductCard from "./ProductCard";
+import PremiumCatalogCard from "./PremiumCatalogCard";
 
 // Brandbook tokens
 const BRONZE = "#A0792E";
@@ -126,9 +126,8 @@ export default function SemenDestaque({ products, isAuthenticated = true }: Seme
                             className="shrink-0 snap-start"
                             style={{ width: 260 }}
                         >
-                            <ProductCard
+                            <PremiumCatalogCard
                                 product={product}
-                                theme="premium"
                                 isAuthenticated={isAuthenticated}
                             />
                         </div>
