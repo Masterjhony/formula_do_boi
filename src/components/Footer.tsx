@@ -2,26 +2,10 @@
 
 import Link from "next/link";
 import { Instagram, Phone, Mail, MapPin } from "lucide-react";
-import { useEffect, useState } from "react";
-import { SettingsService } from "@/services/settingsService";
+import { useSiteNavItems } from "@/lib/site-nav";
 
 export default function Footer() {
-    const [showTopBreeders, setShowTopBreeders] = useState(false);
-    const [showSemen, setShowSemen] = useState(false);
-    const [showTouros, setShowTouros] = useState(true);
-
-    useEffect(() => {
-        const fetchSettings = async () => {
-            const topBreedersEnabled = await SettingsService.getSetting('top_breeders_enabled');
-            const semenEnabled = await SettingsService.getSetting('semen_page_enabled');
-            const tourosEnabled = await SettingsService.getSetting('touros_page_enabled');
-
-            setShowTopBreeders(topBreedersEnabled === true);
-            setShowSemen(semenEnabled === true);
-            setShowTouros(tourosEnabled !== false);
-        };
-        fetchSettings();
-    }, []);
+    const navItems = useSiteNavItems();
 
     return (
         <>
@@ -117,7 +101,7 @@ export default function Footer() {
                                 />
                             </div>
                         </div>
-                        <p className="text-sm leading-relaxed" style={{ color: "rgba(245,240,228,0.62)", maxWidth: "36ch" }}>
+                        <p className="text-[15px] md:text-base leading-relaxed" style={{ color: "rgba(245,240,228,0.68)", maxWidth: "38ch" }}>
                             Curadoria de Nelore PO — sêmen top 0.1%, doadoras consagradas, embriões FIV selecionados e leilões com curadoria especializada.
                         </p>
                         <div className="flex gap-3">
@@ -140,53 +124,46 @@ export default function Footer() {
 
                     {/* Links Column */}
                     <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                        <h3 className="mb-4 md:mb-6" style={{
+                        <h3 className="mb-5 md:mb-7" style={{
                             fontFamily: "var(--font-mono)",
-                            fontSize: 11,
-                            letterSpacing: "0.24em",
+                            fontSize: 13,
+                            letterSpacing: "0.26em",
                             textTransform: "uppercase",
                             color: "#D4A85C",
                             fontWeight: 500,
                         }}>Navegação</h3>
-                        <ul className="space-y-2.5 md:space-y-3 text-sm" style={{ color: "rgba(245,240,228,0.62)" }}>
-                            <li><Link href="/" className="hover:text-[#D4A85C] transition-colors">Início</Link></li>
-                            {showTouros && (
-                                <li><Link href="/touros" className="hover:text-[#D4A85C] transition-colors">Touros</Link></li>
-                            )}
-                            {showSemen && (
-                                <li><Link href="/semen" className="hover:text-[#D4A85C] transition-colors">Sêmen</Link></li>
-                            )}
-                            <li><Link href="/embrioes" className="hover:text-[#D4A85C] transition-colors">Doadoras & Embriões</Link></li>
-                            <li><Link href="/agenda" className="hover:text-[#D4A85C] transition-colors">Leilões</Link></li>
-                            <li><Link href="/grupo-vip" className="hover:text-[#D4A85C] transition-colors">Grupo VIP</Link></li>
-                            {showTopBreeders && (
-                                <li><Link href="/top-criadores" className="hover:text-[#D4A85C] transition-colors">Top Criadores</Link></li>
-                            )}
-                            <li><Link href="/quem-somos" className="hover:text-[#D4A85C] transition-colors">Quem Somos</Link></li>
+                        <ul className="space-y-3 md:space-y-3.5 text-[15px] md:text-base" style={{ color: "rgba(245,240,228,0.72)" }}>
+                            {navItems.map((item) => (
+                                <li key={item.href}>
+                                    <Link href={item.href} className="hover:text-[#D4A85C] transition-colors">
+                                        {item.label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
                     {/* Contact Column */}
                     <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                        <h3 className="mb-4 md:mb-6" style={{
+                        <h3 className="mb-5 md:mb-7" style={{
                             fontFamily: "var(--font-mono)",
-                            fontSize: 11,
-                            letterSpacing: "0.24em",
+                            fontSize: 13,
+                            letterSpacing: "0.26em",
                             textTransform: "uppercase",
                             color: "#D4A85C",
                             fontWeight: 500,
                         }}>Contato</h3>
-                        <ul className="space-y-3 md:space-y-4 text-sm" style={{ color: "rgba(245,240,228,0.70)" }}>
+                        <ul className="space-y-4 md:space-y-5 text-[15px] md:text-base" style={{ color: "rgba(245,240,228,0.78)" }}>
                             <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
-                                <Phone className="w-4 h-4 mt-0.5" style={{ color: "#A0792E" }} />
+                                <Phone className="w-[18px] h-[18px] mt-0.5 shrink-0" style={{ color: "#A0792E" }} />
                                 <span>(31) 9414-9161<br />(31) 7565-9900</span>
                             </li>
                             <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
-                                <Mail className="w-4 h-4 mt-0.5" style={{ color: "#A0792E" }} />
+                                <Mail className="w-[18px] h-[18px] mt-0.5 shrink-0" style={{ color: "#A0792E" }} />
                                 <span>formuladoboi@gmail.com</span>
                             </li>
                             <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
-                                <MapPin className="w-4 h-4 mt-0.5" style={{ color: "#A0792E" }} />
+                                <MapPin className="w-[18px] h-[18px] mt-0.5 shrink-0" style={{ color: "#A0792E" }} />
                                 <span>
                                     Rua Magi Salomon, 246 · Apt 100<br />
                                     Salgado Filho · Belo Horizonte / MG<br />
@@ -202,16 +179,16 @@ export default function Footer() {
                     className="flex flex-col md:flex-row items-center justify-center gap-5 md:gap-10"
                     style={{
                         borderTop: "1px solid rgba(212,168,92,0.14)",
-                        padding: "12px 0 0",
+                        padding: "16px 0 0",
                     }}
                 >
                     <span
                         style={{
                             fontFamily: "var(--font-mono)",
-                            fontSize: 10,
+                            fontSize: 11,
                             letterSpacing: "0.28em",
                             textTransform: "uppercase",
-                            color: "rgba(245,240,228,0.42)",
+                            color: "rgba(245,240,228,0.48)",
                             fontWeight: 500,
                         }}
                     >
@@ -227,10 +204,10 @@ export default function Footer() {
                             key={p.name}
                             style={{
                                 fontFamily: "var(--font-mono)",
-                                fontSize: 10.5,
+                                fontSize: 12,
                                 letterSpacing: "0.16em",
                                 textTransform: "uppercase",
-                                color: "rgba(245,240,228,0.68)",
+                                color: "rgba(245,240,228,0.74)",
                                 fontWeight: 500,
                             }}
                         >

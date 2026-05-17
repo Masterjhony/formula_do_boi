@@ -4,58 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { SettingsService } from "@/services/settingsService";
-
-const defaultNavItems = [
-    { href: "/", label: "Início" },
-    { href: "/touros", label: "Touros" },
-    { href: "/embrioes", label: "Embriões" },
-    { href: "/agenda", label: "Leilões" },
-    { href: "/grupo-vip", label: "Grupo VIP" },
-];
-
-const CACHE_KEY = "header_settings_cache";
+import { useSiteNavItems } from "@/lib/site-nav";
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [navItems, setNavItems] = useState(defaultNavItems);
+    const navItems = useSiteNavItems();
     const pathname = usePathname();
-
-    const updateNavItems = (semenEnabled: unknown, tourosEnabled: unknown) => {
-        setNavItems(() => {
-            const items = [defaultNavItems[0]];
-            if (semenEnabled === true) items.push({ href: "/semen", label: "Sêmen" });
-            if (tourosEnabled !== false) items.push(defaultNavItems[1]);
-            items.push(defaultNavItems[2]);
-            items.push(defaultNavItems[3]);
-            items.push(defaultNavItems[4]);
-            return items;
-        });
-    };
-
-    useEffect(() => {
-        const fetchSettings = async () => {
-            const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                try {
-                    const parsed = JSON.parse(cached);
-                    updateNavItems(parsed.semenEnabled, parsed.tourosEnabled);
-                } catch {
-                    // ignore
-                }
-            }
-
-            const semenEnabled = await SettingsService.getSetting("semen_page_enabled");
-            const tourosEnabled = await SettingsService.getSetting("touros_page_enabled");
-            localStorage.setItem(
-                CACHE_KEY,
-                JSON.stringify({ semenEnabled, tourosEnabled, timestamp: Date.now() }),
-            );
-            updateNavItems(semenEnabled, tourosEnabled);
-        };
-
-        fetchSettings();
-    }, []);
 
     useEffect(() => {
         if (isMenuOpen) {
