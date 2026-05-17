@@ -10,6 +10,7 @@ import ProductCard from "@/components/ProductCard";
 import PaywallOverlay from "@/components/PaywallOverlay";
 import PaywallLink from "@/components/PaywallLink";
 import ReservaButton from "@/components/site/ReservaButton";
+import EmbriaoLoteView from "./EmbriaoLoteView";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -152,6 +153,9 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
         categoryLabel = 'Embrião';
         nextLabel = 'Próximo Embrião';
         seeMoreLabel = 'Veja mais Embriões';
+        // Embriões/doadoras antigos passam a usar o layout dark/bronze
+        // alinhado às páginas novas em /embrioes/[slug].
+        return <EmbriaoLoteView product={product} />;
     } else if (product.category?.includes('Sêmen')) {
         categoryLabel = 'Sêmen';
         nextLabel = 'Próximo Sêmen';

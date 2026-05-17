@@ -68,7 +68,7 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
                             "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.16) 0%, transparent 60%)",
                     }}
                 />
-                <div className="container mx-auto px-4 pt-20 pb-12 relative" style={{ maxWidth: 1200 }}>
+                <div className="container mx-auto px-4 pt-20 pb-12 relative text-center" style={{ maxWidth: 1200 }}>
                     <div
                         className="inline-flex items-center gap-3 mb-6"
                         style={{
@@ -84,7 +84,7 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
                         Marketplace · Embriões FIV
                     </div>
                     <h1
-                        className="font-display"
+                        className="font-display mx-auto"
                         style={{
                             fontSize: "clamp(40px, 7vw, 88px)",
                             fontWeight: 500,
@@ -98,6 +98,7 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
                         Embriões FIV <span style={{ color: BRONZE_LIGHT }}>selecionados.</span>
                     </h1>
                     <p
+                        className="mx-auto"
                         style={{
                             color: "rgba(245,240,228,0.78)",
                             fontSize: 18,
