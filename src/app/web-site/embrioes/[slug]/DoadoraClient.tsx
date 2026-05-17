@@ -55,12 +55,11 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                     }}
                 />
                 <div className="container mx-auto px-4 py-10 md:py-14 relative" style={{ maxWidth: 1400 }}>
-                    <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 md:gap-10 items-start">
-                        {/* Foto / placeholder bronze */}
+                    <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 md:gap-10 items-stretch">
+                        {/* Foto / placeholder bronze — em mobile mantém 16/9, em desktop acompanha a altura da coluna de texto ao lado */}
                         <div
-                            className="relative overflow-hidden order-first lg:order-first"
+                            className="relative overflow-hidden order-first lg:order-first aspect-video lg:aspect-auto lg:h-full lg:min-h-[480px]"
                             style={{
-                                aspectRatio: "16/9",
                                 background: `linear-gradient(135deg, ${INK} 0%, #1F1A0E 100%)`,
                                 border: "1px solid rgba(212,168,92,0.30)",
                                 borderRadius: 4,
