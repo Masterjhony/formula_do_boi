@@ -1527,41 +1527,119 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   font-size: 16px; color: var(--gray-200); max-width: 460px; margin: 0 auto 28px;
 }
 
-/* ============== FOOTER ============== */
+/* ============== FOOTER (espelhado do React Footer) ============== */
 .footer{
-  background: var(--preto);
-  padding: 80px 6vw 40px;
-  border-top: 1px solid var(--rule-2);
+  position: relative;
+  background: var(--ink);
+  color: #F5F0E4;
+  padding: 56px 6vw 16px;
+  border-top: 1px solid rgba(212,168,92,0.22);
+  overflow: hidden;
+}
+.footer-watermark{
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; user-select: none;
+  transform: translateY(-4%);
+}
+.footer-watermark img{
+  position: absolute;
+  width: clamp(480px, 70vw, 1000px);
+  object-fit: contain;
+}
+.footer-watermark img.wm-shadow1{ filter: brightness(0); opacity: 0.85; transform: translate(-2.5px, -3px); }
+.footer-watermark img.wm-shadow2{ filter: brightness(0) blur(1.5px); opacity: 0.5; transform: translate(-3.5px, -4px); }
+.footer-watermark img.wm-highlight1{ filter: brightness(0.45) sepia(0.2) saturate(0.3); opacity: 0.28; transform: translate(2px, 2.5px); }
+.footer-watermark img.wm-highlight2{ filter: brightness(0.55) sepia(0.15) saturate(0.2); opacity: 0.12; transform: translate(1px, 1px); }
+.footer-watermark img.wm-body{ filter: brightness(0.035); opacity: 1; }
+.footer-vignette{
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 30%, rgba(0,0,0,0.5) 100%);
+}
+.footer-inner{
+  position: relative; z-index: 2;
+  max-width: 1280px; margin: 0 auto;
 }
 .footer-grid{
-  display:grid; grid-template-columns: 2fr 1fr 1fr;
-  gap: 60px; max-width: 1480px; margin: 0 auto 60px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 48px; margin-bottom: 32px;
 }
-.footer h4{
-  font-family: var(--f-mono); font-size: 11px;
-  letter-spacing: 0.24em; text-transform: uppercase;
-  color: var(--bronze-300); margin-bottom: 18px; font-weight: 500;
+.footer-col{ display: flex; flex-direction: column; align-items: flex-start; }
+.footer-brand-logo{
+  width: 320px; max-width: 100%; height: 88px;
+  display: block; margin-bottom: 24px;
+  object-fit: contain; object-position: left center;
 }
-.footer .stack{ font-family: var(--f-display); font-size: 14px; line-height: 1.8; color: var(--gray-200); }
-.footer .stack a:hover{ color: var(--bronze-300); }
-.footer-bottom{
-  max-width: 1480px; margin: 0 auto;
-  padding-top: 30px; border-top: 1px solid var(--rule);
-  display:flex; justify-content:space-between; flex-wrap:wrap; gap: 20px;
-  font-family: var(--f-mono); font-size: 10px;
-  letter-spacing: 0.22em; text-transform: uppercase; color: var(--gray-600);
+.footer-tagline{
+  color: rgba(245,240,228,0.68);
+  font-family: var(--f-display);
+  font-size: 15px; line-height: 1.55;
+  max-width: 38ch; margin-bottom: 24px;
 }
-.footer-brand{
-  display:flex; align-items:center; gap: 16px;
-  margin-bottom: 18px;
+.footer-socials{ display: flex; gap: 12px; }
+.footer-social{
+  width: 38px; height: 38px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(212,168,92,0.35);
+  border-radius: 2px;
+  color: var(--bronze-300);
+  transition: background .2s, color .2s;
 }
-.footer-brand img{ height: 56px; width: auto; display:block; }
-.footer-brand .name{
-  font-family: var(--f-display); font-weight: 700;
-  letter-spacing: 0.22em; color: var(--bronze-300); font-size: 12px;
+.footer-social:hover{ background: var(--bronze); color: var(--ink); }
+.footer-social svg{ width: 16px; height: 16px; }
+.footer-heading{
+  font-family: var(--f-mono);
+  font-size: 13px; letter-spacing: 0.26em;
   text-transform: uppercase;
+  color: var(--bronze-300);
+  font-weight: 500; margin-bottom: 24px;
 }
-.footer-tagline{ color: var(--gray-200); font-size: 13px; max-width: 360px; }
+.footer-nav{
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.footer-nav a{
+  color: rgba(245,240,228,0.72);
+  font-family: var(--f-display);
+  font-size: 15px;
+  text-decoration: none;
+  transition: color .2s;
+}
+.footer-nav a:hover{ color: var(--bronze-300); }
+.footer-contact{
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 18px;
+  color: rgba(245,240,228,0.78);
+  font-family: var(--f-display);
+  font-size: 15px; line-height: 1.55;
+}
+.footer-contact li{ display: flex; align-items: flex-start; gap: 12px; }
+.footer-contact-icon{
+  width: 18px; height: 18px; flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--bronze);
+}
+.footer-parceiros{
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 40px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(212,168,92,0.14);
+}
+.footer-parceiros-label{
+  font-family: var(--f-mono);
+  font-size: 11px; letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(245,240,228,0.48);
+  font-weight: 500;
+}
+.footer-parceiros-item{
+  font-family: var(--f-mono);
+  font-size: 12px; letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245,240,228,0.74);
+  font-weight: 500;
+}
 
 /* ============== FLOATING WHATSAPP ============== */
 .wa-float{
@@ -1604,7 +1682,6 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .price-card:nth-child(2n){ border-right: none; }
   .price-card:nth-child(1), .price-card:nth-child(2){ border-bottom: 1px solid var(--rule-2); }
   .porque-grid{ grid-template-columns: 1fr; }
-  .footer-grid{ grid-template-columns: 1fr 1fr; }
   .pedi-tree{ grid-template-columns: 1fr; gap: 28px; }
   .pedi-col.gen2, .pedi-col.gen3{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
   .pedi-lados{ grid-template-columns: 1fr; gap: 28px; }
@@ -1830,9 +1907,14 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .reason{ padding: 28px 24px; }
 
   /* FOOTER */
-  .footer{ padding: 60px 6vw 32px; padding-bottom: max(32px, env(safe-area-inset-bottom)); }
-  .footer-grid{ grid-template-columns: 1fr; gap: 40px; margin-bottom: 40px; }
-  .footer-bottom{ flex-direction: column; gap: 10px; }
+  .footer{ padding: 40px 6vw 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .footer-grid{ grid-template-columns: 1fr; gap: 32px; margin-bottom: 24px; text-align: center; }
+  .footer-col{ align-items: center; }
+  .footer-brand-logo{ object-position: center; margin-left: auto; margin-right: auto; }
+  .footer-tagline{ max-width: 100%; }
+  .footer-contact li{ flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+  .footer-contact-icon{ margin-top: 0; }
+  .footer-parceiros{ flex-direction: column; gap: 16px; }
 
   /* MARQUEE */
   .marquee{ padding: 12px 0; }
@@ -1859,7 +1941,7 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
     padding: 64px 20px;
   }
   .lead{ padding: 64px 20px 80px; }
-  .footer{ padding: 50px 20px 32px; padding-bottom: max(32px, env(safe-area-inset-bottom)); }
+  .footer{ padding: 36px 20px 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
   .statement{ padding: 56px 20px; }
   .statement-quote{ font-size: 15px; }
   .statement-attr{ font-size: 9px; letter-spacing: 0.24em; }
@@ -1931,8 +2013,9 @@ input, select, textarea{ -webkit-appearance: none; appearance: none; border-radi
   .carcass-img{ aspect-ratio: 1/1; }
 
   /* Footer */
-  .footer-tagline{ font-size: 13px; }
-  .footer-bottom{ font-size: 9px; letter-spacing: 0.18em; }
+  .footer-tagline{ font-size: 14px; }
+  .footer-brand-logo{ height: 72px; }
+  .footer-parceiros-item{ font-size: 11px; letter-spacing: 0.14em; }
 
   /* Brandbar - logo reduzida */
   .brand-logo{ height: 32px; }
@@ -2617,38 +2700,85 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ===================== FOOTER ===================== -->
 <footer class="footer">
-  <div class="footer-grid">
-    <div>
-      <div class="footer-brand">
-        <img src="/atacante-matinha/assets/brand/bull-bronze.svg" alt="Fórmula do Boi" />
-        <span class="name">Fórmula do Boi × Nelore Visual</span>
-      </div>
-      <p class="footer-tagline">Curadoria de genética Nelore PO. Aceleradora de Touros 2026 · Lançamento Atacante da Matinha — RDM B 3224 MAT.</p>
-    </div>
-    <div>
-      <h4>Navegação</h4>
-      <div class="stack">
-        <a href="#manifesto">Manifesto</a><br>
-        <a href="#touro">O touro</a><br>
-        <a href="#genetica">Avaliação ANCP</a><br>
-        <a href="#linhagem">Pedigree</a><br>
-        <a href="#pacotes">Pacotes</a><br>
-        <a href="#reservar">Pré-reserva</a>
-      </div>
-    </div>
-    <div>
-      <h4>Contato</h4>
-      <div class="stack">
-        <a href="https://wa.me/5531975659900" target="_blank" rel="noopener">WhatsApp · +55 31 97565-9900</a><br>
-        <a href="mailto:curadoria@formuladoboi.com.br">curadoria@formuladoboi.com.br</a><br>
-        <span style="color:var(--gray-600);">Procriar SP · Aceleradora 2026</span>
-      </div>
-    </div>
+
+  <!-- Watermark intaglio do logo -->
+  <div class="footer-watermark" aria-hidden="true">
+    <img src="/logo_complete.svg" alt="" class="wm-shadow1" />
+    <img src="/logo_complete.svg" alt="" class="wm-shadow2" />
+    <img src="/logo_complete.svg" alt="" class="wm-highlight1" />
+    <img src="/logo_complete.svg" alt="" class="wm-highlight2" />
+    <img src="/logo_complete.svg" alt="" class="wm-body" />
   </div>
 
-  <div class="footer-bottom">
-    <span>© 2026 Fórmula do Boi · Confidencial</span>
-    <span>Brand Guidelines V1.0 · §12 — Tom de voz</span>
+  <!-- Vignette -->
+  <div class="footer-vignette" aria-hidden="true"></div>
+
+  <div class="footer-inner">
+    <div class="footer-grid">
+
+      <!-- Brand col -->
+      <div class="footer-col">
+        <img src="/logo_complete.svg" alt="Fórmula do Boi" class="footer-brand-logo" />
+        <p class="footer-tagline">Curadoria de Nelore PO — sêmen top 0.1%, doadoras consagradas, embriões FIV selecionados e leilões com curadoria especializada.</p>
+        <div class="footer-socials">
+          <a href="https://www.instagram.com/formuladoboi/" target="_blank" rel="noopener noreferrer" class="footer-social" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Nav col -->
+      <div class="footer-col">
+        <h3 class="footer-heading">Navegação</h3>
+        <ul class="footer-nav">
+          <li><a href="/">Início</a></li>
+          <li><a href="/touros">Touros</a></li>
+          <li><a href="/embrioes">Embriões</a></li>
+          <li><a href="/agenda">Leilões</a></li>
+          <li><a href="/grupo-vip">Grupo VIP</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact col -->
+      <div class="footer-col">
+        <h3 class="footer-heading">Contato</h3>
+        <ul class="footer-contact">
+          <li>
+            <svg class="footer-contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+            <span>(31) 9414-9161<br />(31) 7565-9900</span>
+          </li>
+          <li>
+            <svg class="footer-contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-.9.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            <span>formuladoboi@gmail.com</span>
+          </li>
+          <li>
+            <svg class="footer-contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>Rua Magi Salomon, 246 · Apt 100<br />Salgado Filho · Belo Horizonte / MG<br />CEP 30.550-190</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Parceiros strip -->
+    <div class="footer-parceiros">
+      <span class="footer-parceiros-label">Parceiros</span>
+      <span class="footer-parceiros-item">Bula Assessoria · Bula Remates</span>
+      <span class="footer-parceiros-item">Aceleradora de Touros</span>
+      <span class="footer-parceiros-item">Central Bela Vista</span>
+      <span class="footer-parceiros-item">Nelore Visual</span>
+    </div>
   </div>
 </footer>
 
