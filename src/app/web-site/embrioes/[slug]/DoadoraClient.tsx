@@ -204,7 +204,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                             </p>
 
                             <div className="flex flex-wrap gap-3">
-                                <Link href="/grupo-vip" className="fdb-btn-primary-static">
+                                <Link href={`/checkout-embriao/${doadora.slug}`} className="fdb-btn-primary-static">
                                     Solicitar pré-reserva
                                     <span aria-hidden style={{ marginLeft: 6 }}>→</span>
                                 </Link>
@@ -291,8 +291,8 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 ))}
                             </ul>
 
-                            <Link href="/grupo-vip" className="fdb-btn-primary-static">
-                                Solicitar proposta
+                            <Link href={`/checkout-embriao/${doadora.slug}`} className="fdb-btn-primary-static">
+                                Solicitar pré-reserva
                                 <span aria-hidden style={{ marginLeft: 6 }}>→</span>
                             </Link>
                         </div>
