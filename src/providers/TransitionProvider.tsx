@@ -63,30 +63,17 @@ export function TransitionProvider({ children }: { children: React.ReactNode }) 
             isTransitioningRef.current = true;
             setIsTransitioning(true);
 
-            // /grupo-vip é servido por um Route Handler (HTML cru, não Next page).
-            // router.push() não consegue renderizar — usa hard navigation pra que o
-            // overlay permaneça visível até a LP terminar de carregar, sem flash da home.
-            const isHardNav = cleanHref === "/grupo-vip" || cleanHref.startsWith("/grupo-vip/");
-
             // Navegar após overlay aparecer
             setTimeout(() => {
-                if (isHardNav) {
-                    window.location.href = href;
-                } else {
-                    router.push(href);
-                }
+                router.push(href);
             }, SHOW_DURATION);
 
-            // Esconder overlay após navegação concluída.
-            // Em hard navigation o browser substitui o documento, então não há nada
-            // pra esconder do lado de cá — pulamos o timer pra evitar reset acidental.
+            // Esconder overlay após navegação concluída
             if (hideTimer.current) clearTimeout(hideTimer.current);
-            if (!isHardNav) {
-                hideTimer.current = setTimeout(() => {
-                    setIsTransitioning(false);
-                    isTransitioningRef.current = false;
-                }, TOTAL_DURATION);
-            }
+            hideTimer.current = setTimeout(() => {
+                setIsTransitioning(false);
+                isTransitioningRef.current = false;
+            }, TOTAL_DURATION);
         },
         [router, pathname]
     );
