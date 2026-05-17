@@ -124,14 +124,34 @@ export default function Header() {
                                         {idx > 0 && (
                                             <span
                                                 aria-hidden="true"
-                                                className="text-[var(--bronze-light)]/25"
-                                                style={{
-                                                    fontFamily: "var(--font-mono)",
-                                                    fontSize: 10,
-                                                    letterSpacing: "0.2em",
-                                                }}
+                                                className="relative flex items-center justify-center mx-2"
                                             >
-                                                ·
+                                                {/* hairline esquerda */}
+                                                <span
+                                                    className="block h-px w-2.5"
+                                                    style={{
+                                                        background:
+                                                            "linear-gradient(90deg, rgba(212,168,92,0) 0%, rgba(212,168,92,0.35) 100%)",
+                                                    }}
+                                                />
+                                                {/* losango dourado central */}
+                                                <span
+                                                    className="block w-[5px] h-[5px] rotate-45 mx-1.5"
+                                                    style={{
+                                                        background:
+                                                            "linear-gradient(135deg, rgba(212,168,92,0.95) 0%, rgba(160,121,46,0.45) 100%)",
+                                                        boxShadow:
+                                                            "0 0 8px rgba(212,168,92,0.5), inset 0 0 1px rgba(245,240,228,0.55)",
+                                                    }}
+                                                />
+                                                {/* hairline direita */}
+                                                <span
+                                                    className="block h-px w-2.5"
+                                                    style={{
+                                                        background:
+                                                            "linear-gradient(90deg, rgba(212,168,92,0.35) 0%, rgba(212,168,92,0) 100%)",
+                                                    }}
+                                                />
                                             </span>
                                         )}
                                         <Link
