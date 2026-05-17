@@ -25,7 +25,7 @@ export default function Footer() {
 
     return (
         <>
-        <footer className="relative bg-[#0A0A0A] text-[#F5F0E4] pt-12 pb-6 md:pt-20 md:pb-10 overflow-hidden" style={{ borderTop: "1px solid rgba(212,168,92,0.22)" }}>
+        <footer className="relative bg-[#0A0A0A] text-[#F5F0E4] pt-10 pb-3 md:pt-14 md:pb-4 overflow-hidden" style={{ borderTop: "1px solid rgba(212,168,92,0.22)" }}>
 
             {/* Deep Relief / Intaglio Watermark
                 Luz vem do topo-esquerda. Cada traço é um sulco cavado:
@@ -104,7 +104,7 @@ export default function Footer() {
             />
 
             <div className="container mx-auto px-4 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 md:gap-12 md:mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6 md:gap-12 md:mb-8">
                     {/* Brand Column */}
                     <div className="space-y-4 md:space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
                         <div className="flex flex-col items-center md:items-start">
@@ -199,11 +199,10 @@ export default function Footer() {
 
                 {/* Parceiros — strip institucional brandbook */}
                 <div
-                    className="mb-6 md:mb-8 flex flex-col md:flex-row items-center justify-center gap-5 md:gap-10"
+                    className="flex flex-col md:flex-row items-center justify-center gap-5 md:gap-10"
                     style={{
                         borderTop: "1px solid rgba(212,168,92,0.14)",
-                        borderBottom: "1px solid rgba(212,168,92,0.14)",
-                        padding: "16px 0",
+                        padding: "12px 0 0",
                     }}
                 >
                     <span
@@ -238,22 +237,6 @@ export default function Footer() {
                             {p.name}
                         </span>
                     ))}
-                </div>
-
-                <div
-                    className="pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-3"
-                    style={{
-                        borderTop: "1px solid rgba(212,168,92,0.14)",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 11,
-                        letterSpacing: "0.1em",
-                        color: "rgba(245,240,228,0.42)",
-                    }}
-                >
-                    <p className="text-center md:text-left">
-                        © 2026 FÓRMULA DO BOI LTDA · CNPJ 65.565.807/0001-17
-                    </p>
-                    <p>GENÉTICA DE ELITE · PRECISÃO DE DADOS</p>
                 </div>
             </div>
         </footer>

@@ -93,7 +93,7 @@ export default function Header() {
             <div className="relative">
                 {/* ─────────── BAR 1 — LOGO CENTRALIZADO ─────────── */}
                 <div className="container mx-auto px-4 lg:px-6">
-                    <div className="relative grid grid-cols-[auto_1fr_auto] items-center min-h-[68px] lg:min-h-[104px] py-2">
+                    <div className="relative grid grid-cols-[auto_1fr_auto] items-center min-h-[60px] lg:min-h-[92px] py-1">
                         {/* Left: hamburger mobile */}
                         <div className="flex items-center lg:justify-start">
                             <button
@@ -162,7 +162,7 @@ export default function Header() {
                     }}
                 >
                     <div className="container mx-auto px-4 lg:px-6">
-                        <ul className="flex items-center justify-center gap-2 py-2">
+                        <ul className="flex items-center justify-center gap-2 py-1">
                             {navItems.map((item, idx) => {
                                 const active = isActive(item.href);
                                 return (
@@ -182,7 +182,7 @@ export default function Header() {
                                         )}
                                         <Link
                                             href={item.href}
-                                            className="group relative flex items-center px-5 py-2.5"
+                                            className="group relative flex items-center px-5 py-1.5"
                                             aria-current={active ? "page" : undefined}
                                         >
                                             {/* pip topo */}
@@ -234,7 +234,7 @@ export default function Header() {
 
             {/* ─────────── Mobile Drawer ─────────── */}
             <div
-                className={`lg:hidden fixed inset-x-0 top-[68px] bottom-0 z-40 transition-opacity duration-300 ${isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+                className={`lg:hidden fixed inset-x-0 top-[60px] bottom-0 z-40 transition-opacity duration-300 ${isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
                 style={{
                     background: "rgba(10,10,10,0.98)",
                     backdropFilter: "blur(16px)",
