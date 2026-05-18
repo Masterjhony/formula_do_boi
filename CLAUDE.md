@@ -512,7 +512,7 @@ Migration única: [database/whatsapp_catalogs.sql](database/whatsapp_catalogs.sq
 
 **Página admin** [src/app/web-admin/(dashboard)/catalogos-whatsapp/page.tsx](src/app/web-admin/(dashboard)/catalogos-whatsapp/page.tsx) tem 3 abas (deep-link via `?tab=`):
 - **Detecções** (default, sem `?tab`) — lista todas as detecções, filtros por status, busca, modal de revisão com candidatos top-5 e busca manual em `cronograma_leiloes` pra anexo forçado.
-- **Grupos monitorados** — CRUD de `whatsapp_catalog_groups`. Mostra também os grupos visíveis na sessão (via `GET /vps-groups`) pra o operador copiar o JID.
+- **Grupos monitorados** — CRUD de `whatsapp_catalog_groups`. Por **privacidade**, a UI nunca lista os grupos que o número da sessão participa (o número é pessoal do dono). Para descobrir o JID de um grupo novo, fazer `curl http://localhost:3002/groups` direto no VPS via SSH; nenhum endpoint público expõe essa lista.
 - **Conexão** — status, QR code (proxy do VPS:3002/status) e toggle de pausa global.
 
 **Endpoints Next.js** (`/api/whatsapp-catalogos/*`):
@@ -520,7 +520,6 @@ Migration única: [database/whatsapp_catalogs.sql](database/whatsapp_catalogs.sq
 | Route                                       | Métodos | Função |
 |---------------------------------------------|---------|--------|
 | `/status`                                   | GET     | Proxy `GET ${WHATSAPP_CATALOGS_SERVER_URL}/status` |
-| `/vps-groups`                               | GET     | Proxy `GET .../groups` — lista grupos visíveis na sessão |
 | `/active-groups`                            | GET     | Lido pelo VPS (header `x-webhook-secret`) — JIDs ativos a monitorar |
 | `/webhook`                                  | POST    | VPS → Next.js: PDF detectado. Decide auto-anexar ou registrar pendente |
 | `/groups`                                   | GET,POST | CRUD `whatsapp_catalog_groups` |

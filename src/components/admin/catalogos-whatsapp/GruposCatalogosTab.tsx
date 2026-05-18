@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useEffect, useState, useCallback } from "react"
 import {
     Users, Plus, Pencil, Trash2, RefreshCw, CheckCircle2, XCircle, Loader2,
-    ChevronDown, ChevronRight,
 } from "lucide-react"
 
 type Group = {
@@ -17,17 +16,12 @@ type Group = {
     updated_at: string
 }
 
-type VpsGroup = { id: string; subject?: string }
-
 export function GruposCatalogosTab() {
     const [groups, setGroups] = useState<Group[]>([])
-    const [vpsGroups, setVpsGroups] = useState<VpsGroup[]>([])
     const [loading, setLoading] = useState(true)
     const [editing, setEditing] = useState<Group | null>(null)
     const [creating, setCreating] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [showVpsList, setShowVpsList] = useState(false)
-    const [vpsFilter, setVpsFilter] = useState("")
 
     const fetchGroups = useCallback(async () => {
         setLoading(true)
@@ -42,36 +36,9 @@ export function GruposCatalogosTab() {
         }
     }, [])
 
-    const fetchVpsGroups = useCallback(async () => {
-        try {
-            const res = await fetch("/api/whatsapp-catalogos/vps-groups", { cache: "no-store" })
-            if (res.ok) {
-                const j = await res.json()
-                setVpsGroups(j.groups ?? [])
-            }
-        } catch { /* opcional */ }
-    }, [])
-
     useEffect(() => {
         fetchGroups()
     }, [fetchGroups])
-
-    // VPS é caro (lista 100+ grupos) — só busca quando o operador abre o bloco
-    useEffect(() => {
-        if (showVpsList) fetchVpsGroups()
-    }, [showVpsList, fetchVpsGroups])
-
-    // Esconde grupos já configurados e aplica filtro de texto
-    const configuredJids = useMemo(
-        () => new Set(groups.map(g => g.jid).filter(Boolean)),
-        [groups]
-    )
-    const filteredVpsGroups = useMemo(() => {
-        const term = vpsFilter.trim().toLowerCase()
-        return vpsGroups
-            .filter(g => !configuredJids.has(g.id))
-            .filter(g => !term || (g.subject || "").toLowerCase().includes(term))
-    }, [vpsGroups, configuredJids, vpsFilter])
 
     async function saveGroup(g: Partial<Group> & { id?: string }) {
         setError(null)
@@ -112,7 +79,7 @@ export function GruposCatalogosTab() {
                     </h3>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => { fetchGroups(); fetchVpsGroups() }}
+                            onClick={() => fetchGroups()}
                             className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border hover:bg-muted"
                         >
                             <RefreshCw className="h-3 w-3" /> Atualizar
@@ -198,67 +165,6 @@ export function GruposCatalogosTab() {
                 )}
             </div>
 
-            <div className="bg-card text-card-foreground rounded-xl border overflow-hidden">
-                <button
-                    onClick={() => setShowVpsList(v => !v)}
-                    className="w-full px-6 py-3 flex items-center justify-between text-left hover:bg-muted/20 transition-colors"
-                >
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {showVpsList ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        <span>Procurar JID de outro grupo</span>
-                        {showVpsList && vpsGroups.length > 0 && (
-                            <span className="text-[11px] text-muted-foreground/70">
-                                ({filteredVpsGroups.length} disponíveis · {configuredJids.size} já configurados ocultos)
-                            </span>
-                        )}
-                    </div>
-                </button>
-
-                {showVpsList && (
-                    <>
-                        <div className="px-6 py-3 border-t bg-muted/10 space-y-1.5">
-                            <p className="text-[11px] text-muted-foreground">
-                                Lista dos grupos que o número logado participa (≠ grupos monitorados).
-                                A automação só age nos grupos da tabela acima — esta lista é só pra
-                                copiar o JID quando você quiser monitorar mais um.
-                            </p>
-                            <input
-                                value={vpsFilter}
-                                onChange={e => setVpsFilter(e.target.value)}
-                                placeholder="Filtrar por nome do grupo…"
-                                className="mt-1 w-full px-3 py-1.5 rounded-md border bg-background text-sm"
-                            />
-                        </div>
-                        {filteredVpsGroups.length === 0 ? (
-                            <div className="p-6 text-center text-xs text-muted-foreground">
-                                {vpsGroups.length === 0
-                                    ? "Carregando lista do VPS…"
-                                    : "Nenhum grupo bate com o filtro."}
-                            </div>
-                        ) : (
-                            <table className="w-full text-sm">
-                                <thead className="bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
-                                    <tr>
-                                        <th className="text-left px-6 py-2 font-medium">Nome</th>
-                                        <th className="text-left px-6 py-2 font-medium">JID</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredVpsGroups.map(g => (
-                                        <tr key={g.id} className="border-t">
-                                            <td className="px-6 py-2">{g.subject || "—"}</td>
-                                            <td className="px-6 py-2">
-                                                <code className="text-xs bg-muted/40 px-1.5 py-0.5 rounded">{g.id}</code>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </>
-                )}
-            </div>
-
             {(creating || editing) && (
                 <GroupForm
                     initial={editing || undefined}
@@ -320,7 +226,8 @@ function GroupForm({
                             placeholder="120363012345678901@g.us"
                         />
                         <p className="text-[11px] text-muted-foreground mt-1">
-                            Encontre na tabela de grupos visíveis na sessão (logo abaixo).
+                            Obtenha o JID pelo container do VPS (curl interno) — a UI não
+                            lista grupos do número por privacidade.
                         </p>
                     </div>
                     <div>
