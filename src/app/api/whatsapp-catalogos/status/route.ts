@@ -6,13 +6,15 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth-helpers'
 
-const VPS_URL = process.env.WHATSAPP_CATALOGS_SERVER_URL || 'http://localhost:3002'
-
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
     const gate = await requireAdmin()
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status })
+
+    // Lê env a cada request — `const` no topo do módulo fica preso ao primeiro
+    // cold-start do lambda e ignora envs adicionadas depois.
+    const VPS_URL = process.env.WHATSAPP_CATALOGS_SERVER_URL || 'http://localhost:3002'
 
     try {
         const r = await fetch(`${VPS_URL}/status`, {
