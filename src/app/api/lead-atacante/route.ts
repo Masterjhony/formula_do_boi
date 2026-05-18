@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
+import { createClient } from '@supabase/supabase-js';
+import {
+    getNextTopPosition,
+    insertAtacanteReservation,
+} from '@/lib/atacante-reservation';
 
 export const runtime = 'nodejs';
 
@@ -88,6 +93,44 @@ export async function POST(request: Request) {
                 ]],
             },
         });
+
+        // Cria o card de pré-reserva no Kanban /reservas (best-effort —
+        // não bloqueia a resposta nem o fluxo do WhatsApp em caso de falha).
+        try {
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+            if (supabaseUrl && serviceKey) {
+                const supabase = createClient(supabaseUrl, serviceKey);
+                const position = await getNextTopPosition(supabase);
+                await insertAtacanteReservation(
+                    supabase,
+                    {
+                        nome,
+                        whatsapp,
+                        email,
+                        cidade,
+                        fazenda,
+                        po,
+                        qtd,
+                        doses,
+                        tipo,
+                        estacao,
+                        utm_source,
+                        utm_medium,
+                        utm_campaign,
+                        utm_content,
+                        utm_term,
+                        gclid,
+                        fbclid,
+                        referrer,
+                        landing_url,
+                    },
+                    { position },
+                );
+            }
+        } catch (err) {
+            console.error('[lead-atacante] Falha ao criar card em /reservas:', err);
+        }
 
         if (whatsapp) {
             const whatsappUrl = process.env.WHATSAPP_SERVER_URL || 'http://localhost:3001';
