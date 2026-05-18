@@ -26,6 +26,8 @@ No test suite is configured. `playwright` is in devDependencies but no test runn
 | `erp.*` | `/web-erp` | Internal ERP (financeiro, contábil, estoque, leilões) |
 | `adminbula.*` | `/web-bula` | Bula auction platform (CRM, fechamentos, cronograma) |
 
+> **Catálogos WhatsApp (segunda sessão Baileys, mesmo VPS).** A página `/web-admin/catalogos-whatsapp` controla um SEGUNDO container Baileys (`formula_boi_whatsapp_catalogs`, porta 3002, auth folder `/opt/whatsapp-catalogs-auth`, número WhatsApp DIFERENTE da Central). Esse container monitora grupos configurados em `whatsapp_catalog_groups`, baixa PDFs anexados, sobe ao R2 e chama `/api/whatsapp-catalogos/webhook`. O Next.js casa o nome do arquivo com `cronograma_leiloes.nome` (fuzzy match, ver `src/lib/whatsapp-catalogs.ts`) e, quando há match confiante, escreve `cronograma_leiloes.catalogo_url` automaticamente. As detecções ambíguas/sem match ficam pendentes pro operador resolver pela aba Detecções. Detalhes operacionais na seção *Catálogos WhatsApp (segunda sessão Baileys)* no fim deste arquivo.
+
 `/admin` and `/erp` paths on the marketplace subdomain are 302-redirected to `admin.*` / `erp.*`. API routes (`/api/*`) bypass the rewrite. The middleware also calls `updateSession()` from [src/utils/supabase/middleware.ts](src/utils/supabase/middleware.ts) to refresh Supabase auth cookies.
 
 ### Core Services
@@ -118,7 +120,7 @@ The route handler at [src/app/web-lp/route.ts](src/app/web-lp/route.ts) streams 
 `agenda`, `animais`, `atacante`, `auth`, `dashboard`, `embrioes`, `login`, `lote`, `matrizes`, `parceiros`, `pix-teste`, `quem-somos`, `rankings`, `semen`, `sertanejo`, `top-criadores`, `touros`, `venda-conosco`.
 
 ### `/web-admin` (`admin.*`)
-Dashboard segments under `(dashboard)`: `analytics`, `animal-availability`, `biblioteca-midia`, `breeders`, `central-bela-vista`, `contratos`, `crm`, `genealogia`, `ia`, `leads`, `leiloes`, `lotes-doadoras`, `lotes-touros`, `okr`, `products`, `projetos`, `reservas`, `settings`, `users`, `vendas-marketing`, `whatsapp`. Auth pages live under `(auth)`. Server actions in [src/app/web-admin/actions/](src/app/web-admin/actions/).
+Dashboard segments under `(dashboard)`: `analytics`, `animal-availability`, `biblioteca-midia`, `breeders`, `catalogos-whatsapp`, `central-bela-vista`, `contratos`, `crm`, `genealogia`, `ia`, `leads`, `leiloes`, `lotes-doadoras`, `lotes-touros`, `okr`, `products`, `projetos`, `reservas`, `settings`, `users`, `vendas-marketing`, `whatsapp`. Auth pages live under `(auth)`. Server actions in [src/app/web-admin/actions/](src/app/web-admin/actions/).
 
 ### `/web-erp` (`erp.*`)
 Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeiro`, `leiloes`. Auth under `(auth)`.
@@ -468,3 +470,72 @@ ativo/pendente por chave). Apenas UM fluxo é `is_active=true` por vez
 (rascunhos) e trocar o ativo em 1 clique — o bot pega a mudança na
 próxima inbound. Migrations: [database/whatsapp_flows.sql](database/whatsapp_flows.sql)
 + [database/whatsapp_flows_settings.sql](database/whatsapp_flows_settings.sql).
+
+### Catálogos WhatsApp (segunda sessão Baileys)
+
+Sessão independente da Central, no MESMO VPS mas em container separado.
+Captura PDFs de catálogo postados em grupos selecionados e anexa
+automaticamente ao leilão correspondente em `cronograma_leiloes`.
+
+**Topologia no VPS** (não confunda com a Central):
+
+| Recurso          | Central                          | Catálogos                                  |
+|------------------|----------------------------------|--------------------------------------------|
+| Container        | `formula_boi_whatsapp`           | `formula_boi_whatsapp_catalogs`            |
+| Porta host       | 3001                             | 3002                                       |
+| Auth folder      | `/opt/whatsapp-auth`             | `/opt/whatsapp-catalogs-auth`              |
+| Código no VPS    | `/opt/whatsapp-server`           | `/opt/whatsapp-catalogs-server`            |
+| Imagem           | `formula_boi_whatsapp_img`       | `formula_boi_whatsapp_catalogs_img`        |
+| Número WhatsApp  | Sócio (comercial)                | Número dedicado (operacional)              |
+| URL no Next.js   | `WHATSAPP_SERVER_URL`            | `WHATSAPP_CATALOGS_SERVER_URL` (default `http://localhost:3002`) |
+
+**Fluxo de detecção** (VPS → Next.js):
+1. `messages.upsert` em grupo `@g.us` cujo JID está em `monitoredJids` (sincronizado a cada 5 min via `GET /api/whatsapp-catalogos/active-groups`).
+2. Filtra: `documentMessage` com mime `application/pdf` OU extensão `.pdf`.
+3. `downloadMediaMessage` → buffer.
+4. PUT no R2 sob `libmedia/catalogos-whatsapp/yyyy/mm/<uuid>_<file>.pdf`.
+5. `POST /api/whatsapp-catalogos/webhook` com `{group_jid, group_name, sender_*, message_id, file_*, r2_key}`.
+
+**Decisão de auto-anexo** (Next.js, [src/lib/whatsapp-catalogs.ts](src/lib/whatsapp-catalogs.ts)):
+- Token-set similarity (normaliza acentos, remove stopwords, ignora ano).
+- Candidatos restritos à janela `[hoje-7d, hoje+90d]` em `cronograma_leiloes`.
+- Auto-anexo só se: `melhor_score >= 70` E `gap pro 2º >= 20` E leilão sem `catalogo_url` E flag global `whatsapp_catalogs_paused.paused = false`.
+- Senão registra como `pending` / `ambiguous` / `no_match` em `whatsapp_catalog_detections`.
+
+**Tabelas**:
+- `whatsapp_catalog_groups` — JID, nome, slug, ativo (lido pelo VPS).
+- `whatsapp_catalog_detections` — log de cada PDF + candidatos + status (`pending|matched|ambiguous|no_match|attached|manual`) + R2 key.
+- `cronograma_leiloes` ganhou `catalogo_url`, `catalogo_anexado_em`, `catalogo_origem`.
+- `site_settings.whatsapp_catalogs_paused` — pausa global do auto-anexo (`{paused, paused_at, paused_by}`).
+
+Migration única: [database/whatsapp_catalogs.sql](database/whatsapp_catalogs.sql).
+
+**Página admin** [src/app/web-admin/(dashboard)/catalogos-whatsapp/page.tsx](src/app/web-admin/(dashboard)/catalogos-whatsapp/page.tsx) tem 3 abas (deep-link via `?tab=`):
+- **Detecções** (default, sem `?tab`) — lista todas as detecções, filtros por status, busca, modal de revisão com candidatos top-5 e busca manual em `cronograma_leiloes` pra anexo forçado.
+- **Grupos monitorados** — CRUD de `whatsapp_catalog_groups`. Mostra também os grupos visíveis na sessão (via `GET /vps-groups`) pra o operador copiar o JID.
+- **Conexão** — status, QR code (proxy do VPS:3002/status) e toggle de pausa global.
+
+**Endpoints Next.js** (`/api/whatsapp-catalogos/*`):
+
+| Route                                       | Métodos | Função |
+|---------------------------------------------|---------|--------|
+| `/status`                                   | GET     | Proxy `GET ${WHATSAPP_CATALOGS_SERVER_URL}/status` |
+| `/vps-groups`                               | GET     | Proxy `GET .../groups` — lista grupos visíveis na sessão |
+| `/active-groups`                            | GET     | Lido pelo VPS (header `x-webhook-secret`) — JIDs ativos a monitorar |
+| `/webhook`                                  | POST    | VPS → Next.js: PDF detectado. Decide auto-anexar ou registrar pendente |
+| `/groups`                                   | GET,POST | CRUD `whatsapp_catalog_groups` |
+| `/groups/[id]`                              | PUT,DELETE | Editar/remover grupo |
+| `/detections`                               | GET     | Lista detecções (filtros: status, group_jid, q, limit/offset) |
+| `/detections/[id]`                          | GET,DELETE | Detalhe (com `file_url` presigned) e remoção |
+| `/detections/[id]/attach`                   | POST    | Anexo manual `{cronograma_id, overwrite?}` |
+| `/cronograma-search`                        | GET     | `?q=` — busca leilões pro modal de anexo manual |
+| `/pause`                                    | GET,PUT | Toggle `whatsapp_catalogs_paused` |
+
+**Variáveis de ambiente novas** (definidas no `.env` do VPS pelo deploy script):
+- `WHATSAPP_CATALOGS_SERVER_URL` (no Next.js) — default `http://localhost:3002`.
+- VPS: `WHATSAPP_CATALOGS_SERVER_PORT`, `AUTH_DIR`, `NEXT_JS_URL`, `WHATSAPP_GROUP_TASK_SECRET` (mesmo da Central), `R2_*`, `POLL_GROUPS_EVERY_MS`.
+
+**Deploy / operação**:
+- Script idempotente: `python scripts/deploy-whatsapp-catalogs-server.py` (lê `VPS_PASSWORD`, `NEXT_JS_URL`, `WHATSAPP_GROUP_TASK_SECRET`, `R2_*` do ambiente). Faz upload via SFTP, escreve `.env` no VPS com `chmod 600`, build da imagem e `docker run` sem nunca tocar no container Central.
+- `docker compose --env-file .env.local up -d --build` localmente sobe os DOIS containers (Central e Catálogos).
+- Para iniciar pareamento do novo número: container roda → aba **Conexão** mostra QR → escanear pelo número operacional. Auth persiste no volume `/opt/whatsapp-catalogs-auth`.

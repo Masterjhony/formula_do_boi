@@ -1,0 +1,18 @@
+{
+  "name": "formula-boi-whatsapp-catalogs",
+  "version": "1.0.0",
+  "description": "Sessão Baileys dedicada a monitorar grupos por PDFs de catálogo de leilão",
+  "main": "whatsapp-catalogs-server.js",
+  "scripts": {
+    "start": "node whatsapp-catalogs-server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "aws4fetch": "^1.0.20",
+    "pino": "^10.3.1",
+    "qrcode": "^1.5.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

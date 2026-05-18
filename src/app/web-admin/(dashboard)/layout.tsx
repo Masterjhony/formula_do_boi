@@ -75,6 +75,7 @@ const navConfig: NavEntry[] = [
         items: [
             { href: '/users', label: 'Usuários & Permissões', icon: Shield },
             { href: '/whatsapp', label: 'Central WhatsApp', icon: MessageCircle },
+            { href: '/catalogos-whatsapp', label: 'Catálogos WhatsApp', icon: FileText },
             { href: '/settings', label: 'Configurações', icon: Settings },
         ],
     },
@@ -150,9 +151,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const isOKR = pathname === '/okr';
     const isContratos = pathname === '/contratos';
     const isWhatsapp = pathname === '/whatsapp';
+    const isCatalogos = pathname === '/catalogos-whatsapp';
     const isAgenda = pathname === '/agenda';
     const isReservas = pathname === '/reservas';
-    const isFullWidth = isCRM || isLeads || isTactical || isOKR || isContratos || isWhatsapp || isAgenda || isReservas;
+    const isFullWidth = isCRM || isLeads || isTactical || isOKR || isContratos || isWhatsapp || isCatalogos || isAgenda || isReservas;
 
     return (
         <div className="min-h-screen bg-[#FFFFFF] dark:bg-[#0A0A0A] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -459,7 +461,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <main className={`flex-1 bg-[#FFFFFF] dark:bg-[#0A0A0A] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent ${
                 (isCRM || isLeads || isOKR || isContratos)
                     ? 'overflow-hidden flex flex-col p-3 sm:p-4'
-                    : (isTactical || isWhatsapp || isAgenda || isReservas)
+                    : (isTactical || isWhatsapp || isCatalogos || isAgenda || isReservas)
                         ? 'overflow-auto flex flex-col p-3 sm:p-4'
                         : 'overflow-auto p-4 sm:p-6 lg:p-10'
             }`}>
