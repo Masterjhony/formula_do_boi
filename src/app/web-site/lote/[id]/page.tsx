@@ -10,6 +10,7 @@ import ProductCard from "@/components/ProductCard";
 import PaywallOverlay from "@/components/PaywallOverlay";
 import PaywallLink from "@/components/PaywallLink";
 import ReservaButton from "@/components/site/ReservaButton";
+import LoteViewTracker from "@/components/site/LoteViewTracker";
 import EmbriaoLoteView from "./EmbriaoLoteView";
 
 export const dynamic = 'force-dynamic';
@@ -227,6 +228,14 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
     return (
         <main className="min-h-screen bg-gray-50">
             <Header />
+            <LoteViewTracker
+                productId={product.id}
+                name={product.name}
+                kind={product.kind || categoryLabel}
+                category={categoryLabel}
+                central={product.details?.central ?? null}
+                unitPrice={product.unit_price ?? null}
+            />
 
             {/* Breadcrumb & Navigation */}
             <div className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">

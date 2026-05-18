@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
+import { injectPosthogIntoHtml } from '@/lib/posthog-snippet';
 
 function getSupabaseAdmin() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -31,6 +32,7 @@ export async function GET(_request: NextRequest) {
     }
 
     html = html.replaceAll('__WHATSAPP_GROUP_LINK__', waGroupLink);
+    html = injectPosthogIntoHtml(html);
 
     return new NextResponse(html, {
         headers: { 'Content-Type': 'text/html; charset=utf-8' },

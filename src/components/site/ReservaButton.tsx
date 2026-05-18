@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { CalendarCheck, ArrowRight } from 'lucide-react';
 import ReservaModal from './ReservaModal';
+import { trackEvent } from '@/lib/posthog-client';
 
 interface ReservaButtonProps {
     product: {
@@ -37,7 +38,17 @@ export default function ReservaButton({
         <>
             <button
                 type="button"
-                onClick={() => setOpen(true)}
+                onClick={() => {
+                    trackEvent('lote_reserva_click', {
+                        product_id: product.id,
+                        product_name: product.name,
+                        kind: product.kind,
+                        category: product.category,
+                        central: product.central,
+                        unit_price: product.unit_price,
+                    });
+                    setOpen(true);
+                }}
                 className={cls}
                 style={{ borderRadius: 3, letterSpacing: '0.16em' }}
             >

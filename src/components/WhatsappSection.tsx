@@ -1,5 +1,7 @@
 "use client";
 
+import { trackEvent } from "@/lib/posthog-client";
+
 const WA_LINK = "https://wa.me/5531984143874?text=Ol%C3%A1%2C%20quero%20entrar%20no%20grupo%20Selo%20Ouro";
 
 // Brandbook tokens
@@ -137,6 +139,7 @@ export default function WhatsappSection() {
                             href={WA_LINK}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => trackEvent('whatsapp_cta_click', { location: 'whatsapp_section', destination: 'wa.me' })}
                             className="group inline-flex items-center gap-2.5 transition-all hover:-translate-y-0.5 active:scale-95"
                             style={{
                                 background: BRONZE,

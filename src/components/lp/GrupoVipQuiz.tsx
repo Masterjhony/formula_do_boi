@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { trackEvent, identifyLead } from "@/lib/posthog-client";
 
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
@@ -288,6 +289,30 @@ export default function GrupoVipQuiz({ waGroupLink }: { waGroupLink: string }) {
         }
 
         const isMql = MQL_QCABECAS.has(lead.quantidade_cabecas);
+
+        // PostHog — identifica o lead pelo telefone (mesma chave do CRM) e marca conversão
+        if (lead.tel) {
+            identifyLead(lead.tel, {
+                email: lead.email,
+                name: lead.nome,
+                uf: lead.uf,
+                cidade: lead.cidade,
+                momento_pecuaria: lead.momento_pecuaria,
+                quantidade_cabecas: lead.quantidade_cabecas,
+                utm_source: lead.utm_source,
+                utm_medium: lead.utm_medium,
+                utm_campaign: lead.utm_campaign,
+            });
+        }
+        trackEvent('lp_form_submit', {
+            mql: isMql,
+            quantidade_cabecas: lead.quantidade_cabecas,
+            uf: lead.uf,
+            momento_pecuaria: lead.momento_pecuaria,
+            utm_source: lead.utm_source,
+            utm_campaign: lead.utm_campaign,
+        });
+
         const basePath = window.location.pathname.replace(/\/+$/, "");
         const isUnderGrupoVip =
             basePath === "/grupo-vip" || basePath.startsWith("/grupo-vip/");
