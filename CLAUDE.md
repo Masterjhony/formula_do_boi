@@ -28,6 +28,8 @@ No test suite is configured. `playwright` is in devDependencies but no test runn
 
 > **Catálogos WhatsApp (segunda sessão Baileys, mesmo VPS).** A página `/web-admin/catalogos-whatsapp` controla um SEGUNDO container Baileys (`formula_boi_whatsapp_catalogs`, porta 3002, auth folder `/opt/whatsapp-catalogs-auth`, número WhatsApp DIFERENTE da Central). Esse container monitora grupos configurados em `whatsapp_catalog_groups`, baixa PDFs anexados, sobe ao R2 e chama `/api/whatsapp-catalogos/webhook`. O Next.js casa o nome do arquivo com `cronograma_leiloes.nome` (fuzzy match, ver `src/lib/whatsapp-catalogs.ts`) e, quando há match confiante, escreve `cronograma_leiloes.catalogo_url` automaticamente. As detecções ambíguas/sem match ficam pendentes pro operador resolver pela aba Detecções. Detalhes operacionais na seção *Catálogos WhatsApp (segunda sessão Baileys)* no fim deste arquivo.
 
+> **PostHog (Product Analytics + Session Replay).** Roda **apenas** no site público (`/web-site`) e na LP (`/web-lp`) — `admin.*`, `erp.*` e `adminbula.*` ficam de fora por privacidade do operador. Provider React em [src/providers/PostHogProvider.tsx](src/providers/PostHogProvider.tsx); HTMLs estáticos da LP recebem snippet inline via [src/lib/posthog-snippet.ts](src/lib/posthog-snippet.ts). Eventos custom (`lp_form_submit`, `whatsapp_cta_click`, `lote_view`, `lote_reserva_click`) declarados em [`EventName`](src/lib/posthog-client.ts). Painel `/web-admin/analytics` consome HogQL via `POSTHOG_PERSONAL_API_KEY`. Detalhes na seção *PostHog — instrumentação* no fim deste arquivo.
+
 `/admin` and `/erp` paths on the marketplace subdomain are 302-redirected to `admin.*` / `erp.*`. API routes (`/api/*`) bypass the rewrite. The middleware also calls `updateSession()` from [src/utils/supabase/middleware.ts](src/utils/supabase/middleware.ts) to refresh Supabase auth cookies.
 
 ### Core Services
@@ -40,6 +42,7 @@ No test suite is configured. `playwright` is in devDependencies but no test runn
 - **GLM-4.7 (Zhipu AI)** — Called over HTTP (no SDK) at `https://open.bigmodel.cn/api/paas/v4/chat/completions`. Powers the in-app AI assistant and the WhatsApp `/ia` command via tool-calling against a fixed allow-list of Supabase tables.
 - **Asaas** — Brazilian payment processor; webhook validation only (`/api/asaas-webhook`).
 - **ClickSign** — Brazilian e-signature platform. Auth via `?access_token=<TOKEN>` query param. Thin client in [src/lib/clicksign.ts](src/lib/clicksign.ts) wraps `documents`, `signers`, `lists`, `notifications`. The admin contracts panel sends, polls, and cancels documents; ClickSign pings `/api/clicksign/webhook` on signature events to update `tactical_contracts`.
+- **PostHog** (`posthog-js` + `posthog-node`) — Product Analytics + Session Replay + Web Analytics em US Cloud (projeto `430113`, host `us.i.posthog.com`). Roda **apenas** no site público e na LP (`/web-site`, `/web-lp`); painéis internos (`admin`, `erp`, `adminbula`) ficam de fora por privacidade do operador. Detalhes na seção *PostHog — instrumentação* no fim deste arquivo.
 
 ### Key Data Flows
 
@@ -103,7 +106,7 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
   - IDs inexistentes (registro deletado) não quebram — modal fica fechado, página carrega normal.
 - **Paginação compartilhada**: [src/components/admin/Pagination.tsx](src/components/admin/Pagination.tsx) fornece controles `« ‹ 1 2 3 › »` + dropdown "Por página" (default `25 / 50 / 100 / 200`). Quem consome controla `page` e `pageSize` por props. Usado em `/leads` ([CRMLeadsView](src/components/admin/crm/CRMLeadsView.tsx)) e na aba Qualificação do CRM ([CRMQualificacaoView](src/components/admin/crm/CRMQualificacaoView.tsx)).
 - **Global search**: `/api/search?q=...` returns categorized hits (`lead`, `product`, `leilao`, `fechamento`, `task`, `breeder`) for the spotlight UI in [src/components/admin/GlobalSearch.tsx](src/components/admin/GlobalSearch.tsx).
-- **Analytics**: GA4 data pulled via `@google-analytics/data` using a service account; configured with `GOOGLE_SERVICE_ACCOUNT_JSON` and `GOOGLE_GA4_PROPERTY_ID` (fallback `483341191`). **PostHog** (Product Analytics + Session Replay + Web Analytics) roda em paralelo no site público e na LP — provider em [src/providers/PostHogProvider.tsx](src/providers/PostHogProvider.tsx) é montado em [src/app/web-site/layout.tsx](src/app/web-site/layout.tsx) e [src/app/web-lp/layout.tsx](src/app/web-lp/layout.tsx); HTMLs estáticos da LP (servidos via route handlers) recebem o snippet inline via [src/lib/posthog-snippet.ts](src/lib/posthog-snippet.ts). Eventos custom: `lp_form_submit`, `whatsapp_cta_click`, `lote_view`, `lote_reserva_click` — capturados via `trackEvent()` em [src/lib/posthog-client.ts](src/lib/posthog-client.ts). Painel `/web-admin/analytics` consome HogQL via `POSTHOG_PERSONAL_API_KEY` ([src/actions/posthog.ts](src/actions/posthog.ts)) — se a key não estiver setada, degrada pra placeholder com link pro projeto PostHog. **Não** rodamos PostHog nos painéis admin/erp/bula por privacidade.
+- **Analytics**: dois provedores em paralelo no painel `/web-admin/analytics`. (1) **GA4** via `@google-analytics/data` com service account (`GOOGLE_SERVICE_ACCOUNT_JSON` + `GOOGLE_GA4_PROPERTY_ID`, fallback `483341191`) — alimenta histórico de acessos, tempo médio, top páginas, canais de tráfego. Server actions em [src/actions/analytics.ts](src/actions/analytics.ts). (2) **PostHog** via HogQL Query API (`POSTHOG_PERSONAL_API_KEY`, project `430113` hardcoded) — alimenta KPIs custom (pageviews, visitantes únicos, sessões, replays), eventos custom, browsers e devices. Server actions em [src/actions/posthog.ts](src/actions/posthog.ts). Se `POSTHOG_PERSONAL_API_KEY` não estiver setada, a seção PostHog degrada pra placeholder com link pro projeto. Ver seção dedicada *PostHog — instrumentação* abaixo.
 - **Media library**: stored on Cloudflare R2 with prefix `R2_PREFIX` (default `libmedia/`). Browser uploads via presigned PUT issued by `/api/r2/upload-url`; downloads via presigned GET from `/api/r2/download-url`.
 - **Bula sistema**: `/web-bula/sistema` and `/web-bula/login.html` are static HTML SPAs served via tiny `route.ts` handlers that stream the file. They consume the `/api/bula/*` JSON endpoints.
 - **Path alias**: `@/*` maps to `./src/*`.
@@ -263,6 +266,8 @@ All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
 | `r2.ts` | Cloudflare R2 (S3-compatible) client; presigned URLs, list, delete. |
 | `crm-types.ts` | CRM TypeScript interfaces. |
 | `bula/queries.ts`, `bula/types.ts` | Shared Supabase queries and types for the Bula APIs. |
+| `posthog-client.ts` | Helper client-side: `trackEvent(name, props)`, `identifyLead(distinctId, traits)`, `resetPosthog()`. `EventName` é o type literal das chaves custom — adicione um novo evento aqui antes de chamá-lo. |
+| `posthog-snippet.ts` | `buildPosthogSnippet()` / `injectPosthogIntoHtml(html)` — geram o `<script>` PostHog para injetar nos HTMLs estáticos da LP que são servidos por route handlers (não passam pelo `PostHogProvider` React). |
 
 ## Environment Variables
 
@@ -285,6 +290,12 @@ GLM_MODEL                         # default: glm-4.7
 # Analytics (GA4)
 GOOGLE_GA4_PROPERTY_ID            # GA4 property (fallback: 483341191)
 GOOGLE_SERVICE_ACCOUNT_JSON       # GA4 + Sheets service account credentials (stringified JSON)
+
+# Analytics (PostHog — US Cloud, projeto 430113)
+NEXT_PUBLIC_POSTHOG_KEY           # Project token (público). Sem ele o SDK no browser não inicializa.
+NEXT_PUBLIC_POSTHOG_HOST          # default: https://us.i.posthog.com
+POSTHOG_PROJECT_ID                # default: 430113 (hardcoded no fallback de src/actions/posthog.ts)
+POSTHOG_PERSONAL_API_KEY          # Personal API Key com escopo "Performing analytics queries". Sem ela o painel /web-admin/analytics mostra placeholder; o SDK no site segue capturando normalmente.
 
 # SMTP (signup codes & resets)
 SMTP_HOST                         # default: smtp.hostinger.com
@@ -538,3 +549,58 @@ Migration única: [database/whatsapp_catalogs.sql](database/whatsapp_catalogs.sq
 - Script idempotente: `python scripts/deploy-whatsapp-catalogs-server.py` (lê `VPS_PASSWORD`, `NEXT_JS_URL`, `WHATSAPP_GROUP_TASK_SECRET`, `R2_*` do ambiente). Faz upload via SFTP, escreve `.env` no VPS com `chmod 600`, build da imagem e `docker run` sem nunca tocar no container Central.
 - `docker compose --env-file .env.local up -d --build` localmente sobe os DOIS containers (Central e Catálogos).
 - Para iniciar pareamento do novo número: container roda → aba **Conexão** mostra QR → escanear pelo número operacional. Auth persiste no volume `/opt/whatsapp-catalogs-auth`.
+
+### PostHog — instrumentação
+
+PostHog (US Cloud, projeto **430113**, host `us.i.posthog.com`) instrumenta o
+**site público** (`/web-site`) e a **LP grupo VIP** (`/web-lp`). Por privacidade
+do operador interno, **não** roda em `admin.*`, `erp.*` nem `adminbula.*`.
+
+**Topologia client-side:**
+
+| Surface                                      | Como o PostHog é carregado |
+|---------------------------------------------|----------------------------|
+| `/web-site/**` (marketplace React)          | [`PostHogProvider`](src/providers/PostHogProvider.tsx) montado em [src/app/web-site/layout.tsx](src/app/web-site/layout.tsx). Inicializa o SDK no `useEffect`, captura `$pageview` manual em cada mudança de pathname/searchParams. |
+| `/web-lp/page.tsx` (Grupo VIP React)        | Mesmo `PostHogProvider`, montado em [src/app/web-lp/layout.tsx](src/app/web-lp/layout.tsx). |
+| HTMLs estáticos da LP (route handlers)      | Snippet inline injetado em runtime via [`injectPosthogIntoHtml()`](src/lib/posthog-snippet.ts). Aplicado em: `/grupo-vip/obrigado`, `/grupo-vip/obrigado-mql`, `/grupo-vip/atacante-matinha` e os dois "obrigado" do atacante-matinha. |
+| `admin.*`, `erp.*`, `adminbula.*`           | **Nada.** Nenhum dos layouts carrega o `PostHogProvider`. |
+
+**Configuração padrão do SDK** (em `PostHogProvider.tsx`):
+- `person_profiles: 'identified_only'` — só cria perfil de pessoa quando chamamos `identify()`. Anônimos não geram registros faturáveis.
+- `capture_pageview: false` + tracker manual — controlamos o evento `$pageview` pra que ele dispare em cada navegação client-side do App Router (o auto do PostHog perde transições).
+- `autocapture: true` — clicks, form submits, page leaves.
+- `session_recording: { maskAllInputs: true, maskTextSelector: '[data-ph-mask]' }` — todos os inputs mascarados; pra mascarar texto também, basta colocar `data-ph-mask` no elemento.
+
+**Eventos custom já cabeados** (declarados em [`EventName`](src/lib/posthog-client.ts) — adicionar uma chave nova lá antes de chamar `trackEvent()`):
+
+| Evento                       | Onde dispara                                          | Props relevantes |
+|-----------------------------|--------------------------------------------------------|------------------|
+| `lp_form_submit`            | [GrupoVipQuiz](src/components/lp/GrupoVipQuiz.tsx) — submit final do quiz. Também chama `identifyLead(tel, {...})` antes. | `mql`, `quantidade_cabecas`, `uf`, `momento_pecuaria`, UTMs |
+| `whatsapp_cta_click`        | [WhatsappSection](src/components/WhatsappSection.tsx) — CTA "Solicitar acesso pelo WhatsApp" da home. | `location`, `destination` |
+| `lote_view`                 | [LoteViewTracker](src/components/site/LoteViewTracker.tsx), incluído em [/web-site/lote/[id]/page.tsx](src/app/web-site/lote/[id]/page.tsx). | `product_id`, `product_name`, `kind`, `category`, `central`, `unit_price` |
+| `lote_reserva_click`        | [ReservaButton](src/components/site/ReservaButton.tsx) — botão "Reservar doses/embriões". | mesmas props do `lote_view` |
+| (reservados, ainda não emitidos) | `checkout_semen_submit`, `checkout_embriao_submit`, `login_attempt`, `login_success`, `signup_attempt`, `signup_success` | Já tipados; cabear nos formulários quando necessário. |
+
+`identifyLead(distinctId, traits)`: usa o telefone como `distinctId` (mesma chave do CRM), permitindo casar replay com lead no Supabase manualmente.
+
+**Painel admin `/web-admin/analytics`** ([page.tsx](src/app/web-admin/(dashboard)/analytics/page.tsx)):
+- Mostra duas seções em paralelo — **GA4** (server actions em [src/actions/analytics.ts](src/actions/analytics.ts)) e **PostHog** ([src/actions/posthog.ts](src/actions/posthog.ts)).
+- Server actions PostHog consultam a **HogQL Query API** (`POST /api/projects/{id}/query/`) com `POSTHOG_PERSONAL_API_KEY`.
+- Host de queries é resolvido a partir de `NEXT_PUBLIC_POSTHOG_HOST` (troca `*.i.posthog.com` → `*.posthog.com` em `apiHostForQueries()` — a Query API vive no host "app", não no host de ingestion).
+- `POSTHOG_PROJECT_ID` tem default hardcoded **`430113`** — não precisa estar nas envs da Vercel.
+- Se `POSTHOG_PERSONAL_API_KEY` estiver ausente ou inválida, `isPosthogConfigured()` devolve `false` e o painel renderiza um placeholder com link direto pro projeto PostHog. O SDK no site segue funcionando normalmente — só o painel admin que fica em "modo somente-captura".
+- Janela fixa: últimos 30 dias.
+
+**Variáveis de ambiente:**
+- `NEXT_PUBLIC_POSTHOG_KEY` — project token público. Sem ele, o SDK no browser não inicializa (o `PostHogProvider` faz noop).
+- `NEXT_PUBLIC_POSTHOG_HOST` — default `https://us.i.posthog.com`.
+- `POSTHOG_PROJECT_ID` — default `430113` no código; não precisa setar.
+- `POSTHOG_PERSONAL_API_KEY` — só em **Production** na Vercel (marcada Sensitive). Escopo no PostHog: *Performing analytics queries* + acesso ao "Default project". **Mudança de env var na Vercel exige redeploy** — ela só é injetada em deploys novos.
+
+**Pitfall conhecido:** quando a `POSTHOG_PERSONAL_API_KEY` foi adicionada à Vercel, o painel continuou em modo placeholder até disparar um redeploy (ou commit + push). A Vercel não re-injeta envs no deploy ativo. Empty commit em main funciona, mas push direto pra `main` está protegido — usar dashboard → Deployments → ⋯ → Redeploy é mais limpo.
+
+**Adicionar um evento novo:**
+1. Adicione a chave no type `EventName` em [src/lib/posthog-client.ts](src/lib/posthog-client.ts).
+2. Chame `trackEvent('nome_do_evento', { ...props })` no componente cliente.
+3. (Opcional) Faça `identifyLead(distinctId, traits)` antes se quiser que o replay/funil associe ao lead.
+4. Eventos aparecem no painel admin em até ~1 min (cache da HogQL).

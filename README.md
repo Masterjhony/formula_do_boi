@@ -43,7 +43,7 @@ Auth via Supabase SSR. Segmentos sob `(dashboard)`:
 
 | Segmento | O que faz |
 |---|---|
-| `analytics` | GA4 + métricas de leads |
+| `analytics` | GA4 + **PostHog** (Product Analytics + Session Replay) — KPIs, eventos custom, browsers, devices |
 | `crm` | Kanban de leads com drag-and-drop (dnd-kit) |
 | `whatsapp` | **Central WhatsApp** — inbox conversacional, fluxo visual, templates, campanhas, métricas, QR/conexão. Ver [docs/whatsapp-central.md](./docs/whatsapp-central.md). |
 | `products` | CRUD de bovinos (com parser de genealogia/avaliação genética via PDF) |
@@ -75,7 +75,7 @@ Plataforma do braço **Bula Assessoria**: CRM próprio, leilões, fechamentos, c
 | Assinatura eletrônica | ClickSign API v1 |
 | IA | GLM-4.7 (Zhipu) via HTTP, tool-calling |
 | Email | Nodemailer/SMTP (Hostinger) — códigos de verificação e resets |
-| Analytics | GA4 via service account (`@google-analytics/data`) |
+| Analytics | GA4 via service account (`@google-analytics/data`) + PostHog (`posthog-js` no client, HogQL Query API no server) |
 | Deploy | Vercel (auto-deploy no push para `main`) + Docker (WhatsApp Server) |
 
 ---
@@ -114,7 +114,11 @@ Vercel (Next.js)
 │           ├─► ClickSign (contratos)          │
 │           ├─► Asaas (pagamentos)             │
 │           ├─► Zhipu GLM-4.7 (IA)             │
+│           ├─► PostHog HogQL (Query API)      │
 │           └─► VPS WhatsApp ◄────┐            │
+│                                              │
+│  Browser (site + LP) ───► PostHog ingestion  │
+│  (admin/erp/bula NÃO enviam — privacidade)   │
 └──────────────────────────────────────────────┘
                                   │ HTTP
                                   ▼
