@@ -119,7 +119,7 @@ INSERT INTO public.site_settings (key, value)
 VALUES (
     'agendamentos_calendar',
     jsonb_build_object(
-        'google_calendar_id', '',
+        'google_calendar_id', '6e8bde2aee3335f37e43720610a9547ff7b54ea2b898e0b53d3777f50e2d0f3a@group.calendar.google.com',
         'calendly_event_url', 'https://calendly.com/joaoeduardo-lp1/contato-cliente',
         'default_responsible_member_id', NULL,
         'auto_link_lead_by_email', true,
@@ -128,4 +128,13 @@ VALUES (
         'sync_window_future_days', 90
     )
 )
-ON CONFLICT (key) DO NOTHING;
+ON CONFLICT (key) DO UPDATE SET
+    -- Se a chave já existir mas o google_calendar_id ainda estiver vazio
+    -- (operador rodou a migration antes de configurar o Calendly), seta
+    -- agora. Preserva qualquer valor que o operador já tenha mexido pela UI.
+    value = CASE
+        WHEN COALESCE(public.site_settings.value->>'google_calendar_id', '') = '' THEN
+            jsonb_set(public.site_settings.value, '{google_calendar_id}',
+                to_jsonb('6e8bde2aee3335f37e43720610a9547ff7b54ea2b898e0b53d3777f50e2d0f3a@group.calendar.google.com'::text))
+        ELSE public.site_settings.value
+    END;
