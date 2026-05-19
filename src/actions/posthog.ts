@@ -11,7 +11,9 @@
  */
 
 const HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com';
-const PROJECT_ID = process.env.POSTHOG_PROJECT_ID || '';
+// PROJECT_ID 430113 é público (aparece no URL do PostHog) — defaultar evita
+// depender de uma env var só pra isso. Override via POSTHOG_PROJECT_ID se mudar.
+const PROJECT_ID = process.env.POSTHOG_PROJECT_ID || '430113';
 const API_KEY = process.env.POSTHOG_PERSONAL_API_KEY || '';
 const TIMEOUT_MS = 15_000;
 
