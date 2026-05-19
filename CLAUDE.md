@@ -32,6 +32,8 @@ No test suite is configured. `playwright` is in devDependencies but no test runn
 
 > **PostHog (Product Analytics + Session Replay).** Roda **apenas** no site público (`/web-site`) e na LP (`/web-lp`) — `admin.*`, `erp.*` e `adminbula.*` ficam de fora por privacidade do operador. Provider React em [src/providers/PostHogProvider.tsx](src/providers/PostHogProvider.tsx); HTMLs estáticos da LP recebem snippet inline via [src/lib/posthog-snippet.ts](src/lib/posthog-snippet.ts). Eventos custom (`lp_form_submit`, `whatsapp_cta_click`, `lote_view`, `lote_reserva_click`) declarados em [`EventName`](src/lib/posthog-client.ts). Painel `/web-admin/analytics` consome HogQL via `POSTHOG_PERSONAL_API_KEY`. Detalhes na seção *PostHog — instrumentação* no fim deste arquivo.
 
+> **Agendamentos (Calendly Free × Google Calendar).** A página `/web-admin/agendamentos` lista reuniões marcadas via Calendly sem precisar de plano pago. Como o Calendly Free não dá PAT/webhook/redirect, usamos o **Google Calendar como ponte**: o Calendly cria os eventos num Google Calendar do dono → service account (`GOOGLE_SERVICE_ACCOUNT_JSON`, mesma usada em GA4/Sheets) lê via Google Calendar API → cron `/api/agendamentos/sync` materializa em `agendamentos`. Auto-vínculo ao `crm_leads` por e-mail e telefone (parseado da descrição do Calendly). Template WhatsApp `agendamento-link` envia o link pro lead. Detalhes na seção *Agendamentos (Calendly × Google Calendar)* no fim deste arquivo.
+
 `/admin` and `/erp` paths on the marketplace subdomain are 302-redirected to `admin.*` / `erp.*`. API routes (`/api/*`) bypass the rewrite. The middleware also calls `updateSession()` from [src/utils/supabase/middleware.ts](src/utils/supabase/middleware.ts) to refresh Supabase auth cookies.
 
 ### Core Services
@@ -96,6 +98,7 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 | `bula_membros`, `bula_leiloes`, `bula_leilao_assessores`, `bula_leilao_fechamento` | Bula auction core. |
 | `bula_projeto_cards`, `bula_card_responsaveis` | Bula project Kanban cards. |
 | `bula_crm_funis`, `bula_crm_deals`, `bula_leads`, `bula_marketing_config` | Bula CRM and marketing. |
+| `agendamentos` | Reuniões marcadas via Calendly (ponte Google Calendar) ou manualmente. Idempotência por `google_event_id`. Colunas-chave: `source` (calendly\|google\|manual), `google_event_id`, `calendly_event_uri`, `summary`, `start_at`, `end_at`, `invitee_name/email/phone`, `status` (agendado\|confirmado\|concluido\|cancelado\|nao_compareceu), `meeting_url`, `lead_id` (FK `crm_leads`), `responsible_member_id`, `notes`, `tags` (JSONB), `cancelled_at`, `cancel_reason`, `raw_payload` (JSONB do Google pra debug), `last_synced_at`. Settings em `site_settings.agendamentos_calendar`. |
 
 ### Notable Implementation Details
 
@@ -131,7 +134,7 @@ The route handler at [src/app/web-lp/route.ts](src/app/web-lp/route.ts) streams 
 `agenda`, `animais`, `atacante`, `auth`, `dashboard`, `embrioes`, `login`, `lote`, `matrizes`, `parceiros`, `pix-teste`, `quem-somos`, `rankings`, `semen`, `sertanejo`, `top-criadores`, `touros`, `venda-conosco`.
 
 ### `/web-admin` (`admin.*`)
-Dashboard segments under `(dashboard)`: `analytics`, `animal-availability`, `biblioteca-midia`, `breeders`, `catalogos-whatsapp`, `central-bela-vista`, `contratos`, `crm`, `genealogia`, `ia`, `leads`, `leiloes`, `lotes-doadoras`, `lotes-touros`, `okr`, `products`, `projetos`, `reservas`, `settings`, `users`, `vendas-marketing`, `whatsapp`. Auth pages live under `(auth)`. Server actions in [src/app/web-admin/actions/](src/app/web-admin/actions/).
+Dashboard segments under `(dashboard)`: `agenda`, `agendamentos`, `analytics`, `animal-availability`, `biblioteca-midia`, `breeders`, `catalogos-whatsapp`, `central-bela-vista`, `contratos`, `crm`, `email`, `genealogia`, `ia`, `leads`, `leiloes`, `lotes-doadoras`, `lotes-touros`, `okr`, `products`, `projetos`, `reservas`, `settings`, `users`, `vendas-marketing`, `whatsapp`. Auth pages live under `(auth)`. Server actions in [src/app/web-admin/actions/](src/app/web-admin/actions/).
 
 ### `/web-erp` (`erp.*`)
 Main segments under `(main)`: `configuracoes`, `contabil`, `estoque`, `financeiro`, `leiloes`. Auth under `(auth)`.
@@ -271,6 +274,14 @@ All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
 | `/api/email/central/metrics` | GET | Métricas operacionais (campanhas totais/ativas, enviados/falhas 7d, opt-outs, leads com e-mail). |
 | `/api/email/unsubscribe` | GET | **Público.** Recebe `?email=...&token=...` (HMAC SHA-256 com `WHATSAPP_GROUP_TASK_SECRET`). Valida o token e marca `email_optouts` + `crm_leads.optout_email=true`. Renderiza HTML simples de confirmação. |
 
+### Agendamentos (Calendly × Google Calendar)
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/agendamentos` | GET, POST | Lista (filtros: status, source, lead_id, q, from/to, limit/offset) e cria manual (`source='manual'`). |
+| `/api/agendamentos/[id]` | PATCH, DELETE | Atualiza status, lead, responsável, notas, tags. DELETE remove local — se ainda existir no Google, próximo sync recria. |
+| `/api/agendamentos/sync` | GET (cron), POST (admin) | Puxa eventos do Google Calendar (`site_settings.agendamentos_calendar.google_calendar_id`) e materializa em `agendamentos`. GET aceita `Authorization: Bearer ${CRON_SECRET}` OU `x-webhook-secret: ${WHATSAPP_GROUP_TASK_SECRET}`. |
+| `/api/agendamentos/settings` | GET, PUT | CRUD da chave `site_settings.agendamentos_calendar` (ID do calendar, link Calendly, janela de sync, vínculo automático). GET também devolve `service_account_email` e `google_configured` pro painel mostrar. |
+
 ### External proxy
 | Route | Methods | Purpose |
 |-------|---------|---------|
@@ -294,6 +305,8 @@ All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
 | `email-segment.ts` | `resolveEmailSegment()` — resolve JSON de segmento em query Supabase contra `crm_leads`. Sempre aplica `optout_email=false` + `email NOT NULL` + email contém `@`. Mesmos filtros do WhatsApp (`interesse_principal`, `stage`, `status`, `tags_whatsapp_includes`, `updated_after`). |
 | `email-campaign-step.ts` | `resolveEmailStepContent()` — mescla step + template (step sobrescreve campos vazios do template) e retorna `{subject, body_html, body_text, template_slug}` pra renderização. |
 | `posthog-snippet.ts` | `buildPosthogSnippet()` / `injectPosthogIntoHtml(html)` — geram o `<script>` PostHog para injetar nos HTMLs estáticos da LP que são servidos por route handlers (não passam pelo `PostHogProvider` React). |
+| `google-calendar.ts` | Cliente Google Calendar v3 via JWT (service account `GOOGLE_SERVICE_ACCOUNT_JSON`). `listCalendarEvents()`, `getCalendarEvent()`, `isGoogleCalendarConfigured()`. Escopo `calendar.readonly`. |
+| `agendamentos-sync.ts` | `syncAgendamentos()` — puxa eventos do Google Calendar configurado, parseia invitee (e-mail/nome dos attendees, telefone via heurística sobre a descrição do Calendly), faz match com `crm_leads` por e-mail e telefone (`phoneVariants()`) e upserta em `agendamentos` por `google_event_id`. Preserva campos editados manualmente (status já fechado, lead_id já vinculado, responsável). `loadAgendamentosSettings()` lê `site_settings.agendamentos_calendar` com defaults. |
 
 ## Environment Variables
 
@@ -680,3 +693,86 @@ Todos têm `{{UNSUBSCRIBE_URL}}` no rodapé. Se o operador esquecer, [src/lib/em
 2. (Opcional) INSERT em `email_campaign_steps` pra cada follow-up.
 3. POST em `/api/email/central/campaigns/[id]/send` (Admin auth) — materializa recipients e dispara passo 0.
 4. Cron pega o resto automaticamente.
+
+### Agendamentos (Calendly × Google Calendar)
+
+A página `/web-admin/agendamentos` lista reuniões marcadas via Calendly Free. O
+plano gratuito do Calendly **não** dá Personal Access Token, webhooks nem
+redirect após reserva — então fazemos a ponte pelo Google Calendar, que é o
+único integrador grátis nativo do Calendly.
+
+**Arquitetura (sem APIs pagas):**
+1. Calendly Free cria os eventos no Google Calendar configurado pelo dono da
+   conta (na própria conta Calendly: Integrations → Calendar Connections).
+2. O operador compartilha esse calendário com o e-mail da nossa service
+   account (campo `client_email` do `GOOGLE_SERVICE_ACCOUNT_JSON`, mesma usada
+   em GA4/Sheets) com permissão "Ver detalhes de todos os eventos".
+3. Cron externo (cron-job.org / GitHub Actions, a cada ~5min) chama
+   `/api/agendamentos/sync` → lê eventos com [src/lib/google-calendar.ts](src/lib/google-calendar.ts)
+   (escopo `calendar.readonly`) → parseia invitee e materializa em
+   `agendamentos` ([src/lib/agendamentos-sync.ts](src/lib/agendamentos-sync.ts)).
+4. Idempotência por `google_event_id` UNIQUE. Cancelamentos vêm como
+   `status: 'cancelled'` no Google e a gente seta `status='cancelado'` aqui.
+
+**Parsing do invitee:**
+- E-mail: do primeiro `attendee` que não é `organizer/self`. Fallback: regex
+  no `description`.
+- Nome: `attendee.displayName`, fallback no padrão "Tipo - Nome" do summary
+  do Calendly.
+- Telefone: heurística sobre a descrição — procura `Phone call:`,
+  `Phone number:`, `Telefone:`, `Celular:` ou `WhatsApp:` seguido de número.
+  Depois normaliza com `normalizePhone()` (com DDI 55).
+- Detecção de Calendly: marcadores na description (`calendly.com`,
+  `Event Type:`, `Invitee:` etc) → marca `source='calendly'`, caso
+  contrário `source='google'` (evento criado direto no Calendar).
+
+**Auto-vínculo ao CRM:** busca em `crm_leads` por e-mail (`auto_link_lead_by_email`)
+e depois por telefone via `phoneVariants()` (`auto_link_lead_by_phone`). Quando
+o operador vincula manualmente (Modal → "Vincular ao lead"), o sync seguinte
+preserva esse vínculo — não sobrescreve mesmo se mudar attendee no Calendly.
+
+**Estados preservados:** se o operador marcou `concluido`, `nao_compareceu`
+ou `confirmado`, o sync seguinte preserva esses estados (só pode evoluir pra
+`cancelado` se o Google sinalizar cancelamento).
+
+**Settings em `site_settings.agendamentos_calendar`** (JSONB):
+- `google_calendar_id` — e-mail do dono (calendar primary) OU ID
+  `xxxx@group.calendar.google.com` (calendar secundário). Pegar em Google
+  Calendar → Configurações do calendário → "Integrar calendário".
+- `calendly_event_url` — link público do Calendly que o bot WhatsApp manda.
+- `default_responsible_member_id` — UUID em `tactical_members` (opcional).
+- `auto_link_lead_by_email`, `auto_link_lead_by_phone` — flags.
+- `sync_window_past_days` (default 7), `sync_window_future_days` (default 90).
+
+**Cron externo (não usar Vercel Hobby cron — não permite sub-diário):**
+```
+GET https://admin.formuladoboi.com/api/agendamentos/sync
+Header: x-webhook-secret: ${WHATSAPP_GROUP_TASK_SECRET}
+```
+
+**WhatsApp ⇄ agendamento:** o operador (ou um nó `send_template` futuro no
+fluxo) envia o template `agendamento-link` (slug seedado em
+[database/seed_agendamento_template.sql](database/seed_agendamento_template.sql))
+quando o lead aceita marcar um horário. O link contém UTM `utm_content` com
+o `lead_id` opcional — mesmo sem PAT do Calendly, o e-mail do invitee
+normalmente já casa via auto-vínculo.
+
+**Limitações honestas (Calendly Free):**
+- Latência de ~5min entre o lead agendar e o registro aparecer no admin (o
+  cron).
+- Sem confirmação automática por WhatsApp após o agendamento (Calendly não
+  dispara webhook no plano grátis). Lembretes ficam por conta do próprio
+  Calendly (e-mail/SMS).
+- Sem reagendamento automático: se o lead reagenda no Calendly, o evento
+  ANTIGO é cancelado e um NOVO é criado — vão aparecer dois registros aqui
+  (um com `status='cancelado'`, outro novo `agendado`). Aceitável.
+
+**Migration:** [database/agendamentos.sql](database/agendamentos.sql) — cria a
+tabela `agendamentos`, índices, RLS, trigger `updated_at` e o registro inicial
+em `site_settings.agendamentos_calendar`. Reaplicar é idempotente.
+
+**Pitfall conhecido:** se a `GOOGLE_SERVICE_ACCOUNT_JSON` da Vercel não tiver
+o escopo Calendar habilitado (não é uma flag de escopo, mas de
+compartilhamento — o calendário precisa estar compartilhado com o
+`client_email` da service account), o sync retorna `403 Forbidden`. A
+mensagem aparece no campo `errors` da resposta do endpoint.
