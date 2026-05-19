@@ -428,24 +428,45 @@ VPS env vars required: `NEXT_JS_URL=https://admin.formuladoboi.com`, `WHATSAPP_G
 
 To apply changes: save via the admin panel or `PUT /api/whatsapp/flow` — this triggers `POST /reload-config` on the VPS automatically.
 
-### Central WhatsApp — Fluxo default (voz do Matheus, 1ª pessoa)
+### Central WhatsApp — Fluxo default (welcome v2: convite ao bate-papo)
 
-A partir de 2026-05-12, o welcome padrão e toda a triagem subsequente são
-escritos em primeira pessoa, como se o Matheus (diretor) estivesse falando.
-Mudança aplicada via [database/seed_welcome_default_matheus_1p.sql](database/seed_welcome_default_matheus_1p.sql).
+A partir de 2026-05-19, o welcome padrão passou a ser um convite direto pra
+um **bate-papo com o Matheus** (chamada agendada via Calendly) — o menu de
+interesses passou a ser **opcional**, mostrado só quando o lead recusa a
+conversa. Mudança aplicada via [database/seed_welcome_bate_papo_v1.sql](database/seed_welcome_bate_papo_v1.sql).
+
+Os templates seguem em primeira pessoa do Matheus (decisão de 2026-05-12,
+[database/seed_welcome_default_matheus_1p.sql](database/seed_welcome_default_matheus_1p.sql)).
 
 **Welcome `welcome-default`** — apresentação do Matheus + 3 frentes da empresa
-(Aceleradora de Touros, Central de Embriões, Assessoria em Leilões) + menu
-enxuto de 4 opções:
+(Aceleradora de Touros, Central de Embriões, Assessoria em Leilões) + convite
+pra um bate-papo de 15-20 min por chamada, com 2 opções:
 
 ```
-1 — Sêmen
-2 — Embriões
-3 — Compra e venda de genética Nelore P.O
-4 — Todos
+1 — Sim, quero agendar uma conversa com você
+2 — Por enquanto prefiro só receber informações por aqui
 ```
 
-**Mapeamento numérico default** (`DEFAULT_NUMERIC_MAP` em [src/lib/whatsapp-central.ts](src/lib/whatsapp-central.ts)):
+**Estado da máquina via tags** (a Central é stateless por design, então o
+estado da conversa vive em `crm_leads.tags_whatsapp` lido pelo classifier):
+
+| Tag                                  | Quando é setada                                                         | O que muda no classifier                                                  |
+|--------------------------------------|--------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| `whatsapp:menu_enviado`              | Welcome v2 enviado pela lane "sem match" da inbound                     | Gate `welcome_eligible` para de disparar (não re-welcome)                 |
+| `whatsapp:bate_papo_pendente`        | Welcome v2 enviado (via inbound OU via render-welcome do dispatchWelcome) | `BATE_PAPO_PENDENTE_NUMERIC_MAP` ativa: 1=human (sim agendar), 2=interest:interesse_amplo (só info) |
+| `whatsapp:bate_papo_aceito`          | Lead respondeu "1" e recebeu o link Calendly                            | Documental — classifier não consulta                                       |
+| `whatsapp:menu_interesses_v2`        | Lead respondeu "2" e recebeu o menu de interesses                       | Documental — depois de a tag `bate_papo_pendente` ser removida, dígitos 1-4 voltam ao `DEFAULT_NUMERIC_MAP` normal |
+
+**Mapeamento numérico em estado "bate-papo pendente"** (`BATE_PAPO_PENDENTE_NUMERIC_MAP`):
+
+| Tecla | `Classification`                                | Lane do grafo (fork)                                                                       |
+|-------|-------------------------------------------------|--------------------------------------------------------------------------------------------|
+| `1`   | `human`                                         | Após `apply_handoff`, gate `lead.is_bate_papo_pendente=true` → `bate-papo-aceito` (link Calendly) |
+| `2`   | `interest` → `interesse_amplo`                  | Após `apply_interest`, gate `lead.is_bate_papo_pendente=true` → `bate-papo-recusado` (menu interesses) |
+
+**Mapeamento numérico default** (`DEFAULT_NUMERIC_MAP` — usado depois que a tag
+`bate_papo_pendente` foi removida pelo grafo, ou direto pra leads de audiência
+sem essa tag):
 
 | Tecla | `Classification`                                         | Template de triagem               |
 |-------|----------------------------------------------------------|-----------------------------------|
@@ -454,11 +475,47 @@ enxuto de 4 opções:
 | `3`   | `interest` → `compra_venda_genetica`                     | `triagem-compra-venda-genetica`   |
 | `4`   | `interest` → `interesse_amplo`                           | `triagem-interesse-amplo`         |
 
-> Leads históricos que receberam o welcome antigo (menu 1..7) e respondem
-> `5/6/7` agora caem em `unknown` no classifier default — o bot fica em
-> silêncio nesses casos. Não é problema na prática porque o gate
-> `welcome_eligible` impede re-welcome, e o operador atende manualmente pelo
-> Inbox.
+**Integração com `/web-admin/agendamentos`** — o template `bate-papo-aceito`
+manda o link canônico do Calendly (`calendly.com/joaoeduardo-lp1/contato-cliente`,
+mesmo URL de `site_settings.agendamentos_calendar.calendly_event_url`). Quando
+o lead reserva no Calendly, o evento aparece no Google Calendar configurado
+e o cron `/api/agendamentos/sync` (a cada ~5 min) materializa em `agendamentos`
+com auto-vínculo ao `crm_leads` por e-mail/telefone — não há criação manual de
+registro no momento do envio do link. Ver seção *Agendamentos (Calendly ×
+Google Calendar)*.
+
+**Como o grafo lida com o estado** (em [src/lib/whatsapp-flow-engine.ts](src/lib/whatsapp-flow-engine.ts)
+`buildDefaultGraph()`):
+1. Lane `unknown` welcome: após `add_tag whatsapp:menu_enviado`, segue para
+   `add_tag whatsapp:bate_papo_pendente` antes de enviar o welcome — ambas
+   as tags ficam no lead.
+2. Lane `human` (lead respondeu "1" na janela): após `apply_handoff`, a
+   condition `lead.is_bate_papo_pendente` bifurca: true → `add_tag bate_papo_aceito`
+   + `remove_tag bate_papo_pendente` + envia `bate-papo-aceito`. false →
+   envia `consultor-handoff` (caminho clássico pra quando o lead diz "consultor"
+   por palavra-chave fora da janela do welcome).
+3. Lane `interest` (lead respondeu "2"): após `apply_interest`, condition
+   `lead.is_bate_papo_pendente` bifurca: true → `add_tag menu_interesses_v2`
+   + `remove_tag bate_papo_pendente` + envia `bate-papo-recusado`. false →
+   envia triagem dinâmica (`triagem-{interesse}` — comportamento clássico).
+4. `/api/whatsapp/render-welcome` aplica a tag `bate_papo_pendente` direto
+   no lead quando o slug resolvido é `welcome-default` — cobre o caso de lead
+   capturado em LP/admin/Sheets que recebe o welcome via `dispatchWelcome` no
+   VPS (não passa pela engine).
+
+**Para mudar o conteúdo das mensagens**: edite os bodies em
+[database/seed_welcome_bate_papo_v1.sql](database/seed_welcome_bate_papo_v1.sql)
+(idempotente — `ON CONFLICT (slug) DO UPDATE`). Se quiser voltar pro welcome
+v1 (4 opções direto), reaplique [database/seed_welcome_default_matheus_1p.sql](database/seed_welcome_default_matheus_1p.sql)
+e atualize o grafo ativo via UI pra remover os forks de `bate_papo_pendente`
+(ou delete o fluxo ativo pra cair no `buildDefaultGraph` em código — mas hoje
+ele inclui o welcome v2; o jeito limpo de reverter é via UI).
+
+> Leads históricos que receberam o welcome antigo (menu 1..4 de interesses
+> direto, ou welcome ainda mais antigo com 1..7) e respondem `3/4/5/6/7`
+> caem em `unknown` no classifier — o bot fica em silêncio. Não é problema
+> na prática porque o gate `welcome_eligible` impede re-welcome, e o operador
+> atende manualmente pelo Inbox.
 
 **Cobertura por palavra-chave** continua ativa para os interesses fora do
 menu enxuto (touros, matrizes, central de embriões, leilões, oferta de

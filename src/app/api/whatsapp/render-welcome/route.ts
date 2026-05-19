@@ -9,7 +9,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { firstName, normalizePhone, phoneVariants, renderTemplate } from '@/lib/whatsapp-central'
+import {
+    BATE_PAPO_PENDENTE_TAG,
+    firstName,
+    normalizePhone,
+    phoneVariants,
+    renderTemplate,
+} from '@/lib/whatsapp-central'
 import { getR2DownloadUrl } from '@/lib/r2'
 import { readPauseState } from '@/lib/whatsapp-pause'
 import {
@@ -132,6 +138,27 @@ export async function POST(req: NextRequest) {
             question: renderTemplate(tpl.poll_question, vars),
             options: tpl.poll_options.map((o: string) => renderTemplate(o, vars)),
             selectable_count: tpl.poll_selectable_count ?? 1,
+        }
+    }
+
+    // Welcome v2 (bate-papo): quando o lead recebe o welcome-default por aqui,
+    // marca a tag `bate_papo_pendente` no CRM. O classifier usa essa tag pra
+    // interpretar a próxima resposta numérica do lead (1 = agendar Calendly,
+    // 2 = só info / mostra menu de interesses). Fire-and-forget pra não atrasar
+    // a resposta ao VPS — se a tag não vingar, o pior caso é o classifier cair
+    // no DEFAULT_NUMERIC_MAP, mandando o lead pra triagem de sêmen/embriões
+    // direto (degradação aceitável).
+    if (lead && resolvedSlug === 'welcome-default') {
+        const tags = new Set(lead.tags_whatsapp ?? [])
+        if (!tags.has(BATE_PAPO_PENDENTE_TAG)) {
+            tags.add(BATE_PAPO_PENDENTE_TAG)
+            void supabase
+                .from('crm_leads')
+                .update({ tags_whatsapp: [...tags] })
+                .eq('id', lead.id)
+                .then(({ error }) => {
+                    if (error) console.warn('[render-welcome] add bate_papo_pendente tag:', error.message)
+                })
         }
     }
 

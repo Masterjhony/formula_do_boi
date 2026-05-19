@@ -23,6 +23,9 @@ import {
     firstName,
     ACADEMIA_TAG,
     LISTA_MATHEUS_TAG,
+    BATE_PAPO_PENDENTE_TAG,
+    BATE_PAPO_ACEITO_TAG,
+    MENU_INTERESSES_V2_TAG,
     type Classification,
     type Interesse,
 } from './whatsapp-central'
@@ -86,6 +89,7 @@ export type ConditionExpr =
     | 'lead.welcome_eligible' // !has_interesse && !has_menu_sent_tag
     | 'lead.is_academia_audience'    // tags_whatsapp inclui grupo_academia_nelore_po
     | 'lead.is_matheus_audience'     // tags_whatsapp inclui lista_matheus_personalizada
+    | 'lead.is_bate_papo_pendente'   // tags_whatsapp inclui whatsapp:bate_papo_pendente
 
 export type ActionKind =
     | 'apply_optout'
@@ -93,6 +97,7 @@ export type ActionKind =
     | 'apply_handoff'
     | 'apply_interest'
     | 'add_tag'
+    | 'remove_tag'
 
 export interface NodeBase {
     id: string
@@ -217,10 +222,20 @@ export interface LeadShape {
  *   classify[resubscribe] → action(reativar lead)    → send(resubscribe-msg)    → end
  *   classify[human]       → gate(opt-out?)─sim→ silêncio
  *                                          ─não→ gate(handoff?)─sim→ silêncio
- *                                                                ─não→ action(marcar handoff) → send(consultor-handoff) → end
- *   classify[interest]    → mesmos gates → action(aplicar interesse) → send(triagem dinâmica) → end
+ *                                                                ─não→ action(marcar handoff)
+ *                                                                     → gate(bate-papo pendente?)
+ *                                                                         ─sim→ action(tag aceito + remove pendente)
+ *                                                                              → send(bate-papo-aceito) → end
+ *                                                                         ─não→ send(consultor-handoff) → end
+ *   classify[interest]    → mesmos gates → action(aplicar interesse)
+ *                                          → gate(bate-papo pendente?)
+ *                                              ─sim→ action(tag menu_interesses_v2 + remove pendente)
+ *                                                   → send(bate-papo-recusado) → end
+ *                                              ─não→ send(triagem dinâmica) → end
  *   classify[unknown]     → mesmos gates → gate(elegível p/ welcome?)
- *                                              ─sim→ action(tag menu_enviado) → send(welcome-default) → end
+ *                                              ─sim→ action(tag menu_enviado)
+ *                                                  → action(tag bate_papo_pendente)
+ *                                                  → send(welcome-default) → end
  *                                              ─não→ silêncio (já foi atendido / já recebeu menu)
  *
  *   ─── Subgrafo "Boas-vindas" (trigger='new_lead') ────────────────────
@@ -232,10 +247,21 @@ export interface LeadShape {
  *   O `resolveWelcomeDispatch()` percorre só este subgrafo a partir do start
  *   'new_lead' para decidir qual slug o /api/whatsapp/render-welcome deve
  *   renderizar quando o VPS pedir o welcome (chamada do dispatchWelcome).
+ *
+ *   Importante: o subgrafo new_lead NÃO aplica a tag `bate_papo_pendente`
+ *   diretamente — ela é aplicada na lane "sem match" quando o welcome é
+ *   enviado pelo subgrafo de inbound. Como o welcome inicial via render-welcome
+ *   também usa `welcome-default`, anotamos a tag no callback de envio só
+ *   quando o lead realmente recebe o welcome através da lane inbound (que é
+ *   o caso quando o lead manda primeira mensagem sem ter sido importado
+ *   antes). Pra leads importados que recebem welcome pelo dispatchWelcome
+ *   (LP/admin), a tag é aplicada lá no flow de captura.
  */
 export function buildDefaultGraph(): FlowGraphV2 {
-    // 5 colunas (uma por classificação) — o subgrafo new_lead vai abaixo
-    const COL = [80, 380, 680, 980, 1280]
+    // 5 colunas (uma por classificação) — o subgrafo new_lead vai abaixo.
+    // Posições extras (5, 6) são offsets visuais para os ramos do bate-papo
+    // (col 5 = entre resubscribe e humano, col 6 = entre interesse e unknown).
+    const COL = [80, 380, 680, 980, 1280, 530, 1130]
     const ROW = (n: number) => 60 + n * 120
 
     const n = (
@@ -289,13 +315,26 @@ export function buildDefaultGraph(): FlowGraphV2 {
         n('h_gate2', 'condition', 2, 5, { expr: 'lead.handoff_humano' }, 'Já em handoff humano?'),
         n('h_sil2', 'silence', 2, 5.9, { reason: 'lead_handoff' }, 'Silêncio (já em handoff)'),
         n('act_handoff', 'action', 2, 7, { kind: 'apply_handoff' }, 'Marca handoff humano'),
-        n('send_handoff', 'send_template', 2, 8.1, {
+        // Fork bate-papo: se o lead recebeu o welcome v2 e respondeu "1", o
+        // kind 'human' foi disparado pelo BATE_PAPO_PENDENTE_NUMERIC_MAP —
+        // mandamos o link do Calendly em vez do consultor-handoff genérico.
+        n('h_gate_bp', 'condition', 2, 8.1, { expr: 'lead.is_bate_papo_pendente' }, 'Bate-papo pendente?'),
+        n('h_bp_swap_tags', 'action', 5, 9.2, { kind: 'add_tag', tag: BATE_PAPO_ACEITO_TAG }, 'Marca tag bate-papo aceito'),
+        n('h_bp_clear', 'action', 5, 10.3, { kind: 'remove_tag', tag: BATE_PAPO_PENDENTE_TAG }, 'Limpa tag bate-papo pendente'),
+        n('send_bp_aceito', 'send_template', 5, 11.4, {
+            slug: 'bate-papo-aceito',
+            bot_step: 'bate_papo_aceito',
+            contact_note: 'Lead aceitou bate-papo — link Calendly enviado',
+            fallback: 'Que ótimo, {nome}! Vou te mandar o link da agenda.',
+        }, 'Envia bate-papo-aceito (Calendly)'),
+        n('end_bp_aceito', 'end', 5, 12.5, { bot_step: 'bate_papo_aceito' }, 'Resposta enviada (bate-papo aceito)'),
+        n('send_handoff', 'send_template', 2, 9.2, {
             slug: 'consultor-handoff',
             bot_step: 'handoff',
             contact_note: 'Lead pediu falar com consultor (handoff)',
             fallback: 'Já te chamo aqui mesmo, {nome}.',
         }, 'Mensagem de handoff'),
-        n('end_handoff', 'end', 2, 9.2, { bot_step: 'handoff' }, 'Resposta enviada (handoff)'),
+        n('end_handoff', 'end', 2, 10.3, { bot_step: 'handoff' }, 'Resposta enviada (handoff)'),
 
         // ── Lane 3 — interesse classificado ────────────────────────────
         n('i_gate1', 'condition', 3, 3, { expr: 'lead.optout_whatsapp' }, 'Lead em opt-out?'),
@@ -303,14 +342,29 @@ export function buildDefaultGraph(): FlowGraphV2 {
         n('i_gate2', 'condition', 3, 5, { expr: 'lead.handoff_humano' }, 'Já em handoff humano?'),
         n('i_sil2', 'silence', 3, 5.9, { reason: 'lead_handoff' }, 'Silêncio (já em handoff)'),
         n('act_interest', 'action', 3, 7, { kind: 'apply_interest' }, 'Aplica interesse no CRM'),
-        n('send_triagem', 'send_template', 3, 8.1, {
+        // Fork bate-papo: se o lead recebeu o welcome v2 e respondeu "2"
+        // (interesse_amplo via BATE_PAPO_PENDENTE_NUMERIC_MAP), enviamos o
+        // template de recusa que mostra o menu de 4 interesses — em vez da
+        // triagem dinâmica padrão. Pra responder o número de interesse do
+        // menu, o lead já não terá mais a tag bate_papo_pendente.
+        n('i_gate_bp', 'condition', 3, 8.1, { expr: 'lead.is_bate_papo_pendente' }, 'Bate-papo pendente?'),
+        n('i_bp_swap_tags', 'action', 6, 9.2, { kind: 'add_tag', tag: MENU_INTERESSES_V2_TAG }, 'Marca tag menu_interesses_v2'),
+        n('i_bp_clear', 'action', 6, 10.3, { kind: 'remove_tag', tag: BATE_PAPO_PENDENTE_TAG }, 'Limpa tag bate-papo pendente'),
+        n('send_bp_recusado', 'send_template', 6, 11.4, {
+            slug: 'bate-papo-recusado',
+            bot_step: 'bate_papo_recusado',
+            contact_note: 'Lead recusou bate-papo — menu de interesses enviado',
+            fallback: 'Combinado, {nome}. Me responde com o número que mais faz sentido pro seu momento.',
+        }, 'Envia bate-papo-recusado (menu interesses)'),
+        n('end_bp_recusado', 'end', 6, 12.5, { bot_step: 'bate_papo_recusado' }, 'Resposta enviada (bate-papo recusado)'),
+        n('send_triagem', 'send_template', 3, 9.2, {
             slug: '',
             dynamic: 'triagem_by_interesse',
             bot_step: 'triagem',
             contact_note: 'Interesse identificado',
             fallback: 'Anotado, {nome}! Vou repassar para o time comercial.',
         }, 'Triagem dinâmica (triagem-{interesse})'),
-        n('end_interest', 'end', 3, 9.2, { bot_step: 'triagem' }, 'Resposta enviada (triagem)'),
+        n('end_interest', 'end', 3, 10.3, { bot_step: 'triagem' }, 'Resposta enviada (triagem)'),
 
         // ── Lane 4 — sem match (1ª mensagem / welcome) ────────────────
         n('u_gate1', 'condition', 4, 3, { expr: 'lead.optout_whatsapp' }, 'Lead em opt-out?'),
@@ -320,12 +374,15 @@ export function buildDefaultGraph(): FlowGraphV2 {
         n('u_welcome_elig', 'condition', 4, 7, { expr: 'lead.welcome_eligible' }, '1ª mensagem? (sem interesse e sem menu_enviado)'),
         n('u_sil3', 'silence', 4, 7.9, { reason: 'unknown_intent' }, 'Silêncio (já atendido — não repete welcome)'),
         n('u_mark_tag', 'action', 4, 8.6, { kind: 'add_tag', tag: 'whatsapp:menu_enviado' }, 'Marca tag menu_enviado'),
-        n('send_welcome', 'send_template', 4, 9.7, {
+        // Welcome v2: marca tag bate_papo_pendente — o classifier vai usar
+        // essa tag pra interpretar "1" como sim-agendar e "2" como só info.
+        n('u_mark_bp', 'action', 4, 9.4, { kind: 'add_tag', tag: BATE_PAPO_PENDENTE_TAG }, 'Marca tag bate-papo pendente'),
+        n('send_welcome', 'send_template', 4, 10.5, {
             slug: 'welcome-default',
             bot_step: 'welcome',
             fallback: 'Olá {nome}! Seja bem-vindo(a) à Fórmula do Boi.',
         }, 'Envia welcome (1ª mensagem)'),
-        n('end_welcome', 'end', 4, 10.8, { bot_step: 'welcome' }, 'Resposta enviada (welcome)'),
+        n('end_welcome', 'end', 4, 11.6, { bot_step: 'welcome' }, 'Resposta enviada (welcome)'),
 
         // ── Subgrafo BOAS-VINDAS / NOVO LEAD (trigger='new_lead') ─────
         // Disparado quando o lead é capturado (LP, admin, Sheets) e o VPS
@@ -375,7 +432,13 @@ export function buildDefaultGraph(): FlowGraphV2 {
         e('e_h_g1_F', 'h_gate1', 'h_gate2', 'false', 'não'),
         e('e_h_g2_T', 'h_gate2', 'h_sil2', 'true', 'sim'),
         e('e_h_g2_F', 'h_gate2', 'act_handoff', 'false', 'não'),
-        e('e_h_act',  'act_handoff', 'send_handoff'),
+        // após handoff, decide se manda Calendly (bate-papo aceito) ou consultor genérico
+        e('e_h_act',  'act_handoff', 'h_gate_bp'),
+        e('e_h_bp_T', 'h_gate_bp', 'h_bp_swap_tags', 'true', 'sim'),
+        e('e_h_bp_F', 'h_gate_bp', 'send_handoff', 'false', 'não'),
+        e('e_h_bp_swap', 'h_bp_swap_tags', 'h_bp_clear'),
+        e('e_h_bp_clear', 'h_bp_clear', 'send_bp_aceito'),
+        e('e_h_bp_send', 'send_bp_aceito', 'end_bp_aceito'),
         e('e_h_send', 'send_handoff', 'end_handoff'),
 
         // interest lane
@@ -384,7 +447,14 @@ export function buildDefaultGraph(): FlowGraphV2 {
         e('e_i_g1_F', 'i_gate1', 'i_gate2', 'false', 'não'),
         e('e_i_g2_T', 'i_gate2', 'i_sil2', 'true', 'sim'),
         e('e_i_g2_F', 'i_gate2', 'act_interest', 'false', 'não'),
-        e('e_i_act',  'act_interest', 'send_triagem'),
+        // após aplicar interesse, decide se manda menu de interesses
+        // (bate-papo recusado v2) ou triagem dinâmica padrão
+        e('e_i_act',  'act_interest', 'i_gate_bp'),
+        e('e_i_bp_T', 'i_gate_bp', 'i_bp_swap_tags', 'true', 'sim'),
+        e('e_i_bp_F', 'i_gate_bp', 'send_triagem', 'false', 'não'),
+        e('e_i_bp_swap', 'i_bp_swap_tags', 'i_bp_clear'),
+        e('e_i_bp_clear', 'i_bp_clear', 'send_bp_recusado'),
+        e('e_i_bp_send', 'send_bp_recusado', 'end_bp_recusado'),
         e('e_i_send', 'send_triagem', 'end_interest'),
 
         // unknown lane
@@ -395,7 +465,8 @@ export function buildDefaultGraph(): FlowGraphV2 {
         e('e_u_g2_F', 'u_gate2', 'u_welcome_elig', 'false', 'não'),
         e('e_u_we_T', 'u_welcome_elig', 'u_mark_tag', 'true', 'sim'),
         e('e_u_we_F', 'u_welcome_elig', 'u_sil3', 'false', 'não'),
-        e('e_u_mark', 'u_mark_tag', 'send_welcome'),
+        e('e_u_mark', 'u_mark_tag', 'u_mark_bp'),
+        e('e_u_mark_bp', 'u_mark_bp', 'send_welcome'),
         e('e_u_send', 'send_welcome', 'end_welcome'),
 
         // ── Subgrafo new_lead ─────────────────────────────────────────
@@ -543,6 +614,8 @@ function evaluateCondition(expr: ConditionExpr, lead: LeadShape | null): boolean
             return (lead?.tags_whatsapp ?? []).includes(ACADEMIA_TAG)
         case 'lead.is_matheus_audience':
             return (lead?.tags_whatsapp ?? []).includes(LISTA_MATHEUS_TAG)
+        case 'lead.is_bate_papo_pendente':
+            return (lead?.tags_whatsapp ?? []).includes(BATE_PAPO_PENDENTE_TAG)
         default:                         return false
     }
 }
@@ -607,6 +680,14 @@ async function applyInteresseAction(supabase: SupabaseClient, lead: LeadShape, i
 async function addTag(supabase: SupabaseClient, lead: LeadShape, tag: string) {
     const tags = new Set(lead.tags_whatsapp ?? [])
     tags.add(tag)
+    await supabase.from('crm_leads').update({ tags_whatsapp: [...tags] }).eq('id', lead.id)
+    lead.tags_whatsapp = [...tags]
+}
+
+async function removeTag(supabase: SupabaseClient, lead: LeadShape, tag: string) {
+    const tags = new Set(lead.tags_whatsapp ?? [])
+    if (!tags.has(tag)) return
+    tags.delete(tag)
     await supabase.from('crm_leads').update({ tags_whatsapp: [...tags] }).eq('id', lead.id)
     lead.tags_whatsapp = [...tags]
 }
@@ -759,6 +840,8 @@ export async function runFlow(
                     }
                 } else if (kind === 'add_tag') {
                     if (lead && node.data.tag) await addTag(supabase, lead, node.data.tag)
+                } else if (kind === 'remove_tag') {
+                    if (lead && node.data.tag) await removeTag(supabase, lead, node.data.tag)
                 }
                 currentId = pickNext(node.id)
                 break

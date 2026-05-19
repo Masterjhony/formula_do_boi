@@ -2231,6 +2231,7 @@ const CONDITION_OPTIONS: { value: ConditionExpr; label: string }[] = [
     { value: "lead.welcome_eligible",      label: "Elegível p/ welcome (sem interesse e sem menu)?" },
     { value: "lead.is_academia_audience",  label: "Lead é Academia Nelore P.O? (tag grupo_academia_nelore_po)" },
     { value: "lead.is_matheus_audience",   label: "Lead é Lista Matheus institucional? (tag lista_matheus_personalizada)" },
+    { value: "lead.is_bate_papo_pendente", label: "Bate-papo pendente? (welcome v2 enviado, aguardando resposta)" },
 ]
 
 const ACTION_OPTIONS: { value: ActionKind; label: string; needsTag?: boolean }[] = [
@@ -2239,6 +2240,7 @@ const ACTION_OPTIONS: { value: ActionKind; label: string; needsTag?: boolean }[]
     { value: "apply_handoff",     label: "Marcar handoff humano" },
     { value: "apply_interest",    label: "Aplicar interesse classificado" },
     { value: "add_tag",           label: "Adicionar tag em tags_whatsapp", needsTag: true },
+    { value: "remove_tag",        label: "Remover tag de tags_whatsapp", needsTag: true },
 ]
 
 function SidePanel({
@@ -2307,8 +2309,8 @@ function SidePanel({
                                 {ACTION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </select>
                         </Field>
-                        {cfg.kind === "add_tag" && (
-                            <Field label="Tag a adicionar">
+                        {(cfg.kind === "add_tag" || cfg.kind === "remove_tag") && (
+                            <Field label={cfg.kind === "add_tag" ? "Tag a adicionar" : "Tag a remover"}>
                                 <input
                                     type="text"
                                     value={cfg.tag ?? ""}

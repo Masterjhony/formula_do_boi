@@ -70,6 +70,28 @@ export const ACADEMIA_TAG = 'grupo_academia_nelore_po';
 export const LISTA_MATHEUS_TAG = 'lista_matheus_personalizada';
 
 /**
+ * Tags de estado do welcome v2 (convite ao bate-papo com o Matheus).
+ *
+ *  - `whatsapp:bate_papo_pendente` é setada ao enviar `welcome-default` v2 e
+ *    indica que o lead ainda não respondeu se quer agendar a conversa. Nessa
+ *    janela, "1" = sim agendar (kind 'human') e "2" = só info (kind 'interest'
+ *    com `interesse_amplo` — serve como sinal pra mostrar o menu de
+ *    interesses no template `bate-papo-recusado`).
+ *
+ *  - `whatsapp:bate_papo_aceito` é setada quando o lead aceita o bate-papo.
+ *    Existe pra timeline/CRM; o classifier não usa.
+ *
+ *  - `whatsapp:menu_interesses_v2` é setada quando o lead recusa o bate-papo
+ *    e recebe o menu de interesses (`bate-papo-recusado`). Nesse estado os
+ *    dígitos 1..4 voltam a ter o significado normal do DEFAULT_NUMERIC_MAP
+ *    (sêmen / embriões / compra-venda / todos) — basta a ausência de
+ *    `bate_papo_pendente` pra que o mapping default volte a valer.
+ */
+export const BATE_PAPO_PENDENTE_TAG = 'whatsapp:bate_papo_pendente';
+export const BATE_PAPO_ACEITO_TAG   = 'whatsapp:bate_papo_aceito';
+export const MENU_INTERESSES_V2_TAG = 'whatsapp:menu_interesses_v2';
+
+/**
  * Mapeamento numérico do welcome institucional da Academia do Nelore P.O:
  *   1 — Sêmen
  *   2 — Embriões
@@ -135,6 +157,27 @@ const DEFAULT_NUMERIC_MAP: Record<string, Classification> = {
     '2': { kind: 'interest', interesse: 'embrioes' },
     '3': { kind: 'interest', interesse: 'compra_venda_genetica' },
     '4': { kind: 'interest', interesse: 'interesse_amplo' },
+};
+
+/**
+ * Mapeamento numérico do welcome v2 (convite ao bate-papo com o Matheus).
+ * Só vale enquanto o lead tem a tag `BATE_PAPO_PENDENTE_TAG` — ou seja, na
+ * janela entre receber o welcome e responder se topa ou não a conversa:
+ *
+ *   1 — Sim, agendar bate-papo  → kind 'human' (lane do handoff bifurca pra
+ *                                  enviar `bate-papo-aceito` com o link do
+ *                                  Calendly em vez de `consultor-handoff`).
+ *   2 — Não, só info por aqui  → kind 'interest' / interesse_amplo (a lane do
+ *                                  interesse bifurca pra enviar
+ *                                  `bate-papo-recusado` com o menu de
+ *                                  interesses).
+ *
+ * Quando o lead sai dessa janela (tag `BATE_PAPO_PENDENTE_TAG` removida pelo
+ * grafo após responder), o DEFAULT_NUMERIC_MAP volta a valer normalmente.
+ */
+const BATE_PAPO_PENDENTE_NUMERIC_MAP: Record<string, Classification> = {
+    '1': { kind: 'human' },
+    '2': { kind: 'interest', interesse: 'interesse_amplo' },
 };
 
 /**
@@ -230,6 +273,11 @@ function isListaMatheusAudience(ctx?: ClassifyContext): boolean {
     return ctx.tags.includes(LISTA_MATHEUS_TAG);
 }
 
+function isBatePapoPendente(ctx?: ClassifyContext): boolean {
+    if (!ctx?.tags) return false;
+    return ctx.tags.includes(BATE_PAPO_PENDENTE_TAG);
+}
+
 export function classifyMessage(text: string, ctx?: ClassifyContext): Classification {
     const raw = (text || '').trim();
     if (!raw) return { kind: 'unknown' };
@@ -250,6 +298,14 @@ export function classifyMessage(text: string, ctx?: ClassifyContext): Classifica
     const onlyNumber = raw.match(/^([1-7])\s*[️⃣]?$/);
     if (onlyNumber) {
         const digit = onlyNumber[1];
+        // Estado "bate-papo pendente" (welcome v2 enviado, lead ainda não
+        // respondeu se topa a conversa) tem prioridade absoluta: enquanto a
+        // tag estiver presente, 1 = sim agendar e 2 = só info. A tag é
+        // removida pelo grafo após a resposta, voltando aos mapeamentos
+        // normais por audiência.
+        if (isBatePapoPendente(ctx) && BATE_PAPO_PENDENTE_NUMERIC_MAP[digit]) {
+            return BATE_PAPO_PENDENTE_NUMERIC_MAP[digit];
+        }
         // Audiências específicas têm prioridade sobre o mapeamento default.
         // Lista Matheus institucional > Academia > default. Um lead pode ter
         // as duas tags se passou pelos dois fluxos — Matheus é o mais novo.
