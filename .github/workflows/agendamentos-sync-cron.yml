@@ -1,0 +1,48 @@
+name: Sync agendamentos Calendly
+
+# Runs the Google Calendar -> Supabase sync for Calendly bookings.
+# Vercel Hobby does not support sub-daily cron, so this uses GitHub Actions.
+#
+# Required repository secret:
+#   WHATSAPP_GROUP_TASK_SECRET - same value configured in Vercel Production.
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: agendamentos-sync-cron
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Sync Calendly bookings
+        env:
+          WHATSAPP_GROUP_TASK_SECRET: ${{ secrets.WHATSAPP_GROUP_TASK_SECRET }}
+          CRON_URL: https://admin.formuladoboi.com/api/agendamentos/sync
+        run: |
+          if [ -z "$WHATSAPP_GROUP_TASK_SECRET" ]; then
+            echo "::error::Secret WHATSAPP_GROUP_TASK_SECRET is missing."
+            exit 1
+          fi
+
+          response=$(curl -sS -w "\n%{http_code}" --fail-with-body \
+            -H "x-webhook-secret: $WHATSAPP_GROUP_TASK_SECRET" \
+            "$CRON_URL")
+          status=$?
+
+          body=$(echo "$response" | head -n -1)
+          http_code=$(echo "$response" | tail -n 1)
+
+          echo "HTTP $http_code"
+          echo "Response: $body"
+
+          if [ "$status" -ne 0 ]; then
+            echo "::error::Sync endpoint failed (HTTP $http_code)."
+            exit 1
+          fi
