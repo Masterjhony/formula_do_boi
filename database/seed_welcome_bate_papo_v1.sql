@@ -45,12 +45,17 @@ INSERT INTO public.whatsapp_templates (slug, title, category, body, variables) V
     '["nome"]'::jsonb
 ),
 
--- 2. Bate-papo aceito — envia o link do Calendly
+-- 2. Bate-papo aceito — envia o link curto da agenda
+-- IMPORTANTE: usa o link público `formuladoboi.com/agendar` em vez do slug
+-- interno do Calendly. A rota faz 302 pra URL configurada em
+-- `site_settings.agendamentos_calendar.calendly_event_url` — assim o cliente
+-- vê o domínio da empresa, e a gente pode trocar a ferramenta de agendamento
+-- depois sem reescrever template.
 (
     'bate-papo-aceito',
-    'Bate-papo · aceito (link Calendly)',
+    'Bate-papo · aceito (link agendamento)',
     'agendamento',
-    E'Que ótimo, {nome}.\n\nVou te mandar o link da minha agenda — escolhe o horário que te atende melhor (dias úteis, das 14h às 16h30, horário de Brasília):\n\nhttps://calendly.com/joaoeduardo-lp1/contato-cliente\n\nAssim que você confirmar pelo Calendly, recebo aqui e te ligo no horário marcado. Se precisar de outro horário, é só me avisar por aqui mesmo.',
+    E'Que ótimo, {nome}.\n\nVou te mandar o link da minha agenda — escolhe o horário que te atende melhor (dias úteis, das 14h às 16h30, horário de Brasília):\n\nhttps://formuladoboi.com/agendar\n\nAssim que você confirmar, recebo aqui e te ligo no horário marcado. Se precisar de outro horário, é só me avisar por aqui mesmo.',
     '["nome"]'::jsonb
 ),
 

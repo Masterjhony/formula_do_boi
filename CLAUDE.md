@@ -476,11 +476,19 @@ sem essa tag):
 | `4`   | `interest` → `interesse_amplo`                           | `triagem-interesse-amplo`         |
 
 **Integração com `/web-admin/agendamentos`** — o template `bate-papo-aceito`
-manda o link canônico do Calendly (`calendly.com/joaoeduardo-lp1/contato-cliente`,
-mesmo URL de `site_settings.agendamentos_calendar.calendly_event_url`). Quando
-o lead reserva no Calendly, o evento aparece no Google Calendar configurado
-e o cron `/api/agendamentos/sync` (a cada ~5 min) materializa em `agendamentos`
-com auto-vínculo ao `crm_leads` por e-mail/telefone — não há criação manual de
+e o template manual `agendamento-link` mandam o **link curto público**
+`https://formuladoboi.com/agendar` (rota em
+[src/app/web-site/agendar/route.ts](src/app/web-site/agendar/route.ts)), e
+não o slug interno do Calendly. A rota faz 302 pra URL real configurada em
+`site_settings.agendamentos_calendar.calendly_event_url`, escondendo do
+cliente que a conta gratuita do Calendly está sob um usuário pessoal
+(`joaoeduardo-lp1`). Vantagens: (1) o cliente vê o domínio da Fórmula do Boi,
+(2) trocar Calendly por outra ferramenta no futuro é uma alteração de
+setting (não precisa reescrever template/mensagem), (3) UTMs/`?lead=` na URL
+de entrada são preservadas e repassadas pro Calendly. Quando o lead reserva,
+o evento aparece no Google Calendar configurado e o cron
+`/api/agendamentos/sync` (a cada ~5 min) materializa em `agendamentos` com
+auto-vínculo ao `crm_leads` por e-mail/telefone — não há criação manual de
 registro no momento do envio do link. Ver seção *Agendamentos (Calendly ×
 Google Calendar)*.
 
