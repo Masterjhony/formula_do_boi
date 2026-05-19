@@ -26,6 +26,8 @@ No test suite is configured. `playwright` is in devDependencies but no test runn
 | `erp.*` | `/web-erp` | Internal ERP (financeiro, contábil, estoque, leilões) |
 | `adminbula.*` | `/web-bula` | Bula auction platform (CRM, fechamentos, cronograma) |
 
+> **Central de E-mail Marketing.** A página `/web-admin/email` é o espelho da Central WhatsApp para campanhas por e-mail. Usa o SMTP da Hostinger já configurado em [src/lib/email.ts](src/lib/email.ts) — **não** depende de microserviço externo nem de provedor SaaS (sem Resend/SES). Tabelas próprias (`email_templates`, `email_campaigns`, `email_campaign_steps`, `email_campaign_recipients`, `email_optouts`, `email_messages`), sequência multi-step com `next_send_at` processada pelo cron `/api/email/central/campaigns/cron`, link de unsubscribe assinado (HMAC) em todo rodapé. **Limite operacional**: SMTP Hostinger compartilhado capa em ~100-300 e-mails/dia — o cron processa em lotes de 30 com 800ms entre envios. Detalhes na seção *Central de E-mail Marketing* no fim deste arquivo.
+
 > **Catálogos WhatsApp (segunda sessão Baileys, mesmo VPS).** A página `/web-admin/catalogos-whatsapp` controla um SEGUNDO container Baileys (`formula_boi_whatsapp_catalogs`, porta 3002, auth folder `/opt/whatsapp-catalogs-auth`, número WhatsApp DIFERENTE da Central). Esse container monitora grupos configurados em `whatsapp_catalog_groups`, baixa PDFs anexados, sobe ao R2 e chama `/api/whatsapp-catalogos/webhook`. O Next.js casa o nome do arquivo com `cronograma_leiloes.nome` (fuzzy match, ver `src/lib/whatsapp-catalogs.ts`) e, quando há match confiante, escreve `cronograma_leiloes.catalogo_url` automaticamente. As detecções ambíguas/sem match ficam pendentes pro operador resolver pela aba Detecções. Detalhes operacionais na seção *Catálogos WhatsApp (segunda sessão Baileys)* no fim deste arquivo.
 
 > **PostHog (Product Analytics + Session Replay).** Roda **apenas** no site público (`/web-site`) e na LP (`/web-lp`) — `admin.*`, `erp.*` e `adminbula.*` ficam de fora por privacidade do operador. Provider React em [src/providers/PostHogProvider.tsx](src/providers/PostHogProvider.tsx); HTMLs estáticos da LP recebem snippet inline via [src/lib/posthog-snippet.ts](src/lib/posthog-snippet.ts). Eventos custom (`lp_form_submit`, `whatsapp_cta_click`, `lote_view`, `lote_reserva_click`) declarados em [`EventName`](src/lib/posthog-client.ts). Painel `/web-admin/analytics` consome HogQL via `POSTHOG_PERSONAL_API_KEY`. Detalhes na seção *PostHog — instrumentação* no fim deste arquivo.
@@ -61,7 +63,7 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 | Table | Purpose |
 |-------|---------|
 | `products` | Livestock catalog (touros, matrizes, embriões, sêmen). `details`, `genealogia_json`, `avaliacao_genetica_json` are JSONB. |
-| `crm_leads` | Sales pipeline. `position` drives Kanban ordering. UTM/attribution fields (`source`, `medium`, `campaign`, `utm_content`, `utm_term`, `gclid`, `fbclid`, `referrer`, `landing_url`) are populated by `/api/lp/lead`. **Central WhatsApp** adiciona: `interesse_principal`, `tags_whatsapp` (JSONB), `last_whatsapp_at`, `handoff_humano`, `handoff_at`, `handoff_responsavel`, `optout_whatsapp`, `optout_at`. |
+| `crm_leads` | Sales pipeline. `position` drives Kanban ordering. UTM/attribution fields (`source`, `medium`, `campaign`, `utm_content`, `utm_term`, `gclid`, `fbclid`, `referrer`, `landing_url`) are populated by `/api/lp/lead`. **Central WhatsApp** adiciona: `interesse_principal`, `tags_whatsapp` (JSONB), `last_whatsapp_at`, `handoff_humano`, `handoff_at`, `handoff_responsavel`, `optout_whatsapp`, `optout_at`. **Central de E-mail** adiciona: `optout_email`, `optout_email_at`, `last_email_at`. |
 | `profiles` | User roles (`admin` / `user`); references `auth.users`. |
 | `breeders` | Breeder registry. |
 | `whatsapp_messages` | Log conversacional. Colunas-chave: `direction` (inbound/outbound), `body`, `origin` (lp\|webhook\|manual\|campanha\|central-bot), `bot_step`, `campaign_id`, `template_id`, `lead_id`. |
@@ -70,6 +72,12 @@ Migrations live in [/database/](database/) (~120 files, one per change). They ar
 | `whatsapp_campaign_steps` | Passos adicionais (1+) da sequência de follow-up; o passo 0 vive na própria campanha. Cada step tem `delay_value`/`delay_unit` (minutes\|hours\|days) relativo ao passo anterior + conteúdo (template ou body ou mídia). |
 | `whatsapp_campaign_recipients` | Destinatários materializados ao disparar a campanha. Status: `pendente\|enviado\|falhou\|optout`. Estado da sequência: `current_step`, `next_send_at`, `replied_at`, `stopped_at`, `stopped_reason` (`replied\|optout\|handoff\|interest\|completed\|cancelled\|error`). |
 | `whatsapp_optouts` | Cache rápido de opt-outs por número (PK = phone). Espelhado em `crm_leads.optout_whatsapp`. |
+| `email_templates` | Biblioteca de templates HTML reutilizáveis da Central de E-mail (slug único, subject, body_html, body_text, variables, category, archived, usage_count). |
+| `email_campaigns` | Campanhas segmentadas por e-mail. Mesmo padrão de `whatsapp_campaigns` mas com `subject`/`body_html`/`body_text`/`from_name`/`reply_to`. Status: `rascunho\|enviando\|concluida\|cancelada\|erro`. Regras de parada: `stop_on_optout`, `stop_on_interest`. `audience_tag` (string) é aplicada em `crm_leads.tags_whatsapp` ao disparar. |
+| `email_campaign_steps` | Passos 1+ da sequência de follow-up por e-mail. Mesmo modelo de `whatsapp_campaign_steps` (`delay_value`/`delay_unit` relativo ao passo anterior, conteúdo via `template_id` OU `subject`+`body_html`). |
+| `email_campaign_recipients` | Destinatários materializados ao disparar. Status: `pendente\|enviado\|falhou\|optout`. Sequência: `current_step`, `next_send_at`, `stopped_at`, `stopped_reason` (`optout\|interest\|completed\|cancelled\|error\|bounce`). |
+| `email_optouts` | Cache rápido de opt-outs por endereço de e-mail (PK = email lowercased). Espelhado em `crm_leads.optout_email`. |
+| `email_messages` | Log conversacional de envios por e-mail. Colunas: `direction` (sempre `outbound` por enquanto — Hostinger não dá inbound webhook), `subject`, `body_html`, `body_text`, `status` (`queued\|sent\|failed`), `origin` (`campanha\|template\|manual\|sistema`), `campaign_id`, `template_id`, `recipient_id`. |
 | `site_settings` | Feature flags and configuration (key/JSONB). Key `whatsapp_flow` stores legacy automation config; key `whatsapp_flow_v2` é fallback do grafo (compat — fonte da verdade nova é `whatsapp_flows`). |
 | `whatsapp_flows` | Múltiplos fluxos nomeados (grafos completos). Apenas UM `is_active=true` por vez (constraint UNIQUE parcial). Colunas-chave: `graph` (JSONB v2), `settings` (JSONB — parâmetros do fluxo: rate limit, horário permitido, fuso etc — lidos por `loadActiveFlowWithSettings()`), `last_activated_at` (timestamp de última ativação). Inbound e render-welcome consultam o ativo. Operador cria variantes e troca o ativo em 1 clique. Migrations: `database/whatsapp_flows.sql` + `database/whatsapp_flows_settings.sql`. |
 | `signup_verification_codes` | 6-digit signup codes (SHA-256 hash, expires_at, attempts). |
@@ -248,6 +256,21 @@ All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
 | `/api/clicksign/cancel/[contractId]` | POST | Admin-only. Cancela o documento no ClickSign e marca o contrato como `Cancelado`. |
 | `/api/clicksign/webhook` | POST, GET | Recebe eventos do ClickSign (assinatura, recusa, auto_close, cancel). Valida `Content-Hmac: sha256=<hex>` se `CLICKSIGN_HMAC_SECRET` estiver configurado. Atualiza `tactical_contracts` automaticamente. |
 
+### Central de E-mail Marketing
+| Route | Methods | Purpose |
+|-------|---------|---------|
+| `/api/email/central/templates` | GET, POST | Lista/cria templates HTML. POST gera `slug` a partir do título se não informado. |
+| `/api/email/central/templates/[id]` | PUT, DELETE | Atualiza ou arquiva template (DELETE = soft delete via `archived=true` pra preservar referências em campanhas concluídas). |
+| `/api/email/central/campaigns` | GET, POST | Lista campanhas com contadores agregados (`steps_count`, `stopped_count`) / cria campanha em rascunho. |
+| `/api/email/central/campaigns/[id]` | GET, PUT, DELETE | Detalhe + recipients + steps. PUT/DELETE só em rascunho. |
+| `/api/email/central/campaigns/[id]/steps` | GET, POST | Lista/cria passos (1+) da sequência. Só em rascunho. |
+| `/api/email/central/campaigns/[id]/steps/[stepId]` | PUT, DELETE | Edita ou remove um passo (reordena os sucessores). Só em rascunho. |
+| `/api/email/central/campaigns/[id]/send` | POST | Resolve segmento → materializa em `email_campaign_recipients` (com `current_step=1`, `next_send_at` se houver follow-up) → envia passo 0 sequencialmente via SMTP (throttle 800ms). |
+| `/api/email/central/campaigns/preview` | POST | Pré-visualiza público (count + amostra) sem materializar. |
+| `/api/email/central/campaigns/cron` | GET | Cron externo (mesmo padrão WhatsApp). Processa recipients com `next_send_at <= now()` em lotes de **30** (conservador pro SMTP Hostinger). Aplica regras de parada, envia próximo step pelo SMTP, avança `current_step`. Auth via `Authorization: Bearer ${CRON_SECRET}` OU `x-webhook-secret: ${WHATSAPP_GROUP_TASK_SECRET}`. |
+| `/api/email/central/metrics` | GET | Métricas operacionais (campanhas totais/ativas, enviados/falhas 7d, opt-outs, leads com e-mail). |
+| `/api/email/unsubscribe` | GET | **Público.** Recebe `?email=...&token=...` (HMAC SHA-256 com `WHATSAPP_GROUP_TASK_SECRET`). Valida o token e marca `email_optouts` + `crm_leads.optout_email=true`. Renderiza HTML simples de confirmação. |
+
 ### External proxy
 | Route | Methods | Purpose |
 |-------|---------|---------|
@@ -267,6 +290,9 @@ All four group endpoints validate `x-webhook-secret: WHATSAPP_GROUP_TASK_SECRET`
 | `crm-types.ts` | CRM TypeScript interfaces. |
 | `bula/queries.ts`, `bula/types.ts` | Shared Supabase queries and types for the Bula APIs. |
 | `posthog-client.ts` | Helper client-side: `trackEvent(name, props)`, `identifyLead(distinctId, traits)`, `resetPosthog()`. `EventName` é o type literal das chaves custom — adicione um novo evento aqui antes de chamá-lo. |
+| `email-marketing.ts` | Camada de envio de campanhas por e-mail. `sendCampaignEmail()` faz o envio respeitando opt-out e loga em `email_messages`. `renderEmail()` interpola `{nome}`, `{email}` e `{{UNSUBSCRIBE_URL}}`. `signUnsubscribeToken()`/`verifyUnsubscribeToken()` geram/validam tokens HMAC-SHA256 com `WHATSAPP_GROUP_TASK_SECRET`. `setEmailOptout()` marca opt-out (cache + lead). `addDelay()`/`firstName()`/`renderTemplate()` espelham os helpers do WhatsApp. |
+| `email-segment.ts` | `resolveEmailSegment()` — resolve JSON de segmento em query Supabase contra `crm_leads`. Sempre aplica `optout_email=false` + `email NOT NULL` + email contém `@`. Mesmos filtros do WhatsApp (`interesse_principal`, `stage`, `status`, `tags_whatsapp_includes`, `updated_after`). |
+| `email-campaign-step.ts` | `resolveEmailStepContent()` — mescla step + template (step sobrescreve campos vazios do template) e retorna `{subject, body_html, body_text, template_slug}` pra renderização. |
 | `posthog-snippet.ts` | `buildPosthogSnippet()` / `injectPosthogIntoHtml(html)` — geram o `<script>` PostHog para injetar nos HTMLs estáticos da LP que são servidos por route handlers (não passam pelo `PostHogProvider` React). |
 
 ## Environment Variables
@@ -604,3 +630,53 @@ do operador interno, **não** roda em `admin.*`, `erp.*` nem `adminbula.*`.
 2. Chame `trackEvent('nome_do_evento', { ...props })` no componente cliente.
 3. (Opcional) Faça `identifyLead(distinctId, traits)` antes se quiser que o replay/funil associe ao lead.
 4. Eventos aparecem no painel admin em até ~1 min (cache da HogQL).
+
+### Central de E-mail Marketing
+
+Espelha 1-pra-1 a arquitetura da Central WhatsApp (`whatsapp_campaigns`/`_steps`/`_recipients`/`_templates`) mas pra e-mail. Página admin em `/web-admin/email` com 3 abas (deep-link via `?tab=`):
+
+- **Campanhas** (default, sem `?tab`) — lista campanhas, modal de criação/edição com segmento (interesse_principal multi-select, stage, audience_tag), preview do público, regras de parada e sequência multi-step. CRUD em `/api/email/central/campaigns/*`.
+- **Templates** — CRUD de templates HTML reutilizáveis. Editor com textarea pro `body_html` + preview via `<iframe srcDoc>`. Suporta `{nome}`, `{email}` e `{{UNSUBSCRIBE_URL}}`.
+- **Métricas** — totais (campanhas, sent_7d, failed_7d, opt-outs, leads c/ e-mail) + taxa de entrega 7d. Avisa o operador sobre o limite Hostinger.
+
+**Por que SMTP Hostinger (não Resend/SES):** decisão explícita do operador em 2026-05-19 — "precisa ser pelo provedor da Hostinger mesmo". Trade-offs aceitos:
+- Limite ~100-300 e-mails/dia (Hostinger compartilhado).
+- Sem webhook de bounce/open/click — métricas limitadas a "tentou enviar / falhou no SMTP" (sem confirmação real de entrega).
+- IP/reputação compartilhado com outros sites Hostinger — risco de spam se a lista azedar.
+
+**Implicações no design:**
+- Cron `/api/email/central/campaigns/cron` processa em lotes pequenos (BATCH_SIZE=30, 800ms entre envios). Configurar cron externo (cron-job.org / GitHub Actions) a cada 5-10 min, com `x-webhook-secret: ${WHATSAPP_GROUP_TASK_SECRET}` (mesmo segredo do WhatsApp).
+- O painel **Métricas** mostra um aviso permanente sobre o limite. Pra listas grandes (> 100), o operador divide em múltiplas campanhas escalonadas.
+- `email_messages` é só **outbound** — Hostinger não dá inbound webhook. Pra acompanhar respostas, operador usa a caixa de entrada IMAP direto (contato@formuladoboi.com).
+
+**Templates seed** (em [database/central_email_marketing.sql](database/central_email_marketing.sql)):
+- `welcome-email-default` — boas-vindas voz Matheus 1ª pessoa.
+- `newsletter-base` — template base de newsletter.
+- `aviso-leilao-email` — aviso de leilão com CTA pro catálogo.
+
+Todos têm `{{UNSUBSCRIBE_URL}}` no rodapé. Se o operador esquecer, [src/lib/email-marketing.ts](src/lib/email-marketing.ts) injeta um rodapé padrão automaticamente antes de `</body>`.
+
+**Unsubscribe (LGPD):** endpoint **público** `/api/email/unsubscribe?email=...&token=...` — o token é HMAC-SHA256 do e-mail normalizado, assinado com `WHATSAPP_GROUP_TASK_SECRET`. Validação em tempo constante (`timingSafeEqual`). Quando válido: insere em `email_optouts`, marca `optout_email=true` em todos os leads com aquele e-mail, retorna HTML simples confirmando.
+
+**Opt-out vs WhatsApp:** opt-outs são **independentes** entre canais. Um lead pode estar `optout_whatsapp=true` mas `optout_email=false` (e vice-versa) — útil pra reativação por outro canal quando o lead pediu pra parar em só um.
+
+**Tabelas:**
+- `email_templates` — biblioteca (slug único).
+- `email_campaigns` — campanha (passo 0 + segmento + regras de parada).
+- `email_campaign_steps` — passos 1+ (follow-up).
+- `email_campaign_recipients` — destinatários materializados ao disparar (com `current_step`, `next_send_at`).
+- `email_optouts` — cache rápido por e-mail (PK = email lowercased).
+- `email_messages` — log de cada envio (sent/failed).
+
+**Variáveis de ambiente** (mesmas do `src/lib/email.ts` já existentes):
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
+- `WHATSAPP_GROUP_TASK_SECRET` — usado pra assinar tokens de unsubscribe E autorizar o cron de e-mail (reaproveita o segredo já existente).
+- `NEXT_PUBLIC_SITE_URL` — base do link de unsubscribe (fallback `https://formuladoboi.com`).
+
+**Pitfall conhecido:** se você editar template em `email_templates` enquanto uma campanha está com `status='enviando'`, o cron pega a versão NOVA do template no próximo step. Isso é intencional (operador pode corrigir typo em campanha rolando), mas vale lembrar.
+
+**Adicionar uma campanha em código (programaticamente):**
+1. INSERT em `email_campaigns` com `status='rascunho'`.
+2. (Opcional) INSERT em `email_campaign_steps` pra cada follow-up.
+3. POST em `/api/email/central/campaigns/[id]/send` (Admin auth) — materializa recipients e dispara passo 0.
+4. Cron pega o resto automaticamente.
