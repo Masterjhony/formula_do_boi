@@ -201,20 +201,21 @@ export interface LeadShape {
 /**
  * Reproduz o comportamento real do inbound da Central em forma de grafo.
  *
- * A engine só roda quando uma inbound chega do VPS (após o gate de pausa global
- * em /api/whatsapp/inbound). A primeira mensagem (welcome) é disparada em DOIS
- * lugares e este grafo cobre apenas o segundo — o primeiro está documentado no
- * painel "Como o welcome é disparado" no editor:
- *   • LP/admin: lead novo → dispatchWelcome() respeita opt-out + dedup 24h e
- *     pede ao VPS render-welcome (template welcome-default). NÃO passa por
- *     esta engine.
- *   • Inbound desconhecido: chega aqui, classifica como "sem match", aplica
- *     gates (opt-out / handoff) e envia welcome SE o lead ainda não tem
- *     interesse_principal e não tem a tag whatsapp:menu_enviado — ramo "Sem
- *     match" deste grafo, abaixo.
+ * Diretiva operacional (2026-05-19): o bot **só** executa três fluxos —
+ * (1) welcome no novo lead, (2) agendamento ao aceitar bate-papo,
+ * (3) registro de interesse via menu. Qualquer outra inbound vai pro
+ * Inbox em silêncio pra que o Matheus trate manualmente. Não há mais
+ * auto-welcome em mensagens espontâneas de estranhos, nem handoff
+ * automático com mensagem genérica. Demais automações ficam pra campanhas.
  *
- * Estrutura do grafo (5 lanes, da esquerda pra direita: opt-out, resubscribe,
- * humano, interesse, sem match):
+ * Pontos de envio do welcome:
+ *   • LP/admin/Sheets: lead novo → dispatchWelcome() respeita opt-out + dedup
+ *     24h e pede ao VPS render-welcome. Esse caminho NÃO passa por esta engine;
+ *     a tag `bate_papo_pendente` é aplicada direto no /api/whatsapp/render-welcome.
+ *   • Inbound espontâneo de estranho: cria lead, classifica → unknown → silêncio.
+ *     Bot NÃO manda welcome automático nesse caso. Matheus trata pelo Inbox.
+ *
+ * Estrutura do grafo:
  *
  *   ─── Subgrafo "Inbound" (trigger='inbound') ────────────────────────
  *   start → classify (5 saídas)
@@ -222,21 +223,17 @@ export interface LeadShape {
  *   classify[resubscribe] → action(reativar lead)    → send(resubscribe-msg)    → end
  *   classify[human]       → gate(opt-out?)─sim→ silêncio
  *                                          ─não→ gate(handoff?)─sim→ silêncio
- *                                                                ─não→ action(marcar handoff)
- *                                                                     → gate(bate-papo pendente?)
- *                                                                         ─sim→ action(tag aceito + remove pendente)
+ *                                                                ─não→ gate(bate-papo pendente?)
+ *                                                                         ─sim→ action(marcar handoff)
+ *                                                                              → action(tag aceito + remove pendente)
  *                                                                              → send(bate-papo-aceito) → end
- *                                                                         ─não→ send(consultor-handoff) → end
+ *                                                                         ─não→ silêncio (Matheus trata manual)
  *   classify[interest]    → mesmos gates → action(aplicar interesse)
  *                                          → gate(bate-papo pendente?)
  *                                              ─sim→ action(tag menu_interesses_v2 + remove pendente)
  *                                                   → send(bate-papo-recusado) → end
  *                                              ─não→ send(triagem dinâmica) → end
- *   classify[unknown]     → mesmos gates → gate(elegível p/ welcome?)
- *                                              ─sim→ action(tag menu_enviado)
- *                                                  → action(tag bate_papo_pendente)
- *                                                  → send(welcome-default) → end
- *                                              ─não→ silêncio (já foi atendido / já recebeu menu)
+ *   classify[unknown]     → silêncio (sem auto-welcome — Matheus trata)
  *
  *   ─── Subgrafo "Boas-vindas" (trigger='new_lead') ────────────────────
  *   start[new_lead] → gate(Academia?)─sim→ send(welcome-academia-nelore-po) → end
@@ -248,20 +245,13 @@ export interface LeadShape {
  *   'new_lead' para decidir qual slug o /api/whatsapp/render-welcome deve
  *   renderizar quando o VPS pedir o welcome (chamada do dispatchWelcome).
  *
- *   Importante: o subgrafo new_lead NÃO aplica a tag `bate_papo_pendente`
- *   diretamente — ela é aplicada na lane "sem match" quando o welcome é
- *   enviado pelo subgrafo de inbound. Como o welcome inicial via render-welcome
- *   também usa `welcome-default`, anotamos a tag no callback de envio só
- *   quando o lead realmente recebe o welcome através da lane inbound (que é
- *   o caso quando o lead manda primeira mensagem sem ter sido importado
- *   antes). Pra leads importados que recebem welcome pelo dispatchWelcome
- *   (LP/admin), a tag é aplicada lá no flow de captura.
+ *   A tag `bate_papo_pendente` é aplicada direto em /api/whatsapp/render-welcome
+ *   quando o slug resolvido é `welcome-default` — não há ação dela neste grafo
+ *   porque `resolveWelcomeDispatch` ignora nodes de ação por design.
  */
 export function buildDefaultGraph(): FlowGraphV2 {
     // 5 colunas (uma por classificação) — o subgrafo new_lead vai abaixo.
-    // Posições extras (5, 6) são offsets visuais para os ramos do bate-papo
-    // (col 5 = entre resubscribe e humano, col 6 = entre interesse e unknown).
-    const COL = [80, 380, 680, 980, 1280, 530, 1130]
+    const COL = [80, 380, 680, 980, 1280]
     const ROW = (n: number) => 60 + n * 120
 
     const n = (
@@ -309,54 +299,47 @@ export function buildDefaultGraph(): FlowGraphV2 {
         }, 'Mensagem de reativação'),
         n('end_resub', 'end', 1, 5.2, { bot_step: 'resubscribe' }, 'Resposta enviada (resubscribe)'),
 
-        // ── Lane 2 — humano (lead pediu falar com gente) ───────────────
+        // ── Lane 2 — humano ────────────────────────────────────────────
+        // Só responde quando vem do welcome v2 (lead respondeu "1"). Fora
+        // dessa janela, Matheus trata manualmente pelo Inbox — não há mais
+        // mensagem automática genérica de "pode falar, te respondo aqui".
         n('h_gate1', 'condition', 2, 3, { expr: 'lead.optout_whatsapp' }, 'Lead em opt-out?'),
         n('h_sil1', 'silence', 2, 3.9, { reason: 'lead_optout' }, 'Silêncio (lead em opt-out)'),
         n('h_gate2', 'condition', 2, 5, { expr: 'lead.handoff_humano' }, 'Já em handoff humano?'),
         n('h_sil2', 'silence', 2, 5.9, { reason: 'lead_handoff' }, 'Silêncio (já em handoff)'),
-        n('act_handoff', 'action', 2, 7, { kind: 'apply_handoff' }, 'Marca handoff humano'),
-        // Fork bate-papo: se o lead recebeu o welcome v2 e respondeu "1", o
-        // kind 'human' foi disparado pelo BATE_PAPO_PENDENTE_NUMERIC_MAP —
-        // mandamos o link do Calendly em vez do consultor-handoff genérico.
-        n('h_gate_bp', 'condition', 2, 8.1, { expr: 'lead.is_bate_papo_pendente' }, 'Bate-papo pendente?'),
-        n('h_bp_swap_tags', 'action', 5, 9.2, { kind: 'add_tag', tag: BATE_PAPO_ACEITO_TAG }, 'Marca tag bate-papo aceito'),
-        n('h_bp_clear', 'action', 5, 10.3, { kind: 'remove_tag', tag: BATE_PAPO_PENDENTE_TAG }, 'Limpa tag bate-papo pendente'),
-        n('send_bp_aceito', 'send_template', 5, 11.4, {
+        n('h_gate_bp', 'condition', 2, 7, { expr: 'lead.is_bate_papo_pendente' }, 'Bate-papo pendente? (resposta ao welcome v2)'),
+        n('h_sil_manual', 'silence', 2, 7.9, { reason: 'human_manual' }, 'Silêncio (Matheus trata manual pelo Inbox)'),
+        n('h_act_handoff', 'action', 2, 9, { kind: 'apply_handoff' }, 'Marca handoff humano'),
+        n('h_bp_swap_tags', 'action', 2, 10.1, { kind: 'add_tag', tag: BATE_PAPO_ACEITO_TAG }, 'Marca tag bate-papo aceito'),
+        n('h_bp_clear', 'action', 2, 11.2, { kind: 'remove_tag', tag: BATE_PAPO_PENDENTE_TAG }, 'Limpa tag bate-papo pendente'),
+        n('send_bp_aceito', 'send_template', 2, 12.3, {
             slug: 'bate-papo-aceito',
             bot_step: 'bate_papo_aceito',
-            contact_note: 'Lead aceitou bate-papo — link Calendly enviado',
+            contact_note: 'Lead aceitou bate-papo — link de agendamento enviado',
             fallback: 'Que ótimo, {nome}! Vou te mandar o link da agenda.',
-        }, 'Envia bate-papo-aceito (Calendly)'),
-        n('end_bp_aceito', 'end', 5, 12.5, { bot_step: 'bate_papo_aceito' }, 'Resposta enviada (bate-papo aceito)'),
-        n('send_handoff', 'send_template', 2, 9.2, {
-            slug: 'consultor-handoff',
-            bot_step: 'handoff',
-            contact_note: 'Lead pediu falar com consultor (handoff)',
-            fallback: 'Já te chamo aqui mesmo, {nome}.',
-        }, 'Mensagem de handoff'),
-        n('end_handoff', 'end', 2, 10.3, { bot_step: 'handoff' }, 'Resposta enviada (handoff)'),
+        }, 'Envia bate-papo-aceito (link agendamento)'),
+        n('end_bp_aceito', 'end', 2, 13.4, { bot_step: 'bate_papo_aceito' }, 'Resposta enviada (bate-papo aceito)'),
 
         // ── Lane 3 — interesse classificado ────────────────────────────
+        // Fork bate-papo: se vier do welcome v2 (resposta "2" → interesse_amplo),
+        // manda o menu de 4 interesses. Senão, registra interesse + triagem
+        // dinâmica normal — essa parte cobre o 3º fluxo do escopo (registro
+        // de interesse via menu).
         n('i_gate1', 'condition', 3, 3, { expr: 'lead.optout_whatsapp' }, 'Lead em opt-out?'),
         n('i_sil1', 'silence', 3, 3.9, { reason: 'lead_optout' }, 'Silêncio (lead em opt-out)'),
         n('i_gate2', 'condition', 3, 5, { expr: 'lead.handoff_humano' }, 'Já em handoff humano?'),
         n('i_sil2', 'silence', 3, 5.9, { reason: 'lead_handoff' }, 'Silêncio (já em handoff)'),
         n('act_interest', 'action', 3, 7, { kind: 'apply_interest' }, 'Aplica interesse no CRM'),
-        // Fork bate-papo: se o lead recebeu o welcome v2 e respondeu "2"
-        // (interesse_amplo via BATE_PAPO_PENDENTE_NUMERIC_MAP), enviamos o
-        // template de recusa que mostra o menu de 4 interesses — em vez da
-        // triagem dinâmica padrão. Pra responder o número de interesse do
-        // menu, o lead já não terá mais a tag bate_papo_pendente.
         n('i_gate_bp', 'condition', 3, 8.1, { expr: 'lead.is_bate_papo_pendente' }, 'Bate-papo pendente?'),
-        n('i_bp_swap_tags', 'action', 6, 9.2, { kind: 'add_tag', tag: MENU_INTERESSES_V2_TAG }, 'Marca tag menu_interesses_v2'),
-        n('i_bp_clear', 'action', 6, 10.3, { kind: 'remove_tag', tag: BATE_PAPO_PENDENTE_TAG }, 'Limpa tag bate-papo pendente'),
-        n('send_bp_recusado', 'send_template', 6, 11.4, {
+        n('i_bp_swap_tags', 'action', 4, 9.2, { kind: 'add_tag', tag: MENU_INTERESSES_V2_TAG }, 'Marca tag menu_interesses_v2'),
+        n('i_bp_clear', 'action', 4, 10.3, { kind: 'remove_tag', tag: BATE_PAPO_PENDENTE_TAG }, 'Limpa tag bate-papo pendente'),
+        n('send_bp_recusado', 'send_template', 4, 11.4, {
             slug: 'bate-papo-recusado',
             bot_step: 'bate_papo_recusado',
             contact_note: 'Lead recusou bate-papo — menu de interesses enviado',
             fallback: 'Combinado, {nome}. Me responde com o número que mais faz sentido pro seu momento.',
         }, 'Envia bate-papo-recusado (menu interesses)'),
-        n('end_bp_recusado', 'end', 6, 12.5, { bot_step: 'bate_papo_recusado' }, 'Resposta enviada (bate-papo recusado)'),
+        n('end_bp_recusado', 'end', 4, 12.5, { bot_step: 'bate_papo_recusado' }, 'Resposta enviada (bate-papo recusado)'),
         n('send_triagem', 'send_template', 3, 9.2, {
             slug: '',
             dynamic: 'triagem_by_interesse',
@@ -366,28 +349,13 @@ export function buildDefaultGraph(): FlowGraphV2 {
         }, 'Triagem dinâmica (triagem-{interesse})'),
         n('end_interest', 'end', 3, 10.3, { bot_step: 'triagem' }, 'Resposta enviada (triagem)'),
 
-        // ── Lane 4 — sem match (1ª mensagem / welcome) ────────────────
-        n('u_gate1', 'condition', 4, 3, { expr: 'lead.optout_whatsapp' }, 'Lead em opt-out?'),
-        n('u_sil1', 'silence', 4, 3.9, { reason: 'lead_optout' }, 'Silêncio (lead em opt-out)'),
-        n('u_gate2', 'condition', 4, 5, { expr: 'lead.handoff_humano' }, 'Já em handoff humano?'),
-        n('u_sil2', 'silence', 4, 5.9, { reason: 'lead_handoff' }, 'Silêncio (já em handoff)'),
-        n('u_welcome_elig', 'condition', 4, 7, { expr: 'lead.welcome_eligible' }, '1ª mensagem? (sem interesse e sem menu_enviado)'),
-        n('u_sil3', 'silence', 4, 7.9, { reason: 'unknown_intent' }, 'Silêncio (já atendido — não repete welcome)'),
-        n('u_mark_tag', 'action', 4, 8.6, { kind: 'add_tag', tag: 'whatsapp:menu_enviado' }, 'Marca tag menu_enviado'),
-        // Welcome v2: marca tag bate_papo_pendente — o classifier vai usar
-        // essa tag pra interpretar "1" como sim-agendar e "2" como só info.
-        n('u_mark_bp', 'action', 4, 9.4, { kind: 'add_tag', tag: BATE_PAPO_PENDENTE_TAG }, 'Marca tag bate-papo pendente'),
-        n('send_welcome', 'send_template', 4, 10.5, {
-            slug: 'welcome-default',
-            bot_step: 'welcome',
-            fallback: 'Olá {nome}! Seja bem-vindo(a) à Fórmula do Boi.',
-        }, 'Envia welcome (1ª mensagem)'),
-        n('end_welcome', 'end', 4, 11.6, { bot_step: 'welcome' }, 'Resposta enviada (welcome)'),
+        // ── Lane 4 — sem match ────────────────────────────────────────
+        // Silêncio direto. NÃO dispara welcome em inbound espontâneo — o
+        // welcome só sai quando o lead é cadastrado no CRM (via LP/admin/
+        // Sheets) e o dispatchWelcome bate em /api/whatsapp/render-welcome.
+        n('u_sil', 'silence', 4, 3, { reason: 'unknown_intent_no_auto_welcome' }, 'Silêncio (Matheus trata manual)'),
 
         // ── Subgrafo BOAS-VINDAS / NOVO LEAD (trigger='new_lead') ─────
-        // Disparado quando o lead é capturado (LP, admin, Sheets) e o VPS
-        // pede /api/whatsapp/render-welcome. O `resolveWelcomeDispatch()`
-        // anda este subgrafo e devolve o slug do template ao caller.
         n('nl_start', 'start', 0, NL_BASE_ROW, { trigger: 'new_lead' }, 'Início (novo lead)'),
         n('nl_gate_academia', 'condition', 0, NL_BASE_ROW + 1.2, { expr: 'lead.is_academia_audience' }, 'Lead é Academia Nelore P.O?'),
         n('nl_send_academia', 'send_template', 0, NL_BASE_ROW + 2.4, {
@@ -426,20 +394,18 @@ export function buildDefaultGraph(): FlowGraphV2 {
         e('e_resub1', 'act_resub', 'send_resub'),
         e('e_resub2', 'send_resub', 'end_resub'),
 
-        // human lane
+        // human lane — só responde dentro da janela do welcome v2
         e('e_cls_human', 'classify', 'h_gate1', 'human', 'humano'),
         e('e_h_g1_T', 'h_gate1', 'h_sil1', 'true', 'sim'),
         e('e_h_g1_F', 'h_gate1', 'h_gate2', 'false', 'não'),
         e('e_h_g2_T', 'h_gate2', 'h_sil2', 'true', 'sim'),
-        e('e_h_g2_F', 'h_gate2', 'act_handoff', 'false', 'não'),
-        // após handoff, decide se manda Calendly (bate-papo aceito) ou consultor genérico
-        e('e_h_act',  'act_handoff', 'h_gate_bp'),
-        e('e_h_bp_T', 'h_gate_bp', 'h_bp_swap_tags', 'true', 'sim'),
-        e('e_h_bp_F', 'h_gate_bp', 'send_handoff', 'false', 'não'),
+        e('e_h_g2_F', 'h_gate2', 'h_gate_bp', 'false', 'não'),
+        e('e_h_bp_T', 'h_gate_bp', 'h_act_handoff', 'true', 'sim'),
+        e('e_h_bp_F', 'h_gate_bp', 'h_sil_manual', 'false', 'não'),
+        e('e_h_act',  'h_act_handoff', 'h_bp_swap_tags'),
         e('e_h_bp_swap', 'h_bp_swap_tags', 'h_bp_clear'),
         e('e_h_bp_clear', 'h_bp_clear', 'send_bp_aceito'),
         e('e_h_bp_send', 'send_bp_aceito', 'end_bp_aceito'),
-        e('e_h_send', 'send_handoff', 'end_handoff'),
 
         // interest lane
         e('e_cls_int', 'classify', 'i_gate1', 'interest', 'interesse'),
@@ -447,8 +413,6 @@ export function buildDefaultGraph(): FlowGraphV2 {
         e('e_i_g1_F', 'i_gate1', 'i_gate2', 'false', 'não'),
         e('e_i_g2_T', 'i_gate2', 'i_sil2', 'true', 'sim'),
         e('e_i_g2_F', 'i_gate2', 'act_interest', 'false', 'não'),
-        // após aplicar interesse, decide se manda menu de interesses
-        // (bate-papo recusado v2) ou triagem dinâmica padrão
         e('e_i_act',  'act_interest', 'i_gate_bp'),
         e('e_i_bp_T', 'i_gate_bp', 'i_bp_swap_tags', 'true', 'sim'),
         e('e_i_bp_F', 'i_gate_bp', 'send_triagem', 'false', 'não'),
@@ -457,17 +421,8 @@ export function buildDefaultGraph(): FlowGraphV2 {
         e('e_i_bp_send', 'send_bp_recusado', 'end_bp_recusado'),
         e('e_i_send', 'send_triagem', 'end_interest'),
 
-        // unknown lane
-        e('e_cls_unk', 'classify', 'u_gate1', 'unknown', 'sem match'),
-        e('e_u_g1_T', 'u_gate1', 'u_sil1', 'true', 'sim'),
-        e('e_u_g1_F', 'u_gate1', 'u_gate2', 'false', 'não'),
-        e('e_u_g2_T', 'u_gate2', 'u_sil2', 'true', 'sim'),
-        e('e_u_g2_F', 'u_gate2', 'u_welcome_elig', 'false', 'não'),
-        e('e_u_we_T', 'u_welcome_elig', 'u_mark_tag', 'true', 'sim'),
-        e('e_u_we_F', 'u_welcome_elig', 'u_sil3', 'false', 'não'),
-        e('e_u_mark', 'u_mark_tag', 'u_mark_bp'),
-        e('e_u_mark_bp', 'u_mark_bp', 'send_welcome'),
-        e('e_u_send', 'send_welcome', 'end_welcome'),
+        // unknown lane — silêncio direto, sem auto-welcome
+        e('e_cls_unk', 'classify', 'u_sil', 'unknown', 'sem match'),
 
         // ── Subgrafo new_lead ─────────────────────────────────────────
         e('e_nl_start', 'nl_start', 'nl_gate_academia'),

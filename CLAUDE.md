@@ -492,20 +492,30 @@ auto-vínculo ao `crm_leads` por e-mail/telefone — não há criação manual d
 registro no momento do envio do link. Ver seção *Agendamentos (Calendly ×
 Google Calendar)*.
 
+**Diretiva operacional (2026-05-19):** o bot **só** executa três fluxos —
+(1) welcome no novo lead, (2) agendamento ao aceitar bate-papo, (3) registro
+de interesse via menu. Qualquer outra inbound (estranho mandando mensagem
+espontânea, lead pedindo "consultor" fora da janela do welcome, etc) vai
+pro Inbox em **silêncio** pra que o Matheus trate manualmente. Demais
+automações (follow-up, lembrete, broadcast) ficam pra campanhas.
+
 **Como o grafo lida com o estado** (em [src/lib/whatsapp-flow-engine.ts](src/lib/whatsapp-flow-engine.ts)
 `buildDefaultGraph()`):
-1. Lane `unknown` welcome: após `add_tag whatsapp:menu_enviado`, segue para
-   `add_tag whatsapp:bate_papo_pendente` antes de enviar o welcome — ambas
-   as tags ficam no lead.
-2. Lane `human` (lead respondeu "1" na janela): após `apply_handoff`, a
-   condition `lead.is_bate_papo_pendente` bifurca: true → `add_tag bate_papo_aceito`
-   + `remove_tag bate_papo_pendente` + envia `bate-papo-aceito`. false →
-   envia `consultor-handoff` (caminho clássico pra quando o lead diz "consultor"
-   por palavra-chave fora da janela do welcome).
-3. Lane `interest` (lead respondeu "2"): após `apply_interest`, condition
-   `lead.is_bate_papo_pendente` bifurca: true → `add_tag menu_interesses_v2`
-   + `remove_tag bate_papo_pendente` + envia `bate-papo-recusado`. false →
-   envia triagem dinâmica (`triagem-{interesse}` — comportamento clássico).
+1. Lane `unknown` (inbound espontâneo, mensagem não classificada): **silêncio
+   direto**. NÃO dispara welcome automático. O welcome só sai quando o lead
+   é cadastrado no CRM via LP/admin/Sheets e o `dispatchWelcome` chama
+   `/api/whatsapp/render-welcome`.
+2. Lane `human` (lead disse "consultor"/"Matheus"/etc OU respondeu "1" ao
+   welcome v2): condition `lead.is_bate_papo_pendente` bifurca: true →
+   `apply_handoff` + `add_tag bate_papo_aceito` + `remove_tag bate_papo_pendente`
+   + envia `bate-papo-aceito` (link de agendamento). false → silêncio (Matheus
+   trata pelo Inbox — não há mais mensagem genérica `consultor-handoff`).
+3. Lane `interest` (lead respondeu "2" ao welcome, OU clicou 1-4 no menu de
+   recusa, OU mandou palavra-chave de interesse): após `apply_interest`,
+   condition `lead.is_bate_papo_pendente` bifurca: true → `add_tag menu_interesses_v2`
+   + `remove_tag bate_papo_pendente` + envia `bate-papo-recusado` (menu de 4).
+   false → envia triagem dinâmica (`triagem-{interesse}` — fluxo de registro
+   de interesse normal).
 4. `/api/whatsapp/render-welcome` aplica a tag `bate_papo_pendente` direto
    no lead quando o slug resolvido é `welcome-default` — cobre o caso de lead
    capturado em LP/admin/Sheets que recebe o welcome via `dispatchWelcome` no
