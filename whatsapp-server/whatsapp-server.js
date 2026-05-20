@@ -313,26 +313,76 @@ function scheduleReconnect(delayMs) {
 const msgQueue = [];
 let queueRunning = false;
 const QUEUE_DELAY_MS = 4000;
+// Quanto tempo a fila espera reconexão antes de pausar (e devolver o item ao
+// topo). Curto demais = fila vaza durante quedas reais; longo demais = trava
+// envios depois de logout definitivo. 60s cobre quedas típicas do Baileys.
+const QUEUE_WAIT_FOR_CONNECTION_MS = 60_000;
+
+/**
+ * Aguarda `currentStatus === 'connected'` até `timeoutMs`. Resolve `true` se
+ * conectou dentro da janela, `false` caso contrário. Polling de 500ms para
+ * não depender de event emitter (evita memory leak se chamarmos muitas vezes).
+ */
+function waitForConnection(timeoutMs) {
+  if (currentStatus === 'connected') return Promise.resolve(true);
+  return new Promise(resolve => {
+    const start = Date.now();
+    const interval = setInterval(() => {
+      if (currentStatus === 'connected') {
+        clearInterval(interval);
+        resolve(true);
+      } else if (Date.now() - start >= timeoutMs) {
+        clearInterval(interval);
+        resolve(false);
+      }
+    }, 500);
+  });
+}
 
 async function runMsgQueue() {
   if (queueRunning) return;
   queueRunning = true;
-  while (msgQueue.length > 0) {
-    const item = msgQueue.shift();
-    try {
-      if (item.kind === 'welcome') {
-        await _executeSend(item.phone, item.name);
-      } else if (item.kind === 'direct') {
-        await _executeSendDirect(item.phone, item.message, item.meta, item.media || null, item.poll || null);
+  try {
+    while (msgQueue.length > 0) {
+      // Sem conexão? Espera até reconectar (ou desiste e pausa a fila).
+      // Crucial: quando o WhatsApp derruba a sessão no meio de uma campanha,
+      // não podemos consumir os itens restantes — eles seriam "enviados" para
+      // um socket null e descartados silenciosamente.
+      if (currentStatus !== 'connected') {
+        console.warn(`[Queue] Sem conexão (status=${currentStatus}). Aguardando até ${QUEUE_WAIT_FOR_CONNECTION_MS / 1000}s.`);
+        const ok = await waitForConnection(QUEUE_WAIT_FOR_CONNECTION_MS);
+        if (!ok) {
+          console.warn(`[Queue] Pausando: ${msgQueue.length} itens aguardam reconexão. Retoma automaticamente quando connection.open disparar.`);
+          break;
+        }
+        console.log(`[Queue] Conexão restaurada. Retomando ${msgQueue.length} itens.`);
       }
-    } catch (err) {
-      console.error(`[Queue] Falha ao enviar para ${item.phone}:`, err.message);
+
+      const item = msgQueue.shift();
+      try {
+        if (item.kind === 'welcome') {
+          await _executeSend(item.phone, item.name);
+        } else if (item.kind === 'direct') {
+          await _executeSendDirect(item.phone, item.message, item.meta, item.media || null, item.poll || null);
+        }
+      } catch (err) {
+        const msg = err?.message || String(err);
+        // Se caiu a conexão DURANTE o envio (corrida entre shift e _execute),
+        // devolve o item ao TOPO da fila pra tentar de novo quando reconectar.
+        if (msg.includes('nao conectado') || msg.includes('Connection Closed')) {
+          console.warn(`[Queue] Caiu durante envio para ${item.phone} — devolvendo item ao topo da fila.`);
+          msgQueue.unshift(item);
+          break;
+        }
+        console.error(`[Queue] Falha ao enviar para ${item.phone}: ${msg}`);
+      }
+      if (msgQueue.length > 0) {
+        await new Promise(r => setTimeout(r, QUEUE_DELAY_MS));
+      }
     }
-    if (msgQueue.length > 0) {
-      await new Promise(r => setTimeout(r, QUEUE_DELAY_MS));
-    }
+  } finally {
+    queueRunning = false;
   }
-  queueRunning = false;
 }
 
 function enqueueSend(phone, name) {
@@ -434,10 +484,16 @@ async function startSocket() {
       }
 
       if (connection === 'close') {
-        const statusCode = lastDisconnect?.error?.output?.statusCode;
+        const err = lastDisconnect?.error;
+        const statusCode = err?.output?.statusCode;
+        const errMsg = err?.message || (err && String(err)) || 'sem mensagem';
         const loggedOut = statusCode === DisconnectReason.loggedOut;
 
-        console.log(`[WA] Conexao fechada (code=${statusCode}, gen=${myGen})`);
+        // Logging rico — antes só tinha statusCode, o que dificulta diagnosticar
+        // por que o WhatsApp derrubou (timeout? stream conflict? ban temporário?).
+        // Inclui também tamanho da fila no momento — útil pra correlacionar quedas
+        // com bursts de envio.
+        console.log(`[WA] Conexao fechada (code=${statusCode}, gen=${myGen}, queue=${msgQueue.length}, msg="${errMsg}")`);
 
         const old = sock;
         sock = null;
@@ -474,6 +530,13 @@ async function startSocket() {
               console.log(`[LP] Grupo da LP resolvido: ${lpGroupJid}`);
             })
             .catch(e => console.warn('[LP] Não foi possível resolver JID do grupo:', e.message));
+        }
+        // Retoma a fila se houver itens pendentes da queda anterior.
+        // Sem isso, mensagens que foram devolvidas ao topo da fila ficariam
+        // paradas até a próxima chamada externa de enqueueSend*.
+        if (msgQueue.length > 0 && !queueRunning) {
+          console.log(`[Queue] Conexão voltou — retomando ${msgQueue.length} itens pendentes.`);
+          runMsgQueue();
         }
       }
     });
@@ -1188,6 +1251,24 @@ async function handleRequest(req, res) {
         queueSize: msgQueue.length,
         processing: queueRunning,
         delayBetweenSendsMs: QUEUE_DELAY_MS,
+      }));
+      return;
+    }
+
+    // /health — pensado pra ser monitorado externamente (UptimeRobot, Vercel
+    // health probe, painel admin). Retorna 503 se a sessão não está conectada
+    // OU se há fila acumulada sem progresso. 200 quando tudo nominal.
+    if (req.method === 'GET' && url.pathname === '/health') {
+      const healthy = currentStatus === 'connected';
+      const code = healthy ? 200 : 503;
+      res.writeHead(code, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        healthy,
+        status: currentStatus,
+        queue_size: msgQueue.length,
+        queue_running: queueRunning,
+        reconnect_attempts: reconnectAttempts,
+        uptime_seconds: Math.floor(process.uptime()),
       }));
       return;
     }
