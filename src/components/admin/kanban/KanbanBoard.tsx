@@ -24,7 +24,7 @@ import { WhiteboardView } from './WhiteboardView';
 import { MembersView } from './MembersView';
 import { ArchivedTasksModal } from './ArchivedTasksModal';
 import {
-    TacticalTask, TacticalColumn,
+    TacticalTask, TacticalColumn, TacticalUnidade,
     updateTask, createTask, moveTask, deleteTask,
     createColumn, updateColumn, deleteColumn,
     archiveTask,
@@ -40,6 +40,12 @@ import {
 
 type ViewMode = 'kanban' | 'gantt' | 'whiteboard' | 'members';
 const VALID_VIEWS: ViewMode[] = ['kanban', 'gantt', 'whiteboard', 'members'];
+
+// Boards de projetos — um por operação. 'formula_boi' é o board legado (default).
+const BOARDS: { key: TacticalUnidade; label: string }[] = [
+    { key: 'formula_boi', label: 'Fórmula do Boi' },
+    { key: 'bula_formula', label: 'Bula × Fórmula do Boi' },
+];
 
 interface KanbanBoardProps {
     initialTasks: TacticalTask[];
@@ -72,6 +78,9 @@ export function KanbanBoard({
     const rawView = searchParams.get('view');
     const viewMode: ViewMode = (rawView && (VALID_VIEWS as string[]).includes(rawView))
         ? (rawView as ViewMode) : 'kanban';
+    // `?board=bula_formula` controla a operação ativa; ausente = 'formula_boi'.
+    const board: TacticalUnidade = searchParams.get('board') === 'bula_formula'
+        ? 'bula_formula' : 'formula_boi';
     const editingTaskId = searchParams.get('task');
     const editingTask = useMemo<TacticalTask | undefined>(
         () => (editingTaskId ? tasks.find(t => t.id === editingTaskId) : undefined),
@@ -99,6 +108,16 @@ export function KanbanBoard({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isArchivedOpen, setIsArchivedOpen] = useState(false);
 
+    // Troca o board ativo. Zera o filtro de responsável (a lista de opções
+    // muda entre os boards) e fecha qualquer modal de tarefa do board anterior.
+    const setBoard = (next: TacticalUnidade) => {
+        setFilterAssignee('all');
+        updateUrl(p => {
+            if (next === 'formula_boi') p.delete('board'); else p.set('board', next);
+            p.delete('task');
+        });
+    };
+
     const doneStatus = useMemo(() =>
         columns.find(c =>
             c.title.toLowerCase().includes('complet') || c.title.toLowerCase().includes('conclu')
@@ -111,18 +130,24 @@ export function KanbanBoard({
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
+    // Tarefas do board ativo — base de tudo que a tela mostra.
+    const boardTasks = useMemo(
+        () => tasks.filter(t => (t.unidade ?? 'formula_boi') === board),
+        [tasks, board]
+    );
+
     const filteredTasks = useMemo(() => {
-        let result = tasks;
+        let result = boardTasks;
         if (filterAssignee !== 'all') result = result.filter(t => t.assignees?.includes(filterAssignee));
         if (filterPriority !== 'all') result = result.filter(t => t.priority === filterPriority);
         if (focusMode) result = result.filter(t => t.priority === 'Alta' || t.status !== doneStatus);
         return result;
-    }, [tasks, filterAssignee, filterPriority, focusMode, doneStatus]);
+    }, [boardTasks, filterAssignee, filterPriority, focusMode, doneStatus]);
 
     const assigneeOptions = useMemo(() => {
-        const fromTasks = tasks.flatMap(t => t.assignees || []);
+        const fromTasks = boardTasks.flatMap(t => t.assignees || []);
         return Array.from(new Set(fromTasks)).filter(Boolean);
-    }, [tasks]);
+    }, [boardTasks]);
 
     const handleTaskClick = (task: TacticalTask) => {
         setEditingTaskId(task.id);
@@ -149,13 +174,13 @@ export function KanbanBoard({
                 tactical_task_attachments: t.tactical_task_attachments,
             } : t));
         } else {
-            const newTask = await createTask(taskData);
+            const newTask = await createTask({ ...taskData, unidade: board });
             setTasks(prev => [...prev, newTask]);
         }
     };
 
     const handleDuplicateTask = async (taskData: any) => {
-        const newTask = await createTask(taskData);
+        const newTask = await createTask({ ...taskData, unidade: board });
         setTasks(prev => [...prev, newTask]);
     };
 
@@ -232,7 +257,8 @@ export function KanbanBoard({
             const activeId = active.id as string;
             const changedTask = tasks.find(t => t.id === activeId);
             if (changedTask) {
-                const columnTasks = tasks.filter(t => t.status === changedTask.status);
+                const columnTasks = tasks.filter(t =>
+                    t.status === changedTask.status && (t.unidade ?? 'formula_boi') === board);
                 const indexInColumn = columnTasks.findIndex(t => t.id === changedTask.id);
                 const prevTask = columnTasks[indexInColumn - 1];
                 const nextTask = columnTasks[indexInColumn + 1];
@@ -274,6 +300,32 @@ export function KanbanBoard({
         }>
             {/* Toolbar */}
             <div className="flex flex-col gap-3 mb-4 shrink-0">
+                {/* Board selector — operação (Fórmula do Boi × Bula × Fórmula do Boi) */}
+                <div className="flex items-center gap-1.5">
+                    {BOARDS.map(b => {
+                        const count = tasks.filter(t => (t.unidade ?? 'formula_boi') === b.key).length;
+                        const active = board === b.key;
+                        return (
+                            <button
+                                key={b.key}
+                                onClick={() => setBoard(b.key)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${active
+                                    ? 'bg-[#A0792E] text-black border-[#A0792E] shadow-sm shadow-[#A0792E]/20'
+                                    : 'bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#222222] text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                                    }`}
+                            >
+                                {b.label}
+                                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${active
+                                    ? 'bg-black/15'
+                                    : 'bg-gray-100 dark:bg-[#222222] text-gray-500'
+                                    }`}>
+                                    {count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     {/* View Tabs */}
                     <div className="flex gap-1 bg-gray-100 dark:bg-[#1A1A1A] p-1 rounded-xl border border-gray-200 dark:border-[#222222] overflow-x-auto">
@@ -377,7 +429,7 @@ export function KanbanBoard({
                                     tasks={filteredTasks.filter(t => t.status === col.title)}
                                     onTaskClick={handleTaskClick}
                                     onAddTask={handleAddTask}
-                                    allTasks={tasks}
+                                    allTasks={boardTasks}
                                     doneStatus={doneStatus}
                                     onUpdateColumn={async (id, newTitle) => {
                                         try {
@@ -433,7 +485,7 @@ export function KanbanBoard({
 
                         {createPortal(
                             <DragOverlay dropAnimation={dropAnimation}>
-                                {activeTask && <TaskCard task={activeTask} onClick={() => {}} allTasks={tasks} doneStatus={doneStatus} />}
+                                {activeTask && <TaskCard task={activeTask} onClick={() => {}} allTasks={boardTasks} doneStatus={doneStatus} />}
                             </DragOverlay>,
                             document.body
                         )}
@@ -457,7 +509,7 @@ export function KanbanBoard({
                     <MembersView
                         members={members}
                         onMembersChange={setMembers}
-                        tasks={tasks}
+                        tasks={boardTasks}
                     />
                 )}
 
@@ -473,7 +525,7 @@ export function KanbanBoard({
                 onDuplicate={handleDuplicateTask}
                 onArchive={handleArchiveTask}
                 columns={columns}
-                allTasks={tasks}
+                allTasks={boardTasks}
                 members={members}
             />
 
@@ -482,6 +534,7 @@ export function KanbanBoard({
                 onClose={() => setIsArchivedOpen(false)}
                 onRestore={handleRestoreTask}
                 onDelete={handleDeleteFromArchive}
+                board={board}
             />
         </div>
     );

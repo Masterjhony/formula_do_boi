@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { X, ArchiveRestore, Trash2, Search, Loader2, Inbox } from 'lucide-react';
 import {
     TacticalTask,
+    TacticalUnidade,
     getArchivedTasks,
     unarchiveTask,
     deleteTask,
@@ -14,9 +15,11 @@ interface ArchivedTasksModalProps {
     onClose: () => void;
     onRestore: (task: TacticalTask) => void;
     onDelete: (taskId: string) => void;
+    /** Board atual — só lista as tarefas arquivadas dessa operação. */
+    board: TacticalUnidade;
 }
 
-export function ArchivedTasksModal({ isOpen, onClose, onRestore, onDelete }: ArchivedTasksModalProps) {
+export function ArchivedTasksModal({ isOpen, onClose, onRestore, onDelete, board }: ArchivedTasksModalProps) {
     const [tasks, setTasks] = useState<TacticalTask[]>([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
@@ -41,9 +44,10 @@ export function ArchivedTasksModal({ isOpen, onClose, onRestore, onDelete }: Arc
 
     if (!isOpen) return null;
 
+    const boardTasks = tasks.filter(t => (t.unidade ?? 'formula_boi') === board);
     const filtered = search.trim()
-        ? tasks.filter(t => t.title.toLowerCase().includes(search.toLowerCase()))
-        : tasks;
+        ? boardTasks.filter(t => t.title.toLowerCase().includes(search.toLowerCase()))
+        : boardTasks;
 
     const handleRestore = async (task: TacticalTask) => {
         setActingId(task.id);

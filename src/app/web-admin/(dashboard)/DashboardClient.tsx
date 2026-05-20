@@ -7,7 +7,7 @@ import {
     Filter, ArrowRight, Download, MoreHorizontal,
     Sparkles, CheckCircle2, Clock, MapPin,
     TrendingUp, TrendingDown, Users, MessageSquare,
-    Medal, BarChart3,
+    Medal, BarChart3, Package, Dna,
 } from 'lucide-react';
 import './dashboard.css';
 
@@ -70,6 +70,9 @@ export type LeilaoTopItem = { nome: string; data: string; vgv: number; lotesVend
 export type CompradorItem = { fazenda: string; uf: string; vgv: number; lotes: number };
 export type LanceItem = { lote: string; fazenda: string; uf: string; vgv: number; leilao: string };
 
+export type CatCount = { label: string; count: number };
+export type ReservaStatusItem = { status: string; label: string; count: number; valor: number };
+
 export type DashboardProps = {
     today: string;
     proximo: ProximoLeilao | null;
@@ -99,7 +102,28 @@ export type DashboardProps = {
         compradores: CompradorItem[];
         lances: LanceItem[];
     };
+    formula: {
+        produtosTotal: number;
+        produtosByCategory: CatCount[];
+        reservasAtivas: number;
+        reservasNovas: number;
+        reservasValor: number;
+        reservasByStatus: ReservaStatusItem[];
+    };
     aiInsight: { projection: number; metaTotal: number; pct: number; hint: string };
+};
+
+// Item genérico de KPI — montado no root e passado ao componente <KPIs />.
+export type KpiItem = {
+    label: string;
+    val: string;
+    delta: string;
+    dir?: 'up' | 'down';
+    icon: React.ReactNode;
+    spark: number[];
+    color: string;
+    tone: string;
+    href: string;
 };
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -225,36 +249,27 @@ function Hero({ data }: { data: ProximoLeilao | null }) {
 
 // ─── KPIs ───────────────────────────────────────────────────────────────────
 
-function KPIs({ k }: { k: DashboardProps['kpi'] }) {
-    const GOLD = '#D4A85C', GREEN = '#5db87a', BLUE = '#6a8fd4', VIOLET = '#9b86c4';
-    const items = [
-        { label: 'Próx. leilões', val: String(k.upcomingCount), unit: '', delta: `${k.confirmedCount} confirmado${k.confirmedCount === 1 ? '' : 's'}`, dir: 'up' as const, icon: <Gavel size={12} />, spark: k.metaSpark, color: GOLD, tone: 'gold', href: '/leiloes' },
-        { label: 'Meta confirmada', val: fmtBRLCompact(k.totalMetaBula), unit: '', delta: `${fmtNum(k.totalAnimaisUpcoming)} animais`, dir: 'up' as const, icon: <Target size={12} />, spark: k.metaSpark, color: GREEN, tone: 'green', href: '/leiloes' },
-        { label: 'VGV fechado', val: fmtBRLCompact(k.totalVgvFechado), unit: '', delta: `${k.totalFechamentos} fechamentos`, dir: 'up' as const, icon: <Trophy size={12} />, spark: k.vgvSpark, color: GOLD, tone: 'gold', href: '/leiloes/fechamento' },
-        { label: 'Ticket médio', val: fmtBRLCompact(k.ticketMedio), unit: '', delta: 'Por lote vendido', dir: 'up' as const, icon: <BarChart3 size={12} />, spark: k.vgvSpark, color: VIOLET, tone: 'violet', href: '/leiloes/fechamento' },
-        { label: 'Leads ativos', val: fmtNum(k.activeLeads), unit: '', delta: `${k.hotLeads} quente${k.hotLeads === 1 ? '' : 's'}`, dir: 'up' as const, icon: <PhoneCall size={12} />, spark: k.leadsSpark, color: BLUE, tone: 'blue', href: '/leads' },
-    ];
+const KPI_GOLD = '#D4A85C', KPI_GREEN = '#5db87a', KPI_BLUE = '#6a8fd4', KPI_VIOLET = '#9b86c4';
+
+function KPIs({ items }: { items: KpiItem[] }) {
     return (
         <div className="dcl-kpi-row">
-            {items.map(it => {
-                const Body = (
-                    <>
-                        <div className="dcl-kpi-head">
-                            <div className="dcl-kpi-label">{it.label}</div>
-                            <div className={`dcl-kpi-ic dcl-${it.tone}`}>{it.icon}</div>
-                        </div>
-                        <div className="dcl-kpi-val">{it.val}{it.unit && <span className="dcl-unit">{it.unit}</span>}</div>
-                        <div className="dcl-kpi-delta">
-                            <span className={it.dir === 'up' ? 'dcl-delta-up' : 'dcl-delta-dn'}>
-                                {it.dir === 'up' ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                            </span>
-                            <span>{it.delta}</span>
-                        </div>
-                        {it.spark?.length > 0 && <Sparkline data={it.spark} color={it.color} />}
-                    </>
-                );
-                return <Link key={it.label} href={it.href} className="dcl-kpi dcl-k-gold">{Body}</Link>;
-            })}
+            {items.map(it => (
+                <Link key={it.label} href={it.href} className="dcl-kpi dcl-k-gold">
+                    <div className="dcl-kpi-head">
+                        <div className="dcl-kpi-label">{it.label}</div>
+                        <div className={`dcl-kpi-ic dcl-${it.tone}`}>{it.icon}</div>
+                    </div>
+                    <div className="dcl-kpi-val">{it.val}</div>
+                    <div className="dcl-kpi-delta">
+                        <span className={it.dir === 'down' ? 'dcl-delta-dn' : 'dcl-delta-up'}>
+                            {it.dir === 'down' ? <TrendingDown size={11} /> : <TrendingUp size={11} />}
+                        </span>
+                        <span>{it.delta}</span>
+                    </div>
+                    {it.spark?.length > 0 && <Sparkline data={it.spark} color={it.color} />}
+                </Link>
+            ))}
         </div>
     );
 }
@@ -497,7 +512,7 @@ function Funnel({ steps, totalConv }: { steps: FunnelStep[]; totalConv: number }
 
 // ─── Activity Feed ──────────────────────────────────────────────────────────
 
-function ActivityFeed({ items }: { items: FeedItem[] }) {
+function ActivityFeed({ items, href = '/leads' }: { items: FeedItem[]; href?: string }) {
     const kindToDot: Record<FeedItem['kind'], { cls: string; icon: React.ReactNode }> = {
         lead: { cls: 'dcl-b', icon: <PhoneCall size={11} /> },
         wpp: { cls: 'dcl-g', icon: <MessageSquare size={11} /> },
@@ -506,7 +521,7 @@ function ActivityFeed({ items }: { items: FeedItem[] }) {
         ai: { cls: 'dcl-v', icon: <Sparkles size={11} /> },
     };
     return (
-        <div className="dcl-card dcl-col-5">
+        <div className="dcl-card dcl-col-8">
             <div className="dcl-card-head">
                 <div>
                     <h3>Atividade recente</h3>
@@ -516,7 +531,7 @@ function ActivityFeed({ items }: { items: FeedItem[] }) {
                         </span>
                     </span>
                 </div>
-                <Link href="/leads" className="dcl-link-btn">Ver tudo <ArrowRight size={13} /></Link>
+                <Link href={href} className="dcl-link-btn">Ver tudo <ArrowRight size={13} /></Link>
             </div>
             <div className="dcl-feed">
                 {items.length === 0 ? (
@@ -547,7 +562,7 @@ function Performance({ p }: { p: PerformanceData }) {
         { label: 'Maior lance', value: fmtBRLCompact(p.maiorLance) },
     ];
     return (
-        <div className="dcl-card dcl-col-3">
+        <div className="dcl-card dcl-col-4">
             <div className="dcl-card-head">
                 <div>
                     <h3>Performance</h3>
@@ -705,14 +720,99 @@ function RankLances({ rows }: { rows: LanceItem[] }) {
     );
 }
 
+// ─── Produtos & Reservas (operação Fórmula do Boi) ──────────────────────────
+
+function ProdutosPanel({ items, total }: { items: CatCount[]; total: number }) {
+    const max = Math.max(...items.map(i => i.count), 1);
+    return (
+        <div className="dcl-card dcl-col-6">
+            <div className="dcl-card-head">
+                <div>
+                    <h3>Catálogo de produtos</h3>
+                    <span className="dcl-sub">{fmtNum(total)} cards · distribuição por categoria</span>
+                </div>
+                <Link href="/products" className="dcl-link-btn"><Dna size={14} /></Link>
+            </div>
+            {items.length === 0 ? (
+                <div style={{ color: 'var(--dcl-ink-3)', fontSize: 13, padding: '18px 0' }}>Nenhum produto cadastrado.</div>
+            ) : items.map(it => {
+                const pct = (it.count / max) * 100;
+                return (
+                    <div key={it.label} className="dcl-region-row">
+                        <div className="dcl-n">{it.label}</div>
+                        <div className="dcl-bar"><span style={{ width: pct + '%' }} /></div>
+                        <div className="dcl-v">{fmtNum(it.count)}</div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function ReservasPanel({ items, total, valor }: { items: ReservaStatusItem[]; total: number; valor: number }) {
+    const max = Math.max(...items.map(i => i.count), 1);
+    return (
+        <div className="dcl-card dcl-col-6">
+            <div className="dcl-card-head">
+                <div>
+                    <h3>Reservas por etapa</h3>
+                    <span className="dcl-sub">{fmtNum(total)} ativas · {fmtBRLCompact(valor)} em valor</span>
+                </div>
+                <Link href="/reservas" className="dcl-link-btn"><ArrowRight size={14} /></Link>
+            </div>
+            {items.length === 0 ? (
+                <div style={{ color: 'var(--dcl-ink-3)', fontSize: 13, padding: '18px 0' }}>Nenhuma reserva ativa.</div>
+            ) : items.map(it => {
+                const pct = (it.count / max) * 100;
+                return (
+                    <div key={it.status} className="dcl-region-row">
+                        <div className="dcl-n">{it.label}</div>
+                        <div className="dcl-bar"><span style={{ width: pct + '%' }} /></div>
+                        <div className="dcl-v">{fmtNum(it.count)}</div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
 // ─── Root ───────────────────────────────────────────────────────────────────
 
+type OpView = 'bula' | 'formula';
+
 export default function DashboardClient(props: DashboardProps) {
+    // Operação visível: 'bula' (leilões — Bula × Fórmula do Boi) ou
+    // 'formula' (produtos, reservas e CRM — só Fórmula do Boi).
+    const [op, setOp] = useState<OpView>('bula');
+
     const totalMeta = useMemo(() => props.vgv.reduce((s, p) => s + p.meta, 0) * 1_000_000, [props.vgv]);
     const totalVgv = useMemo(() => props.vgv.reduce((s, p) => s + p.vgv, 0) * 1_000_000, [props.vgv]);
     const totalFunnel = props.funnel[0]?.n ?? 0;
     const totalClosed = props.funnel[props.funnel.length - 1]?.n ?? 0;
     const convRate = totalFunnel > 0 ? (totalClosed / totalFunnel) * 100 : 0;
+
+    const k = props.kpi;
+    const f = props.formula;
+    const plural = (n: number) => (n === 1 ? '' : 's');
+
+    const bulaKpis: KpiItem[] = [
+        { label: 'Próx. leilões', val: String(k.upcomingCount), delta: `${k.confirmedCount} confirmado${plural(k.confirmedCount)}`, icon: <Gavel size={12} />, spark: k.metaSpark, color: KPI_GOLD, tone: 'gold', href: '/leiloes' },
+        { label: 'Meta confirmada', val: fmtBRLCompact(k.totalMetaBula), delta: `${fmtNum(k.totalAnimaisUpcoming)} animais`, icon: <Target size={12} />, spark: k.metaSpark, color: KPI_GREEN, tone: 'green', href: '/leiloes' },
+        { label: 'VGV fechado', val: fmtBRLCompact(k.totalVgvFechado), delta: `${k.totalFechamentos} fechamentos`, icon: <Trophy size={12} />, spark: k.vgvSpark, color: KPI_GOLD, tone: 'gold', href: '/leiloes/fechamento' },
+        { label: 'Ticket médio', val: fmtBRLCompact(k.ticketMedio), delta: 'Por lote vendido', icon: <BarChart3 size={12} />, spark: k.vgvSpark, color: KPI_VIOLET, tone: 'violet', href: '/leiloes/fechamento' },
+        { label: 'Fechamentos', val: String(k.totalFechamentos), delta: `${fmtNum(props.performance.animaisVendidos)} animais vendidos`, icon: <Medal size={12} />, spark: k.vgvSpark, color: KPI_BLUE, tone: 'blue', href: '/leiloes/fechamento' },
+    ];
+
+    const formulaKpis: KpiItem[] = [
+        { label: 'Leads ativos', val: fmtNum(k.activeLeads), delta: `${k.hotLeads} quente${plural(k.hotLeads)}`, icon: <PhoneCall size={12} />, spark: k.leadsSpark, color: KPI_BLUE, tone: 'blue', href: '/leads' },
+        { label: 'Total de leads', val: fmtNum(k.totalLeads), delta: 'No CRM', icon: <Users size={12} />, spark: k.leadsSpark, color: KPI_VIOLET, tone: 'violet', href: '/crm' },
+        { label: 'Produtos', val: fmtNum(f.produtosTotal), delta: `${f.produtosByCategory.length} categoria${plural(f.produtosByCategory.length)}`, icon: <Dna size={12} />, spark: [], color: KPI_GOLD, tone: 'gold', href: '/products' },
+        { label: 'Reservas ativas', val: fmtNum(f.reservasAtivas), delta: fmtBRLCompact(f.reservasValor), icon: <Package size={12} />, spark: [], color: KPI_GREEN, tone: 'green', href: '/reservas' },
+        { label: 'Reservas novas', val: fmtNum(f.reservasNovas), delta: 'Aguardando contato', icon: <Package size={12} />, spark: [], color: KPI_GOLD, tone: 'gold', href: '/reservas' },
+    ];
+
+    const feedFechamento = props.feed.filter(i => i.kind === 'fechamento').slice(0, 7);
+    const feedLeads = props.feed.filter(i => i.kind === 'lead').slice(0, 7);
 
     return (
         <div className="dcl-root">
@@ -722,34 +822,69 @@ export default function DashboardClient(props: DashboardProps) {
                     <div className="dcl-sub">{props.today}</div>
                 </div>
                 <div className="dcl-pagehead-right">
+                    <div className="dcl-optoggle" role="tablist" aria-label="Operação">
+                        <button
+                            role="tab"
+                            aria-selected={op === 'bula'}
+                            className={op === 'bula' ? 'on' : ''}
+                            onClick={() => setOp('bula')}
+                        >
+                            Bula × Fórmula do Boi
+                        </button>
+                        <button
+                            role="tab"
+                            aria-selected={op === 'formula'}
+                            className={op === 'formula' ? 'on' : ''}
+                            onClick={() => setOp('formula')}
+                        >
+                            Fórmula do Boi
+                        </button>
+                    </div>
                     <div className="dcl-status-pill"><span className="dcl-ping" /> Sistema ativo</div>
                 </div>
             </div>
 
-            <Hero data={props.proximo} />
-            <KPIs k={props.kpi} />
+            {op === 'bula' ? (
+                <>
+                    <Hero data={props.proximo} />
+                    <KPIs items={bulaKpis} />
 
-            <div className="dcl-bento">
-                <VGVChart data={props.vgv} totalMeta={totalMeta || props.kpi.totalMetaBula} totalVgv={totalVgv || props.kpi.totalVgvFechado} projection={props.aiInsight.projection} />
-                <AIInsight ai={props.aiInsight} />
-            </div>
+                    <div className="dcl-bento">
+                        <VGVChart data={props.vgv} totalMeta={totalMeta || props.kpi.totalMetaBula} totalVgv={totalVgv || props.kpi.totalVgvFechado} projection={props.aiInsight.projection} />
+                        <AIInsight ai={props.aiInsight} />
+                    </div>
 
-            <div className="dcl-bento">
-                <Agenda rows={props.upcoming} />
-                <Funnel steps={props.funnel} totalConv={convRate} />
-            </div>
+                    <div className="dcl-bento">
+                        <Agenda rows={props.upcoming} />
+                        <Performance p={props.performance} />
+                    </div>
 
-            <div className="dcl-bento">
-                <ActivityFeed items={props.feed} />
-                <Performance p={props.performance} />
-                <RegionPanel regions={props.regions} />
-            </div>
+                    <div className="dcl-bento">
+                        <ActivityFeed items={feedFechamento} href="/leiloes/fechamento" />
+                        <RegionPanel regions={props.regions} />
+                    </div>
 
-            <div className="dcl-bento">
-                <RankLeiloes rows={props.rankings.topLeiloes} />
-                <RankCompradores rows={props.rankings.compradores} />
-                <RankLances rows={props.rankings.lances} />
-            </div>
+                    <div className="dcl-bento">
+                        <RankLeiloes rows={props.rankings.topLeiloes} />
+                        <RankCompradores rows={props.rankings.compradores} />
+                        <RankLances rows={props.rankings.lances} />
+                    </div>
+                </>
+            ) : (
+                <>
+                    <KPIs items={formulaKpis} />
+
+                    <div className="dcl-bento">
+                        <Funnel steps={props.funnel} totalConv={convRate} />
+                        <ActivityFeed items={feedLeads} href="/leads" />
+                    </div>
+
+                    <div className="dcl-bento">
+                        <ProdutosPanel items={f.produtosByCategory} total={f.produtosTotal} />
+                        <ReservasPanel items={f.reservasByStatus} total={f.reservasAtivas} valor={f.reservasValor} />
+                    </div>
+                </>
+            )}
         </div>
     );
 }

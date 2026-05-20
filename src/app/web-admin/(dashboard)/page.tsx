@@ -10,6 +10,8 @@ import DashboardClient, {
     type LeilaoTopItem,
     type CompradorItem,
     type LanceItem,
+    type CatCount,
+    type ReservaStatusItem,
 } from './DashboardClient';
 
 const MONTH_ABBR = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -69,6 +71,9 @@ export default async function AdminDashboard() {
         { data: leads },
         { data: leiloes },
         { data: fechamentos },
+        { data: produtos },
+        { data: reservas },
+        { data: reservaCols },
     ] = await Promise.all([
         supabase.from('crm_leads')
             .select('id, nome, status, prioridade, data_estimada_fechamento, created_at')
@@ -80,6 +85,13 @@ export default async function AdminDashboard() {
             .select('id, nome, data, local, lotes_ofertados, lotes_vendidos, animais_vendidos, vgv_total, ticket_medio, maior_lance, compradores_unicos, estados_alcancados, por_assessor, por_estado, compradores, lances')
             .order('data', { ascending: false })
             .limit(30),
+        supabase.from('products').select('id, category'),
+        supabase.from('product_reservations')
+            .select('id, status, total_value, created_at')
+            .is('archived_at', null),
+        supabase.from('reserva_kanban_columns')
+            .select('id, title, position')
+            .order('position', { ascending: true }),
     ]);
 
     const now = new Date();
@@ -289,8 +301,9 @@ export default async function AdminDashboard() {
     const totalEstadosUnicos = estadosUnicos.size;
 
     // ── Feed ────────────────────────────────────────────────────────────────
+    // Feed completo (ambos os tipos) — o DashboardClient filtra por operação.
     const feed: FeedItem[] = [];
-    for (const f of allFechamentos.slice(0, 3)) {
+    for (const f of allFechamentos.slice(0, 8)) {
         feed.push({
             id: `f-${f.id}`,
             kind: 'fechamento',
@@ -298,7 +311,7 @@ export default async function AdminDashboard() {
             when: timeAgo(f.data ? f.data + 'T20:00:00' : null),
         });
     }
-    for (const l of allLeads.slice(0, 4)) {
+    for (const l of allLeads.slice(0, 8)) {
         feed.push({
             id: `l-${l.id}`,
             kind: 'lead',
@@ -307,7 +320,47 @@ export default async function AdminDashboard() {
         });
     }
     feed.sort((a, b) => (a.when === 'agora' ? -1 : 0) - (b.when === 'agora' ? -1 : 0));
-    const feedTop = feed.slice(0, 7);
+    const feedTop = feed;
+
+    // ── Produtos & Reservas (operação Fórmula do Boi) ───────────────────────
+    const allProdutos = produtos ?? [];
+    const produtoCatMap = new Map<string, number>();
+    for (const p of allProdutos) {
+        const cat = (p.category || '').trim() || 'Sem categoria';
+        produtoCatMap.set(cat, (produtoCatMap.get(cat) || 0) + 1);
+    }
+    const produtosByCategory: CatCount[] = [...produtoCatMap.entries()]
+        .map(([label, count]) => ({ label, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8);
+
+    const allReservas = reservas ?? [];
+    const cols = reservaCols ?? [];
+    const colTitle = new Map(cols.map(c => [c.id, c.title]));
+    const firstColId = cols[0]?.id ?? 'nova';
+    const reservaStatusMap = new Map<string, { count: number; valor: number }>();
+    for (const r of allReservas) {
+        const st = r.status || firstColId;
+        const cur = reservaStatusMap.get(st) ?? { count: 0, valor: 0 };
+        cur.count += 1;
+        cur.valor += Number(r.total_value) || 0;
+        reservaStatusMap.set(st, cur);
+    }
+    const reservasByStatus: ReservaStatusItem[] = [...reservaStatusMap.entries()]
+        .map(([status, v]) => ({
+            status,
+            label: colTitle.get(status) || status,
+            count: v.count,
+            valor: v.valor,
+        }))
+        .sort((a, b) => {
+            const ia = cols.findIndex(c => c.id === a.status);
+            const ib = cols.findIndex(c => c.id === b.status);
+            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+        });
+    const reservasAtivas = allReservas.length;
+    const reservasNovas = allReservas.filter(r => (r.status || firstColId) === firstColId).length;
+    const reservasValor = allReservas.reduce((s, r) => s + (Number(r.total_value) || 0), 0);
 
     // ── AI insight ──────────────────────────────────────────────────────────
     const pctMeta = totalMetaBula > 0 ? (totalVgvFechado / totalMetaBula) * 100 : 0;
@@ -358,6 +411,14 @@ export default async function AdminDashboard() {
             topLeiloes,
             compradores: topCompradores,
             lances: topLances,
+        },
+        formula: {
+            produtosTotal: allProdutos.length,
+            produtosByCategory,
+            reservasAtivas,
+            reservasNovas,
+            reservasValor,
+            reservasByStatus,
         },
         aiInsight: {
             projection,

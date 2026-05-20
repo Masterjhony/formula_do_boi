@@ -36,12 +36,17 @@ export interface TacticalAttachment {
     created_at: string;
 }
 
+/** Operação dona da tarefa — separa o board de Projetos em dois. */
+export type TacticalUnidade = 'formula_boi' | 'bula_formula';
+
 export interface TacticalTask {
     id: string;
     title: string;
     description?: string;
     status: string;
     priority: string;
+    /** Board ao qual a tarefa pertence. Ausente = 'formula_boi' (legado). */
+    unidade?: TacticalUnidade;
     start_date?: string;
     due_date?: string;
     assignees?: string[];
@@ -135,11 +140,12 @@ export async function unarchiveTask(id: string) {
 export async function createTask(task: Omit<TacticalTask, 'id' | 'created_at'>) {
     const supabase = await createClient();
 
-    // Get max position to append
+    // Get max position to append — escopado ao board (unidade) + status
     const { data: maxPosData } = await supabase
         .from('tactical_tasks')
         .select('position')
         .eq('status', task.status)
+        .eq('unidade', task.unidade ?? 'formula_boi')
         .order('position', { ascending: false })
         .limit(1)
         .single();

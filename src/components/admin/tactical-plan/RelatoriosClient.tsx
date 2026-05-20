@@ -1,13 +1,13 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import {
     FileBarChart, Download, FileText, RefreshCw, Filter,
     CheckCircle2, AlertTriangle, Clock, ListChecks, Users,
     Briefcase, TrendingUp, Zap, ChevronRight, Wand2, Settings, X,
 } from 'lucide-react'
-import type { TacticalTask } from '@/app/web-admin/actions/tactical-tasks'
+import type { TacticalTask, TacticalUnidade } from '@/app/web-admin/actions/tactical-tasks'
 import type { TacticalMember } from '@/app/web-admin/actions/tactical-strategic'
 import {
     applyFilters, computeMetrics, generateTacticalPlanPDF,
@@ -19,6 +19,12 @@ import {
 const STATUS_OPTIONS = ['Ideias', 'A fazer', 'Em andamento', 'Completa', 'Recorrente', 'Bloqueado']
 const PRIORITY_OPTIONS = ['Alta', 'Média', 'Baixa']
 const STAGE_OPTIONS = ['Aquisição', 'Conversão', 'Operação', 'Produto', 'Regulatório']
+
+// Boards de projetos — um por operação. 'formula_boi' é o board legado (default).
+const BOARDS: { key: TacticalUnidade; label: string }[] = [
+    { key: 'formula_boi', label: 'Fórmula do Boi' },
+    { key: 'bula_formula', label: 'Bula × Fórmula do Boi' },
+]
 
 type PeriodPreset = 'all' | 'today' | '7d' | '30d' | 'month' | 'custom'
 
@@ -150,6 +156,8 @@ export function RelatoriosClient({
     initialMembers: TacticalMember[]
 }) {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const pathname = usePathname()
     const [pending, startTransition] = useTransition()
 
     const [period, setPeriod] = useState<PeriodPreset>('30d')
@@ -173,8 +181,23 @@ export function RelatoriosClient({
         changes: { taskId: string; taskTitle: string; item: { id: string; from: string; to: string; assignee: string } }[]
     } | null>(null)
 
+    // Board ativo (operação) — deep-link via ?board=. Ausente = 'formula_boi'.
+    const board: TacticalUnidade = searchParams.get('board') === 'bula_formula'
+        ? 'bula_formula' : 'formula_boi'
+    const boardTasks = useMemo(
+        () => initialTasks.filter(t => (t.unidade ?? 'formula_boi') === board),
+        [initialTasks, board],
+    )
+    const setBoard = (next: TacticalUnidade) => {
+        setResponsible('') // a lista de responsáveis muda entre os boards
+        const params = new URLSearchParams(searchParams.toString())
+        if (next === 'formula_boi') params.delete('board'); else params.set('board', next)
+        const qs = params.toString()
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    }
+
     const periodRange = useMemo(() => periodToRange(period, customFrom, customTo), [period, customFrom, customTo])
-    const tasksInWindow = useMemo(() => tasksInPeriod(initialTasks, periodRange.from, periodRange.to), [initialTasks, periodRange])
+    const tasksInWindow = useMemo(() => tasksInPeriod(boardTasks, periodRange.from, periodRange.to), [boardTasks, periodRange])
 
     const filters: PdfFilters = useMemo(() => ({
         period: periodRange,
@@ -199,9 +222,9 @@ export function RelatoriosClient({
     const allResponsibleNames = useMemo(() => {
         const s = new Set<string>()
         for (const m of initialMembers) s.add(m.name)
-        for (const t of initialTasks) for (const a of (t.assignees || [])) s.add(a)
+        for (const t of boardTasks) for (const a of (t.assignees || [])) s.add(a)
         return Array.from(s).sort()
-    }, [initialMembers, initialTasks])
+    }, [initialMembers, boardTasks])
 
     async function handleGenerate(mode: ReportMode) {
         try {
@@ -292,6 +315,37 @@ export function RelatoriosClient({
                         {generating === 'detailed' ? 'Gerando…' : 'Relatório Detalhado'}
                     </button>
                 </div>
+            </div>
+
+            {/* ─── Board selector (operação) ─── */}
+            <div className="flex flex-wrap items-center gap-1.5">
+                {BOARDS.map(b => {
+                    const count = initialTasks.filter(t => (t.unidade ?? 'formula_boi') === b.key).length
+                    const active = board === b.key
+                    return (
+                        <button
+                            key={b.key}
+                            type="button"
+                            onClick={() => setBoard(b.key)}
+                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border transition-colors ${active
+                                ? 'bg-[#A0792E] text-[#0A0A0A] border-[#A0792E]'
+                                : 'bg-white dark:bg-[#0F0F0F] border-gray-200 dark:border-[rgba(212,168,92,0.22)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#A0792E]'
+                                }`}
+                            style={{ borderRadius: 3 }}
+                        >
+                            {b.label}
+                            <span
+                                className={`text-[11px] font-mono px-1.5 py-0.5 ${active
+                                    ? 'bg-black/15'
+                                    : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500'
+                                    }`}
+                                style={{ borderRadius: 2 }}
+                            >
+                                {count}
+                            </span>
+                        </button>
+                    )
+                })}
             </div>
 
             {/* ─── Filtros ─── */}
