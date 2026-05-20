@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Instagram, Phone, Mail, MapPin } from "lucide-react";
+import { Instagram, Phone, Mail } from "lucide-react";
 import { useSiteNavItems } from "@/lib/site-nav";
 
 export default function Footer() {
@@ -161,14 +161,6 @@ export default function Footer() {
                             <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
                                 <Mail className="w-[18px] h-[18px] mt-0.5 shrink-0" style={{ color: "#A0792E" }} />
                                 <span>formuladoboi@gmail.com</span>
-                            </li>
-                            <li className="flex flex-col md:flex-row items-center md:items-start gap-3">
-                                <MapPin className="w-[18px] h-[18px] mt-0.5 shrink-0" style={{ color: "#A0792E" }} />
-                                <span>
-                                    Rua Magi Salomon, 246 · Apt 100<br />
-                                    Salgado Filho · Belo Horizonte / MG<br />
-                                    CEP 30.550-190
-                                </span>
                             </li>
                         </ul>
                     </div>
