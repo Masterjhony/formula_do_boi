@@ -29,6 +29,14 @@ import zipfile
 import openpyxl
 import requests
 
+# Logs sem buffering — no GitHub Actions o stdout é um pipe (fully buffered)
+# e as mensagens só apareceriam todas juntas no fim, escondendo em qual passo
+# o script estava quando algo deu errado.
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+except Exception:
+    pass
+
 GSHEETS_ID = "1rzEUSB1Rt4DQ7xlj3Wej4Rn-NwnMSgGk"
 GSHEETS_EXPORT = (
     f"https://docs.google.com/spreadsheets/d/{GSHEETS_ID}/export?format=xlsx"
@@ -166,10 +174,43 @@ def patch_img(rec_id, url):
 
 
 def download_xlsx(dst):
-    r = requests.get(GSHEETS_EXPORT, allow_redirects=True)
-    r.raise_for_status()
-    with open(dst, "wb") as f:
-        f.write(r.content)
+    """Baixa o xlsx do Google Sheets com retry + validação.
+
+    O export do Google Sheets falha de duas formas: (1) encerra a resposta
+    no meio (ChunkedEncodingError) e (2) sob throttle devolve um xlsx
+    "só valores", um zip válido mas sem as imagens embutidas — o que faria
+    o sync reportar "0 capas" em silêncio, sem erro. Tentamos até 3x e só
+    aceitamos o arquivo se ele tiver xl/media/ (as imagens). Se nenhuma
+    tentativa trouxer mídia, levanta erro pra falhar o step de forma
+    visível, em vez de "passar" sem anexar nada.
+    """
+    last_err = None
+    for attempt in range(3):
+        try:
+            r = requests.get(GSHEETS_EXPORT, allow_redirects=True, timeout=120)
+            r.raise_for_status()
+            with open(dst, "wb") as f:
+                f.write(r.content)
+            with zipfile.ZipFile(dst) as z:
+                media = [n for n in z.namelist() if n.startswith("xl/media/")]
+            if not media:
+                raise RuntimeError(
+                    f"xlsx sem xl/media/ ({os.path.getsize(dst)} bytes) — "
+                    "resposta truncada/throttled do Google Sheets"
+                )
+            print(
+                f"Download OK: {os.path.getsize(dst)} bytes, "
+                f"{len(media)} arquivos de mídia"
+            )
+            return
+        except (requests.exceptions.ChunkedEncodingError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+                zipfile.BadZipFile,
+                RuntimeError) as e:
+            last_err = e
+            print(f"  tentativa {attempt + 1} falhou: {e}")
+    raise last_err
 
 
 def gather_image_map(xlsx_path):
