@@ -32,7 +32,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install --quiet openpyxl requests
+        # pillow é obrigatório: sem ele o openpyxl descarta silenciosamente
+        # as imagens embutidas na leitura, e upload_leilao_images.py acha
+        # "0 imagens embutidas" mesmo a planilha tendo as capas.
+        run: pip install --quiet openpyxl requests pillow
 
       - name: Sincronizar texto (cronograma_leiloes)
         env:

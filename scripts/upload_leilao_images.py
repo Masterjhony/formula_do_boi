@@ -258,6 +258,21 @@ def main():
         items = gather_image_map(xlsx_path)
         print(f"Encontradas {len(items)} imagens embutidas\n")
 
+        # Guarda contra falha silenciosa: download_xlsx() já garantiu que o
+        # arquivo tem xl/media/; se o openpyxl ainda assim leu 0 imagens, o
+        # ambiente provavelmente não tem Pillow (openpyxl descarta as imagens
+        # embutidas na leitura sem ele). Falha visível em vez de fingir
+        # sucesso anexando 0 capas.
+        if not items:
+            with zipfile.ZipFile(xlsx_path) as z:
+                media = [n for n in z.namelist() if n.startswith("xl/media/")]
+            if media:
+                raise RuntimeError(
+                    f"openpyxl leu 0 imagens, mas o xlsx tem {len(media)} "
+                    "arquivos em xl/media/ — instale Pillow no ambiente "
+                    "(pip install pillow)."
+                )
+
         records = query_all()
         print(f"bula_leiloes: {len(records)} registros\n")
 
