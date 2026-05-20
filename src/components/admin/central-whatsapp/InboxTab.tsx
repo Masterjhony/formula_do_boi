@@ -311,7 +311,15 @@ export function InboxTab({ templates }: { templates: Template[] }) {
                                                     : "bg-primary text-primary-foreground"
                                             }`}
                                         >
-                                            {m.body || <span className="opacity-60 italic">[sem texto]</span>}
+                                            {m.body ? (
+                                                m.body
+                                            ) : m.direction === "outbound" && m.bot_step === "welcome" ? (
+                                                <span className="opacity-70 italic">
+                                                    Welcome enviado — template renderizado pelo bot (ver na aba Templates).
+                                                </span>
+                                            ) : (
+                                                <span className="opacity-60 italic">[sem texto]</span>
+                                            )}
                                             <div
                                                 className={`text-[10px] mt-1 flex items-center gap-1 ${
                                                     inbound ? "text-muted-foreground" : "opacity-80"
