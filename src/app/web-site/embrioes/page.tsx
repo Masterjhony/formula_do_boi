@@ -17,17 +17,39 @@ export default async function EmbrioesPage() {
     const products = await getProductsServer();
 
     // VIS doadoras Safra 2026: o admin controla visibilidade via `active` em `products`.
-    // Lemos TODOS (incluindo inactive) e devolvemos pro client a lista de RGDs ocultos
-    // pra ele filtrar a seção "Safra 2026" (renderizada do array DOADORAS estático).
+    // Lemos TODOS (incluindo inactive) e devolvemos pro client:
+    //  (a) a lista de RGDs ocultos — filtra a seção renderizada do array DOADORAS;
+    //  (b) a pelagem de cada doadora — classificada pelo campo `raca` do produto
+    //      (mesmo critério de Nelore Padrão × Pintado usado no catálogo).
+    type VisRow = {
+        details: { registro?: string; raca?: string } | null;
+        active: boolean | null;
+        raca: string | null;
+    };
     const supabase = await createClient();
-    const { data: visRows } = await supabase
+    const { data } = await supabase
         .from('products')
-        .select('details, active')
+        .select('details, active, raca')
         .eq('tag', 'SAFRA_VIS_2026');
-    const visInactiveRegistros = (visRows ?? [])
-        .filter((r: any) => r.active === false)
-        .map((r: any) => r.details?.registro)
+    const visRows = (data ?? []) as VisRow[];
+
+    const visInactiveRegistros = visRows
+        .filter((r) => r.active === false)
+        .map((r) => r.details?.registro)
         .filter(Boolean) as string[];
 
-    return <EmbrioesClient products={products} visInactiveRegistros={visInactiveRegistros} />;
+    const visRacaByRegistro: Record<string, string> = {};
+    for (const r of visRows) {
+        const registro = r.details?.registro;
+        const raca = r.raca || r.details?.raca;
+        if (registro && raca) visRacaByRegistro[registro] = raca;
+    }
+
+    return (
+        <EmbrioesClient
+            products={products}
+            visInactiveRegistros={visInactiveRegistros}
+            visRacaByRegistro={visRacaByRegistro}
+        />
+    );
 }

@@ -17,6 +17,8 @@ const FG = "#F5F0E4";
 interface EmbrioesClientProps {
     products: Product[];
     visInactiveRegistros?: string[];
+    /** RGD → raça do produto (coluna `raca` em `products`) para as doadoras VIS. */
+    visRacaByRegistro?: Record<string, string>;
 }
 
 function fmtBRL(n: number) {
@@ -25,6 +27,24 @@ function fmtBRL(n: number) {
 function fmtDecimal(n: number) {
     return n.toString().replace(".", ",");
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * Pelagem — critério único de filtragem (Nelore Padrão × Pintado).
+ * Fonte da verdade: o campo `raca` do produto no Supabase (coluna
+ * `products.raca`, espelhada em `details.raca`, que é o campo
+ * editado pelo formulário de admin). "Nelore Pintado" → pintado;
+ * qualquer outro valor (ou vazio) → padrão.
+ * ───────────────────────────────────────────────────────────── */
+type Pelagem = "padrao" | "pintado";
+
+function toPelagem(raca?: string | null): Pelagem {
+    return (raca ?? "").toLowerCase().includes("pintad") ? "pintado" : "padrao";
+}
+
+const PELAGEM_LABEL: Record<Pelagem, string> = {
+    padrao: "Nelore Padrão",
+    pintado: "Nelore Pintado",
+};
 
 /* ─────────────────────────────────────────────────────────────
  * Modelo unificado de card — uma doadora VIS Safra 2026 e um
@@ -42,6 +62,7 @@ type CatalogItem = {
     badge: string;
     origin: "safra" | "catalogo";
     originLabel: string;
+    pelagem: Pelagem;
     name: string;
     cruzamento: string | null;
     metrics: { label: string; value: string }[];
@@ -55,7 +76,10 @@ function youTubeId(url: string): string {
     return url.split("/").pop() || "";
 }
 
-function safraToItem(d: (typeof DOADORAS)[number]): CatalogItem {
+function safraToItem(
+    d: (typeof DOADORAS)[number],
+    visRacaByRegistro: Record<string, string>
+): CatalogItem {
     return {
         key: `safra-${d.slug}`,
         href: `/embrioes/${d.slug}`,
@@ -67,6 +91,7 @@ function safraToItem(d: (typeof DOADORAS)[number]): CatalogItem {
         badge: d.classificacaoTop,
         origin: "safra",
         originLabel: "Safra 2026 · Nelore Visual",
+        pelagem: toPelagem(visRacaByRegistro[d.rgd]),
         name: d.nomeAbcz ?? d.rgd,
         cruzamento: d.cruzamento,
         metrics: [
@@ -91,6 +116,7 @@ function cleanCatalogName(raw: string): string {
 /** Forma comum a um produto vindo do Supabase e a um item estático de EMBRYOS. */
 type CatalogDetails = {
     registro?: string;
+    raca?: string;
     pai?: string;
     iabcz?: string;
     iqg?: string;
@@ -110,6 +136,7 @@ type CatalogProduct = {
     tag?: string;
     customLink?: string;
     registro?: string;
+    raca?: string;
     pai?: string;
     iabcz?: string;
     iqg?: string;
@@ -174,6 +201,7 @@ function catalogToItem(p: CatalogProduct): CatalogItem {
         badge,
         origin: "catalogo",
         originLabel: "Catálogo Fórmula do Boi",
+        pelagem: toPelagem(p.raca || details.raca),
         name: cleanCatalogName(p.name) || p.name,
         cruzamento: pai ? pai.toUpperCase() : null,
         metrics,
@@ -183,7 +211,11 @@ function catalogToItem(p: CatalogProduct): CatalogItem {
     };
 }
 
-export default function EmbrioesClient({ products: dbProducts, visInactiveRegistros = [] }: EmbrioesClientProps) {
+export default function EmbrioesClient({
+    products: dbProducts,
+    visInactiveRegistros = [],
+    visRacaByRegistro = {},
+}: EmbrioesClientProps) {
     const visInactiveSet = useMemo(() => new Set(visInactiveRegistros), [visInactiveRegistros]);
     const visibleDoadoras = useMemo(
         () => DOADORAS.filter((d) => !visInactiveSet.has(d.rgd)),
@@ -209,14 +241,21 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
     }, [dbProducts]);
 
     // Catálogo único — Safra 2026 (curadoria FdB × Bula) primeiro, catálogo geral na sequência.
-    const safraItems = useMemo(() => visibleDoadoras.map(safraToItem), [visibleDoadoras]);
+    const safraItems = useMemo(
+        () => visibleDoadoras.map((d) => safraToItem(d, visRacaByRegistro)),
+        [visibleDoadoras, visRacaByRegistro]
+    );
     const catalogoItems = useMemo(() => allProducts.map(catalogToItem), [allProducts]);
     const allItems = useMemo(() => [...safraItems, ...catalogoItems], [safraItems, catalogoItems]);
 
-    const [filter, setFilter] = useState<"all" | "safra" | "catalogo">("all");
-    const showFilters = safraItems.length > 0 && catalogoItems.length > 0;
+    // Filtro por pelagem — Nelore Padrão (pelo branco) × Nelore Pintado.
+    const padraoItems = useMemo(() => allItems.filter((i) => i.pelagem === "padrao"), [allItems]);
+    const pintadoItems = useMemo(() => allItems.filter((i) => i.pelagem === "pintado"), [allItems]);
+
+    const [filter, setFilter] = useState<"all" | Pelagem>("all");
+    const showFilters = padraoItems.length > 0 && pintadoItems.length > 0;
     const visibleItems =
-        filter === "all" ? allItems : allItems.filter((i) => i.origin === filter);
+        filter === "all" ? allItems : allItems.filter((i) => i.pelagem === filter);
 
     const totalDisponiveis = allItems.length;
 
@@ -470,16 +509,16 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
                                         count={allItems.length}
                                     />
                                     <FilterChip
-                                        active={filter === "safra"}
-                                        onClick={() => setFilter("safra")}
-                                        label="Safra 2026 · Nelore Visual"
-                                        count={safraItems.length}
+                                        active={filter === "padrao"}
+                                        onClick={() => setFilter("padrao")}
+                                        label="Nelore Padrão"
+                                        count={padraoItems.length}
                                     />
                                     <FilterChip
-                                        active={filter === "catalogo"}
-                                        onClick={() => setFilter("catalogo")}
-                                        label="Catálogo geral"
-                                        count={catalogoItems.length}
+                                        active={filter === "pintado"}
+                                        onClick={() => setFilter("pintado")}
+                                        label="Nelore Pintado"
+                                        count={pintadoItems.length}
                                     />
                                 </div>
                             ) : (
@@ -791,6 +830,27 @@ function EmbriaoCard({ item }: { item: CatalogItem }) {
                         }}
                     >
                         {item.badge}
+                    </span>
+
+                    {/* Badge de pelagem — espelha o filtro Padrão × Pintado */}
+                    <span
+                        style={{
+                            position: "absolute",
+                            top: 12,
+                            right: 12,
+                            fontFamily: "var(--font-mono)",
+                            fontSize: 9,
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
+                            color: BRONZE_LIGHT,
+                            background: "rgba(10,10,10,0.72)",
+                            border: "1px solid rgba(212,168,92,0.38)",
+                            padding: "3px 7px",
+                            fontWeight: 500,
+                            backdropFilter: "blur(4px)",
+                        }}
+                    >
+                        {PELAGEM_LABEL[item.pelagem]}
                     </span>
                 </div>
 
