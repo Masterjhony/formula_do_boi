@@ -272,34 +272,45 @@ export default function EmbrioesClient({
     const visibleItems =
         filter === "all" ? allItems : allItems.filter((i) => i.pelagem === filter);
 
-    const totalDisponiveis = allItems.length;
-
     return (
         <main className="min-h-screen" style={{ background: INK }}>
             <Header />
 
             {/* HERO ────────────────────────────────────────── */}
             <section
-                className="relative overflow-hidden"
-                style={{ background: INK, borderBottom: "1px solid rgba(212,168,92,0.18)" }}
+                className="relative overflow-hidden flex items-center"
+                style={{
+                    background: INK,
+                    borderBottom: "1px solid rgba(212,168,92,0.18)",
+                    minHeight: "clamp(560px, 78vh, 780px)",
+                }}
             >
+                {/* Foto de fundo — pasto Nelore ao entardecer */}
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        backgroundImage: 'url("/Imagem embrio.png")',
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                    }}
+                />
+                {/* Véu escuro — garante a legibilidade do texto sobre a foto */}
                 <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
                         background:
-                            "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.16) 0%, transparent 60%)",
+                            "linear-gradient(180deg, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.50) 34%, rgba(10,10,10,0.56) 58%, rgba(10,10,10,0.94) 100%)",
                     }}
                 />
+                {/* Brilho bronze no topo — assinatura da marca */}
                 <div
-                    className="absolute inset-0 pointer-events-none opacity-50"
+                    className="absolute inset-0 pointer-events-none"
                     style={{
-                        backgroundImage:
-                            "radial-gradient(circle at 1px 1px, rgba(232,203,133,0.10) 1px, transparent 0)",
-                        backgroundSize: "32px 32px",
-                        maskImage: "radial-gradient(ellipse at top, black 0%, transparent 70%)",
+                        background:
+                            "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.20) 0%, transparent 58%)",
                     }}
                 />
-                <div className="container mx-auto px-4 pt-20 pb-14 relative text-center" style={{ maxWidth: 1200 }}>
+                <div className="container mx-auto px-4 py-20 relative text-center" style={{ maxWidth: 1200 }}>
                     <div
                         className="inline-flex items-center gap-3 mb-6"
                         style={{
@@ -312,7 +323,7 @@ export default function EmbrioesClient({
                         }}
                     >
                         <span style={{ width: 6, height: 6, background: BRONZE, borderRadius: "50%" }} />
-                        Marketplace · Embriões FIV · Central de Embriões
+                        Marketplace · Nelore PO · Central de Embriões
                     </div>
                     <h1
                         className="font-display mx-auto"
@@ -323,44 +334,31 @@ export default function EmbrioesClient({
                             letterSpacing: "-0.03em",
                             color: FG,
                             marginBottom: 22,
-                            maxWidth: "18ch",
+                            maxWidth: "22ch",
+                            textShadow: "0 2px 32px rgba(0,0,0,0.6)",
                         }}
                     >
-                        Embriões FIV <span style={{ color: BRONZE_LIGHT }}>selecionados.</span>
+                        Comece no Nelore PO{" "}
+                        <span style={{ color: BRONZE_LIGHT, display: "block" }}>
+                            através de embriões.
+                        </span>
                     </h1>
                     <p
                         className="mx-auto"
                         style={{
-                            color: "rgba(245,240,228,0.78)",
+                            color: "rgba(245,240,228,0.86)",
                             fontSize: 18,
                             lineHeight: 1.55,
                             maxWidth: "62ch",
                             letterSpacing: "-0.005em",
+                            textShadow: "0 1px 18px rgba(0,0,0,0.7)",
                         }}
                     >
-                        Cruzamentos curados, pedigree autenticado, embrião VIT com rastreabilidade total.
-                        Pacote mínimo de {DOADORAS_CONDICOES.pacoteMinimo} unidades — {DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes garantidas.
+                        Forme um plantel de Nelore PO de elite a partir do embrião — genética
+                        de ponta sem o custo de comprar matrizes prontas. Doadoras selecionadas,
+                        pedigree autenticado pela ABCZ e rastreabilidade total: pacote mínimo de{" "}
+                        {DOADORAS_CONDICOES.pacoteMinimo} unidades, {DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes garantidas em contrato.
                     </p>
-
-                    {/* Stats strip */}
-                    <div
-                        className="mt-12 mx-auto grid grid-cols-3 gap-0"
-                        style={{
-                            maxWidth: 760,
-                            border: "1px solid rgba(212,168,92,0.22)",
-                            borderRadius: 4,
-                            overflow: "hidden",
-                            background: INK_2,
-                        }}
-                    >
-                        <HeroStat label="Doadoras disponíveis" value={String(totalDisponiveis)} />
-                        <HeroStat label="Pacote mínimo" value={`${DOADORAS_CONDICOES.pacoteMinimo} embriões`} divider />
-                        <HeroStat
-                            label="Prenhezes garantidas"
-                            value={`${DOADORAS_CONDICOES.prenhezesGarantidas} por pacote`}
-                            divider
-                        />
-                    </div>
                 </div>
             </section>
 
@@ -587,43 +585,6 @@ export default function EmbrioesClient({
 /* ─────────────────────────────────────────────────────────────
  * Sub-componentes
  * ───────────────────────────────────────────────────────────── */
-
-function HeroStat({ label, value, divider }: { label: string; value: string; divider?: boolean }) {
-    return (
-        <div
-            className="px-4 py-5"
-            style={{
-                borderLeft: divider ? "1px solid rgba(212,168,92,0.16)" : undefined,
-            }}
-        >
-            <div
-                style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10,
-                    letterSpacing: "0.20em",
-                    textTransform: "uppercase",
-                    color: BRONZE_LIGHT,
-                    fontWeight: 500,
-                    marginBottom: 6,
-                }}
-            >
-                {label}
-            </div>
-            <div
-                className="font-display"
-                style={{
-                    fontSize: "clamp(20px, 2.4vw, 28px)",
-                    fontWeight: 500,
-                    color: FG,
-                    letterSpacing: "-0.02em",
-                    lineHeight: 1.05,
-                }}
-            >
-                {value}
-            </div>
-        </div>
-    );
-}
 
 function PilarRow({
     index,
