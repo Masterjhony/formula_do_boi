@@ -443,6 +443,25 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
                                                 ))}
                                             </div>
 
+                                            {/* Condições do pacote */}
+                                            <div
+                                                className="flex flex-col gap-2 mb-5"
+                                                style={{
+                                                    paddingTop: 14,
+                                                    borderTop: "1px solid rgba(212,168,92,0.16)",
+                                                }}
+                                            >
+                                                <CardSpec
+                                                    label="Pacote mínimo"
+                                                    value={`${DOADORAS_CONDICOES.pacoteMinimo} embriões VIT`}
+                                                />
+                                                <CardSpec label="Pagamento" value="Até 10× sem juros" />
+                                                <CardSpec
+                                                    label="Localização"
+                                                    value={DOADORAS_CONDICOES.municipio}
+                                                />
+                                            </div>
+
                                             {/* Preço */}
                                             <div
                                                 className="flex items-baseline justify-between"
@@ -697,6 +716,36 @@ function HeroStat({ label, value, divider }: { label: string; value: string; div
             >
                 {value}
             </div>
+        </div>
+    );
+}
+
+function CardSpec({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex items-baseline justify-between gap-3">
+            <span
+                style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 9.5,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    color: "rgba(245,240,228,0.50)",
+                    flexShrink: 0,
+                }}
+            >
+                {label}
+            </span>
+            <span
+                style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11.5,
+                    color: "rgba(245,240,228,0.85)",
+                    textAlign: "right",
+                    letterSpacing: "0.02em",
+                }}
+            >
+                {value}
+            </span>
         </div>
     );
 }
