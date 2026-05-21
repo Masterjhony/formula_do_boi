@@ -11,7 +11,6 @@ import { Product } from "@/services/products";
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
 const INK = "#0A0A0A";
-const INK_2 = "#141414";
 const FG = "#F5F0E4";
 
 interface EmbrioesClientProps {
@@ -362,103 +361,7 @@ export default function EmbrioesClient({
                 </div>
             </section>
 
-            {/* 01 · CURADORIA & GARANTIAS ───────────────────── */}
-            <section
-                style={{
-                    background: INK_2,
-                    borderBottom: "1px solid rgba(212,168,92,0.10)",
-                }}
-            >
-                <div className="container mx-auto px-4 py-14 md:py-20" style={{ maxWidth: 1280 }}>
-                    <div className="grid md:grid-cols-[0.9fr_1.1fr] gap-10 md:gap-14 items-start">
-                        {/* Coluna esquerda — label + headline + texto */}
-                        <div>
-                            <div
-                                className="inline-flex items-center gap-3 mb-4"
-                                style={{
-                                    fontFamily: "var(--font-mono)",
-                                    fontSize: 11,
-                                    letterSpacing: "0.22em",
-                                    textTransform: "uppercase",
-                                    color: BRONZE_LIGHT,
-                                    fontWeight: 500,
-                                }}
-                            >
-                                <span style={{ width: 24, height: 1, background: BRONZE }} />
-                                01 · Curadoria & garantias
-                            </div>
-                            <h2
-                                className="font-display"
-                                style={{
-                                    fontSize: "clamp(28px, 4vw, 48px)",
-                                    fontWeight: 500,
-                                    color: FG,
-                                    letterSpacing: "-0.02em",
-                                    marginBottom: 18,
-                                    maxWidth: "22ch",
-                                }}
-                            >
-                                Genética <span style={{ color: BRONZE_LIGHT }}>auditável</span>, prenhez garantida.
-                            </h2>
-                            <p
-                                style={{
-                                    color: "rgba(245,240,228,0.72)",
-                                    fontSize: 16,
-                                    lineHeight: 1.6,
-                                    marginBottom: 18,
-                                    maxWidth: "52ch",
-                                }}
-                            >
-                                Cada cruzamento aqui foi desenhado em conjunto entre o time
-                                Fórmula do Boi e a Bula Remates. Pedigree validado pela ABCZ
-                                até a terceira geração, embrião VIT com lote identificado.
-                            </p>
-                            <p
-                                style={{
-                                    color: "rgba(245,240,228,0.62)",
-                                    fontSize: 15,
-                                    lineHeight: 1.6,
-                                    maxWidth: "52ch",
-                                }}
-                            >
-                                Pacote mínimo de {DOADORAS_CONDICOES.pacoteMinimo} unidades com{" "}
-                                {DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes confirmadas —
-                                {" "}{DOADORAS_CONDICOES.parcelamento.toLowerCase()}.
-                            </p>
-                        </div>
-
-                        {/* Coluna direita — três pilares numerados */}
-                        <div
-                            className="card-engraved"
-                            style={{
-                                background: INK,
-                                border: "1px solid rgba(212,168,92,0.22)",
-                                overflow: "hidden",
-                            }}
-                        >
-                            <PilarRow
-                                index="I"
-                                title="Pedigree validado pela ABCZ"
-                                text="Origem paterna e materna documentadas com RG oficial para cada ancestral até a terceira geração. Avaliação genética por corte ABCZ disponível na ficha."
-                            />
-                            <PilarRow
-                                index="II"
-                                title="Embrião VIT com rastreabilidade"
-                                text="Vitrificação em laboratório acreditado e identificação por lote — você sabe exatamente qual doadora produziu cada embrião do seu pacote."
-                                divider
-                            />
-                            <PilarRow
-                                index="III"
-                                title={`${DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes garantidas`}
-                                text={`Cada pacote de ${DOADORAS_CONDICOES.pacoteMinimo} embriões vem com garantia contratual de ${DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes confirmadas — risco coberto pela curadoria, não pelo comprador.`}
-                                divider
-                            />
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* 02 · CATÁLOGO ÚNICO DE EMBRIÕES ──────────────── */}
+            {/* 01 · CATÁLOGO ÚNICO DE EMBRIÕES ──────────────── */}
             {allItems.length > 0 && (
                 <section style={{ background: INK }}>
                     <div className="container mx-auto px-4 py-14 md:py-20" style={{ maxWidth: 1280 }}>
@@ -476,7 +379,7 @@ export default function EmbrioesClient({
                                     }}
                                 >
                                     <span style={{ width: 24, height: 1, background: BRONZE }} />
-                                    02 · Catálogo de embriões
+                                    01 · Catálogo de embriões
                                 </div>
                                 <h2
                                     className="font-display"
@@ -585,64 +488,6 @@ export default function EmbrioesClient({
 /* ─────────────────────────────────────────────────────────────
  * Sub-componentes
  * ───────────────────────────────────────────────────────────── */
-
-function PilarRow({
-    index,
-    title,
-    text,
-    divider,
-}: {
-    index: string;
-    title: string;
-    text: string;
-    divider?: boolean;
-}) {
-    return (
-        <div
-            className="grid grid-cols-[auto_1fr] gap-5 px-6 py-6"
-            style={{
-                borderTop: divider ? "1px solid rgba(212,168,92,0.14)" : undefined,
-            }}
-        >
-            <div
-                className="font-display"
-                style={{
-                    fontSize: 28,
-                    color: BRONZE_LIGHT,
-                    lineHeight: 1,
-                    letterSpacing: "-0.02em",
-                    fontWeight: 500,
-                    minWidth: 36,
-                }}
-            >
-                {index}
-            </div>
-            <div>
-                <div
-                    className="font-display"
-                    style={{
-                        fontSize: 18,
-                        fontWeight: 500,
-                        color: FG,
-                        letterSpacing: "-0.015em",
-                        marginBottom: 6,
-                    }}
-                >
-                    {title}
-                </div>
-                <p
-                    style={{
-                        color: "rgba(245,240,228,0.72)",
-                        fontSize: 14.5,
-                        lineHeight: 1.55,
-                    }}
-                >
-                    {text}
-                </p>
-            </div>
-        </div>
-    );
-}
 
 function FilterChip({
     active,
