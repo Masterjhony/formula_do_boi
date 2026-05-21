@@ -509,65 +509,6 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
                 </section>
             )}
 
-            {/* 03 · CTA FINAL ───────────────────────────────── */}
-            <section
-                style={{
-                    background: INK_2,
-                    borderTop: "1px solid rgba(212,168,92,0.18)",
-                }}
-            >
-                <div className="container mx-auto px-4 py-14 md:py-20 text-center" style={{ maxWidth: 800 }}>
-                    <div
-                        className="inline-flex items-center gap-3 mb-5"
-                        style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: 11,
-                            letterSpacing: "0.22em",
-                            textTransform: "uppercase",
-                            color: BRONZE_LIGHT,
-                            fontWeight: 500,
-                        }}
-                    >
-                        <span style={{ width: 24, height: 1, background: BRONZE }} />
-                        03 · Próximo passo
-                    </div>
-                    <h2
-                        className="font-display"
-                        style={{
-                            fontSize: "clamp(32px, 5vw, 56px)",
-                            fontWeight: 500,
-                            color: FG,
-                            letterSpacing: "-0.025em",
-                            marginBottom: 18,
-                        }}
-                    >
-                        Pré-reserva pelo grupo VIP.
-                    </h2>
-                    <p
-                        className="mx-auto"
-                        style={{
-                            color: "rgba(245,240,228,0.72)",
-                            fontSize: 16,
-                            lineHeight: 1.55,
-                            marginBottom: 28,
-                            maxWidth: "52ch",
-                        }}
-                    >
-                        Curadoria FdB × Bula libera os pacotes para criadores validados antes do
-                        catálogo público. Vagas limitadas por safra.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-3">
-                        <Link href="/grupo-vip" className="fdb-btn-primary-embrioes">
-                            Candidatar-me ao grupo VIP
-                            <span aria-hidden style={{ marginLeft: 6 }}>→</span>
-                        </Link>
-                        <Link href="/grupo-vip" className="fdb-btn-ghost-embrioes">
-                            Falar com curador
-                        </Link>
-                    </div>
-                </div>
-            </section>
-
             <Footer />
 
             <style jsx global>{`
@@ -582,44 +523,6 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
                     box-shadow: 0 0 0 1px rgba(212, 168, 92, 0.25), 0 18px 50px rgba(0, 0, 0, 0.55);
                 }
                 .group:hover .embriao-card .embriao-cta {
-                    color: ${FG};
-                }
-                .fdb-btn-primary-embrioes {
-                    display: inline-flex; align-items: center; justify-content: center;
-                    background: ${BRONZE};
-                    color: ${INK};
-                    padding: 14px 26px;
-                    border-radius: 2px;
-                    font-family: var(--font-mono);
-                    font-size: 12px;
-                    font-weight: 600;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    transition: transform 150ms ease, background 150ms ease;
-                    box-shadow: 0 0 0 1px rgba(212,168,92,0.35), 0 0 60px rgba(212,168,92,0.18);
-                    text-decoration: none;
-                }
-                .fdb-btn-primary-embrioes:hover {
-                    transform: translateY(-1px);
-                    background: ${BRONZE_LIGHT};
-                }
-                .fdb-btn-ghost-embrioes {
-                    display: inline-flex; align-items: center; justify-content: center;
-                    background: transparent;
-                    color: ${BRONZE_LIGHT};
-                    padding: 14px 26px;
-                    border: 1px solid rgba(212,168,92,0.40);
-                    border-radius: 2px;
-                    font-family: var(--font-mono);
-                    font-size: 12px;
-                    font-weight: 500;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    text-decoration: none;
-                    transition: border-color 150ms ease, color 150ms ease;
-                }
-                .fdb-btn-ghost-embrioes:hover {
-                    border-color: ${BRONZE_LIGHT};
                     color: ${FG};
                 }
             `}</style>
