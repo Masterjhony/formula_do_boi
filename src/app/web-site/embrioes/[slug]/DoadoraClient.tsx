@@ -29,9 +29,6 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
     const nomeHero = doadora.nomeAbcz ?? "Nome ABCZ a confirmar";
     const hasPedigree = !!doadora.pedigree;
     const hasAvaliacao = !!doadora.avaliacao;
-    // Numeração de seção dinâmica: 04 sempre é Genealogia, 05 é Avaliação (se houver),
-    // 06 (ou 05 se não tiver avaliação) é a CTA final.
-    const ctaNumber = hasAvaliacao ? "06" : "05";
 
     return (
         <main className="min-h-screen" style={{ background: INK }}>
@@ -417,52 +414,6 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                     </div>
                 </section>
             )}
-
-            {/* CTA FINAL ───────────────────────────────── */}
-            <section
-                style={{
-                    background: INK,
-                    borderTop: "1px solid rgba(212,168,92,0.18)",
-                }}
-            >
-                <div className="container mx-auto px-4 py-14 md:py-20 text-center" style={{ maxWidth: 800 }}>
-                    <SectionLabel>{ctaNumber} · Próximo passo</SectionLabel>
-                    <h2
-                        className="font-display mt-5"
-                        style={{
-                            fontSize: "clamp(32px, 5vw, 56px)",
-                            fontWeight: 500,
-                            color: FG,
-                            letterSpacing: "-0.025em",
-                            marginBottom: 18,
-                        }}
-                    >
-                        Pré-reserva pelo grupo VIP.
-                    </h2>
-                    <p
-                        style={{
-                            color: "rgba(245,240,228,0.72)",
-                            fontSize: 16,
-                            lineHeight: 1.55,
-                            marginBottom: 28,
-                            maxWidth: "52ch",
-                            margin: "0 auto 28px",
-                        }}
-                    >
-                        Curadoria FdB × Bula libera os pacotes para criadores validados antes do catálogo
-                        público. Vagas limitadas por safra.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-3">
-                        <Link href="/grupo-vip" className="fdb-btn-primary-static">
-                            Candidatar-me ao grupo VIP
-                            <span aria-hidden style={{ marginLeft: 6 }}>→</span>
-                        </Link>
-                        <Link href="/grupo-vip" className="fdb-btn-ghost-static">
-                            Falar com curador
-                        </Link>
-                    </div>
-                </div>
-            </section>
 
             <Footer />
 
