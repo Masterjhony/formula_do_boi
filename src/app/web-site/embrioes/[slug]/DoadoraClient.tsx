@@ -277,7 +277,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                     >
                                         <span
                                             aria-hidden
-                                            className="flex-shrink-0"
+                                            className="shrink-0"
                                             style={{ width: 10, height: 1, background: BRONZE, marginTop: 11 }}
                                         />
                                         {arg}

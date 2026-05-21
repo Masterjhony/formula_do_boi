@@ -41,7 +41,8 @@ export default function EmbrioesClient({ products: dbProducts, visInactiveRegist
         return [...dbProducts, ...staticKeep].filter((p) => {
             const cat = p.category || "";
             const type = p.classificacao || "";
-            const reg = (p as any).registro ?? (p as any).details?.registro ?? "";
+            const meta = p as { registro?: string; details?: { registro?: string } | null };
+            const reg = meta.registro ?? meta.details?.registro ?? "";
             // VIS doadoras seeded in DB já aparecem na seção "Safra 2026" acima
             // (renderizada do array DOADORAS) — não duplicar no catálogo geral.
             if (p.tag === "SAFRA_VIS_2026" || visRegistros.has(reg)) return false;
