@@ -6,7 +6,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
     type Doadora,
-    type AvalRow,
     type PedigreeNode,
     type Avaliacao,
     DOADORAS_CONDICOES,
@@ -23,9 +22,6 @@ function fmtBRL(n: number) {
 }
 function fmtDecimal(n: number) {
     return n.toString().replace(".", ",");
-}
-function fmtDep(n: number) {
-    return n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 3 });
 }
 
 export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
@@ -390,27 +386,33 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 maxWidth: "62ch",
                             }}
                         >
-                            DEPs oficiais publicadas pela ABCZ no corte {doadora.avaliacao.corte}.
-                            Cada característica vem acompanhada de acurácia (AC), decil dentro da raça (DECA)
+                            Resumo do índice oficial publicado pela ABCZ no corte {doadora.avaliacao.corte}.
+                            A ficha técnica completa traz todas as DEPs por característica — crescimento,
+                            maternas, reprodutivas, carcaça e morfológicas — com acurácia (AC), decil (DECA)
                             e percentil populacional (P%).
                         </p>
 
                         <AvaliacaoHeadline aval={doadora.avaliacao} />
 
-                        <div className="mt-10">
-                            <GroupSubheader>Características que compõem o iABCZ</GroupSubheader>
-                            <DepGroup title="Crescimento" rows={doadora.avaliacao.grupos.crescimento} />
-                            <DepGroup title="Maternas" rows={doadora.avaliacao.grupos.maternas} />
-                            <DepGroup title="Reprodutivas" rows={doadora.avaliacao.grupos.reprodutivas} />
-                            <DepGroup title="Acabamento" rows={doadora.avaliacao.grupos.acabamento} />
-                        </div>
-
-                        <div className="mt-10">
-                            <GroupSubheader>Características que não compõem o iABCZ</GroupSubheader>
-                            <DepGroup title="Crescimento" rows={doadora.avaliacao.grupos.crescimentoExtra} />
-                            <DepGroup title="Reprodutivas" rows={doadora.avaliacao.grupos.reprodutivasExtra} />
-                            <DepGroup title="Carcaça" rows={doadora.avaliacao.grupos.carcaca} />
-                            <DepGroup title="Morfológicas" rows={doadora.avaliacao.grupos.morfologicas} />
+                        <div className="mt-10" style={{ maxWidth: 720 }}>
+                            {doadora.fichaTecnica ? (
+                                <FichaTecnicaDownload
+                                    href={doadora.fichaTecnica}
+                                    corte={doadora.avaliacao.corte}
+                                    rgd={doadora.rgd}
+                                />
+                            ) : (
+                                <p
+                                    style={{
+                                        fontFamily: "var(--font-mono)",
+                                        fontSize: 12,
+                                        letterSpacing: "0.08em",
+                                        color: "rgba(245,240,228,0.52)",
+                                    }}
+                                >
+                                    Ficha técnica em validação na ABCZ.
+                                </p>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -1250,141 +1252,146 @@ function AvaliacaoHeadline({ aval }: { aval: Avaliacao }) {
     );
 }
 
-function GroupSubheader({ children }: { children: React.ReactNode }) {
+/* Card de download da ficha técnica oficial — substitui a listagem
+ * detalhada das DEPs. O PDF da ABCZ traz todas as características. */
+
+function FichaTecnicaDownload({
+    href,
+    corte,
+    rgd,
+}: {
+    href: string;
+    corte: string;
+    rgd: string;
+}) {
     return (
-        <div
-            className="mb-4"
-            style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: BRONZE_LIGHT,
-                fontWeight: 600,
-                paddingBottom: 8,
-                borderBottom: "1px solid rgba(212,168,92,0.18)",
-            }}
+        <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            download={`ficha-tecnica-${rgd.replace(/\s+/g, "-")}.pdf`}
+            className="fdb-ficha-download"
         >
-            {children}
-        </div>
-    );
-}
-
-function DepGroup({ title, rows }: { title: string; rows: AvalRow[] }) {
-    if (!rows.length) return null;
-    return (
-        <div className="mb-6">
-            <div
-                style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10,
-                    letterSpacing: "0.24em",
-                    textTransform: "uppercase",
-                    color: "rgba(245,240,228,0.55)",
-                    fontWeight: 500,
-                    marginBottom: 10,
-                }}
-            >
-                {title}
-            </div>
-            <div
-                className="card-engraved"
-                style={{
-                    background: INK,
-                    border: "1px solid rgba(212,168,92,0.16)",
-                    overflow: "hidden",
-                }}
-            >
-                {rows.map((r, i) => (
-                    <DepRow key={r.code} row={r} last={i === rows.length - 1} />
-                ))}
-            </div>
-        </div>
-    );
-}
-
-function DepRow({ row, last }: { row: AvalRow; last?: boolean }) {
-    const decaIsTop = row.deca <= 2;
-    const decaColor = row.deca === 1
-        ? BRONZE_LIGHT
-        : decaIsTop ? "rgba(212,168,92,0.78)" : "rgba(245,240,228,0.55)";
-    const depColor = row.dep >= 0 ? FG : "rgba(245,240,228,0.85)";
-
-    return (
-        <div
-            className="grid grid-cols-[1fr_auto] items-center gap-4 sm:gap-6 px-4 sm:px-5 py-3.5"
-            style={{
-                borderBottom: last ? undefined : "1px solid rgba(212,168,92,0.10)",
-            }}
-        >
-            {/* Esquerda: código + label + badges */}
-            <div className="min-w-0">
-                <div className="flex items-baseline gap-3 flex-wrap">
-                    <span
-                        style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: 11,
-                            color: BRONZE_LIGHT,
-                            fontWeight: 600,
-                            letterSpacing: "0.10em",
-                            flexShrink: 0,
-                        }}
-                    >
-                        {row.code}
-                    </span>
-                    <span
-                        style={{
-                            color: "rgba(245,240,228,0.82)",
-                            fontSize: 13.5,
-                            lineHeight: 1.3,
-                        }}
-                    >
-                        {row.label}
-                    </span>
-                </div>
-                <div
-                    className="flex flex-wrap gap-x-4 gap-y-1 mt-2"
-                    style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 10,
-                        letterSpacing: "0.10em",
-                        color: "rgba(245,240,228,0.50)",
-                    }}
+            <span aria-hidden className="fdb-ficha-icon">
+                <svg
+                    width="30"
+                    height="30"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                 >
-                    <span>AC {row.ac}%</span>
-                    <span style={{ color: decaColor, fontWeight: 600 }}>DECA {row.deca}</span>
-                    {row.pct !== null && <span>P% {row.pct}</span>}
-                </div>
-            </div>
+                    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                    <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z" />
+                    <path d="M12 11v6m-3-3 3 3 3-3" />
+                </svg>
+            </span>
 
-            {/* Direita: valor DEP */}
-            <div className="text-right whitespace-nowrap">
-                <span
-                    className="font-display"
-                    style={{
-                        fontSize: "clamp(20px, 2.2vw, 26px)",
-                        color: depColor,
-                        fontWeight: 500,
-                        letterSpacing: "-0.01em",
-                    }}
-                >
-                    {fmtDep(row.dep)}
+            <span className="fdb-ficha-text">
+                <span className="fdb-ficha-label">Ficha técnica oficial · ABCZ</span>
+                <span className="fdb-ficha-title font-display">
+                    Avaliação genética completa
                 </span>
-                {row.unit && (
-                    <span
-                        style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: 11,
-                            color: "rgba(245,240,228,0.50)",
-                            marginLeft: 5,
-                            letterSpacing: "0.06em",
-                        }}
-                    >
-                        {row.unit}
-                    </span>
-                )}
-            </div>
-        </div>
+                <span className="fdb-ficha-meta">
+                    Todas as DEPs por característica + genealogia · corte {corte} · PDF
+                </span>
+            </span>
+
+            <span className="fdb-ficha-cta">
+                Baixar PDF
+                <span aria-hidden style={{ marginLeft: 6 }}>↓</span>
+            </span>
+
+            <style jsx global>{`
+                .fdb-ficha-download {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                    padding: 22px 24px;
+                    background: ${INK};
+                    border: 1px solid rgba(212, 168, 92, 0.28);
+                    border-radius: 4px;
+                    text-decoration: none;
+                    transition: border-color 160ms ease, background 160ms ease,
+                        transform 160ms ease;
+                }
+                .fdb-ficha-download:hover {
+                    border-color: ${BRONZE};
+                    background: rgba(212, 168, 92, 0.05);
+                    transform: translateY(-1px);
+                }
+                .fdb-ficha-icon {
+                    flex-shrink: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 58px;
+                    height: 58px;
+                    border: 1px solid rgba(212, 168, 92, 0.35);
+                    border-radius: 4px;
+                    color: ${BRONZE_LIGHT};
+                    background: rgba(212, 168, 92, 0.06);
+                }
+                .fdb-ficha-text {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    flex: 1;
+                    min-width: 0;
+                }
+                .fdb-ficha-label {
+                    font-family: var(--font-mono);
+                    font-size: 10px;
+                    letter-spacing: 0.22em;
+                    text-transform: uppercase;
+                    color: ${BRONZE_LIGHT};
+                    font-weight: 500;
+                }
+                .fdb-ficha-title {
+                    font-size: clamp(19px, 2.4vw, 24px);
+                    font-weight: 500;
+                    color: ${FG};
+                    letter-spacing: -0.015em;
+                    line-height: 1.15;
+                }
+                .fdb-ficha-meta {
+                    font-size: 13px;
+                    color: rgba(245, 240, 228, 0.58);
+                    line-height: 1.4;
+                }
+                .fdb-ficha-cta {
+                    flex-shrink: 0;
+                    display: inline-flex;
+                    align-items: center;
+                    background: ${BRONZE};
+                    color: ${INK};
+                    padding: 12px 22px;
+                    border-radius: 2px;
+                    font-family: var(--font-mono);
+                    font-size: 12px;
+                    font-weight: 600;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    transition: background 150ms ease;
+                }
+                .fdb-ficha-download:hover .fdb-ficha-cta {
+                    background: ${BRONZE_LIGHT};
+                }
+                @media (max-width: 640px) {
+                    .fdb-ficha-download {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 16px;
+                    }
+                    .fdb-ficha-cta {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                }
+            `}</style>
+        </a>
     );
 }
 

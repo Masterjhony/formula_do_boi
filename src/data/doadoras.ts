@@ -71,6 +71,8 @@ export type Doadora = {
     pendencias: string[];
     pedigree?: Pedigree;
     avaliacao?: Avaliacao;
+    /** PDF da ficha técnica oficial ABCZ (servido de /public). */
+    fichaTecnica?: string;
 };
 
 const AVAL_VIS_4622: Avaliacao = {
@@ -363,6 +365,7 @@ export const DOADORAS: Doadora[] = [
         pendencias: ["Foto oficial em alta resolução"],
         pedigree: PEDIGREE_VIS_GURUPI_GODIVA,
         avaliacao: AVAL_VIS_4622,
+        fichaTecnica: "/vis4622.pdf",
     },
     {
         slug: "vis-4711",
@@ -407,6 +410,7 @@ export const DOADORAS: Doadora[] = [
         pendencias: ["Foto oficial em alta resolução"],
         pedigree: PEDIGREE_VIS_4817,
         avaliacao: AVAL_VIS_4817,
+        fichaTecnica: "/VIS4817.pdf",
     },
     {
         slug: "vis-4632",
@@ -427,6 +431,7 @@ export const DOADORAS: Doadora[] = [
         pendencias: ["Foto oficial em alta resolução"],
         pedigree: PEDIGREE_VIS_GURUPI_GODIVA,
         avaliacao: AVAL_VIS_4632,
+        fichaTecnica: "/VIS%204632.pdf",
     },
     {
         slug: "vis-4634",
@@ -447,6 +452,7 @@ export const DOADORAS: Doadora[] = [
         pendencias: ["Foto oficial em alta resolução"],
         pedigree: PEDIGREE_VIS_4634,
         avaliacao: AVAL_VIS_4634,
+        fichaTecnica: "/VIS%204634.pdf",
     },
 ];
 
