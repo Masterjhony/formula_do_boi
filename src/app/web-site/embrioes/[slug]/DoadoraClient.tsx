@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -334,10 +335,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 até a terceira geração (bisavós).
                             </p>
 
-                            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
-                                <PedigreeBranch side="paterna" root={doadora.pedigree.pai} />
-                                <PedigreeBranch side="materna" root={doadora.pedigree.mae} />
-                            </div>
+                            <PedigreeCinema doadora={doadora} />
 
                             <p
                                 className="mt-8"
@@ -622,152 +620,515 @@ function DataRow({
 
 /* ─── Pedigree ─────────────────────────────────────────────── */
 
-function PedigreeBranch({
-    side, root,
-}: { side: "paterna" | "materna"; root: PedigreeNode }) {
-    const isPaterna = side === "paterna";
-    const headerLabel = isPaterna ? "Origem paterna" : "Origem materna";
-    const rootLabel = isPaterna ? "Pai" : "Mãe";
-    const avoLabel = isPaterna ? "Avô paterno" : "Avô materno";
-    const avoaLabel = isPaterna ? "Avó paterna" : "Avó materna";
+/* Árvore "cinema mode" — espelha o pedigree da LP /atacante-matinha:
+ * card-herói no topo → Pais → Avós, conectados por linhas SVG animadas
+ * com reveal sequencial no scroll. Os bisavós (3ª geração) entram como
+ * rodapé compacto dentro de cada card de avó, preservando a profundidade
+ * de dados da doadora sem quebrar o layout de 3 fileiras do original. */
+
+function PedigreeCinema({ doadora }: { doadora: Doadora }) {
+    const ped = doadora.pedigree!;
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    // Reveal sequencial quando a árvore entra na viewport (scrollytelling).
+    useEffect(() => {
+        const el = rootRef.current;
+        if (!el) return;
+        if (typeof IntersectionObserver === "undefined") {
+            el.classList.add("in");
+            return;
+        }
+        const io = new IntersectionObserver(
+            (entries) => {
+                for (const e of entries) {
+                    if (e.isIntersecting) {
+                        el.classList.add("in");
+                        io.disconnect();
+                        break;
+                    }
+                }
+            },
+            { threshold: 0.18, rootMargin: "0px 0px -10% 0px" },
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
+
+    // Conta ancestrais com RG oficial (pais + avós + bisavós).
+    const ancestraisComRg = useMemo(() => {
+        let n = 0;
+        const walk = (node?: PedigreeNode) => {
+            if (!node) return;
+            if (node.rg) n += 1;
+            walk(node.pai);
+            walk(node.mae);
+        };
+        walk(ped.pai);
+        walk(ped.mae);
+        return n;
+    }, [ped]);
+
+    const heroName = doadora.nomeAbcz ?? doadora.rgd;
 
     return (
-        <div
-            className="card-engraved relative"
-            style={{
-                background: INK_2,
-                border: "1px solid rgba(212,168,92,0.22)",
-                overflow: "hidden",
-            }}
-        >
-            {/* Header */}
-            <div
-                className="px-5 py-3"
-                style={{
-                    borderBottom: "1px solid rgba(212,168,92,0.18)",
-                    background: "rgba(212,168,92,0.04)",
-                }}
+        <div className="pedi-cinema" ref={rootRef}>
+            {/* DOADORA — geração 0 */}
+            <div className="pedi-cin-row pedi-row-hero">
+                <article className="pedi-cin-card hero">
+                    <div className="pedi-cin-tag">Doadora</div>
+                    <div className="pedi-cin-name font-display">{heroName}</div>
+                    <div className="pedi-cin-reg">RGD {doadora.rgd}</div>
+                    <div className="pedi-cin-metric">
+                        <div className="pedi-cin-metric-num font-display">
+                            {fmtDecimal(doadora.iabcz.valor)}
+                        </div>
+                        <div className="pedi-cin-metric-label">
+                            iABCZ · {doadora.iabcz.percentil}
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+            {/* Conector Doadora → Pais */}
+            <svg
+                className="pedi-cin-svg pedi-cin-svg-1"
+                viewBox="0 0 1000 80"
+                preserveAspectRatio="none"
+                aria-hidden
             >
-                <div
-                    style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 11,
-                        letterSpacing: "0.22em",
-                        textTransform: "uppercase",
-                        color: BRONZE_LIGHT,
-                        fontWeight: 600,
-                    }}
-                >
-                    {headerLabel}
+                <path className="cin-line" d="M500,0 V40 H180 V80" />
+                <path className="cin-line" d="M500,0 V40 H820 V80" />
+            </svg>
+
+            {/* PAIS — geração 1 */}
+            <div className="pedi-cin-row pedi-row-pais">
+                <PedigreeCinCard tier="parent" side="paterno" tag="Pai" node={ped.pai} />
+                <PedigreeCinCard tier="parent" side="materno" tag="Mãe" node={ped.mae} />
+            </div>
+
+            {/* Conector Pais → Avós */}
+            <svg
+                className="pedi-cin-svg pedi-cin-svg-2"
+                viewBox="0 0 1000 80"
+                preserveAspectRatio="none"
+                aria-hidden
+            >
+                <path className="cin-line" d="M180,0 V40 H80 V80" />
+                <path className="cin-line" d="M180,0 V40 H300 V80" />
+                <path className="cin-line" d="M820,0 V40 H700 V80" />
+                <path className="cin-line" d="M820,0 V40 H920 V80" />
+            </svg>
+
+            {/* AVÓS — geração 2 (bisavós no rodapé de cada card) */}
+            <div className="pedi-cin-row pedi-row-avos">
+                <PedigreeCinCard tier="grand" side="paterno" tag="Avô paterno" node={ped.pai.pai} />
+                <PedigreeCinCard tier="grand" side="paterno" tag="Avó paterna" node={ped.pai.mae} />
+                <PedigreeCinCard tier="grand" side="materno" tag="Avô materno" node={ped.mae.pai} />
+                <PedigreeCinCard tier="grand" side="materno" tag="Avó materna" node={ped.mae.mae} />
+            </div>
+
+            {/* KPIs resumo */}
+            <div className="pedi-cin-kpis">
+                <div className="pedi-cin-kpi">
+                    <div className="pedi-cin-kpi-num font-display">3</div>
+                    <div className="pedi-cin-kpi-label">Gerações documentadas</div>
+                </div>
+                <div className="pedi-cin-kpi">
+                    <div className="pedi-cin-kpi-num font-display">{ancestraisComRg}</div>
+                    <div className="pedi-cin-kpi-label">Ancestrais com registro</div>
+                </div>
+                <div className="pedi-cin-kpi">
+                    {doadora.avaliacao ? (
+                        <>
+                            <div className="pedi-cin-kpi-num font-display">
+                                {fmtDecimal(doadora.avaliacao.fPct)}
+                                <span className="cents">%</span>
+                            </div>
+                            <div className="pedi-cin-kpi-label">Consanguinidade (F)</div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="pedi-cin-kpi-num font-display">
+                                {doadora.classificacaoTop.replace(/^TOP\s*/i, "")}
+                            </div>
+                            <div className="pedi-cin-kpi-label">Classificação iABCZ</div>
+                        </>
+                    )}
                 </div>
             </div>
 
-            {/* Gen 1 — Pai/Mãe */}
-            <PedigreeRowCard
-                tier="parent"
-                tierLabel={rootLabel}
-                node={root}
-            />
+            <style jsx global>{`
+                .pedi-cinema {
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .pedi-cin-row {
+                    display: flex;
+                    justify-content: center;
+                    gap: 20px;
+                    position: relative;
+                    z-index: 2;
+                }
+                .pedi-row-hero {
+                    justify-content: center;
+                }
+                .pedi-row-pais {
+                    justify-content: space-between;
+                    padding: 0 12%;
+                }
+                .pedi-row-avos {
+                    justify-content: space-between;
+                    gap: 14px;
+                }
 
-            {/* Gen 2 — Avós */}
-            <div
-                className="grid grid-cols-2"
-                style={{ borderTop: "1px solid rgba(212,168,92,0.12)" }}
-            >
-                <PedigreeRowCard
-                    tier="grand"
-                    tierLabel={avoLabel}
-                    node={root.pai}
-                />
-                <PedigreeRowCard
-                    tier="grand"
-                    tierLabel={avoaLabel}
-                    node={root.mae}
-                    leftBorder
-                />
-            </div>
+                .pedi-cin-card {
+                    position: relative;
+                    padding: 20px 22px;
+                    background: linear-gradient(
+                        180deg,
+                        rgba(20, 20, 20, 0.92),
+                        rgba(10, 10, 10, 0.85)
+                    );
+                    border: 1px solid rgba(212, 168, 92, 0.22);
+                    border-radius: 4px;
+                    min-width: 200px;
+                    max-width: 320px;
+                    flex: 1;
+                    opacity: 0;
+                    transform: translateY(24px) scale(0.96);
+                    transition: opacity 0.8s ease, transform 0.8s ease,
+                        border-color 0.25s ease, background 0.25s ease;
+                }
+                .pedi-cin-card.hero {
+                    min-width: 340px;
+                    max-width: 460px;
+                    padding: 30px 34px;
+                    border: 1px solid ${BRONZE};
+                    background: linear-gradient(
+                        135deg,
+                        rgba(160, 121, 46, 0.16),
+                        rgba(20, 20, 20, 0.85)
+                    );
+                    box-shadow: 0 30px 80px -24px rgba(160, 121, 46, 0.4);
+                }
+                .pedi-cin-card::before {
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    border: 1px solid transparent;
+                    border-radius: 4px;
+                    background: linear-gradient(
+                            135deg,
+                            ${BRONZE},
+                            transparent 50%
+                        )
+                        border-box;
+                    -webkit-mask: linear-gradient(#000 0 0) padding-box,
+                        linear-gradient(#000 0 0);
+                    -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                    pointer-events: none;
+                }
+                .pedi-cin-card:hover::before {
+                    opacity: 1;
+                }
+                .pedi-cin-card:hover {
+                    border-color: ${BRONZE};
+                    background: linear-gradient(
+                        180deg,
+                        rgba(160, 121, 46, 0.1),
+                        rgba(20, 20, 20, 0.85)
+                    );
+                }
 
-            {/* Gen 3 — Bisavós */}
-            <div
-                className="grid grid-cols-2 md:grid-cols-4"
-                style={{ borderTop: "1px solid rgba(212,168,92,0.12)" }}
-            >
-                <PedigreeRowCard tier="great" tierLabel="Bisavô" node={root.pai?.pai} />
-                <PedigreeRowCard tier="great" tierLabel="Bisavó" node={root.pai?.mae} leftBorder />
-                <PedigreeRowCard tier="great" tierLabel="Bisavô" node={root.mae?.pai} leftBorder />
-                <PedigreeRowCard tier="great" tierLabel="Bisavó" node={root.mae?.mae} leftBorder />
-            </div>
+                .pedi-cin-tag {
+                    font-family: var(--font-mono);
+                    font-size: 9px;
+                    letter-spacing: 0.26em;
+                    text-transform: uppercase;
+                    color: ${BRONZE_LIGHT};
+                    font-weight: 600;
+                    margin-bottom: 10px;
+                }
+                .pedi-cin-card.hero .pedi-cin-tag {
+                    font-size: 10px;
+                    letter-spacing: 0.28em;
+                }
+                .pedi-cin-name {
+                    font-weight: 500;
+                    font-size: 17px;
+                    color: ${FG};
+                    letter-spacing: -0.01em;
+                    line-height: 1.22;
+                    margin-bottom: 5px;
+                    word-break: break-word;
+                }
+                .pedi-cin-card.hero .pedi-cin-name {
+                    font-size: clamp(26px, 3vw, 32px);
+                    line-height: 1.05;
+                }
+                .pedi-cin-reg {
+                    font-family: var(--font-mono);
+                    font-size: 10px;
+                    color: rgba(245, 240, 228, 0.5);
+                    letter-spacing: 0.06em;
+                }
+                .pedi-cin-metric {
+                    border-top: 1px solid rgba(212, 168, 92, 0.2);
+                    margin-top: 16px;
+                    padding-top: 14px;
+                }
+                .pedi-cin-metric-num {
+                    font-weight: 500;
+                    font-size: 48px;
+                    color: ${BRONZE};
+                    line-height: 1;
+                    letter-spacing: -0.02em;
+                }
+                .pedi-cin-metric-label {
+                    font-family: var(--font-mono);
+                    font-size: 9px;
+                    letter-spacing: 0.2em;
+                    text-transform: uppercase;
+                    color: ${BRONZE_LIGHT};
+                    margin-top: 8px;
+                    font-weight: 500;
+                }
+
+                /* Bisavós — rodapé compacto dentro de cada card de avó */
+                .pedi-cin-anc {
+                    border-top: 1px solid rgba(212, 168, 92, 0.14);
+                    margin-top: 14px;
+                    padding-top: 12px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 9px;
+                }
+                .pedi-cin-anc-tag {
+                    display: block;
+                    font-family: var(--font-mono);
+                    font-size: 8px;
+                    letter-spacing: 0.2em;
+                    text-transform: uppercase;
+                    color: rgba(212, 168, 92, 0.72);
+                    font-weight: 600;
+                    margin-bottom: 3px;
+                }
+                .pedi-cin-anc-name {
+                    font-size: 12px;
+                    color: rgba(245, 240, 228, 0.8);
+                    line-height: 1.3;
+                }
+                .pedi-cin-anc-rg {
+                    font-family: var(--font-mono);
+                    font-size: 9px;
+                    color: rgba(245, 240, 228, 0.42);
+                    margin-left: 6px;
+                    letter-spacing: 0.04em;
+                    white-space: nowrap;
+                }
+
+                /* Linhas SVG animadas (stroke-dashoffset) */
+                .pedi-cin-svg {
+                    width: 100%;
+                    height: 72px;
+                    display: block;
+                    margin: -1px 0;
+                    pointer-events: none;
+                }
+                .pedi-cin-svg .cin-line {
+                    fill: none;
+                    stroke: ${BRONZE};
+                    stroke-width: 1;
+                    stroke-linecap: square;
+                    stroke-dasharray: 600;
+                    stroke-dashoffset: 600;
+                    transition: stroke-dashoffset 1.2s ease 0.3s;
+                    opacity: 0.85;
+                    filter: drop-shadow(0 0 4px rgba(160, 121, 46, 0.4));
+                }
+
+                /* Reveal: quando o container entra na viewport */
+                .pedi-cinema.in .pedi-cin-card {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+                .pedi-cinema.in .pedi-cin-card.hero {
+                    transition-delay: 0.1s;
+                }
+                .pedi-cinema.in .pedi-row-pais .pedi-cin-card {
+                    transition-delay: 0.7s;
+                }
+                .pedi-cinema.in .pedi-row-avos .pedi-cin-card:nth-child(1) {
+                    transition-delay: 1.4s;
+                }
+                .pedi-cinema.in .pedi-row-avos .pedi-cin-card:nth-child(2) {
+                    transition-delay: 1.5s;
+                }
+                .pedi-cinema.in .pedi-row-avos .pedi-cin-card:nth-child(3) {
+                    transition-delay: 1.6s;
+                }
+                .pedi-cinema.in .pedi-row-avos .pedi-cin-card:nth-child(4) {
+                    transition-delay: 1.7s;
+                }
+                .pedi-cinema.in .pedi-cin-svg-1 .cin-line {
+                    stroke-dashoffset: 0;
+                    transition-delay: 0.5s;
+                }
+                .pedi-cinema.in .pedi-cin-svg-2 .cin-line {
+                    stroke-dashoffset: 0;
+                    transition-delay: 1.1s;
+                }
+
+                /* Highlight de linhagem no hover */
+                .pedi-cinema:has([data-side="paterno"]:hover)
+                    [data-side="materno"],
+                .pedi-cinema:has([data-side="materno"]:hover)
+                    [data-side="paterno"] {
+                    opacity: 0.4;
+                    transition: opacity 0.25s ease;
+                }
+
+                /* KPIs */
+                .pedi-cin-kpis {
+                    margin-top: 56px;
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    border: 1px solid rgba(212, 168, 92, 0.22);
+                    border-radius: 4px;
+                    overflow: hidden;
+                    background: linear-gradient(
+                        135deg,
+                        rgba(160, 121, 46, 0.05),
+                        rgba(20, 20, 20, 0.4)
+                    );
+                }
+                .pedi-cin-kpi {
+                    padding: 28px 24px;
+                    border-right: 1px solid rgba(212, 168, 92, 0.16);
+                    text-align: center;
+                }
+                .pedi-cin-kpi:last-child {
+                    border-right: none;
+                }
+                .pedi-cin-kpi-num {
+                    font-weight: 500;
+                    font-size: clamp(36px, 4.5vw, 56px);
+                    color: ${BRONZE};
+                    letter-spacing: -0.02em;
+                    line-height: 1;
+                }
+                .pedi-cin-kpi-num .cents {
+                    font-size: 0.55em;
+                    color: ${BRONZE_LIGHT};
+                }
+                .pedi-cin-kpi-label {
+                    font-family: var(--font-mono);
+                    font-size: 10px;
+                    letter-spacing: 0.2em;
+                    text-transform: uppercase;
+                    color: rgba(245, 240, 228, 0.55);
+                    margin-top: 12px;
+                    font-weight: 500;
+                }
+
+                @media (max-width: 760px) {
+                    .pedi-row-pais,
+                    .pedi-row-avos {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 10px;
+                        padding: 0;
+                    }
+                    .pedi-cin-card {
+                        min-width: 0;
+                        max-width: none;
+                        width: 100%;
+                        padding: 16px 15px;
+                    }
+                    .pedi-cin-card.hero {
+                        min-width: 0;
+                        max-width: none;
+                        width: 100%;
+                        padding: 24px 22px;
+                    }
+                    .pedi-cin-card.hero .pedi-cin-name {
+                        font-size: 24px;
+                    }
+                    .pedi-cin-card.hero .pedi-cin-metric-num {
+                        font-size: 40px;
+                    }
+                    .pedi-cin-name {
+                        font-size: 14px;
+                    }
+                    .pedi-cin-svg {
+                        height: 36px;
+                    }
+                    .pedi-cin-kpis {
+                        grid-template-columns: 1fr;
+                    }
+                    .pedi-cin-kpi {
+                        border-right: none;
+                        border-bottom: 1px solid rgba(212, 168, 92, 0.16);
+                    }
+                    .pedi-cin-kpi:last-child {
+                        border-bottom: none;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
 
-function PedigreeRowCard({
+function PedigreeCinCard({
     tier,
-    tierLabel,
+    side,
+    tag,
     node,
-    leftBorder,
 }: {
-    tier: "parent" | "grand" | "great";
-    tierLabel: string;
+    tier: "parent" | "grand";
+    side: "paterno" | "materno";
+    tag: string;
     node?: PedigreeNode;
-    leftBorder?: boolean;
 }) {
-    const isParent = tier === "parent";
-    const isGreat = tier === "great";
-
-    const padX = isParent ? "px-5" : isGreat ? "px-3.5" : "px-4";
-    const padY = isParent ? "py-5" : isGreat ? "py-3.5" : "py-4";
-
-    const labelColor = isParent ? BRONZE_LIGHT : "rgba(212,168,92,0.78)";
-    const nameSize = isParent ? "clamp(20px, 2vw, 26px)" : isGreat ? 13 : 16;
-    const nameColor = node ? FG : "rgba(245,240,228,0.32)";
-    const rgSize = isParent ? 12 : isGreat ? 10 : 11;
+    const showBisavos = tier === "grand" && !!(node?.pai || node?.mae);
 
     return (
-        <div
-            className={`${padX} ${padY}`}
-            style={{
-                borderLeft: leftBorder ? "1px solid rgba(212,168,92,0.12)" : undefined,
-                background: isParent ? "rgba(212,168,92,0.03)" : undefined,
-            }}
-        >
+        <article className={`pedi-cin-card ${tier}`} data-side={side}>
+            <div className="pedi-cin-tag">{tag}</div>
             <div
-                style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: isGreat ? 9 : 10,
-                    letterSpacing: "0.20em",
-                    textTransform: "uppercase",
-                    color: labelColor,
-                    fontWeight: 500,
-                    marginBottom: isParent ? 8 : 5,
-                }}
-            >
-                {tierLabel}
-            </div>
-            <div
-                className={isParent ? "font-display" : undefined}
-                style={{
-                    fontSize: nameSize,
-                    fontWeight: isParent ? 500 : 400,
-                    color: nameColor,
-                    letterSpacing: isParent ? "-0.015em" : 0,
-                    lineHeight: isParent ? 1.1 : 1.25,
-                    wordBreak: "break-word",
-                }}
+                className="pedi-cin-name font-display"
+                style={{ color: node ? FG : "rgba(245,240,228,0.32)" }}
             >
                 {node?.nome ?? "—"}
             </div>
-            <div
-                style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: rgSize,
-                    letterSpacing: "0.08em",
-                    color: "rgba(245,240,228,0.45)",
-                    marginTop: 4,
-                }}
-            >
-                {node?.rg ? `RG ${node.rg}` : ""}
+            <div className="pedi-cin-reg">
+                {node?.rg ? `RG ${node.rg}` : "Registro pendente"}
             </div>
+
+            {showBisavos && (
+                <div className="pedi-cin-anc">
+                    <PedigreeAncLine label="Bisavô" node={node?.pai} />
+                    <PedigreeAncLine label="Bisavó" node={node?.mae} />
+                </div>
+            )}
+        </article>
+    );
+}
+
+function PedigreeAncLine({ label, node }: { label: string; node?: PedigreeNode }) {
+    if (!node) return null;
+    return (
+        <div>
+            <span className="pedi-cin-anc-tag">{label}</span>
+            <span className="pedi-cin-anc-name">
+                {node.nome}
+                {node.rg ? <span className="pedi-cin-anc-rg">RG {node.rg}</span> : null}
+            </span>
         </div>
     );
 }
