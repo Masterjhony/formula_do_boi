@@ -66,9 +66,10 @@ type CatalogItem = {
     name: string;
     cruzamento: string | null;
     metrics: { label: string; value: string }[];
+    /** Condições do pacote exibidas no card: pacote mínimo, pagamento, localização. */
+    specs: { label: string; value: string }[];
     priceCaption: string;
     price: string;
-    priceSub: string | null;
 };
 
 function youTubeId(url: string): string {
@@ -99,10 +100,22 @@ function safraToItem(
             { label: "IQG", value: fmtDecimal(d.iqg.valor) },
             { label: "MGTe", value: fmtDecimal(d.mgte.valor) },
         ],
+        specs: [
+            { label: "Pacote mínimo", value: `${d.quantidadeEmbrioes} embriões VIT` },
+            { label: "Pagamento", value: "Até 10× sem juros" },
+            { label: "Localização", value: DOADORAS_CONDICOES.municipio },
+        ],
         priceCaption: "Por embrião VIT",
         price: fmtBRL(d.precoEmbriao),
-        priceSub: `Pacote ${d.quantidadeEmbrioes} un. · ${DOADORAS_CONDICOES.parcelamento.split("(")[0].trim()}`,
     };
+}
+
+/** Normaliza a forma de pagamento de um produto do catálogo para exibição. */
+function tidyPagamento(raw?: string): string {
+    const s = (raw ?? "").trim();
+    if (!s) return "Consultar condições";
+    if (/^a[_ -]?vista$/i.test(s)) return "À vista";
+    return s.replace(/(\d+)\s*x/gi, "$1×");
 }
 
 function cleanCatalogName(raw: string): string {
@@ -133,6 +146,7 @@ type CatalogProduct = {
     price?: string;
     installments?: string;
     forma_pagamento?: string;
+    location?: string;
     tag?: string;
     customLink?: string;
     registro?: string;
@@ -183,12 +197,9 @@ function catalogToItem(p: CatalogProduct): CatalogItem {
     const noPrice = !rawPrice || /^(null|consultar|sob consulta)$/i.test(rawPrice);
     const price = noPrice ? "Sob consulta" : `R$ ${rawPrice}`;
 
-    let priceSub: string | null = null;
-    const inst = (p.installments || "").trim();
-    const mult = (p.forma_pagamento || "").match(/(\d+)\s*x/i)?.[1];
-    if (!noPrice && inst && mult && !/consultar/i.test(inst)) {
-        priceSub = `Entrada + ${mult}× R$ ${inst}`;
-    }
+    const pacote = pkgMatch ? `${pkgMatch[1]} embriões` : "Pacote de embriões";
+    const pagamento = tidyPagamento(p.forma_pagamento);
+    const localizacao = (p.location || "").trim() || "Consultar";
 
     return {
         key: `catalogo-${p.id}`,
@@ -205,9 +216,13 @@ function catalogToItem(p: CatalogProduct): CatalogItem {
         name: cleanCatalogName(p.name) || p.name,
         cruzamento: pai ? pai.toUpperCase() : null,
         metrics,
+        specs: [
+            { label: "Pacote mínimo", value: pacote },
+            { label: "Pagamento", value: pagamento },
+            { label: "Localização", value: localizacao },
+        ],
         priceCaption,
         price,
-        priceSub,
     };
 }
 
@@ -704,6 +719,36 @@ function FilterChip({
     );
 }
 
+function CardSpec({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex items-baseline justify-between gap-3">
+            <span
+                style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 9.5,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    color: "rgba(245,240,228,0.50)",
+                    flexShrink: 0,
+                }}
+            >
+                {label}
+            </span>
+            <span
+                style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11.5,
+                    color: "rgba(245,240,228,0.85)",
+                    textAlign: "right",
+                    letterSpacing: "0.02em",
+                }}
+            >
+                {value}
+            </span>
+        </div>
+    );
+}
+
 function EmbriaoCard({ item }: { item: CatalogItem }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [playing, setPlaying] = useState(false);
@@ -931,6 +976,19 @@ function EmbriaoCard({ item }: { item: CatalogItem }) {
                         </div>
                     )}
 
+                    {/* Condições do pacote — pacote mínimo, pagamento e localização */}
+                    <div
+                        className="flex flex-col gap-2 mb-5"
+                        style={{
+                            paddingTop: 14,
+                            borderTop: "1px solid rgba(212,168,92,0.16)",
+                        }}
+                    >
+                        {item.specs.map((s) => (
+                            <CardSpec key={s.label} label={s.label} value={s.value} />
+                        ))}
+                    </div>
+
                     {/* Preço + CTA */}
                     <div
                         className="flex items-end justify-between mt-auto"
@@ -962,19 +1020,6 @@ function EmbriaoCard({ item }: { item: CatalogItem }) {
                             >
                                 {item.price}
                             </div>
-                            {item.priceSub && (
-                                <div
-                                    style={{
-                                        fontFamily: "var(--font-mono)",
-                                        fontSize: 9.5,
-                                        letterSpacing: "0.04em",
-                                        color: "rgba(245,240,228,0.42)",
-                                        marginTop: 2,
-                                    }}
-                                >
-                                    {item.priceSub}
-                                </div>
-                            )}
                         </div>
                         <span
                             className="embriao-cta"
