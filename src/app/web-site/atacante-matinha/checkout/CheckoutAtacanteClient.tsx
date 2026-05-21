@@ -533,9 +533,14 @@ export default function CheckoutAtacanteClient() {
                                     overflow: "hidden",
                                 }}
                             >
-                                <img
-                                    src="/atacante-matinha/assets/photos/atacante-04.jpeg"
-                                    alt="Atacante da Matinha"
+                                <video
+                                    src="/atacante-matinha/assets/atacante-video.mp4"
+                                    poster="/atacante-matinha/assets/photos/atacante-04.jpeg"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                    aria-label="Atacante da Matinha"
                                     style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                                 />
                                 <span
