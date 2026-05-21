@@ -537,6 +537,56 @@ export default function CheckoutAtacanteClient() {
                                 <SummaryRow label="Doses pretendidas" value={dosesLabel} small />
                                 <SummaryRow label="Tipo de sêmen" value={tipoLabel} small />
 
+                                <div
+                                    style={{
+                                        marginTop: 16,
+                                        padding: "14px 16px",
+                                        border: `1px solid ${LINE_STRONG}`,
+                                        borderTop: `1px solid ${BRONZE}`,
+                                        borderRadius: 3,
+                                        background: "linear-gradient(180deg, rgba(212,168,92,0.07) 0%, rgba(212,168,92,0.02) 100%)",
+                                    }}
+                                >
+                                    <div
+                                        className="flex items-baseline justify-between gap-3"
+                                    >
+                                        <span
+                                            className="font-display"
+                                            style={{
+                                                fontSize: 16,
+                                                fontWeight: 500,
+                                                color: FG,
+                                                letterSpacing: "-0.01em",
+                                            }}
+                                        >
+                                            Frete grátis
+                                        </span>
+                                        <span
+                                            style={{
+                                                fontFamily: "var(--font-mono)",
+                                                fontSize: 10,
+                                                letterSpacing: "0.16em",
+                                                textTransform: "uppercase",
+                                                color: BRONZE_LIGHT,
+                                            }}
+                                        >
+                                            Incluso
+                                        </span>
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontFamily: "var(--font-mono)",
+                                            fontSize: 10,
+                                            letterSpacing: "0.14em",
+                                            textTransform: "uppercase",
+                                            color: FG_MUTED_70,
+                                            marginTop: 6,
+                                        }}
+                                    >
+                                        Entrega das doses sem custo
+                                    </div>
+                                </div>
+
                                 <p
                                     style={{
                                         marginTop: 16,
