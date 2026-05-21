@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -18,23 +18,40 @@ const LINE = "rgba(212,168,92,0.14)";
 const LINE_STRONG = "rgba(212,168,92,0.28)";
 const DANGER = "#E74C3C";
 
-/* Faixas de rebanho que qualificam o lead como MQL (+50 cabeças).
-   Mesma lista do form antigo da LP — mudou o critério? edite aqui. */
-const MQL_QTD = ["51-200", "201-500", "501-1000", "1000+"];
+/* Faixas de doses que qualificam o lead como MQL (101+ doses).
+   Decide o redirect /obrigado-mql vs /obrigado — mudou o critério? edite aqui. */
+const MQL_DOSES = ["101-200", "201-500", "500+"];
 
-const PO_OPTIONS = [
-    { value: "po-registrado", label: "Sim — plantel PO registrado" },
-    { value: "po-sem-registro", label: "Sim — plantel PO em formação" },
-    { value: "pretende", label: "Ainda não, pretendo migrar" },
-    { value: "comercial", label: "Crio gado comercial" },
-];
-
-const QTD_OPTIONS = [
-    { value: "1-50", label: "1 a 50" },
-    { value: "51-200", label: "51 a 200" },
-    { value: "201-500", label: "201 a 500" },
-    { value: "501-1000", label: "501 a 1.000" },
-    { value: "1000+", label: "Acima de 1.000" },
+/* UFs do Brasil — alimentam o select de estado. As cidades de cada UF
+   são buscadas sob demanda na API pública do IBGE quando o estado muda. */
+const ESTADOS = [
+    { uf: "AC", nome: "Acre" },
+    { uf: "AL", nome: "Alagoas" },
+    { uf: "AP", nome: "Amapá" },
+    { uf: "AM", nome: "Amazonas" },
+    { uf: "BA", nome: "Bahia" },
+    { uf: "CE", nome: "Ceará" },
+    { uf: "DF", nome: "Distrito Federal" },
+    { uf: "ES", nome: "Espírito Santo" },
+    { uf: "GO", nome: "Goiás" },
+    { uf: "MA", nome: "Maranhão" },
+    { uf: "MT", nome: "Mato Grosso" },
+    { uf: "MS", nome: "Mato Grosso do Sul" },
+    { uf: "MG", nome: "Minas Gerais" },
+    { uf: "PA", nome: "Pará" },
+    { uf: "PB", nome: "Paraíba" },
+    { uf: "PR", nome: "Paraná" },
+    { uf: "PE", nome: "Pernambuco" },
+    { uf: "PI", nome: "Piauí" },
+    { uf: "RJ", nome: "Rio de Janeiro" },
+    { uf: "RN", nome: "Rio Grande do Norte" },
+    { uf: "RS", nome: "Rio Grande do Sul" },
+    { uf: "RO", nome: "Rondônia" },
+    { uf: "RR", nome: "Roraima" },
+    { uf: "SC", nome: "Santa Catarina" },
+    { uf: "SP", nome: "São Paulo" },
+    { uf: "SE", nome: "Sergipe" },
+    { uf: "TO", nome: "Tocantins" },
 ];
 
 const DOSES_OPTIONS = [
@@ -87,21 +104,22 @@ function getUtmParams() {
 }
 
 type Errors = Partial<Record<
-    "po" | "qtd" | "doses" | "nome" | "whatsapp" | "email",
+    "doses" | "nome" | "whatsapp" | "email",
     string
 >>;
 
 export default function CheckoutAtacanteClient() {
-    const [po, setPo] = useState("");
-    const [qtd, setQtd] = useState("");
     const [doses, setDoses] = useState("");
     const [tipo, setTipo] = useState("convencional");
     const [estacao, setEstacao] = useState("");
     const [nome, setNome] = useState("");
     const [whatsapp, setWhatsapp] = useState("");
     const [email, setEmail] = useState("");
+    const [estado, setEstado] = useState("");
     const [cidade, setCidade] = useState("");
-    const [fazenda, setFazenda] = useState("");
+    const [cidadeOptions, setCidadeOptions] = useState<string[]>([]);
+    const [loadingCidades, setLoadingCidades] = useState(false);
+    const [cidadesError, setCidadesError] = useState(false);
 
     const [errors, setErrors] = useState<Errors>({});
     const [submitting, setSubmitting] = useState(false);
@@ -110,10 +128,41 @@ export default function CheckoutAtacanteClient() {
     const dosesLabel = DOSES_OPTIONS.find((o) => o.value === doses)?.label ?? "—";
     const tipoLabel = TIPO_OPTIONS.find((o) => o.value === tipo)?.label ?? "—";
 
+    /* Cidades vêm da API pública do IBGE, sob demanda quando o estado
+       muda. Se a chamada falhar, o campo cidade vira texto livre pra não
+       travar o envio da pré-reserva. */
+    useEffect(() => {
+        if (!estado) {
+            setCidadeOptions([]);
+            setCidadesError(false);
+            return;
+        }
+        let cancelled = false;
+        setCidade("");
+        setCidadeOptions([]);
+        setCidadesError(false);
+        setLoadingCidades(true);
+        fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado}/municipios?orderBy=nome`)
+            .then((r) => {
+                if (!r.ok) throw new Error("ibge");
+                return r.json();
+            })
+            .then((data: Array<{ nome: string }>) => {
+                if (!cancelled) setCidadeOptions(data.map((d) => d.nome));
+            })
+            .catch(() => {
+                if (!cancelled) setCidadesError(true);
+            })
+            .finally(() => {
+                if (!cancelled) setLoadingCidades(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [estado]);
+
     function validate(): boolean {
         const e: Errors = {};
-        if (!po) e.po = "Selecione seu perfil de criação.";
-        if (!qtd) e.qtd = "Selecione o tamanho do rebanho.";
         if (!doses) e.doses = "Selecione a faixa de doses.";
         if (!nome.trim() || nome.trim().length < 3) e.nome = "Preencha seu nome completo.";
         if (!whatsapp.trim() || whatsapp.replace(/\D/g, "").length < 10) e.whatsapp = "Informe um WhatsApp válido.";
@@ -128,14 +177,19 @@ export default function CheckoutAtacanteClient() {
         setSubmitting(true);
         setServerError(null);
 
+        // `cidade` continua indo ao backend como string combinada
+        // "Cidade / UF" — splitCityUf() no servidor já separa cidade e
+        // estado. Estado selecionado sem cidade vira "/ UF".
+        const cidadeUf =
+            cidade.trim() && estado ? `${cidade.trim()} / ${estado}`
+                : estado ? `/ ${estado}`
+                    : cidade.trim();
+
         const payload = {
             nome: nome.trim(),
             whatsapp,
             email: email.trim(),
-            cidade: cidade.trim(),
-            fazenda: fazenda.trim(),
-            po,
-            qtd,
+            cidade: cidadeUf,
             doses,
             tipo,
             estacao,
@@ -144,8 +198,9 @@ export default function CheckoutAtacanteClient() {
             landing_url: typeof window !== "undefined" ? window.location.href : "",
         };
 
-        // Critério MQL: +50 cabeças → /obrigado-mql (pixel dispara lá).
-        const redirectTo = MQL_QTD.includes(qtd)
+        // Critério MQL: 101+ doses → /obrigado-mql (pixel lead_mql_atacante
+        // dispara lá); até 100 doses ou "orientação do curador" → /obrigado.
+        const redirectTo = MQL_DOSES.includes(doses)
             ? "/atacante-matinha/obrigado-mql"
             : "/atacante-matinha/obrigado";
 
@@ -259,39 +314,7 @@ export default function CheckoutAtacanteClient() {
                                 borderRadius: 4,
                             }}
                         >
-                            <SectionLabel>01 · Seu perfil</SectionLabel>
-
-                            <div className="grid sm:grid-cols-2 gap-4 mt-6">
-                                <Field label="Já é criador de Nelore PO? *" error={errors.po}>
-                                    <select
-                                        value={po}
-                                        onChange={(e) => setPo(e.target.value)}
-                                        style={selectStyle(!!errors.po)}
-                                    >
-                                        <option value="">Selecione…</option>
-                                        {PO_OPTIONS.map((o) => (
-                                            <option key={o.value} value={o.value}>{o.label}</option>
-                                        ))}
-                                    </select>
-                                </Field>
-
-                                <Field label="Quantos animais cria hoje? *" error={errors.qtd}>
-                                    <select
-                                        value={qtd}
-                                        onChange={(e) => setQtd(e.target.value)}
-                                        style={selectStyle(!!errors.qtd)}
-                                    >
-                                        <option value="">Selecione…</option>
-                                        {QTD_OPTIONS.map((o) => (
-                                            <option key={o.value} value={o.value}>{o.label}</option>
-                                        ))}
-                                    </select>
-                                </Field>
-                            </div>
-
-                            <div style={{ marginTop: 36 }}>
-                                <SectionLabel>02 · Reserva</SectionLabel>
-                            </div>
+                            <SectionLabel>01 · Reserva</SectionLabel>
 
                             <div className="grid sm:grid-cols-2 gap-4 mt-6">
                                 <Field label="Doses que pretende reservar *" error={errors.doses} fullWidth>
@@ -334,7 +357,7 @@ export default function CheckoutAtacanteClient() {
                             </div>
 
                             <div style={{ marginTop: 36 }}>
-                                <SectionLabel>03 · Contato</SectionLabel>
+                                <SectionLabel>02 · Contato</SectionLabel>
                             </div>
 
                             <div className="grid sm:grid-cols-2 gap-4 mt-6">
@@ -369,24 +392,54 @@ export default function CheckoutAtacanteClient() {
                                     />
                                 </Field>
 
-                                <Field label="Cidade / Estado" hint="Opcional">
-                                    <input
-                                        type="text"
-                                        value={cidade}
-                                        onChange={(e) => setCidade(e.target.value)}
-                                        placeholder="Cidade · UF"
-                                        style={inputStyle(false)}
-                                    />
+                                <Field label="Estado" hint="Opcional">
+                                    <select
+                                        value={estado}
+                                        onChange={(e) => setEstado(e.target.value)}
+                                        style={selectStyle(false)}
+                                    >
+                                        <option value="">Selecione…</option>
+                                        {ESTADOS.map((o) => (
+                                            <option key={o.uf} value={o.uf}>{o.nome}</option>
+                                        ))}
+                                    </select>
                                 </Field>
 
-                                <Field label="Nome da fazenda" hint="Opcional" fullWidth>
-                                    <input
-                                        type="text"
-                                        value={fazenda}
-                                        onChange={(e) => setFazenda(e.target.value)}
-                                        placeholder="Nome da propriedade"
-                                        style={inputStyle(false)}
-                                    />
+                                <Field
+                                    label="Cidade"
+                                    hint={estado ? "Opcional" : "Selecione o estado primeiro"}
+                                >
+                                    {cidadesError ? (
+                                        <input
+                                            type="text"
+                                            value={cidade}
+                                            onChange={(e) => setCidade(e.target.value)}
+                                            placeholder="Digite sua cidade"
+                                            style={inputStyle(false)}
+                                        />
+                                    ) : (
+                                        <select
+                                            value={cidade}
+                                            onChange={(e) => setCidade(e.target.value)}
+                                            disabled={!estado || loadingCidades}
+                                            style={{
+                                                ...selectStyle(false),
+                                                opacity: !estado || loadingCidades ? 0.55 : 1,
+                                                cursor: estado ? "pointer" : "not-allowed",
+                                            }}
+                                        >
+                                            <option value="">
+                                                {!estado
+                                                    ? "Selecione o estado primeiro"
+                                                    : loadingCidades
+                                                        ? "Carregando cidades…"
+                                                        : "Selecione…"}
+                                            </option>
+                                            {cidadeOptions.map((c) => (
+                                                <option key={c} value={c}>{c}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </Field>
                             </div>
 
