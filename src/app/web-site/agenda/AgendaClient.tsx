@@ -120,10 +120,10 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
             <Link
                 href={href}
                 aria-label={ariaLabel}
-                className="card-engraved group flex items-stretch rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300 overflow-hidden cursor-pointer"
+                className="card-engraved group flex items-stretch rounded-2xl border border-white/8 bg-[#1b1b1b] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300 overflow-hidden cursor-pointer"
             >
                 {/* Image panel */}
-                <div className="relative w-28 sm:w-36 flex-shrink-0 bg-[#0C0C0C] self-stretch flex items-center justify-center">
+                <div className="relative w-28 sm:w-36 flex-shrink-0 bg-[#181818] self-stretch flex items-center justify-center">
                     <img
                         src={ev.img!}
                         alt={ev.nome}
@@ -157,7 +157,7 @@ function LeilaoCard({ ev }: { ev: Parsed }) {
         <Link
             href={href}
             aria-label={ariaLabel}
-            className="card-engraved group grid grid-cols-[64px_1fr] sm:grid-cols-[64px_1fr_auto] items-center gap-4 sm:gap-6 p-5 rounded-2xl border border-white/8 bg-[#0f0f0f] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300 cursor-pointer"
+            className="card-engraved group grid grid-cols-[64px_1fr] sm:grid-cols-[64px_1fr_auto] items-center gap-4 sm:gap-6 p-5 rounded-2xl border border-white/8 bg-[#1b1b1b] hover:border-brand-gold/25 hover:bg-[#141006] transition-all duration-300 cursor-pointer"
         >
             <div className="card-engraved flex flex-col items-center justify-center w-16 h-16 rounded-xl border border-brand-gold/20 bg-brand-gold/6 flex-shrink-0">
                 <span className="text-brand-gold font-black text-xl leading-none">{ev.dia}</span>
@@ -298,7 +298,7 @@ export function AgendaClient({ leiloes }: { leiloes: LeilaoPublico[] }) {
                                     className="flex-1 lg:flex-none rounded-2xl px-6 py-5 lg:px-8 lg:py-6 text-center lg:text-left lg:min-w-[180px]"
                                     style={{
                                         background:
-                                            "linear-gradient(180deg, rgba(20,20,20,0.85) 0%, rgba(10,10,10,0.85) 100%)",
+                                            "linear-gradient(180deg, rgba(31,31,31,0.85) 0%, rgba(22,22,22,0.85) 100%)",
                                         border: "1px solid rgba(212,168,92,0.18)",
                                         boxShadow:
                                             "inset 0 1px 0 rgba(245,240,228,0.04), 0 1px 0 rgba(0,0,0,0.4)",
@@ -406,7 +406,7 @@ export function AgendaClient({ leiloes }: { leiloes: LeilaoPublico[] }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Fale com nosso assessor no WhatsApp"
-                className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 group flex items-center gap-0 sm:gap-3 pl-2 pr-2 sm:pr-5 py-2 rounded-full border border-brand-gold/40 bg-[#0f0f0f]/95 backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_0_1px_rgba(160,121,46,0.18)] hover:border-brand-gold/70 hover:bg-[#141006] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300"
+                className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 group flex items-center gap-0 sm:gap-3 pl-2 pr-2 sm:pr-5 py-2 rounded-full border border-brand-gold/40 bg-[#1b1b1b]/95 backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_0_1px_rgba(160,121,46,0.18)] hover:border-brand-gold/70 hover:bg-[#141006] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300"
             >
                 <span className="relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#25D366] shadow-inner shadow-black/20">
                     <span className="absolute inset-0 rounded-full bg-[#25D366] opacity-60 animate-ping" aria-hidden />

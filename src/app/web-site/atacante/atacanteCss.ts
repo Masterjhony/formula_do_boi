@@ -1,10 +1,10 @@
 export const atacanteCss = `
 :root {
   /* Brandbook neutros — Ink Nelore + escala Ink. Variáveis com nome legado mantidas para compatibilidade. */
-  --ink: #0A0A0A;
-  --leather: #141414;
-  --leather-2: #1E1E1E;
-  --leather-3: #2A2A2A;
+  --ink: #161616;
+  --leather: #1f1f1f;
+  --leather-2: #2a2a2a;
+  --leather-3: #363636;
   --bone: #f4ede0;
   --bone-2: #e8d9b0;
   --gold: #A0792E;

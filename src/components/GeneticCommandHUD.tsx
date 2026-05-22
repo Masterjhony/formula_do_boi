@@ -114,7 +114,7 @@ export default function GeneticCommandHUD() {
             {/* Outer glow */}
             <div className="absolute -inset-4 bg-brand-gold/[0.03] rounded-3xl blur-2xl pointer-events-none" />
 
-            <div className="relative rounded-2xl border border-white/[0.08] bg-[#0c0c0c]/90 backdrop-blur-md overflow-hidden">
+            <div className="relative rounded-2xl border border-white/[0.08] bg-[#181818]/90 backdrop-blur-md overflow-hidden">
                 {/* Scan line */}
                 <ScanLine reducedMotion={reducedMotion} />
 

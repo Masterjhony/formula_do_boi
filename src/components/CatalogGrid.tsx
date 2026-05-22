@@ -56,7 +56,7 @@ export default function CatalogGrid({
                     <button
                         onClick={() => onNeloreFilterChange(null)}
                         className={`px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${!neloreFilter
-                                ? (theme === 'premium' ? 'bg-[#2a2a2a] text-white shadow-sm' : 'bg-gray-100 text-gray-900 shadow-sm')
+                                ? (theme === 'premium' ? 'bg-[#363636] text-white shadow-sm' : 'bg-gray-100 text-gray-900 shadow-sm')
                                 : (theme === 'premium' ? 'text-gray-500 hover:text-white hover:bg-[#222]' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50')
                             }`}
                     >

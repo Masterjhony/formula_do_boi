@@ -13,8 +13,8 @@ import {
 
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
-const INK = "#0A0A0A";
-const INK_2 = "#141414";
+const INK = "#161616";
+const INK_2 = "#1f1f1f";
 const FG = "#F5F0E4";
 
 function fmtBRL(n: number) {
@@ -741,8 +741,8 @@ function PedigreeCinema({ doadora }: { doadora: Doadora }) {
                     padding: 20px 22px;
                     background: linear-gradient(
                         180deg,
-                        rgba(20, 20, 20, 0.92),
-                        rgba(10, 10, 10, 0.85)
+                        rgba(31, 31, 31, 0.92),
+                        rgba(22, 22, 22, 0.85)
                     );
                     border: 1px solid rgba(212, 168, 92, 0.22);
                     border-radius: 4px;
@@ -762,7 +762,7 @@ function PedigreeCinema({ doadora }: { doadora: Doadora }) {
                     background: linear-gradient(
                         135deg,
                         rgba(160, 121, 46, 0.16),
-                        rgba(20, 20, 20, 0.85)
+                        rgba(31, 31, 31, 0.85)
                     );
                     box-shadow: 0 30px 80px -24px rgba(160, 121, 46, 0.4);
                 }
@@ -794,7 +794,7 @@ function PedigreeCinema({ doadora }: { doadora: Doadora }) {
                     background: linear-gradient(
                         180deg,
                         rgba(160, 121, 46, 0.1),
-                        rgba(20, 20, 20, 0.85)
+                        rgba(31, 31, 31, 0.85)
                     );
                 }
 
@@ -957,7 +957,7 @@ function PedigreeCinema({ doadora }: { doadora: Doadora }) {
                     background: linear-gradient(
                         135deg,
                         rgba(160, 121, 46, 0.05),
-                        rgba(20, 20, 20, 0.4)
+                        rgba(31, 31, 31, 0.4)
                     );
                 }
                 .pedi-cin-kpi {

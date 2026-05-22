@@ -51,7 +51,7 @@ export default function FeaturedLots({ products, isAuthenticated = true }: Featu
     }, [featuredProducts.length]);
 
     return (
-        <section className="py-16 bg-[#0a0a0a] relative overflow-hidden">
+        <section className="py-16 bg-[#161616] relative overflow-hidden">
             {/* Background Decor */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-brand-gold/5 not-via-transparent to-transparent"></div>
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-gold/5 rounded-full blur-3xl -ml-20 -mb-20"></div>

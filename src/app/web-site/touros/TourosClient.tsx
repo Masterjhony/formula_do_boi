@@ -296,7 +296,7 @@ export default function TourosClient({ products: allProducts, isAuthenticated = 
             <Header />
 
             {/* Page Header */}
-            <section className="bg-[#0a0a0a] py-12 border-b border-white/10 relative overflow-hidden">
+            <section className="bg-[#161616] py-12 border-b border-white/10 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-brand-gold/10 to-transparent"></div>
                 <div className="container mx-auto px-4 text-center relative z-10">
                     <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">

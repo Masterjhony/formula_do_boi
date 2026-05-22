@@ -46,7 +46,7 @@ export default function BreederProfilePage() {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center min-h-screen bg-[#050505]">
+            <div className="flex justify-center items-center min-h-screen bg-[#111111]">
                 <Loader2 className="w-10 h-10 text-brand-gold animate-spin" />
             </div>
         );
@@ -54,7 +54,7 @@ export default function BreederProfilePage() {
 
     if (!breeder) {
         return (
-            <div className="flex flex-col justify-center items-center min-h-screen bg-[#050505] text-white">
+            <div className="flex flex-col justify-center items-center min-h-screen bg-[#111111] text-white">
                 <h1 className="text-3xl font-bold mb-4">Criador não encontrado</h1>
                 <Link href="/top-criadores" className="text-brand-gold hover:underline">
                     Voltar para Top Criadores
@@ -64,7 +64,7 @@ export default function BreederProfilePage() {
     }
 
     return (
-        <main className="min-h-screen bg-[#050505] text-gray-200">
+        <main className="min-h-screen bg-[#111111] text-gray-200">
             {/* Header / Cover */}
             <div className="relative h-[50vh] min-h-[400px]">
                 <div className="absolute inset-0">
@@ -73,7 +73,7 @@ export default function BreederProfilePage() {
                         alt="Capa"
                         className="w-full h-full object-cover mask-image-gradient-b"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-[#111111]/60 to-transparent" />
                 </div>
 
                 <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-end pb-12">
@@ -174,7 +174,7 @@ export default function BreederProfilePage() {
                     <div className="lg:col-span-1">
                         <div className="sticky top-24 space-y-8 animate-in fade-in slide-in-from-right-8 duration-700 delay-300">
                             {/* Indices Card */}
-                            <div className="bg-[#0f0f0f] rounded-2xl p-6 border border-white/10 shadow-xl">
+                            <div className="bg-[#1b1b1b] rounded-2xl p-6 border border-white/10 shadow-xl">
                                 <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4">Indicadores Médios</h3>
 
                                 <div className="space-y-6">

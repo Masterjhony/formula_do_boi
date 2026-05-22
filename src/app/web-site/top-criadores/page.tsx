@@ -37,7 +37,7 @@ export default function TopCriadoresPage() {
     }, [router]);
 
     return (
-        <main className="min-h-screen bg-[#050505] text-white selection:bg-brand-gold selection:text-black flex flex-col">
+        <main className="min-h-screen bg-[#111111] text-white selection:bg-brand-gold selection:text-black flex flex-col">
             <Header />
 
             {/* Hero Section - Redesigned */}
@@ -45,7 +45,7 @@ export default function TopCriadoresPage() {
                 {/* Background Image */}
                 <div className="absolute inset-0 z-0">
                     <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=2074&auto=format&fit=crop')] bg-cover bg-center opacity-40 mask-image-gradient-b" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/80 via-[#3a2a0d]/40 to-[#050505]" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#111111]/80 via-[#3a2a0d]/40 to-[#111111]" />
                 </div>
 
                 <div className="container mx-auto px-4 relative z-10 text-center flex flex-col items-center">
@@ -75,7 +75,7 @@ export default function TopCriadoresPage() {
             </section>
 
             {/* Intro Section - Refined */}
-            <section className="py-20 relative bg-[#0a0a0a]">
+            <section className="py-20 relative bg-[#161616]">
                 {/* Texture/Grain Overlay */}
                 <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay pointer-events-none"></div>
 
@@ -89,7 +89,7 @@ export default function TopCriadoresPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Premium Cards for Benefits */}
-                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-sm border border-[#222] hover:border-[#D4A85C]/30 transition-all group shadow-xl">
+                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#161616] rounded-sm border border-[#222] hover:border-[#D4A85C]/30 transition-all group shadow-xl">
                             <div className="w-14 h-14 mx-auto mb-6 relative flex items-center justify-center">
                                 <div className="absolute inset-0 rotate-45 border border-[#D4A85C]/20 group-hover:border-[#D4A85C] transition-colors duration-500"></div>
                                 <Crown className="w-6 h-6 text-[#D4A85C] relative z-10" />
@@ -100,7 +100,7 @@ export default function TopCriadoresPage() {
                             </p>
                         </div>
 
-                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-sm border border-[#222] hover:border-[#D4A85C]/30 transition-all group shadow-xl">
+                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#161616] rounded-sm border border-[#222] hover:border-[#D4A85C]/30 transition-all group shadow-xl">
                             <div className="w-14 h-14 mx-auto mb-6 relative flex items-center justify-center">
                                 <div className="absolute inset-0 rotate-45 border border-[#D4A85C]/20 group-hover:border-[#D4A85C] transition-colors duration-500"></div>
                                 <TrendingUp className="w-6 h-6 text-[#D4A85C] relative z-10" />
@@ -111,7 +111,7 @@ export default function TopCriadoresPage() {
                             </p>
                         </div>
 
-                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-sm border border-[#222] hover:border-[#D4A85C]/30 transition-all group shadow-xl">
+                        <div className="p-8 bg-gradient-to-b from-[#111] to-[#161616] rounded-sm border border-[#222] hover:border-[#D4A85C]/30 transition-all group shadow-xl">
                             <div className="w-14 h-14 mx-auto mb-6 relative flex items-center justify-center">
                                 <div className="absolute inset-0 rotate-45 border border-[#D4A85C]/20 group-hover:border-[#D4A85C] transition-colors duration-500"></div>
                                 <Shield className="w-6 h-6 text-[#D4A85C] relative z-10" />
@@ -126,7 +126,7 @@ export default function TopCriadoresPage() {
             </section>
 
             {/* Filter/Tabs Section */}
-            <section className="pt-10 pb-12 bg-gradient-to-b from-[#0a0a0a] to-[#050505] relative border-t border-white/5">
+            <section className="pt-10 pb-12 bg-gradient-to-b from-[#161616] to-[#111111] relative border-t border-white/5">
                 <div className="container mx-auto px-4 flex flex-col items-center">
                     <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#D4A85C]/50 to-transparent mb-8"></div>
                     <h2 className="text-3xl font-display font-bold mb-8 text-center text-white tracking-wider">

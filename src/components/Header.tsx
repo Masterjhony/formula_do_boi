@@ -31,7 +31,7 @@ export default function Header() {
         <header
             className="relative z-40"
             style={{
-                background: "rgba(10,10,10,0.96)",
+                background: "rgba(22,22,22,0.96)",
             }}
         >
             {/* Radial bronze glow */}
@@ -40,7 +40,7 @@ export default function Header() {
                 className="pointer-events-none absolute inset-0"
                 style={{
                     background:
-                        "radial-gradient(ellipse at 50% -20%, rgba(212,168,92,0.14) 0%, rgba(10,10,10,0) 55%)",
+                        "radial-gradient(ellipse at 50% -20%, rgba(212,168,92,0.14) 0%, rgba(22,22,22,0) 55%)",
                 }}
             />
 
@@ -112,7 +112,7 @@ export default function Header() {
                     aria-label="Navegação principal"
                     style={{
                         background:
-                            "linear-gradient(180deg, rgba(10,10,10,0) 0%, rgba(10,10,10,0.4) 100%)",
+                            "linear-gradient(180deg, rgba(22,22,22,0) 0%, rgba(22,22,22,0.4) 100%)",
                     }}
                 >
                     <div className="container mx-auto px-4 lg:px-6">
@@ -210,7 +210,7 @@ export default function Header() {
             <div
                 className={`lg:hidden fixed inset-x-0 top-[60px] bottom-0 z-40 transition-opacity duration-300 ${isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
                 style={{
-                    background: "rgba(10,10,10,0.98)",
+                    background: "rgba(22,22,22,0.98)",
                     backdropFilter: "blur(16px)",
                     WebkitBackdropFilter: "blur(16px)",
                 }}
@@ -221,7 +221,7 @@ export default function Header() {
                     className="pointer-events-none absolute inset-0"
                     style={{
                         background:
-                            "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.12) 0%, rgba(10,10,10,0) 50%)",
+                            "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.12) 0%, rgba(22,22,22,0) 50%)",
                     }}
                 />
 

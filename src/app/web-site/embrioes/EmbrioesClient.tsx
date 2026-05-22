@@ -10,7 +10,7 @@ import { Product } from "@/services/products";
 
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
-const INK = "#0A0A0A";
+const INK = "#161616";
 const FG = "#F5F0E4";
 
 interface EmbrioesClientProps {
@@ -298,7 +298,7 @@ export default function EmbrioesClient({
                     className="absolute inset-0 pointer-events-none"
                     style={{
                         background:
-                            "linear-gradient(180deg, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.50) 34%, rgba(10,10,10,0.56) 58%, rgba(10,10,10,0.94) 100%)",
+                            "linear-gradient(180deg, rgba(22,22,22,0.88) 0%, rgba(22,22,22,0.50) 34%, rgba(22,22,22,0.56) 58%, rgba(22,22,22,0.94) 100%)",
                     }}
                 />
                 {/* Brilho bronze no topo — assinatura da marca */}
@@ -694,7 +694,7 @@ function EmbriaoCard({ item }: { item: CatalogItem }) {
                             letterSpacing: "0.14em",
                             textTransform: "uppercase",
                             color: BRONZE_LIGHT,
-                            background: "rgba(10,10,10,0.72)",
+                            background: "rgba(22,22,22,0.72)",
                             border: "1px solid rgba(212,168,92,0.38)",
                             padding: "3px 7px",
                             fontWeight: 500,

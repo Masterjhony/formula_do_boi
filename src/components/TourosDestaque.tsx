@@ -21,7 +21,7 @@ export default function TourosDestaque({ products, isAuthenticated = true }: Tou
     if (touros.length === 0) return null;
 
     return (
-        <section id="touros" className="stitch-divider py-20 bg-[#050505] border-t border-white/5 scroll-mt-20">
+        <section id="touros" className="stitch-divider py-20 bg-[#111111] border-t border-white/5 scroll-mt-20">
             <div className="container mx-auto px-4">
                 {/* ── Header ── */}
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">

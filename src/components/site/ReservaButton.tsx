@@ -31,7 +31,7 @@ export default function ReservaButton({
     const text = label ?? (product.kind === 'semen' ? 'Reservar doses' : 'Reservar embriões');
 
     const cls = isPrimary
-        ? `${fullWidth ? 'w-full' : ''} inline-flex items-center justify-center gap-2 py-4 px-6 bg-[#A0792E] hover:bg-[#D4A85C] text-[#0A0A0A] font-bold text-base uppercase transition-colors shadow-lg shadow-[#A0792E]/20`
+        ? `${fullWidth ? 'w-full' : ''} inline-flex items-center justify-center gap-2 py-4 px-6 bg-[#A0792E] hover:bg-[#D4A85C] text-[#161616] font-bold text-base uppercase transition-colors shadow-lg shadow-[#A0792E]/20`
         : `${fullWidth ? 'w-full' : ''} inline-flex items-center justify-center gap-2 py-3 px-5 bg-transparent border border-[#A0792E] hover:bg-[#A0792E]/10 text-[#D4A85C] font-bold text-sm uppercase transition-colors`;
 
     return (

@@ -31,7 +31,7 @@ interface SearchDropdownProps {
 export default function SearchDropdown({ results, onClose }: SearchDropdownProps) {
     if (results.length === 0) {
         return (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#161616] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
                 <div className="p-6 text-center text-gray-500 text-sm">
                     Nenhum resultado em sêmen, embriões ou leilões.
                 </div>
@@ -40,7 +40,7 @@ export default function SearchDropdown({ results, onClose }: SearchDropdownProps
     }
 
     return (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-[70vh] overflow-y-auto z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-[#161616] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-[70vh] overflow-y-auto z-50">
             <div className="p-2 grid gap-2">
                 {results.map((item) =>
                     item.kind === "product" ? (

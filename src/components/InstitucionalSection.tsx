@@ -21,7 +21,7 @@ const diferenciais = [
 
 export default function InstitucionalSection() {
     return (
-        <section className="stitch-divider py-24 bg-[#0a0a0a] border-t border-white/5 overflow-hidden">
+        <section className="stitch-divider py-24 bg-[#161616] border-t border-white/5 overflow-hidden">
             <div className="container mx-auto px-4">
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                     {/* Left — Text */}
@@ -59,7 +59,7 @@ export default function InstitucionalSection() {
                         {diferenciais.map((d, i) => (
                             <div
                                 key={i}
-                                className="flex gap-5 p-6 rounded-2xl bg-[#0f0f0f] border border-white/8 hover:border-brand-gold/20 transition-colors group"
+                                className="flex gap-5 p-6 rounded-2xl bg-[#1b1b1b] border border-white/8 hover:border-brand-gold/20 transition-colors group"
                             >
                                 <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold/15 transition-colors">
                                     {d.icon}

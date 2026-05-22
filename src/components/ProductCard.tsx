@@ -176,7 +176,7 @@ export default function ProductCard({ product, featured = false, isAuthenticated
                 }`}
         >
             {/* Image Container */}
-            <Link href={product.customLink || product.details?.customLink || `/lote/${product.id}`} className={`block relative aspect-[4/3] overflow-hidden ${theme === 'premium' ? 'bg-[#0a0a0a]' : 'bg-gray-100'}`}>
+            <Link href={product.customLink || product.details?.customLink || `/lote/${product.id}`} className={`block relative aspect-[4/3] overflow-hidden ${theme === 'premium' ? 'bg-[#161616]' : 'bg-gray-100'}`}>
                 {/* Animal Code Badge (Top Right - replacing former tag position) */}
                 <div className={`absolute top-3 right-3 z-10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm shadow-md
                     ${featured

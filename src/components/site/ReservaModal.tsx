@@ -138,7 +138,7 @@ export default function ReservaModal({ open, onClose, product }: ReservaModalPro
     return (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto" onClick={onClose}>
             <div
-                className="relative w-full sm:max-w-2xl bg-[#0A0A0A] border border-[rgba(232,203,133,0.28)] sm:rounded-[4px] shadow-2xl shadow-black/60"
+                className="relative w-full sm:max-w-2xl bg-[#161616] border border-[rgba(232,203,133,0.28)] sm:rounded-[4px] shadow-2xl shadow-black/60"
                 onClick={(e) => e.stopPropagation()}
                 style={{ borderRadius: 4 }}
             >
@@ -204,7 +204,7 @@ export default function ReservaModal({ open, onClose, product }: ReservaModalPro
                         <div>
                             <button
                                 onClick={onClose}
-                                className="inline-flex items-center justify-center px-6 py-3 bg-[#A0792E] hover:bg-[#D4A85C] text-[#0A0A0A] font-bold text-sm uppercase tracking-wider transition-colors"
+                                className="inline-flex items-center justify-center px-6 py-3 bg-[#A0792E] hover:bg-[#D4A85C] text-[#161616] font-bold text-sm uppercase tracking-wider transition-colors"
                                 style={{ borderRadius: 3 }}
                             >
                                 Fechar
@@ -351,7 +351,7 @@ export default function ReservaModal({ open, onClose, product }: ReservaModalPro
                         <button
                             type="submit"
                             disabled={sending}
-                            className="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-[#A0792E] hover:bg-[#D4A85C] disabled:opacity-50 text-[#0A0A0A] font-bold text-sm uppercase tracking-wider transition-colors shadow-lg shadow-[#A0792E]/20"
+                            className="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-[#A0792E] hover:bg-[#D4A85C] disabled:opacity-50 text-[#161616] font-bold text-sm uppercase tracking-wider transition-colors shadow-lg shadow-[#A0792E]/20"
                             style={{ borderRadius: 3, letterSpacing: '0.18em' }}
                         >
                             {sending ? 'Enviando…' : 'Solicitar reserva'}
@@ -368,7 +368,7 @@ export default function ReservaModal({ open, onClose, product }: ReservaModalPro
     );
 }
 
-const inputCls = "w-full px-3 py-2.5 bg-[#141414] border border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-[#F5F0E4] text-sm placeholder-[#F5F0E4]/30 transition-colors";
+const inputCls = "w-full px-3 py-2.5 bg-[#1f1f1f] border border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-[#F5F0E4] text-sm placeholder-[#F5F0E4]/30 transition-colors";
 
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
     return (

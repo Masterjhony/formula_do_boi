@@ -12,11 +12,14 @@
   --bronze-pale:   #E8CB85;
   --bronze-deep:   #6B4F1E;
 
-  /* Neutrals — ink */
-  --ink:           #0A0A0A;
-  --ink-2:         #141414;
-  --ink-3:         #1E1E1E;
-  --ink-4:         #2A2A2A;
+  /* Neutrals — ink.
+     Base elevada de #0A0A0A → #161616 (escala ink toda subida ~+12) para
+     aliviar a sensação de "preto chapado" no site sem sair da família ink
+     do brandbook — fica entre Ink (#0A0A0A) e Gray 600 (#4A4A4A). */
+  --ink:           #161616;
+  --ink-2:         #1F1F1F;
+  --ink-3:         #2A2A2A;
+  --ink-4:         #363636;
   --black:         #000000;
   --white:         #FFFFFF;
   --gray-100:      #E8E8E8;
@@ -44,8 +47,8 @@
   /* Gradients */
   --grad-gold:        linear-gradient(135deg, #E8CB85 0%, #D4A85C 40%, #A0792E 80%, #6B4F1E 100%);
   --grad-gold-soft:   linear-gradient(135deg, rgba(232,203,133,0.25) 0%, rgba(160,121,46,0.05) 100%);
-  --grad-ink:         linear-gradient(180deg, #0A0A0A 0%, #141414 100%);
-  --grad-radial-gold: radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.22) 0%, rgba(10,10,10,0) 60%);
+  --grad-ink:         linear-gradient(180deg, #161616 0%, #1F1F1F 100%);
+  --grad-radial-gold: radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.22) 0%, rgba(22,22,22,0) 60%);
 
   /* Light-mode shell (mantido p/ páginas claras) */
   --background: #ffffff;

@@ -14,7 +14,7 @@ export default function PageTransition({ isVisible }: PageTransitionProps) {
             {isVisible && (
                 <motion.div
                     key="page-transition-overlay"
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#080808] pointer-events-none"
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#141414] pointer-events-none"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}

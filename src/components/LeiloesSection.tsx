@@ -4,7 +4,7 @@ import { getProximosLeiloes } from "@/services/leiloes.server";
 
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
-const INK = "#0A0A0A";
+const INK = "#161616";
 const FG = "#F5F0E4";
 
 export const revalidate = 3600;

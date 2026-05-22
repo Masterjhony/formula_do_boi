@@ -24,7 +24,7 @@ const numeros = [
 
 export default function QuemSomos() {
     return (
-        <main className="min-h-screen bg-[#0a0a0a] text-white">
+        <main className="min-h-screen bg-[#161616] text-white">
             <Header />
 
             {/* ── Hero Institucional ── */}
@@ -55,7 +55,7 @@ export default function QuemSomos() {
             </section>
 
             {/* ── Números ── */}
-            <section className="py-12 bg-[#050505] border-y border-white/5">
+            <section className="py-12 bg-[#111111] border-y border-white/5">
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-y md:divide-y-0 divide-white/8">
                         {numeros.map((n, i) => (
@@ -119,7 +119,7 @@ export default function QuemSomos() {
                                         className="w-full h-full object-cover object-top"
                                     />
                                     {/* Subtle gradient overlay at bottom */}
-                                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0a0a0a]/80 to-transparent" />
+                                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#161616]/80 to-transparent" />
                                     <div className="absolute bottom-4 left-4 right-4">
                                         <p className="text-brand-gold font-black text-sm uppercase tracking-wider">Bulinha</p>
                                         <p className="text-gray-400 text-xs uppercase tracking-widest mt-0.5">Sócio · Fórmula do Boi</p>
@@ -132,7 +132,7 @@ export default function QuemSomos() {
             </section>
 
             {/* ── Visão, Missão e Propósito ── */}
-            <section className="py-24 bg-[#050505] border-b border-white/5">
+            <section className="py-24 bg-[#111111] border-b border-white/5">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-white">
@@ -144,7 +144,7 @@ export default function QuemSomos() {
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-6">
-                        <div className="p-8 rounded-2xl bg-[#0f0f0f] border border-brand-gold/20 hover:border-brand-gold/40 transition-colors">
+                        <div className="p-8 rounded-2xl bg-[#1b1b1b] border border-brand-gold/20 hover:border-brand-gold/40 transition-colors">
                             <div className="w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center mb-6 text-brand-gold">
                                 <Eye className="w-6 h-6" />
                             </div>
@@ -154,7 +154,7 @@ export default function QuemSomos() {
                             </p>
                         </div>
 
-                        <div className="p-8 rounded-2xl bg-[#0f0f0f] border border-white/8 hover:border-brand-gold/20 transition-colors">
+                        <div className="p-8 rounded-2xl bg-[#1b1b1b] border border-white/8 hover:border-brand-gold/20 transition-colors">
                             <div className="w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center mb-6 text-brand-gold">
                                 <Target className="w-6 h-6" />
                             </div>
@@ -164,7 +164,7 @@ export default function QuemSomos() {
                             </p>
                         </div>
 
-                        <div className="p-8 rounded-2xl bg-[#0f0f0f] border border-white/8 hover:border-brand-gold/20 transition-colors">
+                        <div className="p-8 rounded-2xl bg-[#1b1b1b] border border-white/8 hover:border-brand-gold/20 transition-colors">
                             <div className="w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center mb-6 text-brand-gold">
                                 <Handshake className="w-6 h-6" />
                             </div>
@@ -196,7 +196,7 @@ export default function QuemSomos() {
 
                         <div className="space-y-5">
                             {valores.map((v, i) => (
-                                <div key={i} className="p-6 rounded-2xl bg-[#0f0f0f] border border-white/8 hover:border-brand-gold/20 transition-colors group">
+                                <div key={i} className="p-6 rounded-2xl bg-[#1b1b1b] border border-white/8 hover:border-brand-gold/20 transition-colors group">
                                     <div className="flex gap-4 items-start">
                                         <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold text-xs font-black mt-0.5">
                                             {String(i + 1).padStart(2, "0")}
@@ -214,7 +214,7 @@ export default function QuemSomos() {
             </section>
 
             {/* ── Parceria Bula Remates ── */}
-            <section className="py-24 bg-[#050505] border-b border-white/5">
+            <section className="py-24 bg-[#111111] border-b border-white/5">
                 <div className="container mx-auto px-4">
                     <div className="relative rounded-3xl overflow-hidden border border-brand-gold/15 p-10 md:p-16">
                         <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/6 via-transparent to-transparent pointer-events-none" />
@@ -251,7 +251,7 @@ export default function QuemSomos() {
                                     { n: "100%", label: "Nelore PO nos leilões conjuntos" },
                                     { n: "BR", label: "Cobertura nacional de entrega" },
                                 ].map((item, i) => (
-                                    <div key={i} className="p-6 rounded-2xl bg-[#0a0a0a] border border-white/8 text-center">
+                                    <div key={i} className="p-6 rounded-2xl bg-[#161616] border border-white/8 text-center">
                                         <p className="text-2xl font-black text-brand-gold mb-1">{item.n}</p>
                                         <p className="text-gray-500 text-xs leading-snug">{item.label}</p>
                                     </div>

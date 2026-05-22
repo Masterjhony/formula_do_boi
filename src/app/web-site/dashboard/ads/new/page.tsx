@@ -235,7 +235,7 @@ export default function NewAdPage() {
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] focus:ring-2 focus:ring-[#A0792E]/50 focus:border-[#A0792E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] focus:ring-2 focus:ring-[#A0792E]/50 focus:border-[#A0792E] outline-none transition-colors"
                             />
                         </div>
                         <div className="space-y-2">
@@ -244,7 +244,7 @@ export default function NewAdPage() {
                                 name="category"
                                 value={formData.category}
                                 onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                             >
                                 <option value="Touro PO">Touro PO</option>
                                 <option value="Touro">Touro</option>
@@ -263,7 +263,7 @@ export default function NewAdPage() {
                                 name="registro"
                                 value={formData.registro}
                                 onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                             />
                         </div>
                         <div className="space-y-2">
@@ -273,7 +273,7 @@ export default function NewAdPage() {
                                 value={formData.location}
                                 onChange={handleChange}
                                 placeholder="Ex: Uberaba - MG"
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                             />
                         </div>
                     </div>
@@ -289,7 +289,7 @@ export default function NewAdPage() {
                                 name="pai"
                                 value={formData.pai}
                                 onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                             />
                         </div>
                         <div className="space-y-2">
@@ -298,7 +298,7 @@ export default function NewAdPage() {
                                 name="mae"
                                 value={formData.mae}
                                 onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                             />
                         </div>
                         <div className="space-y-2">
@@ -308,7 +308,7 @@ export default function NewAdPage() {
                                 value={formData.nascimento}
                                 onChange={handleChange}
                                 placeholder="DD/MM/AAAA"
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                             />
                         </div>
                         <div className="space-y-2">
@@ -317,7 +317,7 @@ export default function NewAdPage() {
                                 name="raca"
                                 value={formData.raca}
                                 onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                             />
                         </div>
                     </div>
@@ -376,7 +376,7 @@ export default function NewAdPage() {
                                     value={formData.mgte}
                                     onChange={handleChange}
                                     placeholder="Ex: 29.69"
-                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -386,7 +386,7 @@ export default function NewAdPage() {
                                     value={formData.iabcz}
                                     onChange={handleChange}
                                     placeholder="Ex: 29.69"
-                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -396,7 +396,7 @@ export default function NewAdPage() {
                                     value={formData.iqg}
                                     onChange={handleChange}
                                     placeholder="Ex: 44.17"
-                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -405,7 +405,7 @@ export default function NewAdPage() {
                                     name="top"
                                     value={formData.top}
                                     onChange={handleChange}
-                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -414,7 +414,7 @@ export default function NewAdPage() {
                                     name="peso"
                                     value={formData.peso}
                                     onChange={handleChange}
-                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#1E1E1E] outline-none transition-colors"
+                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-gray-100 dark:bg-[#2a2a2a] outline-none transition-colors"
                                 />
                             </div>
                         </div>
@@ -435,7 +435,7 @@ export default function NewAdPage() {
                                         value={formData.videoUrl}
                                         onChange={handleChange}
                                         placeholder="https://... (ou faça upload abaixo)"
-                                        className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#1E1E1E] outline-none bg-gray-50 transition-colors"
+                                        className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#2a2a2a] outline-none bg-gray-50 transition-colors"
                                     />
                                     {formData.videoUrl && (
                                         <Link href={formData.videoUrl} target="_blank" className="p-2 text-blue-600 hover:text-blue-500 transition-colors">
@@ -467,7 +467,7 @@ export default function NewAdPage() {
                                 value={formData.pdf}
                                 onChange={handleChange}
                                 placeholder="https://... ou /arquivo.pdf"
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#1E1E1E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#2a2a2a] outline-none transition-colors"
                             />
 
                             <div className="flex items-center gap-2 mt-2">
@@ -499,7 +499,7 @@ export default function NewAdPage() {
                                 value={formData.comentario}
                                 onChange={handleChange}
                                 rows={6}
-                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#1E1E1E] outline-none transition-colors"
+                                className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#2a2a2a] outline-none transition-colors"
                             />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -509,7 +509,7 @@ export default function NewAdPage() {
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
-                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#1E1E1E] outline-none transition-colors"
+                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#2a2a2a] outline-none transition-colors"
                                 >
                                     <option value="Disponível">Disponível</option>
                                     <option value="Vendido">Vendido</option>
@@ -522,7 +522,7 @@ export default function NewAdPage() {
                                     name="reproductive_status"
                                     value={formData.reproductive_status}
                                     onChange={handleChange}
-                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#1E1E1E] outline-none transition-colors"
+                                    className="w-full p-2 border border-gray-300 dark:border-[#444] rounded-lg text-gray-900 dark:text-white dark:bg-[#2a2a2a] outline-none transition-colors"
                                 >
                                     <option value="">Selecione...</option>
                                     <option value="Touro">Touro</option>

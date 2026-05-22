@@ -9,7 +9,7 @@ export default function Footer() {
 
     return (
         <>
-        <footer className="relative bg-[#0A0A0A] text-[#F5F0E4] pt-10 pb-3 md:pt-14 md:pb-4 overflow-hidden" style={{ borderTop: "1px solid rgba(212,168,92,0.22)" }}>
+        <footer className="relative bg-[#161616] text-[#F5F0E4] pt-10 pb-3 md:pt-14 md:pb-4 overflow-hidden" style={{ borderTop: "1px solid rgba(212,168,92,0.22)" }}>
 
             {/* Deep Relief / Intaglio Watermark
                 Luz vem do topo-esquerda. Cada traço é um sulco cavado:
@@ -66,7 +66,7 @@ export default function Footer() {
                         transform: 'translate(1px, 1px)',
                     }}
                 />
-                {/* Body — piso do sulco, tom ligeiramente mais escuro que #080808 */}
+                {/* Body — piso do sulco, tom ligeiramente mais escuro que #141414 */}
                 <img
                     src="/logo_complete.svg"
                     alt=""
@@ -109,7 +109,7 @@ export default function Footer() {
                                 href="https://www.instagram.com/formuladoboi/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center transition-colors hover:bg-[#A0792E] hover:text-[#0A0A0A]"
+                                className="inline-flex items-center justify-center transition-colors hover:bg-[#A0792E] hover:text-[#161616]"
                                 style={{
                                     width: 38, height: 38,
                                     border: "1px solid rgba(212,168,92,0.35)",

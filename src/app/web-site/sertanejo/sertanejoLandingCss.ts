@@ -1,10 +1,10 @@
 export const sertanejoLandingCss = `
 :root {
   /* Brandbook neutros — Ink Nelore + escala Ink. Variáveis com nome legado mantidas para compatibilidade. */
-  --st-ink: #0A0A0A;
-  --st-leather: #141414;
-  --st-leather-2: #1E1E1E;
-  --st-leather-3: #2A2A2A;
+  --st-ink: #161616;
+  --st-leather: #1f1f1f;
+  --st-leather-2: #2a2a2a;
+  --st-leather-3: #363636;
   --st-bone: #f4ede0;
   --st-bone-2: #e8d9b0;
   --st-bone-bg: #f4ede0;
@@ -64,7 +64,7 @@ export const sertanejoLandingCss = `
 /* Brandbook: dark sections — ink puro, glow bronze sutil, sem textura de couro.
    A classe foi mantida com o nome legado para não quebrar markup existente. */
 .sertanejo-v2-wrap .sert-dark-leather {
-  background-color: #0a0a0a;
+  background-color: #161616;
   background-image:
     radial-gradient(ellipse 80% 60% at 0% 0%, rgba(160,121,46,0.10), transparent 60%),
     radial-gradient(ellipse 80% 60% at 100% 100%, rgba(160,121,46,0.06), transparent 60%);

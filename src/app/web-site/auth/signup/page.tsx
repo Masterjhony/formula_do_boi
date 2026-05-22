@@ -114,7 +114,7 @@ function SignupPageInner() {
 
     if (success) {
         return (
-            <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4">
+            <div className="min-h-screen bg-[#161616] flex flex-col items-center justify-center p-4">
                 <div className="bg-[#111111] border border-[#222222] rounded-2xl p-8 backdrop-blur-sm shadow-xl max-w-md w-full text-center">
                     <div className="w-16 h-16 bg-[#A0792E]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 className="w-8 h-8 text-[#A0792E]" />
@@ -133,7 +133,7 @@ function SignupPageInner() {
     }
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-[#161616] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#A0792E]/5 rounded-full blur-[100px]" />

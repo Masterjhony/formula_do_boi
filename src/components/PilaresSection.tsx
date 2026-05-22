@@ -59,7 +59,7 @@ const pilares = [
 
 export default function PilaresSection() {
     return (
-        <section className="stitch-divider py-24 bg-[#050505] border-t border-white/5">
+        <section className="stitch-divider py-24 bg-[#111111] border-t border-white/5">
             <div className="container mx-auto px-4">
                 {/* Section Header */}
                 <div className="text-center mb-16">
@@ -82,7 +82,7 @@ export default function PilaresSection() {
                             className={`group relative rounded-2xl p-8 border transition-all duration-300 hover:-translate-y-1 flex flex-col
                                 ${p.accent
                                     ? "bg-gradient-to-br from-brand-gold/10 to-brand-gold/5 border-brand-gold/30 hover:border-brand-gold/60"
-                                    : "bg-[#0f0f0f] border-white/8 hover:border-brand-gold/25"
+                                    : "bg-[#1b1b1b] border-white/8 hover:border-brand-gold/25"
                                 }
                                 ${p.disabled ? "opacity-60 cursor-not-allowed" : ""}`}
                         >

@@ -9,8 +9,8 @@ import { SettingsService } from "@/services/settingsService";
 
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
-const INK = "#0A0A0A";
-const INK_2 = "#141414";
+const INK = "#161616";
+const INK_2 = "#1f1f1f";
 const FG = "#F5F0E4";
 
 export default function SemenClient({ products }: { products: any[] }) {

@@ -2,7 +2,7 @@
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
 const BRONZE_PALE = "#E8CB85";
-const INK = "#0A0A0A";
+const INK = "#161616";
 const FG = "#F5F0E4";
 
 const WA_LINK =
@@ -55,7 +55,7 @@ export default function Hero() {
                 className="absolute inset-0 pointer-events-none hidden md:block"
                 style={{
                     background:
-                        "linear-gradient(90deg, rgba(10,10,10,0.82) 0%, rgba(10,10,10,0.55) 35%, rgba(10,10,10,0.18) 65%, rgba(10,10,10,0) 100%)",
+                        "linear-gradient(90deg, rgba(22,22,22,0.82) 0%, rgba(22,22,22,0.55) 35%, rgba(22,22,22,0.18) 65%, rgba(22,22,22,0) 100%)",
                 }}
             />
 
@@ -64,7 +64,7 @@ export default function Hero() {
                 className="absolute inset-0 pointer-events-none md:hidden"
                 style={{
                     background:
-                        "linear-gradient(180deg, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.75) 100%)",
+                        "linear-gradient(180deg, rgba(22,22,22,0.55) 0%, rgba(22,22,22,0.75) 100%)",
                 }}
             />
 
@@ -74,7 +74,7 @@ export default function Hero() {
                 className="absolute inset-0 pointer-events-none"
                 style={{
                     background:
-                        "linear-gradient(180deg, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0) 18%, rgba(10,10,10,0) 65%, rgba(10,10,10,0.92) 100%)",
+                        "linear-gradient(180deg, rgba(22,22,22,0.55) 0%, rgba(22,22,22,0) 18%, rgba(22,22,22,0) 65%, rgba(22,22,22,0.92) 100%)",
                 }}
             />
 
@@ -83,7 +83,7 @@ export default function Hero() {
                 className="absolute inset-0 pointer-events-none"
                 style={{
                     background:
-                        "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.14) 0%, rgba(10,10,10,0) 55%)",
+                        "radial-gradient(ellipse at 50% 0%, rgba(212,168,92,0.14) 0%, rgba(22,22,22,0) 55%)",
                 }}
             />
 
@@ -195,7 +195,7 @@ export default function Hero() {
                                 letterSpacing: "0.12em",
                                 textTransform: "uppercase",
                                 color: BRONZE_LIGHT,
-                                background: "rgba(10,10,10,0.55)",
+                                background: "rgba(22,22,22,0.55)",
                             }}
                         >
                             <span style={{ color: "rgba(245,240,228,0.6)" }}>{k}</span>
@@ -241,7 +241,7 @@ export default function Hero() {
                         href="#semen"
                         className="group inline-flex items-center justify-center gap-2.5 transition-all backdrop-blur-sm hover:border-[rgba(245,240,228,0.45)]"
                         style={{
-                            background: "rgba(10,10,10,0.35)",
+                            background: "rgba(22,22,22,0.35)",
                             color: FG,
                             padding: "16px 26px",
                             borderRadius: 2,
