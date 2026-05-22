@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
     type Doadora,
     type PedigreeNode,
-    type Avaliacao,
     DOADORAS_CONDICOES,
 } from "@/data/doadoras";
 
@@ -360,7 +359,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                     }}
                 >
                     <div className="container mx-auto px-4 py-14 md:py-20" style={{ maxWidth: 1300 }}>
-                        <SectionLabel>05 · Avaliação genética ABCZ · Corte {doadora.avaliacao.corte}</SectionLabel>
+                        <SectionLabel>05 · Ficha técnica</SectionLabel>
                         <h2
                             className="font-display mt-5"
                             style={{
@@ -372,7 +371,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 maxWidth: "22ch",
                             }}
                         >
-                            Diferenças esperadas na progênie.
+                            Avaliação genética oficial.
                         </h2>
                         <p
                             style={{
@@ -383,15 +382,11 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 maxWidth: "62ch",
                             }}
                         >
-                            Resumo do índice oficial publicado pela ABCZ no corte {doadora.avaliacao.corte}.
-                            A ficha técnica completa traz todas as DEPs por característica — crescimento,
-                            maternas, reprodutivas, carcaça e morfológicas — com acurácia (AC), decil (DECA)
-                            e percentil populacional (P%).
+                            Todas as DEPs por característica e a genealogia oficial publicadas
+                            pela ABCZ estão reunidas na ficha técnica completa.
                         </p>
 
-                        <AvaliacaoHeadline aval={doadora.avaliacao} />
-
-                        <div className="mt-10" style={{ maxWidth: 720 }}>
+                        <div style={{ maxWidth: 720 }}>
                             {doadora.fichaTecnica ? (
                                 <FichaTecnicaDownload
                                     href={doadora.fichaTecnica}
@@ -607,20 +602,6 @@ function PedigreeCinema({ doadora }: { doadora: Doadora }) {
         return () => io.disconnect();
     }, []);
 
-    // Conta ancestrais com RG oficial (pais + avós + bisavós).
-    const ancestraisComRg = useMemo(() => {
-        let n = 0;
-        const walk = (node?: PedigreeNode) => {
-            if (!node) return;
-            if (node.rg) n += 1;
-            walk(node.pai);
-            walk(node.mae);
-        };
-        walk(ped.pai);
-        walk(ped.mae);
-        return n;
-    }, [ped]);
-
     const heroName = doadora.nomeAbcz ?? doadora.rgd;
 
     return (
@@ -678,36 +659,6 @@ function PedigreeCinema({ doadora }: { doadora: Doadora }) {
                 <PedigreeCinCard tier="grand" side="paterno" tag="Avó paterna" node={ped.pai.mae} />
                 <PedigreeCinCard tier="grand" side="materno" tag="Avô materno" node={ped.mae.pai} />
                 <PedigreeCinCard tier="grand" side="materno" tag="Avó materna" node={ped.mae.mae} />
-            </div>
-
-            {/* KPIs resumo */}
-            <div className="pedi-cin-kpis">
-                <div className="pedi-cin-kpi">
-                    <div className="pedi-cin-kpi-num font-display">3</div>
-                    <div className="pedi-cin-kpi-label">Gerações documentadas</div>
-                </div>
-                <div className="pedi-cin-kpi">
-                    <div className="pedi-cin-kpi-num font-display">{ancestraisComRg}</div>
-                    <div className="pedi-cin-kpi-label">Ancestrais com registro</div>
-                </div>
-                <div className="pedi-cin-kpi">
-                    {doadora.avaliacao ? (
-                        <>
-                            <div className="pedi-cin-kpi-num font-display">
-                                {fmtDecimal(doadora.avaliacao.fPct)}
-                                <span className="cents">%</span>
-                            </div>
-                            <div className="pedi-cin-kpi-label">Consanguinidade (F)</div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="pedi-cin-kpi-num font-display">
-                                {doadora.classificacaoTop.replace(/^TOP\s*/i, "")}
-                            </div>
-                            <div className="pedi-cin-kpi-label">Classificação iABCZ</div>
-                        </>
-                    )}
-                </div>
             </div>
 
             <style jsx global>{`
@@ -1183,25 +1134,6 @@ function PedigreeEmValidacao({ doadora }: { doadora: Doadora }) {
 }
 
 /* ─── Avaliação Genética ──────────────────────────────────── */
-
-function AvaliacaoHeadline({ aval }: { aval: Avaliacao }) {
-    return (
-        <div
-            className="grid grid-cols-2 lg:grid-cols-4 gap-0"
-            style={{
-                border: "1px solid rgba(212,168,92,0.22)",
-                borderRadius: 4,
-                overflow: "hidden",
-                background: INK,
-            }}
-        >
-            <Metric label="iABCZ" value={fmtDecimal(aval.iabcz)} badge={`Corte ABCZ ${aval.corte}`} />
-            <Metric label="DECA" value={String(aval.deca)} badge="Decil da raça" divider />
-            <Metric label="P%" value={String(aval.pPct)} badge="Percentil populacional" divider />
-            <Metric label="F (endogamia)" value={`${fmtDecimal(aval.fPct)}%`} badge="Coef. endogamia" divider />
-        </div>
-    );
-}
 
 /* Card de download da ficha técnica oficial — substitui a listagem
  * detalhada das DEPs. O PDF da ABCZ traz todas as características. */
