@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import {
     Users, Target, MessageSquare, ArrowRight, TrendingUp, TrendingDown, CheckCircle2,
     Sparkles, ChevronRight, Activity, Trophy, Lightbulb, BarChart3,
-    Crown, Zap, MapPin, Megaphone, Hourglass, Flame, Calendar,
+    Crown, Zap, MapPin, Megaphone, Hourglass, Flame, Calendar, DollarSign,
 } from 'lucide-react';
 import Link from 'next/link';
 import { FunnelChart } from '@/components/charts/FunnelChart';
@@ -35,8 +35,12 @@ const fmtBRL = (v: number) => {
     return `R$ ${v.toLocaleString('pt-BR')}`;
 };
 
+// BRL exato (sem abreviar k/M) — pra valores de investimento e CPL
+const fmtMoney = (v: number) =>
+    v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+
 const fmtDateBR = (d: string) => {
-    const [y, m, day] = d.split('-');
+    const [y, m, day] = d.slice(0, 10).split('-');
     return `${day}/${m}/${y.slice(2)}`;
 };
 
@@ -48,6 +52,17 @@ interface Fechamento {
     vgv_total: number; comissao_assessoria: number;
     receita_bula: number | null; sobra_bruta: number | null;
     compradores: Comprador[] | null;
+}
+
+// Snapshot do Meta Ads — espelho da tabela `meta_ads_insights` (ver database/meta_ads_insights.sql)
+interface MetaInsightRow {
+    scope: string; campaign_id: string; campaign_name: string | null;
+    account_name: string | null;
+    period: string; date_start: string | null; date_stop: string | null;
+    investimento: number | string; leads: number;
+    cpl: number | string | null; impressions: number; clicks: number;
+    cpc: number | string | null; ctr: number | string | null; reach: number | null;
+    captured_at: string;
 }
 
 // Rótulos amigáveis pros enums do quiz (`public/lp/index.html`)
@@ -104,6 +119,7 @@ export default async function VendasMarketingPage() {
         { data: leads },
         { data: whatsappMessages },
         { data: fechamentosRaw },
+        { data: metaInsightsRaw },
     ] = await Promise.all([
         supabase.from('crm_leads').select(`
             id, nome, status, prioridade, data_estimada_fechamento, created_at, updated_at,
@@ -120,6 +136,10 @@ export default async function VendasMarketingPage() {
             .select('id, nome, data, vgv_total, comissao_assessoria, receita_bula, sobra_bruta, compradores')
             .order('data', { ascending: false })
             .limit(8),
+        // Snapshot Meta Ads — tolerante: se a tabela ainda não existir, vem { data: null }
+        supabase.from('meta_ads_insights')
+            .select('scope, campaign_id, campaign_name, account_name, period, date_start, date_stop, investimento, leads, cpl, impressions, clicks, cpc, ctr, reach, captured_at')
+            .eq('period', 'lifetime'),
     ]);
 
     const allLeads = leads ?? [];
@@ -303,6 +323,14 @@ export default async function VendasMarketingPage() {
         .slice(0, 5);
 
     const recentLeads = allLeads.slice(0, 6);
+
+    // ───── Meta Ads — investimento / leads / CPL (snapshot de meta_ads_insights) ─────
+    const metaRows = (metaInsightsRaw ?? []) as MetaInsightRow[];
+    const metaAccount = metaRows.find(r => r.scope === 'account') ?? null;
+    const metaCampaigns = metaRows
+        .filter(r => r.scope === 'campaign')
+        .sort((a, b) => Number(b.investimento) - Number(a.investimento));
+    const metaMaxInvest = Math.max(...metaCampaigns.map(c => Number(c.investimento)), 1);
 
     // ───── Insights derivados ─────
     const insights: { kind: 'positive' | 'attention' | 'opportunity'; title: string; body: string; cta: string; href: string }[] = [];
@@ -715,6 +743,84 @@ export default async function VendasMarketingPage() {
                         )}
                     </div>
                 </div>
+            </div>
+
+            {/* Investimento em Mídia — Meta Ads */}
+            <div className={`${card} p-5`}>
+                <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                        <DollarSign size={14} style={{ color: BRAND.BRONZE }} />
+                        <div>
+                            <p className={labelCls}>Investimento em mídia · Meta Ads</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                                Facebook &amp; Instagram Ads{metaAccount?.account_name ? ` · ${metaAccount.account_name}` : ''}
+                            </p>
+                        </div>
+                    </div>
+                    {metaAccount && (
+                        <span className="text-[10px] uppercase tracking-wider font-bold flex items-center gap-1" style={{ color: BRAND.BRONZE }}>
+                            <Calendar size={10} /> Atualizado {fmtDateBR(metaAccount.captured_at)}
+                        </span>
+                    )}
+                </div>
+
+                {!metaAccount ? (
+                    <div className="py-8 text-center">
+                        <DollarSign size={20} className="mx-auto mb-2 opacity-30" style={{ color: BRAND.BRONZE }} />
+                        <p className="text-xs text-gray-400">Dados do Meta Ads ainda não carregados.</p>
+                    </div>
+                ) : (
+                    <>
+                        {/* KPIs */}
+                        <div className="grid grid-cols-3 gap-3 mb-5">
+                            {([
+                                { label: 'Investimento total', value: fmtMoney(Number(metaAccount.investimento)), accent: BRAND.LOSS },
+                                { label: 'Leads gerados', value: Number(metaAccount.leads).toLocaleString('pt-BR'), accent: BRAND.BRONZE },
+                                { label: 'CPL · custo por lead', value: metaAccount.cpl != null ? fmtMoney(Number(metaAccount.cpl)) : '—', accent: BRAND.TECH_GREEN },
+                            ]).map(({ label, value, accent }) => (
+                                <div key={label} className="rounded-xl border border-gray-100 dark:border-[#1A1A1A] p-3.5">
+                                    <p className={`${labelCls} mb-1.5`}>{label}</p>
+                                    <p className={`text-2xl font-black ${dataCls}`} style={{ color: accent }}>{value}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Por campanha */}
+                        <div className="space-y-3">
+                            {metaCampaigns.map(c => {
+                                const invest = Number(c.investimento);
+                                const pct = (invest / metaMaxInvest) * 100;
+                                return (
+                                    <div key={c.campaign_id}>
+                                        <div className="flex justify-between items-center mb-1 gap-2">
+                                            <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate flex-1" title={c.campaign_name ?? ''}>
+                                                {c.campaign_name ?? 'Campanha'}
+                                            </span>
+                                            <span className={`text-[10px] ${dataCls} text-gray-500 whitespace-nowrap`}>
+                                                {Number(c.leads).toLocaleString('pt-BR')} leads · CPL {c.cpl != null ? fmtMoney(Number(c.cpl)) : '—'}
+                                            </span>
+                                            <span className={`text-xs font-bold ${dataCls} w-24 text-right`} style={{ color: BRAND.BRONZE }}>
+                                                {fmtMoney(invest)}
+                                            </span>
+                                        </div>
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                            <div className="h-full rounded-full"
+                                                style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <p className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 dark:border-[#1A1A1A]">
+                            CPL = Investimento ÷ Leads · período lifetime
+                            {metaAccount.date_start && metaAccount.date_stop && (
+                                <> · {fmtDateBR(metaAccount.date_start)}–{fmtDateBR(metaAccount.date_stop)}</>
+                            )}
+                            {' · '}snapshot manual do Meta Ads
+                        </p>
+                    </>
+                )}
             </div>
 
             {/* Geografia + Top Compradores */}
