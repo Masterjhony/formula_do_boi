@@ -294,8 +294,6 @@ export default async function VendasMarketingPage() {
             const roi = investido > 0 ? (retorno / investido) * 100 : 0;
             return { ...f, investido, retorno, roi };
         });
-    const maxVgv = Math.max(...roiData.map(r => r.vgv_total), 1);
-    const totalVgv = roiData.reduce((s, r) => s + r.vgv_total, 0);
     const totalReceita = roiData.reduce((s, r) => s + r.retorno, 0);
     const totalInvestido = roiData.reduce((s, r) => s + r.investido, 0);
     const roiMedio = totalInvestido > 0 ? (totalReceita / totalInvestido) * 100 : 0;
@@ -917,101 +915,6 @@ export default async function VendasMarketingPage() {
                     )}
                 </div>
             </div>
-
-            {/* ROI por Leilão */}
-            {roiData.length > 0 && (
-                <div className={`${card} p-5`}>
-                    <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
-                        <div>
-                            <p className={labelCls}>ROI por leilão</p>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
-                                {roiData.length} fechamentos · VGV total{' '}
-                                <span className={`${dataCls} text-[#A0792E]`}>{fmtBRL(totalVgv)}</span>
-                            </p>
-                        </div>
-                        {roiMedio > 0 && (
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: `${BRAND.TECH_GREEN}14` }}>
-                                <TrendingUp size={12} style={{ color: BRAND.TECH_GREEN }} />
-                                <span className={`text-xs font-bold ${dataCls}`} style={{ color: BRAND.TECH_GREEN }}>
-                                    ROI médio {roiMedio.toFixed(0)}%
-                                </span>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="space-y-3">
-                        {roiData.map(r => {
-                            const vgvPct = (r.vgv_total / maxVgv) * 100;
-                            const investidoPct = maxVgv > 0 ? (r.investido / maxVgv) * 100 : 0;
-                            const retornoPct = maxVgv > 0 ? (r.retorno / maxVgv) * 100 : 0;
-                            return (
-                                <div key={r.id} className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto] gap-3 items-center group">
-                                    <div className="min-w-0">
-                                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{r.nome}</p>
-                                        <p className={`text-[9px] text-gray-500 ${dataCls}`}>{fmtDateBR(r.data)}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex-1 h-3 rounded-sm bg-gray-50 dark:bg-[#1d1d1d] overflow-hidden">
-                                                <div className="h-full rounded-sm transition-all duration-700"
-                                                    style={{ width: `${vgvPct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
-                                            </div>
-                                            <span className={`text-[10px] w-20 text-right text-gray-700 dark:text-gray-300 font-bold ${dataCls}`}>
-                                                {fmtBRL(r.vgv_total)}
-                                            </span>
-                                        </div>
-                                        {(r.investido > 0 || r.retorno > 0) && (
-                                            <>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex-1 h-1.5 rounded-sm bg-gray-50 dark:bg-[#1d1d1d] overflow-hidden">
-                                                        <div className="h-full rounded-sm" style={{ width: `${investidoPct}%`, backgroundColor: BRAND.LOSS, opacity: 0.7 }} />
-                                                    </div>
-                                                    <span className={`text-[9px] w-20 text-right ${dataCls}`} style={{ color: BRAND.LOSS }}>
-                                                        −{fmtBRL(r.investido)}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex-1 h-1.5 rounded-sm bg-gray-50 dark:bg-[#1d1d1d] overflow-hidden">
-                                                        <div className="h-full rounded-sm" style={{ width: `${retornoPct}%`, backgroundColor: BRAND.TECH_GREEN }} />
-                                                    </div>
-                                                    <span className={`text-[9px] w-20 text-right ${dataCls}`} style={{ color: BRAND.TECH_GREEN }}>
-                                                        +{fmtBRL(r.retorno)}
-                                                    </span>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                    <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0.5 sm:w-16">
-                                        {r.roi > 0 ? (
-                                            <span className={`text-sm font-black ${dataCls}`} style={{ color: BRAND.TECH_GREEN }}>
-                                                {r.roi.toFixed(0)}%
-                                            </span>
-                                        ) : (
-                                            <span className="text-sm text-gray-400">—</span>
-                                        )}
-                                        <span className={labelCls}>ROI</span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 dark:border-[#262626] text-[10px] text-gray-500 flex-wrap">
-                        <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-sm" style={{ background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
-                            VGV
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: BRAND.LOSS, opacity: 0.7 }} />
-                            Comissão
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: BRAND.TECH_GREEN }} />
-                            Receita Bula
-                        </span>
-                    </div>
-                </div>
-            )}
 
             {/* WhatsApp engagement */}
             <div className={`${card} p-5`}>
