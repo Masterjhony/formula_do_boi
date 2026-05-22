@@ -136,46 +136,106 @@ type MergedLeilao = {
   venda_bula?: number; comissao_receber?: string; recebido?: string
 }
 
+// Palavras genéricas ignoradas ao comparar nomes de leilão.
+const MERGE_STOP = new Set([
+  'de', 'do', 'da', 'dos', 'das', 'e', 'o', 'os', 'a', 'as',
+  'leilao', 'virtual', 'nelore', 'fazenda', 'agropecuaria',
+  'etapa', 'remates', 'bula',
+])
+function mergeTokens(s: string): Set<string> {
+  return new Set(
+    (s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9 ]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 2 && !MERGE_STOP.has(w))
+  )
+}
+// 0..1 — sobreposição de tokens entre dois nomes.
+function nameScore(a: string, b: string): number {
+  const ta = mergeTokens(a), tb = mergeTokens(b)
+  if (ta.size === 0 || tb.size === 0) return 0
+  let inter = 0
+  for (const t of ta) if (tb.has(t)) inter++
+  return inter / Math.min(ta.size, tb.size)
+}
+function daysApart(a: string, b: string): number {
+  const d = (Date.parse(a) - Date.parse(b)) / 86_400_000
+  return Number.isFinite(d) ? Math.abs(d) : 999
+}
+
+/**
+ * Junta os registros internos (bula_leiloes) com a planilha (cronograma_leiloes).
+ *
+ * A planilha é a fonte da verdade da agenda: quando um registro interno casa
+ * com um leilão da planilha, o card mostra o nome/data da PLANILHA e anexa os
+ * dados internos (capa, status, checklist, financeiro). Cada leilão aparece
+ * UMA vez — o pareamento é por melhor similaridade de nome dentro de uma
+ * janela de data, e cada registro é usado no máximo uma vez.
+ */
 function mergeLeiloes(bula: (BulaLeilao & { catalogo_url?: string })[], crono: DbLeilao[]): MergedLeilao[] {
+  // 1. Pares candidatos (bula ↔ cronograma) pontuados por nome + data.
+  const cands: { bi: number; ci: number; score: number }[] = []
+  bula.forEach((b, bi) => {
+    crono.forEach((c, ci) => {
+      const dd = daysApart(b.data, c.data)
+      if (dd > 14) return
+      const nm = Math.max(
+        nameScore(b.nome, c.nome),
+        nameScore(b.nome, c.criador || ''),
+      )
+      // Mesma data aceita casamento fraco; datas diferentes exigem nome forte.
+      const ok = dd === 0 ? nm >= 0.34 : nm >= 0.6
+      if (!ok) return
+      cands.push({ bi, ci, score: nm - dd * 0.03 })
+    })
+  })
+  // 2. Pareamento guloso: maior pontuação primeiro, cada registro 1x só.
+  cands.sort((x, y) => y.score - x.score)
+  const pairCrono = new Map<number, number>()
+  const usedBula = new Set<number>()
+  const usedCrono = new Set<number>()
+  for (const cd of cands) {
+    if (usedBula.has(cd.bi) || usedCrono.has(cd.ci)) continue
+    usedBula.add(cd.bi)
+    usedCrono.add(cd.ci)
+    pairCrono.set(cd.bi, cd.ci)
+  }
+
   const result: MergedLeilao[] = []
-  const usedCronoIds = new Set<string>()
 
-  for (const b of bula) {
-    const sameDate = crono.filter(c => c.data === b.data)
-    let match: DbLeilao | undefined
-    if (sameDate.length === 1) {
-      match = sameDate[0]
-    } else if (sameDate.length > 1) {
-      const bNorm = normalize(b.nome).slice(0, 6)
-      match = sameDate.find(c => normalize(c.nome).includes(bNorm))
-        ?? sameDate.find(c => normalize(c.criador || '').includes(bNorm))
-        ?? sameDate[0]
-    }
-    if (match) usedCronoIds.add(match.id)
-
+  // 3. Registros internos — pareados (dados da planilha) ou só-bula.
+  bula.forEach((b, bi) => {
+    const ci = pairCrono.get(bi)
+    const c = ci !== undefined ? crono[ci] : undefined
     result.push({
-      id: b.id, source: match ? 'both' : 'bula',
-      bulaId: b.id, cronoId: match?.id,
-      nome: b.nome, data: b.data,
-      dia_semana: match?.dia_semana, hora: b.horario || match?.hora,
-      tipo: b.tipo || match?.raca, animais: b.animais || match?.qtd_animais || 0,
-      sexo: match?.sexo, criador: match?.criador,
-      presencial: b.modelo || match?.presencial, leiloeira: b.leiloeira || match?.leiloeira,
-      img: (b.img && b.img.startsWith('http')) ? b.img : (match?.img || undefined),
+      id: b.id, source: c ? 'both' : 'bula',
+      bulaId: b.id, cronoId: c?.id,
+      // Pareado → nome/data da PLANILHA. Só-bula → o que o registro tem.
+      nome: c?.nome || b.nome,
+      data: c?.data || b.data,
+      dia_semana: c?.dia_semana, hora: c?.hora || b.horario,
+      tipo: c?.raca || b.tipo, animais: b.animais || c?.qtd_animais || 0,
+      sexo: c?.sexo, criador: c?.criador,
+      presencial: c?.presencial || b.modelo, leiloeira: c?.leiloeira || b.leiloeira,
+      img: (b.img && b.img.startsWith('http')) ? b.img : (c?.img || undefined),
       status: b.status, tasks: b.tasks,
       expectativa: b.expectativa, meta_bula: b.meta_bula, realizado_bula: b.realizado_bula,
       transmissao: b.transmissao, condicao: b.condicao, frete_gratis: b.frete_gratis,
-      acordo_comissao: b.acordo_comissao, catalogo_url: b.catalogo_url || match?.catalogo_url || undefined, local: b.local,
-      comissao: match?.comissao, contrato: match?.contrato,
-      faturamento_previsto: match?.faturamento_previsto ?? undefined,
-      faturamento_realizado: match?.faturamento_realizado ?? undefined,
-      venda_bula: match?.venda_bula ?? undefined,
-      comissao_receber: match?.comissao_receber, recebido: match?.recebido,
+      acordo_comissao: b.acordo_comissao, catalogo_url: b.catalogo_url || c?.catalogo_url || undefined, local: b.local,
+      comissao: c?.comissao, contrato: c?.contrato,
+      faturamento_previsto: c?.faturamento_previsto ?? undefined,
+      faturamento_realizado: c?.faturamento_realizado ?? undefined,
+      venda_bula: c?.venda_bula ?? undefined,
+      comissao_receber: c?.comissao_receber, recebido: c?.recebido,
     })
-  }
+  })
 
-  for (const c of crono) {
-    if (usedCronoIds.has(c.id)) continue
+  // 4. Leilões da planilha sem registro interno.
+  crono.forEach((c, ci) => {
+    if (usedCrono.has(ci)) return
     result.push({
       id: c.id, source: 'cronograma', cronoId: c.id,
       nome: c.nome, data: c.data, dia_semana: c.dia_semana, hora: c.hora,
@@ -189,7 +249,7 @@ function mergeLeiloes(bula: (BulaLeilao & { catalogo_url?: string })[], crono: D
       venda_bula: c.venda_bula ?? undefined,
       comissao_receber: c.comissao_receber, recebido: c.recebido,
     })
-  }
+  })
 
   return result.sort((a, b) => a.data.localeCompare(b.data))
 }
