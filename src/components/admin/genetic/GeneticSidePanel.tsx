@@ -141,7 +141,7 @@ export function GeneticSidePanel({ selectedProducts, catalogProducts }: GeneticS
         : '/genealogia';
 
     return (
-        <div className="rounded-2xl border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-white dark:bg-[#0A0A0A] overflow-hidden flex flex-col">
+        <div className="rounded-2xl border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-white dark:bg-[#161616] overflow-hidden flex flex-col">
 
             {/* Brand hairline */}
             <div className="relative">
@@ -200,7 +200,7 @@ export function GeneticSidePanel({ selectedProducts, catalogProducts }: GeneticS
                         <select
                             value={method}
                             onChange={e => setMethod(e.target.value as Method)}
-                            className="w-full appearance-none px-2.5 py-1.5 pr-8 text-[11px] font-medium border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-gray-50 dark:bg-[#111] text-gray-900 dark:text-white hover:border-[#A0792E]/50 focus:outline-none focus:border-[#A0792E] transition-colors"
+                            className="w-full appearance-none px-2.5 py-1.5 pr-8 text-[11px] font-medium border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-gray-50 dark:bg-[#1d1d1d] text-gray-900 dark:text-white hover:border-[#A0792E]/50 focus:outline-none focus:border-[#A0792E] transition-colors"
                             style={{ borderRadius: 3 }}
                         >
                             <option value="dep">DEP (Diferença Esperada na Progênie)</option>
@@ -229,7 +229,7 @@ export function GeneticSidePanel({ selectedProducts, catalogProducts }: GeneticS
                 <div className="overflow-x-auto">
                     <table className="w-full text-[11px]">
                         <thead>
-                            <tr className="border-b border-gray-100 dark:border-[#1E1E1E]">
+                            <tr className="border-b border-gray-100 dark:border-[#2A2A2A]">
                                 {['Característica', 'Sel.', 'Cat.', 'Dif.'].map((h, i) => (
                                     <th
                                         key={h}
@@ -240,7 +240,7 @@ export function GeneticSidePanel({ selectedProducts, catalogProducts }: GeneticS
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
+                        <tbody className="divide-y divide-gray-50 dark:divide-[#262626]">
                             {AXES.map(axis => {
                                 const a = data.animal[axis];
                                 const c = data.catalog[axis];
@@ -293,7 +293,7 @@ export function GeneticSidePanel({ selectedProducts, catalogProducts }: GeneticS
                     style={{
                         borderRadius: 3,
                         background: `linear-gradient(135deg, ${BRAND.BRONZE}, ${BRAND.BRONZE_PALE})`,
-                        color: '#0A0A0A',
+                        color: '#161616',
                     }}
                 >
                     <FileText size={12} />
@@ -308,7 +308,7 @@ export function GeneticSidePanel({ selectedProducts, catalogProducts }: GeneticS
 
 function EmptyPanel() {
     return (
-        <div className="rounded-2xl border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-white dark:bg-[#0A0A0A] p-5 text-center space-y-3">
+        <div className="rounded-2xl border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-white dark:bg-[#161616] p-5 text-center space-y-3">
             <div className="w-10 h-10 rounded-xl mx-auto flex items-center justify-center" style={{ backgroundColor: `${BRAND.BRONZE}14`, color: BRAND.BRONZE }}>
                 <Sparkles size={18} />
             </div>
@@ -445,7 +445,7 @@ function RadarChartCompact({
                 return (
                     <g key={`a-${i}`}>
                         <circle cx={x} cy={y} r="4.5" fill={BRAND.TECH_GREEN} opacity="0.18" />
-                        <circle cx={x} cy={y} r="2.8" fill={BRAND.TECH_GREEN} stroke="#0A0A0A" strokeWidth="0.8" />
+                        <circle cx={x} cy={y} r="2.8" fill={BRAND.TECH_GREEN} stroke="#161616" strokeWidth="0.8" />
                     </g>
                 );
             })}

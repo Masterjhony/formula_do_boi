@@ -21,7 +21,7 @@ const BRAND = {
     LOSS: '#A04545',
 };
 
-const card = 'rounded-2xl border border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#0F0F0F]';
+const card = 'rounded-2xl border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#1B1B1B]';
 const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400';
 const dataCls = 'font-mono tabular-nums';
 
@@ -260,7 +260,7 @@ export function OperationDashboard({ snapshot, objectives, risks, tasks, columns
             </div>
 
             {/* ── Fio de ligação: Estratégia → Projetos → Tarefas → Indicadores ── */}
-            <section className="rounded-2xl border border-gray-200 dark:border-[#1E1E1E] bg-gradient-to-br from-white via-white to-[#A0792E]/[0.025] dark:from-[#0F0F0F] dark:via-[#0F0F0F] dark:to-[#A0792E]/[0.04] p-4 lg:p-5">
+            <section className="rounded-2xl border border-gray-200 dark:border-[#2A2A2A] bg-gradient-to-br from-white via-white to-[#A0792E]/[0.025] dark:from-[#1B1B1B] dark:via-[#1B1B1B] dark:to-[#A0792E]/[0.04] p-4 lg:p-5">
                 <StrategyExecutionChain
                     objectives={objectives}
                     tasks={tasks}
@@ -393,7 +393,7 @@ export function OperationDashboard({ snapshot, objectives, risks, tasks, columns
                                             <span className={`text-[9px] ${dataCls} text-gray-500`}>{c.status}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5">
-                                            <div className="flex-1 h-1 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                            <div className="flex-1 h-1 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                                                 <div className="h-full rounded-full" style={{ width: `${sentPct}%`, backgroundColor: BRAND.TECH_GREEN, opacity: 0.85 }} />
                                             </div>
                                             <span className={`text-[9px] ${dataCls} w-12 text-right text-gray-500`}>
@@ -487,7 +487,7 @@ function Bar({ label, value, suffix }: { label: string; value: number; suffix?: 
                     {suffix && <span className={`text-[9px] text-gray-400 ${dataCls}`}>{suffix}</span>}
                 </div>
             </div>
-            <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+            <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-700" style={{ width: `${clamped}%`, backgroundColor: color }} />
             </div>
         </div>
@@ -496,7 +496,7 @@ function Bar({ label, value, suffix }: { label: string; value: number; suffix?: 
 
 function StatBlock({ value, label, hint, color }: { value: number; label: string; hint: string; color: string }) {
     return (
-        <div className="rounded-xl border border-gray-100 dark:border-[#1A1A1A] p-2.5 text-center">
+        <div className="rounded-xl border border-gray-100 dark:border-[#262626] p-2.5 text-center">
             <p className={`text-xl font-black ${dataCls}`} style={{ color: value > 0 ? color : '#9CA3AF' }}>{value}</p>
             <p className="text-[9px] text-gray-700 dark:text-gray-300 font-bold uppercase tracking-wide mt-0.5">{label}</p>
             <p className="text-[9px] text-gray-400 mt-0.5">{hint}</p>

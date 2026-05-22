@@ -51,10 +51,10 @@ export function LeadsPageClient({ initialLeads, crmConfig }: LeadsPageClientProp
     return (
         <div className={
             isFullscreen
-                ? 'fixed inset-0 z-[100] bg-white dark:bg-[#111111] w-screen h-screen flex flex-col overflow-hidden'
-                : 'flex flex-col h-full bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden'
+                ? 'fixed inset-0 z-[100] bg-white dark:bg-[#1d1d1d] w-screen h-screen flex flex-col overflow-hidden'
+                : 'flex flex-col h-full bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] overflow-hidden'
         }>
-            <div className="p-6 pb-4 shrink-0 border-b border-gray-200 dark:border-[#222222]">
+            <div className="p-6 pb-4 shrink-0 border-b border-gray-200 dark:border-[#2e2e2e]">
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <p className="text-gray-500 text-sm mb-2 flex items-center gap-2">
@@ -70,7 +70,7 @@ export function LeadsPageClient({ initialLeads, crmConfig }: LeadsPageClientProp
                     </div>
                     <button
                         onClick={() => setIsFullscreen(!isFullscreen)}
-                        className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-[#222222] transition-colors shrink-0"
+                        className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-[#2e2e2e] transition-colors shrink-0"
                         title={isFullscreen ? 'Sair da Tela Cheia' : 'Tela Cheia'}
                     >
                         {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
@@ -78,7 +78,7 @@ export function LeadsPageClient({ initialLeads, crmConfig }: LeadsPageClientProp
                 </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-6 bg-gray-50/50 dark:bg-[#0A0A0A]">
+            <div className="flex-1 overflow-auto p-6 bg-gray-50/50 dark:bg-[#161616]">
                 <CRMLeadsView
                     leads={leads}
                     stages={stages}

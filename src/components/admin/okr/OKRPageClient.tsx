@@ -68,7 +68,7 @@ function RadialGauge({ pct, stroke, size = 52, sw = 4 }: {
                 cx={size / 2} cy={size / 2} r={r}
                 fill="none" strokeWidth={sw}
                 stroke="#e5e7eb"
-                className="dark:stroke-[#2a2a2a]"
+                className="dark:stroke-[#363636]"
             />
             <circle
                 cx={size / 2} cy={size / 2} r={r}
@@ -208,13 +208,13 @@ export function OKRPageClient({
     ];
 
     return (
-        <div className="h-full flex flex-col bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#1E1E1E] overflow-hidden shadow-sm">
+        <div className="h-full flex flex-col bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2A2A2A] overflow-hidden shadow-sm">
 
             {/* Gold accent line */}
             <div className="h-[3px] bg-gradient-to-r from-[#A0792E] via-[#D4A85C] to-[#A0792E]/10 shrink-0" />
 
             {/* Header */}
-            <div className="px-6 pt-5 pb-0 shrink-0 border-b border-gray-100 dark:border-[#1A1A1A]">
+            <div className="px-6 pt-5 pb-0 shrink-0 border-b border-gray-100 dark:border-[#262626]">
 
                 <div className="flex items-start justify-between mb-5">
                     <div>
@@ -318,7 +318,7 @@ export function OKRPageClient({
                             className={`relative flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-all border-b-2 whitespace-nowrap ${
                                 tab === t.key
                                     ? 'border-[#A0792E] text-[#A0792E] dark:text-[#D4A85C]'
-                                    : 'border-transparent text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-200 dark:hover:border-[#2a2a2a]'
+                                    : 'border-transparent text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-200 dark:hover:border-[#363636]'
                             }`}
                         >
                             {t.icon}
@@ -338,7 +338,7 @@ export function OKRPageClient({
             </div>
 
             {/* Tab content */}
-            <div className="flex-1 overflow-auto p-6 bg-gray-50/40 dark:bg-[#0C0C0C]">
+            <div className="flex-1 overflow-auto p-6 bg-gray-50/40 dark:bg-[#181818]">
                 {tab === 'panel' && (
                     <OperationDashboard
                         snapshot={snapshot}

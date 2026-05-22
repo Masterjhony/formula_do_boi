@@ -94,7 +94,7 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
                     return (
                         <div
                             key={member.id}
-                            className="bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-2xl p-5 flex flex-col gap-4 hover:border-[#A0792E]/40 transition-colors"
+                            className="bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-2xl p-5 flex flex-col gap-4 hover:border-[#A0792E]/40 transition-colors"
                         >
                             {isEditing ? (
                                 <div className="flex flex-col gap-3">
@@ -114,13 +114,13 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
                                         autoFocus
                                         value={editName}
                                         onChange={e => setEditName(e.target.value)}
-                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#333333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
+                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#3f3f3f] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
                                         placeholder="Nome"
                                     />
                                     <input
                                         value={editRole}
                                         onChange={e => setEditRole(e.target.value)}
-                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#333333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
+                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#3f3f3f] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
                                         placeholder="Função (ex: Dev, Growth)"
                                     />
                                     <div className="flex gap-2">
@@ -129,7 +129,7 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
                                             <Check size={14} /> Salvar
                                         </button>
                                         <button onClick={() => setEditingId(null)}
-                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gray-100 dark:bg-[#222222] text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors">
+                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gray-100 dark:bg-[#2e2e2e] text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-[#3f3f3f] transition-colors">
                                             <X size={14} /> Cancelar
                                         </button>
                                     </div>
@@ -151,7 +151,7 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
                                         </div>
                                         <div className="flex items-center gap-1 shrink-0">
                                             <button onClick={() => startEdit(member)}
-                                                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-[#222222] text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                                                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-[#2e2e2e] text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                                                 <Pencil size={13} />
                                             </button>
                                             <button onClick={() => handleDelete(member)}
@@ -162,17 +162,17 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
                                     </div>
 
                                     {/* Task stats */}
-                                    <div className="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-[#222222]">
+                                    <div className="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-[#2e2e2e]">
                                         <div className="flex-1 text-center">
                                             <p className="text-lg font-bold text-gray-900 dark:text-white">{open}</p>
                                             <p className="text-[10px] text-gray-400 uppercase tracking-wider">em aberto</p>
                                         </div>
-                                        <div className="w-px h-8 bg-gray-100 dark:bg-[#222222]" />
+                                        <div className="w-px h-8 bg-gray-100 dark:bg-[#2e2e2e]" />
                                         <div className="flex-1 text-center">
                                             <p className="text-lg font-bold text-gray-900 dark:text-white">{total}</p>
                                             <p className="text-[10px] text-gray-400 uppercase tracking-wider">total</p>
                                         </div>
-                                        <div className="w-px h-8 bg-gray-100 dark:bg-[#222222]" />
+                                        <div className="w-px h-8 bg-gray-100 dark:bg-[#2e2e2e]" />
                                         <div className="flex-1 text-center">
                                             <p className="text-lg font-bold text-[#A0792E]">
                                                 {total > 0 ? Math.round(((total - open) / total) * 100) : 0}%
@@ -206,7 +206,7 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
 
                 {/* Add member card */}
                 {isAdding ? (
-                    <div className="bg-white dark:bg-[#1A1A1A] border border-[#A0792E]/40 rounded-2xl p-5 flex flex-col gap-3">
+                    <div className="bg-white dark:bg-[#262626] border border-[#A0792E]/40 rounded-2xl p-5 flex flex-col gap-3">
                         <p className="text-sm font-semibold text-gray-900 dark:text-white">Novo membro</p>
                         {/* Color picker */}
                         <div className="flex gap-1.5 flex-wrap">
@@ -225,14 +225,14 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
                             value={newName}
                             onChange={e => setNewName(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') handleAdd(); else if (e.key === 'Escape') setIsAdding(false); }}
-                            className="w-full px-3 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#333333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
+                            className="w-full px-3 py-2 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#3f3f3f] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
                             placeholder="Nome *"
                         />
                         <input
                             value={newRole}
                             onChange={e => setNewRole(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
-                            className="w-full px-3 py-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#333333] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
+                            className="w-full px-3 py-2 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#3f3f3f] rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#A0792E] text-gray-900 dark:text-white"
                             placeholder="Função (opcional)"
                         />
                         <div className="flex gap-2">
@@ -245,7 +245,7 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
                             </button>
                             <button
                                 onClick={() => { setIsAdding(false); setNewName(''); setNewRole(''); }}
-                                className="flex-1 py-2 bg-gray-100 dark:bg-[#222222] text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-[#333333] transition-colors"
+                                className="flex-1 py-2 bg-gray-100 dark:bg-[#2e2e2e] text-gray-600 dark:text-gray-400 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-[#3f3f3f] transition-colors"
                             >
                                 Cancelar
                             </button>
@@ -254,7 +254,7 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
                 ) : (
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="border-2 border-dashed border-gray-200 dark:border-[#222222] rounded-2xl p-5 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-[#A0792E]/50 hover:text-[#A0792E] transition-colors min-h-[120px]"
+                        className="border-2 border-dashed border-gray-200 dark:border-[#2e2e2e] rounded-2xl p-5 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-[#A0792E]/50 hover:text-[#A0792E] transition-colors min-h-[120px]"
                     >
                         <Plus size={20} />
                         <span className="text-sm font-medium">Adicionar membro</span>
@@ -276,7 +276,7 @@ export function MembersView({ members, onMembersChange, tasks }: MembersViewProp
 
 function StatCard({ label, value }: { label: string; value: number }) {
     return (
-        <div className="bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-xl p-4 text-center">
+        <div className="bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-xl p-4 text-center">
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
             <p className="text-xs text-gray-400 mt-1">{label}</p>
         </div>

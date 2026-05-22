@@ -101,12 +101,12 @@ export default function AnalyticsPage() {
 
     return (
         <div className="space-y-8 pb-12">
-            <div className="border-b border-gray-200 dark:border-[#222222] pb-6 flex justify-between items-center">
+            <div className="border-b border-gray-200 dark:border-[#2e2e2e] pb-6 flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Analytics</h1>
                     <p className="text-gray-500 dark:text-gray-400">Detalhamento de acesso e comportamento (Últimos 30 dias)</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-[#1A1A1A] px-3 py-1 rounded-full border border-gray-200 dark:border-[#222222]">
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-[#262626] px-3 py-1 rounded-full border border-gray-200 dark:border-[#2e2e2e]">
                     <Calendar className="w-4 h-4" />
                     Atualizado em: {new Date().toLocaleDateString('pt-BR')}
                 </div>
@@ -121,8 +121,8 @@ export default function AnalyticsPage() {
                     {/* Grids Superiores: Acessos e Tempo */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Histórico de Acessos */}
-                        <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden flex flex-col h-96">
-                            <div className="p-6 border-b border-gray-200 dark:border-[#222222] shrink-0">
+                        <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl overflow-hidden flex flex-col h-96">
+                            <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e] shrink-0">
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     <Activity className="w-5 h-5 text-blue-400" />
                                     Histórico de Acessos
@@ -130,16 +130,16 @@ export default function AnalyticsPage() {
                             </div>
                             <div className="overflow-x-auto overflow-y-auto grow custom-scrollbar">
                                 <table className="w-full text-left border-collapse">
-                                    <thead className="sticky top-0 bg-gray-50 dark:bg-[#1A1A1A] z-10">
+                                    <thead className="sticky top-0 bg-gray-50 dark:bg-[#262626] z-10">
                                         <tr className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
-                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#222222]">Data</th>
-                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#222222]">
+                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#2e2e2e]">Data</th>
+                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#2e2e2e]">
                                                 <div className="flex items-center gap-2">
                                                     <Users className="w-4 h-4" />
                                                     Ativos
                                                 </div>
                                             </th>
-                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#222222]">
+                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#2e2e2e]">
                                                 <div className="flex items-center gap-2">
                                                     <MousePointerClick className="w-4 h-4" />
                                                     Sessões
@@ -147,10 +147,10 @@ export default function AnalyticsPage() {
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-[#222222]">
+                                    <tbody className="divide-y divide-gray-100 dark:divide-[#2e2e2e]">
                                         {reportData.length > 0 ? (
                                             reportData.map((row) => (
-                                                <tr key={row.date} className="hover:bg-gray-50 dark:hover:bg-[#1A1A1A] transition-colors">
+                                                <tr key={row.date} className="hover:bg-gray-50 dark:hover:bg-[#262626] transition-colors">
                                                     <td className="p-4 text-gray-900 dark:text-gray-300 font-medium">{formatDate(row.date)}</td>
                                                     <td className="p-4 text-gray-700 dark:text-gray-400">{row.activeUsers}</td>
                                                     <td className="p-4 text-gray-700 dark:text-gray-400">{row.sessions}</td>
@@ -169,8 +169,8 @@ export default function AnalyticsPage() {
                         </div>
 
                         {/* Tempo Médio */}
-                        <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden flex flex-col h-96">
-                            <div className="p-6 border-b border-gray-200 dark:border-[#222222] shrink-0">
+                        <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl overflow-hidden flex flex-col h-96">
+                            <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e] shrink-0">
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     <Timer className="w-5 h-5 text-emerald-400" />
                                     Tempo Médio por Dia
@@ -178,16 +178,16 @@ export default function AnalyticsPage() {
                             </div>
                             <div className="overflow-x-auto overflow-y-auto grow custom-scrollbar">
                                 <table className="w-full text-left border-collapse">
-                                    <thead className="sticky top-0 bg-gray-50 dark:bg-[#1A1A1A] z-10">
+                                    <thead className="sticky top-0 bg-gray-50 dark:bg-[#262626] z-10">
                                         <tr className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
-                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#222222]">Data</th>
-                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#222222]">Duração Média</th>
+                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#2e2e2e]">Data</th>
+                                            <th className="p-4 font-medium border-b border-gray-200 dark:border-[#2e2e2e]">Duração Média</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-[#222222]">
+                                    <tbody className="divide-y divide-gray-100 dark:divide-[#2e2e2e]">
                                         {averageTime.length > 0 ? (
                                             averageTime.map((row) => (
-                                                <tr key={row.date} className="hover:bg-gray-50 dark:hover:bg-[#1A1A1A] transition-colors">
+                                                <tr key={row.date} className="hover:bg-gray-50 dark:hover:bg-[#262626] transition-colors">
                                                     <td className="p-4 text-gray-900 dark:text-gray-300 font-medium">{formatDate(row.date)}</td>
                                                     <td className="p-4 text-gray-700 dark:text-gray-400 font-mono">{formatTime(row.averageSessionDuration)}</td>
                                                 </tr>
@@ -208,8 +208,8 @@ export default function AnalyticsPage() {
                     {/* Grids Inferiores: Views e Canais */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Páginas Mais Vistas (Lotes) */}
-                        <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden flex flex-col h-max">
-                            <div className="p-6 border-b border-gray-200 dark:border-[#222222] shrink-0">
+                        <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl overflow-hidden flex flex-col h-max">
+                            <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e] shrink-0">
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-amber-500" />
                                     Visualizações por Página
@@ -226,7 +226,7 @@ export default function AnalyticsPage() {
                                                 </span>
                                                 <span className="text-gray-500 whitespace-nowrap">{page.views} views</span>
                                             </div>
-                                            <div className="w-full bg-gray-100 dark:bg-[#222222] rounded-full h-2">
+                                            <div className="w-full bg-gray-100 dark:bg-[#2e2e2e] rounded-full h-2">
                                                 <div
                                                     className="bg-amber-500 h-2 rounded-full transition-all duration-1000 ease-out"
                                                     style={{ width: `${(page.views / maxPageViews) * 100}%` }}
@@ -241,8 +241,8 @@ export default function AnalyticsPage() {
                         </div>
 
                         {/* Canais de Sessão */}
-                        <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden flex flex-col h-max">
-                            <div className="p-6 border-b border-gray-200 dark:border-[#222222] shrink-0">
+                        <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl overflow-hidden flex flex-col h-max">
+                            <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e] shrink-0">
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     <Share2 className="w-5 h-5 text-indigo-400" />
                                     Canais de Tráfego
@@ -259,7 +259,7 @@ export default function AnalyticsPage() {
                                                 </span>
                                                 <span className="text-gray-500 whitespace-nowrap">{ch.sessions} sessões</span>
                                             </div>
-                                            <div className="w-full bg-gray-100 dark:bg-[#222222] rounded-full h-2">
+                                            <div className="w-full bg-gray-100 dark:bg-[#2e2e2e] rounded-full h-2">
                                                 <div
                                                     className="bg-indigo-500 h-2 rounded-full transition-all duration-1000 ease-out"
                                                     style={{ width: `${(ch.sessions / maxChannels) * 100}%` }}
@@ -277,7 +277,7 @@ export default function AnalyticsPage() {
             )}
 
             {/* ============================== PostHog ============================== */}
-            <div className="border-t border-gray-200 dark:border-[#222222] pt-8">
+            <div className="border-t border-gray-200 dark:border-[#2e2e2e] pt-8">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -324,8 +324,8 @@ export default function AnalyticsPage() {
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* Eventos custom */}
-                            <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden">
-                                <div className="p-6 border-b border-gray-200 dark:border-[#222222]">
+                            <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl overflow-hidden">
+                                <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e]">
                                     <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                         <Zap className="w-5 h-5 text-fuchsia-500" />
                                         Eventos mais capturados
@@ -335,7 +335,7 @@ export default function AnalyticsPage() {
                                 <div className="p-6 space-y-3">
                                     {phEvents.length > 0 ? (
                                         phEvents.map((e, i) => (
-                                            <div key={i} className="flex items-center justify-between text-sm border-b border-gray-100 dark:border-[#1A1A1A] pb-2 last:border-0">
+                                            <div key={i} className="flex items-center justify-between text-sm border-b border-gray-100 dark:border-[#262626] pb-2 last:border-0">
                                                 <code className="text-fuchsia-600 dark:text-fuchsia-400 font-mono text-xs">{e.event}</code>
                                                 <span className="text-gray-700 dark:text-gray-300 font-medium">{e.count.toLocaleString('pt-BR')}</span>
                                             </div>
@@ -347,8 +347,8 @@ export default function AnalyticsPage() {
                             </div>
 
                             {/* Páginas PostHog */}
-                            <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden">
-                                <div className="p-6 border-b border-gray-200 dark:border-[#222222]">
+                            <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl overflow-hidden">
+                                <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e]">
                                     <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                         <FileText className="w-5 h-5 text-amber-500" />
                                         Páginas (PostHog $pageview)
@@ -365,7 +365,7 @@ export default function AnalyticsPage() {
                                                         <span className="font-mono text-xs text-gray-900 dark:text-gray-200 truncate pr-4">{p.path}</span>
                                                         <span className="text-gray-500 whitespace-nowrap">{p.pageviews.toLocaleString('pt-BR')}</span>
                                                     </div>
-                                                    <div className="w-full bg-gray-100 dark:bg-[#222222] rounded-full h-1.5">
+                                                    <div className="w-full bg-gray-100 dark:bg-[#2e2e2e] rounded-full h-1.5">
                                                         <div className="bg-amber-500 h-1.5 rounded-full transition-all duration-1000 ease-out" style={{ width: `${(p.pageviews / max) * 100}%` }}></div>
                                                     </div>
                                                 </div>
@@ -378,8 +378,8 @@ export default function AnalyticsPage() {
                             </div>
 
                             {/* Browsers */}
-                            <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden">
-                                <div className="p-6 border-b border-gray-200 dark:border-[#222222]">
+                            <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl overflow-hidden">
+                                <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e]">
                                     <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                         <Globe className="w-5 h-5 text-cyan-400" />
                                         Navegadores
@@ -395,7 +395,7 @@ export default function AnalyticsPage() {
                                                         <span className="text-gray-900 dark:text-gray-200">{b.browser}</span>
                                                         <span className="text-gray-500">{b.sessions.toLocaleString('pt-BR')} sessões</span>
                                                     </div>
-                                                    <div className="w-full bg-gray-100 dark:bg-[#222222] rounded-full h-1.5">
+                                                    <div className="w-full bg-gray-100 dark:bg-[#2e2e2e] rounded-full h-1.5">
                                                         <div className="bg-cyan-500 h-1.5 rounded-full" style={{ width: `${(b.sessions / max) * 100}%` }}></div>
                                                     </div>
                                                 </div>
@@ -408,8 +408,8 @@ export default function AnalyticsPage() {
                             </div>
 
                             {/* Devices */}
-                            <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden">
-                                <div className="p-6 border-b border-gray-200 dark:border-[#222222]">
+                            <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl overflow-hidden">
+                                <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e]">
                                     <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                         <Smartphone className="w-5 h-5 text-rose-400" />
                                         Tipo de dispositivo
@@ -425,7 +425,7 @@ export default function AnalyticsPage() {
                                                         <span className="text-gray-900 dark:text-gray-200 capitalize">{d.device}</span>
                                                         <span className="text-gray-500">{d.sessions.toLocaleString('pt-BR')} sessões</span>
                                                     </div>
-                                                    <div className="w-full bg-gray-100 dark:bg-[#222222] rounded-full h-1.5">
+                                                    <div className="w-full bg-gray-100 dark:bg-[#2e2e2e] rounded-full h-1.5">
                                                         <div className="bg-rose-500 h-1.5 rounded-full" style={{ width: `${(d.sessions / max) * 100}%` }}></div>
                                                     </div>
                                                 </div>
@@ -458,7 +458,7 @@ export default function AnalyticsPage() {
 function PHKpi({ label, value, icon, color, raw }: { label: string; value: number | string; icon: React.ReactNode; color: string; raw?: boolean }) {
     const formatted = raw ? value : (typeof value === 'number' ? value.toLocaleString('pt-BR') : value);
     return (
-        <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-4 shadow-lg">
+        <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] p-4 shadow-lg">
             <div className={`flex items-center gap-1.5 ${color} text-xs uppercase tracking-wider font-medium`}>
                 {icon}
                 {label}
@@ -474,7 +474,7 @@ function PHLink({ href, icon, title, subtitle }: { href: string; icon: React.Rea
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="block bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-5 hover:border-fuchsia-500/40 hover:shadow-xl transition group"
+            className="block bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] p-5 hover:border-fuchsia-500/40 hover:shadow-xl transition group"
         >
             <div className="flex items-center justify-between mb-2">
                 <div className="text-fuchsia-500">{icon}</div>

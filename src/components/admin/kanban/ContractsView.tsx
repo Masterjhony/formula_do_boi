@@ -289,10 +289,10 @@ export function ContractsView({ initialContracts }: Props) {
     );
 
     return (
-        <div className="flex flex-1 min-h-0 h-full gap-0 overflow-hidden rounded-2xl border border-[#E8CB85]/20 dark:border-[#E8CB85]/14 bg-white dark:bg-[#0A0A0A] shadow-sm">
+        <div className="flex flex-1 min-h-0 h-full gap-0 overflow-hidden rounded-2xl border border-[#E8CB85]/20 dark:border-[#E8CB85]/14 bg-white dark:bg-[#161616] shadow-sm">
 
             {/* ── Sidebar ── */}
-            <aside className="w-56 shrink-0 flex flex-col bg-white dark:bg-[#0F0F0F] border-r border-[#E8CB85]/20 dark:border-[#E8CB85]/10">
+            <aside className="w-56 shrink-0 flex flex-col bg-white dark:bg-[#1B1B1B] border-r border-[#E8CB85]/20 dark:border-[#E8CB85]/10">
                 <div className="px-5 pt-6 pb-3">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#A0792E]/70 dark:text-[#D4A85C]/60">Pastas</p>
                 </div>
@@ -338,10 +338,10 @@ export function ContractsView({ initialContracts }: Props) {
             </aside>
 
             {/* ── Main ── */}
-            <main className="flex-1 flex flex-col min-w-0 bg-gradient-to-b from-gray-50 to-white dark:from-[#0A0A0A] dark:to-[#0F0F0F]">
+            <main className="flex-1 flex flex-col min-w-0 bg-gradient-to-b from-gray-50 to-white dark:from-[#161616] dark:to-[#1B1B1B]">
 
                 {/* Toolbar */}
-                <div className="flex items-center gap-3 px-6 py-4 bg-white/95 dark:bg-[#0F0F0F]/95 backdrop-blur border-b border-[#E8CB85]/14 shrink-0">
+                <div className="flex items-center gap-3 px-6 py-4 bg-white/95 dark:bg-[#1B1B1B]/95 backdrop-blur border-b border-[#E8CB85]/14 shrink-0">
                     {/* Breadcrumb */}
                     <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-[#9A928A] mr-2 shrink-0">
                         <span
@@ -365,16 +365,16 @@ export function ContractsView({ initialContracts }: Props) {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Buscar por cliente ou título..."
-                            className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-[#141414] border border-[#E8CB85]/14 rounded-xl outline-none focus:border-[#A0792E]/40 focus:ring-2 focus:ring-[#A0792E]/15 text-gray-900 dark:text-[#F5F0E4] placeholder:text-gray-400 dark:placeholder:text-[#9A928A] transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 dark:bg-[#202020] border border-[#E8CB85]/14 rounded-xl outline-none focus:border-[#A0792E]/40 focus:ring-2 focus:ring-[#A0792E]/15 text-gray-900 dark:text-[#F5F0E4] placeholder:text-gray-400 dark:placeholder:text-[#9A928A] transition-all"
                         />
                     </div>
 
                     {/* View toggle */}
-                    <div className="flex items-center bg-gray-100 dark:bg-[#141414] rounded-xl p-1 border border-[#E8CB85]/10">
-                        <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-[#1E1E1E] shadow-sm text-[#A0792E]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-[#D4A85C]'}`}>
+                    <div className="flex items-center bg-gray-100 dark:bg-[#202020] rounded-xl p-1 border border-[#E8CB85]/10">
+                        <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-[#2A2A2A] shadow-sm text-[#A0792E]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-[#D4A85C]'}`}>
                             <Grid3X3 size={14} />
                         </button>
-                        <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-[#1E1E1E] shadow-sm text-[#A0792E]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-[#D4A85C]'}`}>
+                        <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-[#2A2A2A] shadow-sm text-[#A0792E]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-[#D4A85C]'}`}>
                             <List size={14} />
                         </button>
                     </div>
@@ -382,7 +382,7 @@ export function ContractsView({ initialContracts }: Props) {
                     {/* ClickSign import */}
                     <button
                         onClick={() => setCsImportOpen(true)}
-                        className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-[#141414] border border-[#E8CB85]/20 text-gray-700 dark:text-[#F5F0E4] rounded-xl font-semibold text-sm hover:border-[#A0792E]/40 hover:text-[#A0792E] dark:hover:text-[#D4A85C] transition-all whitespace-nowrap shrink-0"
+                        className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-[#202020] border border-[#E8CB85]/20 text-gray-700 dark:text-[#F5F0E4] rounded-xl font-semibold text-sm hover:border-[#A0792E]/40 hover:text-[#A0792E] dark:hover:text-[#D4A85C] transition-all whitespace-nowrap shrink-0"
                         title={csConn.ok === true ? 'ClickSign conectado' : csConn.ok === false ? `ClickSign: ${csConn.error}` : 'Verificando ClickSign…'}
                     >
                         <PlugZap size={14} />
@@ -407,14 +407,14 @@ export function ContractsView({ initialContracts }: Props) {
                     {/* Stats */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {[
-                            { label: counts.total,                      sub: 'Total',     accent: 'text-gray-900 dark:text-[#F5F0E4]',          icon: FileText,      iconBg: 'bg-gray-100 dark:bg-[#1E1E1E]',  iconColor: 'text-[#A0792E] dark:text-[#D4A85C]' },
+                            { label: counts.total,                      sub: 'Total',     accent: 'text-gray-900 dark:text-[#F5F0E4]',          icon: FileText,      iconBg: 'bg-gray-100 dark:bg-[#2A2A2A]',  iconColor: 'text-[#A0792E] dark:text-[#D4A85C]' },
                             { label: counts.ativo,                       sub: 'Ativos',    accent: 'text-emerald-400',         icon: CheckCircle,   iconBg: 'bg-emerald-500/10',             iconColor: 'text-emerald-400' },
                             { label: counts.vencendo,                    sub: 'Vencendo',  accent: 'text-amber-400',           icon: Clock,         iconBg: 'bg-amber-500/10',               iconColor: 'text-amber-400' },
                             { label: counts.byStatus['Pendente'] ?? 0,   sub: 'Pendentes', accent: 'text-[#4A7FB8]',           icon: AlertTriangle, iconBg: 'bg-[#4A7FB8]/10',               iconColor: 'text-[#4A7FB8]' },
                         ].map((s, i) => {
                             const Icon = s.icon;
                             return (
-                                <div key={i} className="relative group bg-white dark:bg-[#141414] border border-[#E8CB85]/14 rounded-2xl p-4 hover:border-[#A0792E]/30 hover:shadow-lg hover:shadow-[#A0792E]/5 transition-all overflow-hidden">
+                                <div key={i} className="relative group bg-white dark:bg-[#202020] border border-[#E8CB85]/14 rounded-2xl p-4 hover:border-[#A0792E]/30 hover:shadow-lg hover:shadow-[#A0792E]/5 transition-all overflow-hidden">
                                     <div className="absolute inset-0 bg-gradient-to-br from-[#E8CB85]/[0.04] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <div className="relative flex items-center gap-3">
                                         <div className={`w-10 h-10 rounded-xl ${s.iconBg} flex items-center justify-center shrink-0`}>
@@ -442,11 +442,11 @@ export function ContractsView({ initialContracts }: Props) {
                                         <button
                                             key={status}
                                             onClick={() => setCurrentFolder(status)}
-                                            className="group relative flex flex-col gap-3 p-4 bg-white dark:bg-[#141414] border border-[#E8CB85]/14 rounded-2xl hover:border-[#A0792E]/40 hover:shadow-lg hover:shadow-[#A0792E]/8 hover:-translate-y-0.5 transition-all text-left overflow-hidden"
+                                            className="group relative flex flex-col gap-3 p-4 bg-white dark:bg-[#202020] border border-[#E8CB85]/14 rounded-2xl hover:border-[#A0792E]/40 hover:shadow-lg hover:shadow-[#A0792E]/8 hover:-translate-y-0.5 transition-all text-left overflow-hidden"
                                         >
                                             <div className="absolute inset-0 bg-gradient-to-br from-[#E8CB85]/[0.06] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                             <div className="relative flex items-center justify-between">
-                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 dark:from-[#1E1E1E] dark:to-[#0A0A0A] flex items-center justify-center group-hover:scale-105 transition-transform">
+                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 dark:from-[#2A2A2A] dark:to-[#161616] flex items-center justify-center group-hover:scale-105 transition-transform">
                                                     <StatusIcon size={20} className={cfg.folderColor} />
                                                 </div>
                                                 <ChevronRight size={14} className="text-gray-300 dark:text-[#9A928A]/40 group-hover:text-[#A0792E] transition-colors" />
@@ -475,8 +475,8 @@ export function ContractsView({ initialContracts }: Props) {
                             )}
 
                             {filtered.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-64 rounded-2xl border border-dashed border-[#E8CB85]/20 dark:border-[#E8CB85]/15 bg-gradient-to-br from-gray-50 to-white dark:from-[#141414] dark:to-[#0F0F0F] text-gray-500 dark:text-[#9A928A]">
-                                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-[#1E1E1E] flex items-center justify-center mb-4">
+                                <div className="flex flex-col items-center justify-center h-64 rounded-2xl border border-dashed border-[#E8CB85]/20 dark:border-[#E8CB85]/15 bg-gradient-to-br from-gray-50 to-white dark:from-[#202020] dark:to-[#1B1B1B] text-gray-500 dark:text-[#9A928A]">
+                                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-[#2A2A2A] flex items-center justify-center mb-4">
                                         <FileText size={22} className="text-gray-400 dark:text-[#9A928A]/60" />
                                     </div>
                                     <p className="font-semibold text-sm text-gray-700 dark:text-[#F5F0E4]/80">Nenhum contrato encontrado</p>
@@ -487,10 +487,10 @@ export function ContractsView({ initialContracts }: Props) {
                                     {filtered.map(c => <ContractCard key={c.id} contract={c} onEdit={openEdit} onDelete={handleDelete} />)}
                                 </div>
                             ) : (
-                                <div className="bg-white dark:bg-[#141414] border border-[#E8CB85]/20 dark:border-[#E8CB85]/14 rounded-2xl overflow-hidden">
+                                <div className="bg-white dark:bg-[#202020] border border-[#E8CB85]/20 dark:border-[#E8CB85]/14 rounded-2xl overflow-hidden">
                                     <table className="w-full min-w-[600px] text-sm">
                                         <thead>
-                                            <tr className="border-b border-[#E8CB85]/15 dark:border-[#E8CB85]/10 bg-gray-50 dark:bg-[#0F0F0F]">
+                                            <tr className="border-b border-[#E8CB85]/15 dark:border-[#E8CB85]/10 bg-gray-50 dark:bg-[#1B1B1B]">
                                                 {['Cliente', 'Título', 'Status', 'Vigência', 'Valor', 'Arquivo', ''].map(h => (
                                                     <th key={h} className="text-left px-4 py-3 text-[10px] font-semibold text-[#A0792E]/70 dark:text-[#D4A85C]/60 uppercase tracking-[0.18em]">
                                                         {h}
@@ -512,9 +512,9 @@ export function ContractsView({ initialContracts }: Props) {
             {/* ── Modal ── */}
             {modalOpen && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-[#1A1A1A] w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 dark:border-[#222222] flex flex-col max-h-[90vh]">
+                    <div className="bg-white dark:bg-[#262626] w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 dark:border-[#2e2e2e] flex flex-col max-h-[90vh]">
 
-                        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#222222] shrink-0">
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#2e2e2e] shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-[#A0792E]/10 rounded-xl">
                                     <FileText size={20} className="text-[#A0792E]" />
@@ -532,41 +532,41 @@ export function ContractsView({ initialContracts }: Props) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><User size={13} /> Cliente</label>
-                                    <input type="text" value={form.client_name} onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))} placeholder="Nome do cliente..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="text" value={form.client_name} onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))} placeholder="Nome do cliente..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><FileText size={13} /> Título do Contrato</label>
-                                    <input type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Contrato de Venda — Touro Prometeu..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Contrato de Venda — Touro Prometeu..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl focus:ring-2 focus:ring-[#A0792E] focus:border-transparent outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                                    <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Contract['status'] }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm">
+                                    <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Contract['status'] }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm">
                                         {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><DollarSign size={13} /> Valor (R$)</label>
-                                    <input type="number" min="0" step="0.01" value={form.value ?? ''} onChange={e => setForm(f => ({ ...f, value: e.target.value ? parseFloat(e.target.value) : null }))} placeholder="0,00" className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="number" min="0" step="0.01" value={form.value ?? ''} onChange={e => setForm(f => ({ ...f, value: e.target.value ? parseFloat(e.target.value) : null }))} placeholder="0,00" className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><Calendar size={13} /> Início da Vigência</label>
-                                    <input type="date" value={form.start_date ?? ''} onChange={e => setForm(f => ({ ...f, start_date: e.target.value || null }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="date" value={form.start_date ?? ''} onChange={e => setForm(f => ({ ...f, start_date: e.target.value || null }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><Calendar size={13} /> Fim da Vigência</label>
-                                    <input type="date" value={form.end_date ?? ''} onChange={e => setForm(f => ({ ...f, end_date: e.target.value || null }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm" />
+                                    <input type="date" value={form.end_date ?? ''} onChange={e => setForm(f => ({ ...f, end_date: e.target.value || null }))} className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm" />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5"><StickyNote size={13} /> Observações</label>
-                                <textarea value={form.notes ?? ''} onChange={e => setForm(f => ({ ...f, notes: e.target.value || null }))} rows={3} placeholder="Detalhes adicionais sobre o contrato..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm resize-none" />
+                                <textarea value={form.notes ?? ''} onChange={e => setForm(f => ({ ...f, notes: e.target.value || null }))} rows={3} placeholder="Detalhes adicionais sobre o contrato..." className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl focus:ring-2 focus:ring-[#A0792E] outline-none text-gray-900 dark:text-white text-sm resize-none" />
                             </div>
 
                             <div>
@@ -585,7 +585,7 @@ export function ContractsView({ initialContracts }: Props) {
                                         </button>
                                     </div>
                                 ) : (
-                                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full flex flex-col items-center gap-2 px-4 py-6 bg-gray-50 dark:bg-[#111111] border-2 border-dashed border-gray-200 dark:border-[#333333] rounded-xl hover:border-[#A0792E] hover:bg-[#A0792E]/5 transition-all disabled:opacity-50 cursor-pointer">
+                                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full flex flex-col items-center gap-2 px-4 py-6 bg-gray-50 dark:bg-[#1d1d1d] border-2 border-dashed border-gray-200 dark:border-[#3f3f3f] rounded-xl hover:border-[#A0792E] hover:bg-[#A0792E]/5 transition-all disabled:opacity-50 cursor-pointer">
                                         {isUploading ? <div className="w-6 h-6 border-2 border-[#A0792E]/30 border-t-[#A0792E] rounded-full animate-spin" /> : <Upload size={22} className="text-gray-400" />}
                                         <span className="text-sm text-gray-500">{isUploading ? 'Enviando...' : 'Clique para fazer upload do contrato (PDF)'}</span>
                                     </button>
@@ -595,7 +595,7 @@ export function ContractsView({ initialContracts }: Props) {
 
                             {/* ── ClickSign — assinatura eletrônica ── */}
                             {editing && (
-                                <div className="pt-4 border-t border-gray-100 dark:border-[#222222]">
+                                <div className="pt-4 border-t border-gray-100 dark:border-[#2e2e2e]">
                                     <div className="flex items-center gap-2 mb-3">
                                         <div className="p-1.5 bg-blue-500/10 rounded-lg">
                                             <PenLine size={14} className="text-blue-500" />
@@ -631,15 +631,15 @@ export function ContractsView({ initialContracts }: Props) {
                                 </div>
                             )}
                             {!editing && (
-                                <div className="pt-4 border-t border-gray-100 dark:border-[#222222] text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                <div className="pt-4 border-t border-gray-100 dark:border-[#2e2e2e] text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
                                     <PenLine size={13} className="text-gray-400" />
                                     Salve o contrato e anexe o PDF para enviar para assinatura via ClickSign.
                                 </div>
                             )}
                         </div>
 
-                        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-[#222222] shrink-0">
-                            <button type="button" onClick={() => setModalOpen(false)} className="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-[#222222] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] rounded-xl transition-colors">
+                        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-[#2e2e2e] shrink-0">
+                            <button type="button" onClick={() => setModalOpen(false)} className="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-[#2e2e2e] hover:bg-gray-200 dark:hover:bg-[#363636] rounded-xl transition-colors">
                                 Cancelar
                             </button>
                             <button type="button" onClick={handleSave} disabled={isSaving || !form.client_name.trim() || !form.title.trim()} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#E8CB85] via-[#D4A85C] to-[#A0792E] text-black rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-[#A0792E]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
@@ -685,7 +685,7 @@ function SidebarItem({
             className={`relative flex items-center justify-between pl-4 pr-3 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 active
                     ? 'text-[#A0792E] dark:text-[#D4A85C] bg-gradient-to-r from-[#A0792E]/10 to-transparent'
-                    : 'text-gray-600 dark:text-[#9A928A] hover:text-gray-900 dark:hover:text-[#F5F0E4] hover:bg-gray-100 dark:hover:bg-[#1A1A1A]/40'
+                    : 'text-gray-600 dark:text-[#9A928A] hover:text-gray-900 dark:hover:text-[#F5F0E4] hover:bg-gray-100 dark:hover:bg-[#262626]/40'
             }`}
         >
             {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b from-[#E8CB85] via-[#D4A85C] to-[#A0792E]" />}
@@ -696,7 +696,7 @@ function SidebarItem({
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
                 active
                     ? 'bg-gradient-to-r from-[#D4A85C] to-[#A0792E] text-black'
-                    : 'bg-gray-100 text-gray-500 dark:bg-[#1E1E1E] dark:text-[#9A928A]'
+                    : 'bg-gray-100 text-gray-500 dark:bg-[#2A2A2A] dark:text-[#9A928A]'
             }`}>
                 {count}
             </span>
@@ -715,7 +715,7 @@ function ContractCard({ contract: c, onEdit, onDelete }: { contract: Contract; o
     return (
         <div
             onClick={() => onEdit(c)}
-            className="group relative bg-white dark:bg-[#141414] border border-[#E8CB85]/14 rounded-2xl p-4 hover:border-[#A0792E]/40 hover:shadow-lg hover:shadow-[#A0792E]/8 hover:-translate-y-0.5 transition-all cursor-pointer overflow-hidden"
+            className="group relative bg-white dark:bg-[#202020] border border-[#E8CB85]/14 rounded-2xl p-4 hover:border-[#A0792E]/40 hover:shadow-lg hover:shadow-[#A0792E]/8 hover:-translate-y-0.5 transition-all cursor-pointer overflow-hidden"
         >
             {/* Bronze hover sheen */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#E8CB85]/[0.04] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -798,7 +798,7 @@ function ContractRow({ contract: c, onEdit, onDelete }: { contract: Contract; on
     const expired = days !== null && days < 0 && c.status === 'Ativo';
 
     return (
-        <tr onClick={() => onEdit(c)} className="hover:bg-gray-50 dark:hover:bg-[#0D0D0D] transition-colors cursor-pointer group">
+        <tr onClick={() => onEdit(c)} className="hover:bg-gray-50 dark:hover:bg-[#191919] transition-colors cursor-pointer group">
             <td className="px-4 py-3.5">
                 <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#A0792E] to-[#9A7209] text-black text-xs flex items-center justify-center font-bold shrink-0">
@@ -871,7 +871,7 @@ function ClickSignImportModal({
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
             <div
-                className="bg-white dark:bg-[#0F0F0F] w-full max-w-3xl rounded-2xl shadow-2xl border border-[#E8CB85]/25 dark:border-[#E8CB85]/20 flex flex-col max-h-[85vh] overflow-hidden"
+                className="bg-white dark:bg-[#1B1B1B] w-full max-w-3xl rounded-2xl shadow-2xl border border-[#E8CB85]/25 dark:border-[#E8CB85]/20 flex flex-col max-h-[85vh] overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header com gradiente bronze sutil */}
@@ -895,7 +895,7 @@ function ClickSignImportModal({
 
                 {/* Connection bar */}
                 <div className={`px-6 py-3 border-b border-[#E8CB85]/10 flex items-center gap-3 ${
-                    conn.ok === true ? 'bg-emerald-500/[0.04]' : conn.ok === false ? 'bg-red-500/[0.04]' : 'bg-gray-50 dark:bg-[#1E1E1E]/30'
+                    conn.ok === true ? 'bg-emerald-500/[0.04]' : conn.ok === false ? 'bg-red-500/[0.04]' : 'bg-gray-50 dark:bg-[#2A2A2A]/30'
                 }`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${
                         conn.ok === true ? 'bg-emerald-500 shadow-[0_0_6px_rgba(127,212,160,0.7)]' : conn.ok === false ? 'bg-red-500' : 'bg-gray-400 animate-pulse'
@@ -949,19 +949,19 @@ function ClickSignImportModal({
                             Não é possível listar documentos enquanto a conexão estiver com erro.
                         </div>
                     ) : docs.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-[#E8CB85]/20 dark:border-[#E8CB85]/15 bg-gray-50 dark:bg-[#141414]/40 py-10 flex flex-col items-center text-gray-500 dark:text-[#9A928A]">
+                        <div className="rounded-xl border border-dashed border-[#E8CB85]/20 dark:border-[#E8CB85]/15 bg-gray-50 dark:bg-[#202020]/40 py-10 flex flex-col items-center text-gray-500 dark:text-[#9A928A]">
                             <FileText size={28} className="mb-3 opacity-40" />
                             <p className="text-sm font-medium">Nenhum documento encontrado na conta ClickSign.</p>
                         </div>
                     ) : (
-                        <div className="rounded-xl border border-[#E8CB85]/20 dark:border-[#E8CB85]/14 bg-white dark:bg-[#141414] overflow-hidden divide-y divide-[#E8CB85]/15 dark:divide-[#E8CB85]/8">
+                        <div className="rounded-xl border border-[#E8CB85]/20 dark:border-[#E8CB85]/14 bg-white dark:bg-[#202020] overflow-hidden divide-y divide-[#E8CB85]/15 dark:divide-[#E8CB85]/8">
                             {docs.map(d => {
                                 const cfg = CLICKSIGN_STATUS_LABEL[d.status as string] || { label: d.status, color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' };
                                 const filename = d.filename || (d.path ? d.path.split('/').pop() : null) || d.key;
                                 const isImported = importedKeys.has(d.key);
                                 return (
-                                    <div key={d.key} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]/60 transition-colors">
-                                        <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-[#1E1E1E] flex items-center justify-center shrink-0">
+                                    <div key={d.key} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#262626]/60 transition-colors">
+                                        <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-[#2A2A2A] flex items-center justify-center shrink-0">
                                             <FileText size={15} className="text-[#D4A85C]" />
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -1047,7 +1047,7 @@ function ClickSignSendBlock({
                     </button>
                 </div>
                 {signers.map((s, i) => (
-                    <div key={i} className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl p-3 space-y-2">
+                    <div key={i} className="bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl p-3 space-y-2">
                         <div className="flex items-center justify-between">
                             <span className="text-[11px] font-semibold text-gray-500 uppercase">Signatário {i + 1}</span>
                             {signers.length > 1 && (
@@ -1064,7 +1064,7 @@ function ClickSignSendBlock({
                                     placeholder="Nome completo *"
                                     value={s.name}
                                     onChange={e => updateSigner(i, { name: e.target.value })}
-                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
                                 />
                             </div>
                             <div className="relative">
@@ -1074,7 +1074,7 @@ function ClickSignSendBlock({
                                     placeholder="email@exemplo.com *"
                                     value={s.email}
                                     onChange={e => updateSigner(i, { email: e.target.value })}
-                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
                                 />
                             </div>
                             <div className="relative">
@@ -1084,7 +1084,7 @@ function ClickSignSendBlock({
                                     placeholder="+5511999999999"
                                     value={s.phone_number || ''}
                                     onChange={e => updateSigner(i, { phone_number: e.target.value })}
-                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
                                 />
                             </div>
                             <div className="relative">
@@ -1094,7 +1094,7 @@ function ClickSignSendBlock({
                                     placeholder="CPF (opcional)"
                                     value={s.documentation || ''}
                                     onChange={e => updateSigner(i, { documentation: e.target.value })}
-                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                    className="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
                                 />
                             </div>
                         </div>
@@ -1131,7 +1131,7 @@ function ClickSignSendBlock({
                         type="date"
                         value={csDeadline}
                         onChange={e => setCsDeadline(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
                     />
                 </div>
                 <div className="flex items-end">
@@ -1154,7 +1154,7 @@ function ClickSignSendBlock({
                     value={csMessage}
                     onChange={e => setCsMessage(e.target.value)}
                     placeholder="Olá! Segue o contrato para assinatura."
-                    className="w-full px-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white resize-none"
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white resize-none"
                 />
             </div>
 
@@ -1208,7 +1208,7 @@ function ClickSignSentBlock({
             </div>
 
             {csSigners.length > 0 && (
-                <div className="bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl divide-y divide-gray-200 dark:divide-[#222222]">
+                <div className="bg-gray-50 dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl divide-y divide-gray-200 dark:divide-[#2e2e2e]">
                     {csSigners.map(s => (
                         <div key={s.key} className="flex items-center gap-3 px-3 py-2 text-sm">
                             <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${s.signed_at ? 'bg-emerald-500/20 text-emerald-600' : 'bg-amber-500/20 text-amber-600'}`}>
@@ -1242,7 +1242,7 @@ function ClickSignSentBlock({
                     type="button"
                     onClick={onSync}
                     disabled={isSyncing}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 dark:bg-[#222222] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 dark:bg-[#2e2e2e] hover:bg-gray-200 dark:hover:bg-[#363636] text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
                 >
                     {isSyncing
                         ? <div className="w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin" />

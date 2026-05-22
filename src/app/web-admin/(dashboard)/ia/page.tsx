@@ -154,7 +154,7 @@ export default function IAPage() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto rounded-2xl bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] p-4 lg:p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent">
+            <div className="flex-1 overflow-y-auto rounded-2xl bg-white dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] p-4 lg:p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-[#2e2e2e] scrollbar-track-transparent">
                 {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center px-4">
                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#A0792E]/20 to-[#D4A85C]/10 flex items-center justify-center mb-4 border border-[#A0792E]/20">
@@ -171,7 +171,7 @@ export default function IAPage() {
                                 <button
                                     key={prompt}
                                     onClick={() => sendMessage(prompt)}
-                                    className="text-left px-4 py-3 rounded-xl border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A] hover:border-[#A0792E]/50 hover:bg-[#A0792E]/5 text-sm text-gray-700 dark:text-gray-300 transition-all group"
+                                    className="text-left px-4 py-3 rounded-xl border border-gray-200 dark:border-[#363636] bg-gray-50 dark:bg-[#262626] hover:border-[#A0792E]/50 hover:bg-[#A0792E]/5 text-sm text-gray-700 dark:text-gray-300 transition-all group"
                                 >
                                     <span className="text-[#A0792E] mr-1 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                                     {prompt}
@@ -197,7 +197,7 @@ export default function IAPage() {
                                         className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                                             msg.role === 'user'
                                                 ? 'bg-gradient-to-br from-[#A0792E] to-[#9A7209] text-white rounded-tr-sm shadow-lg shadow-[#A0792E]/20'
-                                                : 'bg-gray-50 dark:bg-[#1A1A1A] text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-[#2A2A2A] rounded-tl-sm'
+                                                : 'bg-gray-50 dark:bg-[#262626] text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-[#363636] rounded-tl-sm'
                                         }`}
                                     >
                                         {msg.role === 'assistant'
@@ -229,7 +229,7 @@ export default function IAPage() {
                                 </div>
 
                                 {msg.role === 'user' && (
-                                    <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-[#2A2A2A] flex items-center justify-center shrink-0 mt-1 text-xs font-bold text-gray-600 dark:text-gray-300">
+                                    <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-[#363636] flex items-center justify-center shrink-0 mt-1 text-xs font-bold text-gray-600 dark:text-gray-300">
                                         A
                                     </div>
                                 )}
@@ -241,7 +241,7 @@ export default function IAPage() {
                                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#A0792E] to-[#D4A85C] flex items-center justify-center shrink-0 mt-1 animate-pulse">
                                     <Sparkles size={14} className="text-black" />
                                 </div>
-                                <div className="bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl rounded-tl-sm px-4 py-3">
+                                <div className="bg-gray-50 dark:bg-[#262626] border border-gray-200 dark:border-[#363636] rounded-2xl rounded-tl-sm px-4 py-3">
                                     <div className="flex items-center gap-2">
                                         <div className="flex gap-1">
                                             <span className="w-2 h-2 rounded-full bg-[#A0792E] animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -261,7 +261,7 @@ export default function IAPage() {
 
             {/* Input Area */}
             <div className="mt-4 shrink-0">
-                <div className="flex gap-3 items-end bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-2xl p-3 focus-within:border-[#A0792E]/50 transition-colors shadow-sm">
+                <div className="flex gap-3 items-end bg-white dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-2xl p-3 focus-within:border-[#A0792E]/50 transition-colors shadow-sm">
                     <textarea
                         ref={inputRef}
                         value={input}

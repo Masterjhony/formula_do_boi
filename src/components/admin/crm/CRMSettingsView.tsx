@@ -85,10 +85,10 @@ export function CRMSettingsView({ initialConfig, onConfigSaved }: CRMSettingsVie
         }
     };
 
-    const inputCls = 'px-3 py-2 text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-lg outline-none focus:ring-2 focus:ring-[#A0792E] dark:text-white';
-    const btnSecondary = 'flex items-center gap-1.5 text-sm px-3 py-1.5 bg-gray-100 dark:bg-[#333] hover:bg-gray-200 dark:hover:bg-[#444] rounded-lg text-gray-700 dark:text-gray-300 transition-colors font-medium';
+    const inputCls = 'px-3 py-2 text-sm bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#3f3f3f] rounded-lg outline-none focus:ring-2 focus:ring-[#A0792E] dark:text-white';
+    const btnSecondary = 'flex items-center gap-1.5 text-sm px-3 py-1.5 bg-gray-100 dark:bg-[#3f3f3f] hover:bg-gray-200 dark:hover:bg-[#444] rounded-lg text-gray-700 dark:text-gray-300 transition-colors font-medium';
     const btnGold = 'flex items-center gap-1 px-3 py-2 bg-[#A0792E] hover:bg-[#9A7209] text-black text-sm font-semibold rounded-lg transition-colors';
-    const btnCancel = 'p-2 text-gray-400 hover:bg-gray-200 dark:hover:bg-[#333] rounded-lg transition-colors';
+    const btnCancel = 'p-2 text-gray-400 hover:bg-gray-200 dark:hover:bg-[#3f3f3f] rounded-lg transition-colors';
 
     return (
         <div className="flex flex-col gap-6 max-w-3xl pb-8">
@@ -103,8 +103,8 @@ export function CRMSettingsView({ initialConfig, onConfigSaved }: CRMSettingsVie
                 onConfigSaved={onConfigSaved}
             />
 
-            <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-200 dark:border-[#222] overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-[#333] flex items-center justify-between">
+            <div className="bg-white dark:bg-[#262626] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-[#3f3f3f] flex items-center justify-between">
                     <div>
                         <h3 className="font-semibold text-gray-900 dark:text-white">Responsáveis</h3>
                         <p className="text-xs text-gray-500 mt-0.5">Gerencie quem pode ser atribuído aos leads</p>
@@ -115,7 +115,7 @@ export function CRMSettingsView({ initialConfig, onConfigSaved }: CRMSettingsVie
                 </div>
 
                 {showNewResp && (
-                    <div className="px-6 py-4 bg-gray-50 dark:bg-[#111] border-b border-gray-200 dark:border-[#333]">
+                    <div className="px-6 py-4 bg-gray-50 dark:bg-[#1d1d1d] border-b border-gray-200 dark:border-[#3f3f3f]">
                         <div className="flex gap-3 items-end flex-wrap">
                             <div className="flex-1 min-w-[140px]">
                                 <label className="text-xs font-medium text-gray-500 mb-1 block">Nome</label>
@@ -166,9 +166,9 @@ export function CRMSettingsView({ initialConfig, onConfigSaved }: CRMSettingsVie
                 )}
 
                 {responsaveis.length > 0 ? (
-                    <div className="divide-y divide-gray-100 dark:divide-[#222]">
+                    <div className="divide-y divide-gray-100 dark:divide-[#2e2e2e]">
                         {responsaveis.map(r => (
-                            <div key={r.id} className="flex items-center gap-3 px-6 py-3 hover:bg-gray-50 dark:hover:bg-[#222] group transition-colors">
+                            <div key={r.id} className="flex items-center gap-3 px-6 py-3 hover:bg-gray-50 dark:hover:bg-[#2e2e2e] group transition-colors">
                                 <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${getColorDot(r.color)}`}>
                                     {r.name.charAt(0).toUpperCase()}
                                 </span>

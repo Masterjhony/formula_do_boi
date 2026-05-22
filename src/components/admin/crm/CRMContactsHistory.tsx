@@ -64,8 +64,8 @@ export function CRMContactsHistory({ lead, onUpdated }: CRMContactsHistoryProps)
     };
 
     return (
-        <div className="border border-gray-200 dark:border-[#333] rounded-xl overflow-hidden">
-            <div className="px-4 py-3 bg-gray-50 dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-[#333] flex items-center justify-between">
+        <div className="border border-gray-200 dark:border-[#3f3f3f] rounded-xl overflow-hidden">
+            <div className="px-4 py-3 bg-gray-50 dark:bg-[#262626] border-b border-gray-200 dark:border-[#3f3f3f] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">📞 Histórico de contatos</span>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[#A0792E] bg-[#A0792E]/10 px-2 py-0.5 rounded-full">
@@ -84,14 +84,14 @@ export function CRMContactsHistory({ lead, onUpdated }: CRMContactsHistoryProps)
             </div>
 
             {adding && (
-                <div className="p-4 space-y-3 border-b border-gray-200 dark:border-[#333] bg-[#A0792E]/5">
+                <div className="p-4 space-y-3 border-b border-gray-200 dark:border-[#3f3f3f] bg-[#A0792E]/5">
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-medium text-gray-500 mb-1">Tipo</label>
                             <select
                                 value={type}
                                 onChange={e => setType(e.target.value as CRMContactEntry['type'])}
-                                className="w-full bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#333] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#A0792E]"
+                                className="w-full bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[#3f3f3f] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#A0792E]"
                             >
                                 {TYPE_OPTIONS.map(o => (
                                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -104,7 +104,7 @@ export function CRMContactsHistory({ lead, onUpdated }: CRMContactsHistoryProps)
                                 type="datetime-local"
                                 value={date}
                                 onChange={e => setDate(e.target.value)}
-                                className="w-full bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#333] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#A0792E]"
+                                className="w-full bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[#3f3f3f] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#A0792E]"
                             />
                         </div>
                     </div>
@@ -115,14 +115,14 @@ export function CRMContactsHistory({ lead, onUpdated }: CRMContactsHistoryProps)
                             onChange={e => setNotes(e.target.value)}
                             rows={2}
                             placeholder="O que foi discutido, próximos passos…"
-                            className="w-full bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#333] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#A0792E] resize-none"
+                            className="w-full bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[#3f3f3f] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#A0792E] resize-none"
                         />
                     </div>
                     <div className="flex justify-end gap-2">
                         <button
                             type="button"
                             onClick={() => { setAdding(false); setNotes(''); }}
-                            className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222] rounded-lg transition-colors"
+                            className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2e2e2e] rounded-lg transition-colors"
                         >
                             Cancelar
                         </button>
@@ -145,13 +145,13 @@ export function CRMContactsHistory({ lead, onUpdated }: CRMContactsHistoryProps)
                         Nenhum contato registrado ainda.
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100 dark:divide-[#222]">
+                    <div className="divide-y divide-gray-100 dark:divide-[#2e2e2e]">
                         {history.map(entry => {
                             const meta = TYPE_META[entry.type] ?? TYPE_META.outro;
                             const Icon = meta.icon;
                             return (
-                                <div key={entry.id} className="px-4 py-2.5 flex items-start gap-2.5 group hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
-                                    <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-[#222] flex items-center justify-center flex-shrink-0">
+                                <div key={entry.id} className="px-4 py-2.5 flex items-start gap-2.5 group hover:bg-gray-50 dark:hover:bg-[#262626]">
+                                    <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-[#2e2e2e] flex items-center justify-center flex-shrink-0">
                                         <Icon size={13} className={meta.color} />
                                     </div>
                                     <div className="flex-1 min-w-0">

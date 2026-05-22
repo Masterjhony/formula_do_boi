@@ -100,7 +100,7 @@ export default function AdminSignupPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-[#111111] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] bg-[#A0792E]/5 rounded-full blur-[120px]" />
             </div>
@@ -128,7 +128,7 @@ export default function AdminSignupPage() {
                     </p>
                 </div>
 
-                <div className="bg-[#0F0F0F] border border-[#222222] rounded-2xl p-8 backdrop-blur-sm shadow-2xl">
+                <div className="bg-[#1B1B1B] border border-[#2e2e2e] rounded-2xl p-8 backdrop-blur-sm shadow-2xl">
                     {error && (
                         <div className="mb-5 bg-red-900/10 border border-red-900/20 text-red-400 p-4 rounded-xl text-sm flex items-start gap-3">
                             <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -286,7 +286,7 @@ export default function AdminSignupPage() {
                 )}
             </div>
 
-            <div className="absolute bottom-6 text-[#333333] text-xs font-mono">
+            <div className="absolute bottom-6 text-[#3f3f3f] text-xs font-mono">
                 SECURE SATELLITE ACCESS v2.0
             </div>
         </div>
@@ -294,7 +294,7 @@ export default function AdminSignupPage() {
 }
 
 const inputClass =
-    'w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm'
+    'w-full bg-[#202020] border border-[#3f3f3f] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm'
 
 function Field({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
     return (

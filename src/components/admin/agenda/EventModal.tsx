@@ -174,7 +174,7 @@ export function EventModal({ isOpen, event, presetDate, options, onClose, onSave
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/55 backdrop-blur-sm p-3 sm:p-6"
              onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
             <div
-                className="relative w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] shadow-2xl"
+                className="relative w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col bg-white dark:bg-[#1b1b1b] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] shadow-2xl"
                 style={{ borderRadius: 4 }}
             >
                 {/* Gold hairline */}
@@ -208,7 +208,7 @@ export function EventModal({ isOpen, event, presetDate, options, onClose, onSave
                 </div>
 
                 {/* Body */}
-                <div className="overflow-y-auto px-5 py-4 space-y-5 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222]">
+                <div className="overflow-y-auto px-5 py-4 space-y-5 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#2e2e2e]">
                     {err && (
                         <div className="flex items-center gap-2 px-3 py-2 border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 text-sm" style={{ borderRadius: 3 }}>
                             <AlertCircle size={15} /> {err}
@@ -222,7 +222,7 @@ export function EventModal({ isOpen, event, presetDate, options, onClose, onSave
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="Ex.: Reunião com Fazenda Camparino — alinhamento do leilão"
-                            className="w-full px-3 py-2.5 bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] text-gray-900 dark:text-[#F5F0E4] focus:outline-none focus:border-[#A0792E] text-base font-semibold"
+                            className="w-full px-3 py-2.5 bg-gray-50 dark:bg-[#232323] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] text-gray-900 dark:text-[#F5F0E4] focus:outline-none focus:border-[#A0792E] text-base font-semibold"
                             style={{ borderRadius: 3, letterSpacing: '-0.01em' }}
                         />
                         <textarea
@@ -230,7 +230,7 @@ export function EventModal({ isOpen, event, presetDate, options, onClose, onSave
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Pauta, observações, contexto…"
                             rows={2}
-                            className="w-full px-3 py-2 bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] text-sm text-gray-800 dark:text-[#F5F0E4]/90 focus:outline-none focus:border-[#A0792E] resize-none"
+                            className="w-full px-3 py-2 bg-gray-50 dark:bg-[#232323] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] text-sm text-gray-800 dark:text-[#F5F0E4]/90 focus:outline-none focus:border-[#A0792E] resize-none"
                             style={{ borderRadius: 3 }}
                         />
                     </div>
@@ -304,7 +304,7 @@ export function EventModal({ isOpen, event, presetDate, options, onClose, onSave
                             <select
                                 value={priority}
                                 onChange={(e) => setPriority(e.target.value as AgendaEventPriority)}
-                                className="text-sm bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] px-2 py-1 text-gray-900 dark:text-[#F5F0E4] focus:outline-none focus:border-[#A0792E]"
+                                className="text-sm bg-gray-50 dark:bg-[#232323] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] px-2 py-1 text-gray-900 dark:text-[#F5F0E4] focus:outline-none focus:border-[#A0792E]"
                                 style={{ borderRadius: 3 }}
                             >
                                 {(Object.keys(PRIORITY_LABELS) as AgendaEventPriority[]).map(p => (
@@ -318,7 +318,7 @@ export function EventModal({ isOpen, event, presetDate, options, onClose, onSave
                             <select
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value as AgendaEventStatus)}
-                                className="text-sm bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] px-2 py-1 text-gray-900 dark:text-[#F5F0E4] focus:outline-none focus:border-[#A0792E]"
+                                className="text-sm bg-gray-50 dark:bg-[#232323] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] px-2 py-1 text-gray-900 dark:text-[#F5F0E4] focus:outline-none focus:border-[#A0792E]"
                                 style={{ borderRadius: 3 }}
                             >
                                 {EVENT_STATUS.map(s => (
@@ -358,7 +358,7 @@ export function EventModal({ isOpen, event, presetDate, options, onClose, onSave
                         <SectionLabel>
                             Vínculos
                             {linkedCount > 0 && (
-                                <span className="ml-2 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-[#A0792E] text-[#0A0A0A]" style={{ borderRadius: 2 }}>
+                                <span className="ml-2 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-[#A0792E] text-[#161616]" style={{ borderRadius: 2 }}>
                                     {linkedCount}
                                 </span>
                             )}
@@ -408,14 +408,14 @@ export function EventModal({ isOpen, event, presetDate, options, onClose, onSave
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="Checklists, ata curta, decisões…"
                             rows={3}
-                            className="w-full px-3 py-2 bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] text-sm text-gray-800 dark:text-[#F5F0E4]/90 focus:outline-none focus:border-[#A0792E] resize-none"
+                            className="w-full px-3 py-2 bg-gray-50 dark:bg-[#232323] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] text-sm text-gray-800 dark:text-[#F5F0E4]/90 focus:outline-none focus:border-[#A0792E] resize-none"
                             style={{ borderRadius: 3 }}
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 dark:border-[rgba(212,168,92,0.14)] bg-gray-50/60 dark:bg-[#0c0c0c]">
+                <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-t border-gray-100 dark:border-[rgba(212,168,92,0.14)] bg-gray-50/60 dark:bg-[#181818]">
                     {event && onDelete ? (
                         confirmDelete ? (
                             <div className="flex items-center gap-2">
@@ -447,13 +447,13 @@ export function EventModal({ isOpen, event, presetDate, options, onClose, onSave
                         <button
                             onClick={onClose}
                             disabled={busy}
-                            className="px-3 py-1.5 text-sm text-gray-700 dark:text-[#F5F0E4]/70 hover:bg-gray-100 dark:hover:bg-[#171717] transition-colors"
+                            className="px-3 py-1.5 text-sm text-gray-700 dark:text-[#F5F0E4]/70 hover:bg-gray-100 dark:hover:bg-[#232323] transition-colors"
                             style={{ borderRadius: 3 }}
                         >Cancelar</button>
                         <button
                             onClick={handleSave}
                             disabled={busy}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-semibold bg-[#A0792E] hover:bg-[#8a661f] text-[#0A0A0A] transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-semibold bg-[#A0792E] hover:bg-[#8a661f] text-[#161616] transition-colors disabled:opacity-50"
                             style={{ borderRadius: 3 }}
                         >
                             {busy ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -493,7 +493,7 @@ function Field({
 }: { icon: LucideIcon; label: string; children: React.ReactNode; compact?: boolean }) {
     return (
         <div
-            className={`bg-gray-50 dark:bg-[#171717] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] focus-within:border-[#A0792E] ${compact ? 'px-2.5 py-1.5' : 'px-3 py-2'}`}
+            className={`bg-gray-50 dark:bg-[#232323] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] focus-within:border-[#A0792E] ${compact ? 'px-2.5 py-1.5' : 'px-3 py-2'}`}
             style={{ borderRadius: 3 }}
         >
             <div className="flex items-center gap-1.5 mb-0.5" style={{

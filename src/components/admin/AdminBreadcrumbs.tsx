@@ -68,7 +68,7 @@ export function AdminBreadcrumbs() {
     return (
         <nav
             aria-label="Trilha de navegação"
-            className="border-b border-gray-200/60 dark:border-[rgba(212,168,92,0.10)] bg-white/40 dark:bg-[#0A0A0A]/40 backdrop-blur-sm"
+            className="border-b border-gray-200/60 dark:border-[rgba(212,168,92,0.10)] bg-white/40 dark:bg-[#161616]/40 backdrop-blur-sm"
         >
             <div className="px-3 sm:px-4 lg:px-6 py-2 flex items-center gap-2 text-xs overflow-x-auto scrollbar-thin">
                 {/* Section tag (optional) */}

@@ -130,7 +130,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-100 dark:bg-[#0A0A0A] flex items-center justify-center">
+            <div className="min-h-screen bg-gray-100 dark:bg-[#161616] flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A0792E]" />
             </div>
         );
@@ -160,9 +160,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const isFullWidth = isCRM || isLeads || isTactical || isOKR || isContratos || isWhatsapp || isEmail || isCatalogos || isAgenda || isReservas;
 
     return (
-        <div className="min-h-screen bg-[#FFFFFF] dark:bg-[#0A0A0A] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+        <div className="min-h-screen bg-[#FFFFFF] dark:bg-[#161616] flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
             {/* ─── Top Navbar ─── */}
-            <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-[rgba(212,168,92,0.14)] shadow-sm shadow-black/5">
+            <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#161616]/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-[rgba(212,168,92,0.14)] shadow-sm shadow-black/5">
                 <div className="px-3 sm:px-4 lg:px-6">
                     <div className="flex items-center h-[60px] lg:h-[68px] gap-2 sm:gap-3">
 
@@ -193,7 +193,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             key={entry.href}
                                             href={entry.href}
                                             className={`flex items-center gap-2 px-3.5 py-2 text-sm font-medium transition-all duration-150 ${active
-                                                ? 'bg-[#A0792E] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(212,168,92,0.35),0_0_24px_rgba(160,121,46,0.25)]'
+                                                ? 'bg-[#A0792E] text-[#161616] shadow-[0_0_0_1px_rgba(212,168,92,0.35),0_0_24px_rgba(160,121,46,0.25)]'
                                                 : 'text-gray-600 dark:text-[#F5F0E4]/70 hover:bg-gray-100 dark:hover:bg-[rgba(212,168,92,0.08)] hover:text-gray-900 dark:hover:text-[#D4A85C]'
                                                 }`}
                                             style={{ borderRadius: 3, letterSpacing: '-0.005em' }}
@@ -213,7 +213,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                         <button
                                             onClick={() => setOpenDropdown(open ? null : entry.label)}
                                             className={`flex items-center gap-2 px-3.5 py-2 text-sm font-medium transition-all duration-150 ${active
-                                                ? 'bg-[#A0792E] text-[#0A0A0A] shadow-[0_0_0_1px_rgba(212,168,92,0.35),0_0_24px_rgba(160,121,46,0.25)]'
+                                                ? 'bg-[#A0792E] text-[#161616] shadow-[0_0_0_1px_rgba(212,168,92,0.35),0_0_24px_rgba(160,121,46,0.25)]'
                                                 : 'text-gray-600 dark:text-[#F5F0E4]/70 hover:bg-gray-100 dark:hover:bg-[rgba(212,168,92,0.08)] hover:text-gray-900 dark:hover:text-[#D4A85C]'
                                                 }`}
                                             style={{ borderRadius: 3, letterSpacing: '-0.005em' }}
@@ -225,7 +225,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                                         {open && (
                                             <div
-                                                className="absolute top-[calc(100%+8px)] left-0 w-60 bg-white dark:bg-[#0f0f0f] border border-gray-100 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 overflow-hidden py-2"
+                                                className="absolute top-[calc(100%+8px)] left-0 w-60 bg-white dark:bg-[#1b1b1b] border border-gray-100 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 overflow-hidden py-2"
                                                 style={{ borderRadius: 4 }}
                                             >
                                                 {/* Hairline tick brandbook */}
@@ -281,10 +281,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <div ref={userRef} className="relative">
                                 <button
                                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                                    className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all"
+                                    className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-[#262626] transition-all"
                                 >
                                     <div
-                                        className="flex items-center justify-center text-[#0A0A0A] font-bold text-sm shadow-md shadow-[#A0792E]/25"
+                                        className="flex items-center justify-center text-[#161616] font-bold text-sm shadow-md shadow-[#A0792E]/25"
                                         style={{
                                             width: 32,
                                             height: 32,
@@ -311,14 +311,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                                 {userMenuOpen && (
                                     <div
-                                        className="absolute top-[calc(100%+8px)] right-0 w-56 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#0f0f0f] border border-gray-100 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 overflow-hidden py-2"
+                                        className="absolute top-[calc(100%+8px)] right-0 w-56 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#1b1b1b] border border-gray-100 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 overflow-hidden py-2"
                                         style={{ borderRadius: 4 }}
                                     >
                                         <span aria-hidden className="absolute top-0 right-0 block" style={{ width: 32, height: 1, background: '#A0792E' }} />
                                         <div className="px-4 py-3 border-b border-gray-100 dark:border-[rgba(212,168,92,0.14)]">
                                             <div className="flex items-center gap-3">
                                                 <div
-                                                    className="flex items-center justify-center text-[#0A0A0A] font-bold text-sm"
+                                                    className="flex items-center justify-center text-[#161616] font-bold text-sm"
                                                     style={{
                                                         width: 36,
                                                         height: 36,
@@ -368,7 +368,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             {/* Mobile Toggle */}
                             <button
                                 onClick={() => setMobileOpen(!mobileOpen)}
-                                className="lg:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-all"
+                                className="lg:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#262626] transition-all"
                             >
                                 {mobileOpen ? <X size={20} /> : <Menu size={20} />}
                             </button>
@@ -378,7 +378,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 {/* Mobile Menu */}
                 {mobileOpen && (
-                    <div ref={mobileNavRef} className="lg:hidden border-t border-gray-200 dark:border-[rgba(212,168,92,0.14)] bg-white dark:bg-[#0A0A0A] max-h-[calc(100svh-60px)] overflow-y-auto">
+                    <div ref={mobileNavRef} className="lg:hidden border-t border-gray-200 dark:border-[rgba(212,168,92,0.14)] bg-white dark:bg-[#161616] max-h-[calc(100svh-60px)] overflow-y-auto">
                         <div className="px-4 py-3 space-y-0.5">
                             {navConfig.map((entry) => {
                                 if (!isGroup(entry)) {
@@ -389,7 +389,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             key={entry.href}
                                             href={entry.href}
                                             className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all ${active
-                                                ? 'bg-[#A0792E] text-[#0A0A0A]'
+                                                ? 'bg-[#A0792E] text-[#161616]'
                                                 : 'text-gray-700 dark:text-[#F5F0E4]/80 hover:bg-gray-50 dark:hover:bg-[rgba(212,168,92,0.06)] hover:text-[#D4A85C]'
                                                 }`}
                                             style={{ borderRadius: 3 }}
@@ -410,7 +410,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             onClick={() => setOpenDropdown(open ? null : entry.label)}
                                             className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all ${active
                                                 ? 'text-[#A0792E] bg-[#A0792E]/5'
-                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
+                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#262626]'
                                                 }`}
                                         >
                                             <Icon size={18} />
@@ -429,7 +429,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                             href={item.href}
                                                             className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all ${itemActive
                                                                 ? 'bg-[#A0792E]/10 text-[#A0792E] font-semibold'
-                                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
+                                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#262626]'
                                                                 }`}
                                                         >
                                                             <ItemIcon size={15} />
@@ -443,7 +443,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 );
                             })}
 
-                            <div className="pt-3 mt-2 border-t border-gray-100 dark:border-[#222222] space-y-1">
+                            <div className="pt-3 mt-2 border-t border-gray-100 dark:border-[#2e2e2e] space-y-1">
                                 <button
                                     onClick={handleSignOut}
                                     className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
@@ -461,7 +461,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <AdminBreadcrumbs />
 
             {/* Main Content */}
-            <main className={`flex-1 bg-[#FFFFFF] dark:bg-[#0A0A0A] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222222] scrollbar-track-transparent ${
+            <main className={`flex-1 bg-[#FFFFFF] dark:bg-[#161616] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#2e2e2e] scrollbar-track-transparent ${
                 (isCRM || isLeads || isOKR || isContratos)
                     ? 'overflow-hidden flex flex-col p-3 sm:p-4'
                     : (isTactical || isWhatsapp || isEmail || isCatalogos || isAgenda || isReservas)

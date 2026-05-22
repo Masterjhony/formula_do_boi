@@ -49,7 +49,7 @@ export default function ReservaColumn({ stage, items, onCardClick, compact, onRe
 
     return (
         <div
-            className={`flex flex-col shrink-0 ${compact ? 'w-[260px] h-auto' : 'w-[290px] min-h-[calc(100vh-220px)]'} bg-white dark:bg-[#141414] border ${toneBorder} relative`}
+            className={`flex flex-col shrink-0 ${compact ? 'w-[260px] h-auto' : 'w-[290px] min-h-[calc(100vh-220px)]'} bg-white dark:bg-[#202020] border ${toneBorder} relative`}
             style={{ borderRadius: 3 }}
         >
             {/* hairline tick brandbook */}
@@ -91,7 +91,7 @@ export default function ReservaColumn({ stage, items, onCardClick, compact, onRe
                         </p>
                     )}
                     <span
-                        className="shrink-0 text-[10px] font-bold text-gray-700 dark:text-[#F5F0E4]/70 px-1.5 py-0.5 bg-gray-100 dark:bg-[#1E1E1E] tabular-nums"
+                        className="shrink-0 text-[10px] font-bold text-gray-700 dark:text-[#F5F0E4]/70 px-1.5 py-0.5 bg-gray-100 dark:bg-[#2A2A2A] tabular-nums"
                         style={{ borderRadius: 2 }}
                     >
                         {items.length}

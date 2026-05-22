@@ -131,14 +131,14 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                         placeholder="Buscar por nome, registro..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-4 pr-10 py-2.5 sm:py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-600 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all"
+                        className="w-full pl-4 pr-10 py-2.5 sm:py-3 bg-white dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-600 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/50 transition-all"
                     />
                     {/* Search Icon could go here if imported */}
                 </div>
                 <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="px-4 py-2.5 sm:py-3 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 cursor-pointer sm:min-w-[200px]"
+                    className="px-4 py-2.5 sm:py-3 bg-white dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 cursor-pointer sm:min-w-[200px]"
                 >
                     <option value="Todos">Todas as Categorias</option>
                     <option value="Touro">Touros</option>
@@ -150,7 +150,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
             </div>
 
             {selectedIds.length > 0 && (
-                <div className="bg-white dark:bg-[#111111] border border-[#A0792E]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2">
+                <div className="bg-white dark:bg-[#1d1d1d] border border-[#A0792E]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2">
                     <div className="flex items-center gap-3">
                         <span className="bg-[#A0792E]/10 text-[#A0792E] font-bold px-3 py-1 rounded-full text-sm">
                             {selectedIds.length} selecionado{selectedIds.length > 1 ? 's' : ''}
@@ -179,7 +179,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                         >
                             Marcar Vendido
                         </button>
-                        <div className="h-6 w-px bg-gray-200 dark:bg-[#333333] hidden sm:block mx-1"></div>
+                        <div className="h-6 w-px bg-gray-200 dark:bg-[#3f3f3f] hidden sm:block mx-1"></div>
                         <button 
                             onClick={async () => {
                                 if (!selectedIds.length) return;
@@ -240,23 +240,23 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                             ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
                             : 'bg-green-500/10 text-green-500 border-green-500/20';
                     return (
-                        <div key={product.id} className={`bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-3 ${product.active === false ? 'opacity-60' : ''}`}>
+                        <div key={product.id} className={`bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] p-3 ${product.active === false ? 'opacity-60' : ''}`}>
                             <div className="flex items-start gap-3">
                                 <input
                                     type="checkbox"
-                                    className="mt-1 w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#A0792E] focus:ring-[#A0792E]"
+                                    className="mt-1 w-4 h-4 rounded border-gray-300 dark:border-[#3f3f3f] text-[#A0792E] focus:ring-[#A0792E]"
                                     checked={selectedIds.includes(product.id)}
                                     onChange={() => handleSelectOne(product.id)}
                                     disabled={isBatchUpdating}
                                 />
-                                <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-[#222222] overflow-hidden flex-shrink-0 border border-gray-200 dark:border-[#333333]">
+                                <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-[#2e2e2e] overflow-hidden flex-shrink-0 border border-gray-200 dark:border-[#3f3f3f]">
                                     {product.image_url?.endsWith('.mp4') ? (
                                         <video src={product.image_url} className="w-full h-full object-cover" muted />
                                     ) : product.image_url ? (
                                         <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="flex items-center justify-center h-full">
-                                            <div className="w-3 h-3 bg-gray-300 dark:bg-[#333333] rounded-full" />
+                                            <div className="w-3 h-3 bg-gray-300 dark:bg-[#3f3f3f] rounded-full" />
                                         </div>
                                     )}
                                 </div>
@@ -264,10 +264,10 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                     <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{product.name}</p>
                                     <p className="text-[11px] text-gray-500 font-mono truncate">{product.details?.registro || '-'}</p>
                                     <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
-                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 font-medium">{product.category}</span>
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400 font-medium">{product.category}</span>
                                         <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${statusBadge}`}>{isVendido ? 'Vendido' : isReservado ? 'Reservado' : 'Disponível'}</span>
                                         {product.active === false && (
-                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200 dark:bg-[#1A1A1A] text-gray-500 font-medium">Oculto</span>
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200 dark:bg-[#262626] text-gray-500 font-medium">Oculto</span>
                                         )}
                                     </div>
                                     <p className="text-sm font-semibold text-[#A0792E] mt-1.5">
@@ -277,7 +277,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-[#222222]">
+                            <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-[#2e2e2e]">
                                 <Link href={`/products/${product.id}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#A0792E]/10 text-[#A0792E] text-xs font-semibold">
                                     <Edit size={13} />
                                     Editar
@@ -302,8 +302,8 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                     );
                 })}
                 {(!filteredProducts || filteredProducts.length === 0) && (
-                    <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] py-10 px-4 flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-full flex items-center justify-center">
+                    <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] py-10 px-4 flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 bg-gray-100 dark:bg-[#262626] rounded-full flex items-center justify-center">
                             <AlertCircle className="w-6 h-6 text-gray-500 dark:text-gray-600" />
                         </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Nenhum card encontrado.</p>
@@ -311,15 +311,15 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                 )}
             </div>
 
-            <div className="hidden md:block bg-white dark:bg-[#111111] rounded-2xl shadow-xl border border-gray-200 dark:border-[#222222] overflow-hidden">
+            <div className="hidden md:block bg-white dark:bg-[#1d1d1d] rounded-2xl shadow-xl border border-gray-200 dark:border-[#2e2e2e] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-gray-50 dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-[#222222]">
+                        <thead className="bg-gray-50 dark:bg-[#262626] border-b border-gray-200 dark:border-[#2e2e2e]">
                             <tr>
                                 <th className="px-6 py-5 w-12 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
                                     <input 
                                         type="checkbox" 
-                                        className="w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#A0792E] focus:ring-[#A0792E]"
+                                        className="w-4 h-4 rounded border-gray-300 dark:border-[#3f3f3f] text-[#A0792E] focus:ring-[#A0792E]"
                                         checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
                                         onChange={handleSelectAll}
                                         disabled={isBatchUpdating}
@@ -334,13 +334,13 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                 <th className="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-[#222222]">
+                        <tbody className="divide-y divide-gray-100 dark:divide-[#2e2e2e]">
                             {filteredProducts?.map((product) => (
-                                <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-[#1A1A1A]/50 transition-colors group">
+                                <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-[#262626]/50 transition-colors group">
                                     <td className="px-6 py-4 text-center">
                                         <input 
                                             type="checkbox" 
-                                            className="w-4 h-4 rounded border-gray-300 dark:border-[#333333] text-[#A0792E] focus:ring-[#A0792E]"
+                                            className="w-4 h-4 rounded border-gray-300 dark:border-[#3f3f3f] text-[#A0792E] focus:ring-[#A0792E]"
                                             checked={selectedIds.includes(product.id)}
                                             onChange={() => handleSelectOne(product.id)}
                                             onClick={(e) => e.stopPropagation()}
@@ -349,7 +349,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-[#222222] overflow-hidden relative flex-shrink-0 border border-gray-200 dark:border-[#333333] group-hover:border-[#A0792E]/50 transition-colors">
+                                            <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-[#2e2e2e] overflow-hidden relative flex-shrink-0 border border-gray-200 dark:border-[#3f3f3f] group-hover:border-[#A0792E]/50 transition-colors">
                                                 {product.image_url?.endsWith('.mp4') ? (
                                                     <video src={product.image_url} className="w-full h-full object-cover" muted />
                                                 ) : product.image_url?.includes('youtube.com') || product.image_url?.includes('youtu.be') ? (
@@ -382,8 +382,8 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                                                 className="w-full h-full object-cover"
                                                             />
                                                         ) : (
-                                                            <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-[#1A1A1A]">
-                                                                <div className="w-4 h-4 bg-gray-300 dark:bg-[#333333] rounded-full" />
+                                                            <div className="flex items-center justify-center h-full bg-gray-100 dark:bg-[#262626]">
+                                                                <div className="w-4 h-4 bg-gray-300 dark:bg-[#3f3f3f] rounded-full" />
                                                             </div>
                                                         )}
                                                     </div>
@@ -462,7 +462,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                                 <tr>
                                     <td colSpan={7} className="px-6 py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
-                                            <div className="w-12 h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-full flex items-center justify-center">
+                                            <div className="w-12 h-12 bg-gray-100 dark:bg-[#262626] rounded-full flex items-center justify-center">
                                                 <AlertCircle className="w-6 h-6 text-gray-500 dark:text-gray-600" />
                                             </div>
                                             <p className="text-gray-500 dark:text-gray-400 font-medium">Nenhum card encontrado.</p>

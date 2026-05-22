@@ -86,19 +86,19 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
     }
 
     return (
-        <div className="w-full h-full bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-xl overflow-hidden flex flex-col shadow-sm">
+        <div className="w-full h-full bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#3f3f3f] rounded-xl overflow-hidden flex flex-col shadow-sm">
             {/* Toolbar Area */}
-            <div className="p-3 border-b border-gray-200 dark:border-[#333333] bg-gray-50/80 dark:bg-[#111111]/80 flex flex-wrap items-center justify-between gap-4 shrink-0">
+            <div className="p-3 border-b border-gray-200 dark:border-[#3f3f3f] bg-gray-50/80 dark:bg-[#1d1d1d]/80 flex flex-wrap items-center justify-between gap-4 shrink-0">
 
                 {/* Month Navigation */}
                 <div className="flex items-center gap-2">
-                    <button onClick={handlePrevMonth} className="p-1.5 hover:bg-gray-200 dark:hover:bg-[#222222] rounded transition-colors text-gray-500 dark:text-gray-400">
+                    <button onClick={handlePrevMonth} className="p-1.5 hover:bg-gray-200 dark:hover:bg-[#2e2e2e] rounded transition-colors text-gray-500 dark:text-gray-400">
                         <ChevronLeft size={18} />
                     </button>
-                    <button onClick={handleToday} className="px-3 py-1.5 text-sm font-semibold hover:bg-gray-200 dark:hover:bg-[#222222] rounded transition-colors text-gray-800 dark:text-gray-200 min-w-[140px] text-center capitalize">
+                    <button onClick={handleToday} className="px-3 py-1.5 text-sm font-semibold hover:bg-gray-200 dark:hover:bg-[#2e2e2e] rounded transition-colors text-gray-800 dark:text-gray-200 min-w-[140px] text-center capitalize">
                         {currentMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                     </button>
-                    <button onClick={handleNextMonth} className="p-1.5 hover:bg-gray-200 dark:hover:bg-[#222222] rounded transition-colors text-gray-500 dark:text-gray-400">
+                    <button onClick={handleNextMonth} className="p-1.5 hover:bg-gray-200 dark:hover:bg-[#2e2e2e] rounded transition-colors text-gray-500 dark:text-gray-400">
                         <ChevronRight size={18} />
                     </button>
                 </div>
@@ -112,13 +112,13 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                         <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500 shadow-sm"></div> Completa</span>
                     </div>
 
-                    <div className="h-6 w-px bg-gray-300 dark:bg-[#333333] hidden sm:block"></div>
+                    <div className="h-6 w-px bg-gray-300 dark:bg-[#3f3f3f] hidden sm:block"></div>
 
-                    <div className="flex items-center gap-1 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-md p-1 shadow-sm">
+                    <div className="flex items-center gap-1 bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#3f3f3f] rounded-md p-1 shadow-sm">
                         <button
                             title="Diminuir Zoom"
                             onClick={() => setZoomLevel(Math.max(16, zoomLevel - 8))}
-                            className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-[#222222] dark:hover:text-gray-200 rounded transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-[#2e2e2e] dark:hover:text-gray-200 rounded transition-colors"
                         >
                             <ZoomOut size={16} />
                         </button>
@@ -128,7 +128,7 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                         <button
                             title="Aumentar Zoom"
                             onClick={() => setZoomLevel(Math.min(96, zoomLevel + 8))}
-                            className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-[#222222] dark:hover:text-gray-200 rounded transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-[#2e2e2e] dark:hover:text-gray-200 rounded transition-colors"
                         >
                             <ZoomIn size={16} />
                         </button>
@@ -140,14 +140,14 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
             <div className="flex-1 overflow-auto custom-scrollbar relative">
                 <div className="min-w-max">
                     {/* Header Timeline */}
-                    <div className="sticky top-0 bg-white/95 dark:bg-[#1A1A1A]/95 backdrop-blur-sm z-20 border-b border-gray-200 dark:border-[#333333] shadow-sm">
+                    <div className="sticky top-0 bg-white/95 dark:bg-[#262626]/95 backdrop-blur-sm z-20 border-b border-gray-200 dark:border-[#3f3f3f] shadow-sm">
                         {/* Month Headers */}
-                        <div className="flex border-b border-gray-100 dark:border-[#222222]">
-                            <div className="w-64 shrink-0 border-r border-gray-200 dark:border-[#333333] bg-gray-50/80 dark:bg-[#111111]/80"></div>
+                        <div className="flex border-b border-gray-100 dark:border-[#2e2e2e]">
+                            <div className="w-64 shrink-0 border-r border-gray-200 dark:border-[#3f3f3f] bg-gray-50/80 dark:bg-[#1d1d1d]/80"></div>
                             <div className="flex flex-1">
                                 {monthsHeaders.map((month, idx) => (
                                     <div key={idx}
-                                        className="py-1 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 border-r border-gray-100 dark:border-[#222222]"
+                                        className="py-1 px-3 text-xs font-bold text-gray-600 dark:text-gray-400 border-r border-gray-100 dark:border-[#2e2e2e]"
                                         style={{ width: month.count * dayWidth }}
                                     >
                                         <div className="sticky left-[260px] inline-block">{month.label}</div>
@@ -158,7 +158,7 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
 
                         {/* Days Headers */}
                         <div className="flex">
-                            <div className="w-64 shrink-0 border-r border-gray-200 dark:border-[#333333] p-3 font-semibold text-sm text-gray-700 dark:text-gray-300 flex items-end bg-gray-50/80 dark:bg-[#111111]/80 tracking-wide uppercase">
+                            <div className="w-64 shrink-0 border-r border-gray-200 dark:border-[#3f3f3f] p-3 font-semibold text-sm text-gray-700 dark:text-gray-300 flex items-end bg-gray-50/80 dark:bg-[#1d1d1d]/80 tracking-wide uppercase">
                                 Tarefas Planejadas
                             </div>
                             <div className="flex flex-1">
@@ -170,8 +170,8 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                                         <div
                                             key={i}
                                             style={{ width: dayWidth }}
-                                            className={`shrink-0 border-r border-gray-100 dark:border-[#222222]/50 flex flex-col items-center justify-end pb-2 pt-1
-                                                ${isWeekend ? 'bg-gray-50/50 dark:bg-[#151515]/50' : ''}`}
+                                            className={`shrink-0 border-r border-gray-100 dark:border-[#2e2e2e]/50 flex flex-col items-center justify-end pb-2 pt-1
+                                                ${isWeekend ? 'bg-gray-50/50 dark:bg-[#212121]/50' : ''}`}
                                         >
                                             {!isSmallZoom && (
                                                 <span className={`text-[10px] uppercase font-bold ${isWeekend ? 'text-[#A0792E]/70' : 'text-gray-400'}`}>
@@ -230,10 +230,10 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                             const widthPx = durationDays * dayWidth;
 
                             return (
-                                <div key={task.id} className="flex border-b border-gray-100 dark:border-[#222222] hover:bg-gray-50/50 dark:hover:bg-[#1A1A1A]/80 transition-colors group relative z-10">
+                                <div key={task.id} className="flex border-b border-gray-100 dark:border-[#2e2e2e] hover:bg-gray-50/50 dark:hover:bg-[#262626]/80 transition-colors group relative z-10">
                                     {/* Task Info Sidebar */}
                                     <div
-                                        className="w-64 shrink-0 border-r border-gray-200 dark:border-[#333333] p-3 cursor-pointer bg-white dark:bg-[#1A1A1A]"
+                                        className="w-64 shrink-0 border-r border-gray-200 dark:border-[#3f3f3f] p-3 cursor-pointer bg-white dark:bg-[#262626]"
                                         onClick={() => onTaskClick(task)}
                                     >
                                         <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-[#A0792E] transition-colors leading-snug" title={task.title}>
@@ -243,13 +243,13 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                                             {task.assignees && task.assignees.length > 0 && (
                                                 <div className="flex -space-x-1.5">
                                                     {task.assignees.slice(0, 3).map((a, i) => (
-                                                        <div key={i} className="w-5 h-5 rounded-full bg-gradient-to-br from-[#A0792E] to-[#9A7209] text-black text-[9px] flex items-center justify-center font-bold border border-white dark:border-[#1A1A1A]" title={a}>
+                                                        <div key={i} className="w-5 h-5 rounded-full bg-gradient-to-br from-[#A0792E] to-[#9A7209] text-black text-[9px] flex items-center justify-center font-bold border border-white dark:border-[#262626]" title={a}>
                                                             {a.charAt(0).toUpperCase()}
                                                         </div>
                                                     ))}
                                                 </div>
                                             )}
-                                            <span className="text-[10px] font-medium text-gray-500 bg-gray-100 dark:bg-[#222222] px-1.5 py-0.5 rounded flex items-center gap-1">
+                                            <span className="text-[10px] font-medium text-gray-500 bg-gray-100 dark:bg-[#2e2e2e] px-1.5 py-0.5 rounded flex items-center gap-1">
                                                 <Clock size={10} />
                                                 {Math.ceil((tEnd.getTime() - tStart.getTime()) / (1000 * 60 * 60 * 24))}d
                                             </span>
@@ -263,7 +263,7 @@ export function GanttView({ tasks, onTaskClick }: GanttViewProps) {
                                             {days.map((day, i) => {
                                                 const isWeekend = day.getDay() === 0 || day.getDay() === 6;
                                                 return isWeekend ? (
-                                                    <div key={i} style={{ width: dayWidth, left: i * dayWidth }} className="absolute inset-y-0 bg-gray-50/50 dark:bg-[#151515]/50 border-r border-gray-100/50 dark:border-[#222222]/30" />
+                                                    <div key={i} style={{ width: dayWidth, left: i * dayWidth }} className="absolute inset-y-0 bg-gray-50/50 dark:bg-[#212121]/50 border-r border-gray-100/50 dark:border-[#2e2e2e]/30" />
                                                 ) : null;
                                             })}
                                         </div>

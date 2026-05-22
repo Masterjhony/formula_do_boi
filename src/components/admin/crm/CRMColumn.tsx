@@ -69,7 +69,7 @@ export function CRMColumn({ id, title, leads, onLeadClick, onAddLead, onRename }
     return (
         <div
             ref={setNodeRef}
-            className="flex-1 min-w-[320px] flex flex-col gap-4 bg-gray-50 dark:bg-[#111111] p-4 rounded-2xl border border-gray-200 dark:border-[#222222]"
+            className="flex-1 min-w-[320px] flex flex-col gap-4 bg-gray-50 dark:bg-[#1d1d1d] p-4 rounded-2xl border border-gray-200 dark:border-[#2e2e2e]"
         >
             <div className="flex items-center justify-between">
                 <div className={`group/title px-3 py-1 rounded-full text-xs font-bold border flex w-full justify-between items-center gap-2 ${headerColor}`}>

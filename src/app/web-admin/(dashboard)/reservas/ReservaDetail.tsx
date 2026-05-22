@@ -107,14 +107,14 @@ export default function ReservaDetail({ reservation, columns, onClose, onPatch, 
             onClick={onClose}
         >
             <div
-                className="relative w-full max-w-3xl my-4 sm:my-8 bg-white dark:bg-[#0A0A0A] border border-[rgba(232,203,133,0.28)] shadow-2xl shadow-black/60"
+                className="relative w-full max-w-3xl my-4 sm:my-8 bg-white dark:bg-[#161616] border border-[rgba(232,203,133,0.28)] shadow-2xl shadow-black/60"
                 onClick={(e) => e.stopPropagation()}
                 style={{ borderRadius: 4 }}
             >
                 <span aria-hidden className="absolute top-0 left-0 block" style={{ width: 48, height: 1, background: '#A0792E' }} />
                 <span aria-hidden className="absolute top-0 right-0 block" style={{ width: 48, height: 1, background: '#A0792E' }} />
                 {/* ── Header ── */}
-                <div className="bg-white dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[rgba(232,203,133,0.14)] px-6 py-4" style={{ borderTopLeftRadius: 4, borderTopRightRadius: 4 }}>
+                <div className="bg-white dark:bg-[#161616] border-b border-gray-200 dark:border-[rgba(232,203,133,0.14)] px-6 py-4" style={{ borderTopLeftRadius: 4, borderTopRightRadius: 4 }}>
                     <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -151,7 +151,7 @@ export default function ReservaDetail({ reservation, columns, onClose, onPatch, 
                             <button
                                 onClick={save}
                                 disabled={saving}
-                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#A0792E] hover:bg-[#D4A85C] disabled:opacity-50 text-[#0A0A0A] text-xs font-bold uppercase transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#A0792E] hover:bg-[#D4A85C] disabled:opacity-50 text-[#161616] text-xs font-bold uppercase transition-colors"
                                 style={{ borderRadius: 3, letterSpacing: '0.14em' }}
                             >
                                 <Save size={13} />
@@ -409,7 +409,7 @@ function Label({ children }: { children: React.ReactNode }) {
     );
 }
 
-const inputBase = "w-full px-2.5 py-2 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-sm text-gray-900 dark:text-[#F5F0E4]";
+const inputBase = "w-full px-2.5 py-2 bg-white dark:bg-[#202020] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-sm text-gray-900 dark:text-[#F5F0E4]";
 
 function Input({ label, value, onChange, type = 'text', placeholder }: {
     label: string;
@@ -498,7 +498,7 @@ function SelectField({ label, value, onChange, options }: {
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="px-2 py-1 text-xs bg-white dark:bg-[#141414] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-gray-900 dark:text-[#F5F0E4]"
+                className="px-2 py-1 text-xs bg-white dark:bg-[#202020] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-gray-900 dark:text-[#F5F0E4]"
                 style={{ borderRadius: 3 }}
             >
                 {options.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
@@ -579,7 +579,7 @@ function AddNoteRow({ onAdd }: { onAdd: (text: string) => Promise<void> }) {
             <button
                 onClick={go}
                 disabled={sending || !text.trim()}
-                className="px-3 py-2 bg-[#A0792E] hover:bg-[#D4A85C] disabled:opacity-50 text-[#0A0A0A] text-xs font-bold uppercase whitespace-nowrap"
+                className="px-3 py-2 bg-[#A0792E] hover:bg-[#D4A85C] disabled:opacity-50 text-[#161616] text-xs font-bold uppercase whitespace-nowrap"
                 style={{ borderRadius: 3, letterSpacing: '0.14em' }}
             >
                 {sending ? '…' : 'Registrar'}

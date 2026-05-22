@@ -890,7 +890,7 @@ function ReportPDFBrandbook({ data, period }: { data: Payload; period: string })
         .pdfb-pill-more { color: var(--dcl-gold); border-color: rgba(212,168,92,0.4); }
         .pdfb-btn {
           display:inline-flex; align-items:center; gap: 6px;
-          background: var(--dcl-gold); color: #0a0a0a;
+          background: var(--dcl-gold); color: #161616;
           border: 0; border-radius: 8px;
           padding: 8px 14px; font-size: 12px; font-weight: 600; font-family: inherit;
           cursor: pointer; transition: all 0.15s;

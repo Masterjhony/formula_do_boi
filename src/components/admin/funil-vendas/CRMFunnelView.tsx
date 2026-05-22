@@ -48,7 +48,7 @@ export function CRMFunnelView({ leads, crmConfig, onConfigSaved }: CRMFunnelView
 
     return (
         <div className="space-y-5">
-            <div className="flex gap-1 border-b border-gray-200 dark:border-[#222]">
+            <div className="flex gap-1 border-b border-gray-200 dark:border-[#2e2e2e]">
                 {subTabs.map(t => {
                     const Icon = t.icon;
                     const active = subTab === t.id;

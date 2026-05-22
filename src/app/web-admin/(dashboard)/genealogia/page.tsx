@@ -173,7 +173,7 @@ export default function GenealogiaBatchPage() {
             </div>
 
             {/* ── GENEALOGIA ── */}
-            <div className="bg-white dark:bg-[#111111] rounded-xl border border-gray-100 dark:border-[#222222] shadow-sm p-6 space-y-4">
+            <div className="bg-white dark:bg-[#1d1d1d] rounded-xl border border-gray-100 dark:border-[#2e2e2e] shadow-sm p-6 space-y-4">
                 <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -195,7 +195,7 @@ export default function GenealogiaBatchPage() {
                 {products.length > 0 && (
                     <div className="space-y-2">
                         <div className="grid grid-cols-3 gap-4 text-center mb-4">
-                            <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-3">
+                            <div className="bg-gray-50 dark:bg-[#262626] rounded-lg p-3">
                                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{products.length}</p>
                                 <p className="text-xs text-gray-500">Total com PDF</p>
                             </div>
@@ -209,9 +209,9 @@ export default function GenealogiaBatchPage() {
                             </div>
                         </div>
 
-                        <div className="max-h-56 overflow-y-auto divide-y divide-gray-50 text-sm border border-gray-100 dark:border-[#222222] rounded-lg">
+                        <div className="max-h-56 overflow-y-auto divide-y divide-gray-50 text-sm border border-gray-100 dark:border-[#2e2e2e] rounded-lg">
                             {products.map(p => (
-                                <div key={p.id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
+                                <div key={p.id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-[#262626]">
                                     <span className="text-gray-800 dark:text-gray-200 font-medium">#{p.id} {p.name}</span>
                                     <span className={`flex items-center gap-1 text-xs font-medium ${p.hasGenealogia ? 'text-green-600' : 'text-amber-600'}`}>
                                         {p.hasGenealogia
@@ -241,7 +241,7 @@ export default function GenealogiaBatchPage() {
                 {summaryGen && (
                     <div className="space-y-3 pt-2">
                         <div className="grid grid-cols-3 gap-4 text-center">
-                            <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-3">
+                            <div className="bg-gray-50 dark:bg-[#262626] rounded-lg p-3">
                                 <p className="text-xl font-bold">{summaryGen.processed}</p>
                                 <p className="text-xs text-gray-500">Processados</p>
                             </div>
@@ -254,9 +254,9 @@ export default function GenealogiaBatchPage() {
                                 <p className="text-xs text-red-600">Erros</p>
                             </div>
                         </div>
-                        <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 text-sm border border-gray-100 dark:border-[#222222] rounded-lg">
+                        <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 text-sm border border-gray-100 dark:border-[#2e2e2e] rounded-lg">
                             {resultsGen.map(r => (
-                                <div key={r.id} className="flex items-start justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
+                                <div key={r.id} className="flex items-start justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-[#262626]">
                                     <div>
                                         <span className="font-medium text-gray-800 dark:text-gray-200">#{r.id} {r.name}</span>
                                         {r.error && <p className="text-xs text-red-500 mt-0.5">{r.error}</p>}
@@ -275,7 +275,7 @@ export default function GenealogiaBatchPage() {
             </div>
 
             {/* ── AVALIAÇÃO GENÉTICA ── */}
-            <div className="bg-white dark:bg-[#111111] rounded-xl border border-gray-100 dark:border-[#222222] shadow-sm p-6 space-y-4">
+            <div className="bg-white dark:bg-[#1d1d1d] rounded-xl border border-gray-100 dark:border-[#2e2e2e] shadow-sm p-6 space-y-4">
                 <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                         <Dna className="w-4 h-4 text-emerald-500" />
@@ -294,7 +294,7 @@ export default function GenealogiaBatchPage() {
                 {avaliacaoProducts.length > 0 && (
                     <div className="space-y-2">
                         <div className="grid grid-cols-3 gap-4 text-center mb-4">
-                            <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-3">
+                            <div className="bg-gray-50 dark:bg-[#262626] rounded-lg p-3">
                                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{avaliacaoProducts.length}</p>
                                 <p className="text-xs text-gray-500">Total com PDF</p>
                             </div>
@@ -308,9 +308,9 @@ export default function GenealogiaBatchPage() {
                             </div>
                         </div>
 
-                        <div className="max-h-56 overflow-y-auto divide-y divide-gray-50 text-sm border border-gray-100 dark:border-[#222222] rounded-lg">
+                        <div className="max-h-56 overflow-y-auto divide-y divide-gray-50 text-sm border border-gray-100 dark:border-[#2e2e2e] rounded-lg">
                             {avaliacaoProducts.map(p => (
-                                <div key={p.id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
+                                <div key={p.id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-[#262626]">
                                     <span className="text-gray-800 dark:text-gray-200 font-medium">#{p.id} {p.name}</span>
                                     <span className={`flex items-center gap-1 text-xs font-medium ${p.hasAvaliacao ? 'text-green-600' : 'text-amber-600'}`}>
                                         {p.hasAvaliacao
@@ -340,7 +340,7 @@ export default function GenealogiaBatchPage() {
                 {summaryAval && (
                     <div className="space-y-3 pt-2">
                         <div className="grid grid-cols-3 gap-4 text-center">
-                            <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-3">
+                            <div className="bg-gray-50 dark:bg-[#262626] rounded-lg p-3">
                                 <p className="text-xl font-bold">{summaryAval.processed}</p>
                                 <p className="text-xs text-gray-500">Processados</p>
                             </div>
@@ -353,9 +353,9 @@ export default function GenealogiaBatchPage() {
                                 <p className="text-xs text-red-600">Erros</p>
                             </div>
                         </div>
-                        <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 text-sm border border-gray-100 dark:border-[#222222] rounded-lg">
+                        <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 text-sm border border-gray-100 dark:border-[#2e2e2e] rounded-lg">
                             {resultsAval.map(r => (
-                                <div key={r.id} className="flex items-start justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
+                                <div key={r.id} className="flex items-start justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-[#262626]">
                                     <div>
                                         <span className="font-medium text-gray-800 dark:text-gray-200">#{r.id} {r.name}</span>
                                         {r.error && <p className="text-xs text-red-500 mt-0.5">{r.error}</p>}
@@ -374,7 +374,7 @@ export default function GenealogiaBatchPage() {
             </div>
 
             {/* ── Debug: inspecionar texto do PDF ── */}
-            <div className="bg-white dark:bg-[#111111] rounded-xl border border-gray-100 dark:border-[#222222] shadow-sm p-6 space-y-4">
+            <div className="bg-white dark:bg-[#1d1d1d] rounded-xl border border-gray-100 dark:border-[#2e2e2e] shadow-sm p-6 space-y-4">
                 <h2 className="font-semibold text-gray-800 dark:text-gray-200">Diagnóstico por Lote</h2>
                 <p className="text-sm text-gray-500">
                     Inspeciona o texto extraído do PDF e mostra o que cada parser identificou. Use para ajustar os parsers se necessário.
@@ -386,7 +386,7 @@ export default function GenealogiaBatchPage() {
                         placeholder="ID do lote"
                         value={debugId}
                         onChange={e => setDebugId(e.target.value)}
-                        className="border border-gray-300 dark:border-[#333333] dark:bg-[#1A1A1A] dark:text-white rounded-lg px-3 py-2 text-sm w-36 outline-none focus:ring-2 focus:ring-brand-gold/40 focus:border-brand-gold"
+                        className="border border-gray-300 dark:border-[#3f3f3f] dark:bg-[#262626] dark:text-white rounded-lg px-3 py-2 text-sm w-36 outline-none focus:ring-2 focus:ring-brand-gold/40 focus:border-brand-gold"
                     />
                     <button
                         onClick={debugProduct}
@@ -439,7 +439,7 @@ export default function GenealogiaBatchPage() {
                         {debugText && (
                             <div>
                                 <p className="text-xs font-bold text-gray-500 uppercase mb-1">Texto bruto completo do PDF</p>
-                                <pre className="bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-xs text-gray-700 dark:text-gray-300 overflow-x-auto whitespace-pre-wrap max-h-96">
+                                <pre className="bg-gray-50 dark:bg-[#262626] border border-gray-200 dark:border-[#3f3f3f] rounded-lg p-3 text-xs text-gray-700 dark:text-gray-300 overflow-x-auto whitespace-pre-wrap max-h-96">
                                     {debugText}
                                 </pre>
                             </div>

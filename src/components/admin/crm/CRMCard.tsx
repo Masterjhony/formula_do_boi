@@ -55,10 +55,10 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
             {...attributes}
             {...listeners}
             onClick={() => onClick(lead)}
-            className={`group relative bg-white dark:bg-[#1A1A1A] p-4 rounded-xl border shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing flex flex-col gap-3 ${
+            className={`group relative bg-white dark:bg-[#262626] p-4 rounded-xl border shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing flex flex-col gap-3 ${
                 lead.is_preferencial
                     ? 'border-[#A0792E]/50 hover:border-[#A0792E]/80 ring-1 ring-[#A0792E]/15'
-                    : 'border-gray-200 dark:border-[#222222] hover:border-[#A0792E]/50'
+                    : 'border-gray-200 dark:border-[#2e2e2e] hover:border-[#A0792E]/50'
             }`}
         >
             {/* Header */}
@@ -121,11 +121,11 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
                 </div>
             )}
 
-            <div className="flex items-center justify-between pt-2 mt-auto border-t border-gray-100 dark:border-[#222222]">
+            <div className="flex items-center justify-between pt-2 mt-auto border-t border-gray-100 dark:border-[#2e2e2e]">
                 <div className="flex items-center gap-2 min-w-0">
                     {lead.responsavel && (
                         <div className="flex items-center gap-1 text-[10px] text-gray-400 uppercase font-semibold min-w-0">
-                            <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-[#333333] flex items-center justify-center text-gray-600 dark:text-gray-300 shrink-0">
+                            <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-[#3f3f3f] flex items-center justify-center text-gray-600 dark:text-gray-300 shrink-0">
                                 {lead.responsavel.charAt(0)}
                             </div>
                             <span className="truncate max-w-[80px]">{lead.responsavel}</span>
@@ -151,7 +151,7 @@ export function CRMCard({ lead, onClick }: CRMCardProps) {
 
             {(lead.ultimo_contato || lead.data_entrada) && (
                 <div className="flex items-center justify-center mt-2 pb-1">
-                    <span className="text-[10px] bg-gray-100 dark:bg-[#222222] text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full border border-gray-200 dark:border-[#333] w-full text-center">
+                    <span className="text-[10px] bg-gray-100 dark:bg-[#2e2e2e] text-gray-500 dark:text-gray-400 px-3 py-1 rounded-full border border-gray-200 dark:border-[#3f3f3f] w-full text-center">
                         {lead.ultimo_contato
                             ? `Contatado ${new Date(lead.ultimo_contato).toLocaleDateString('pt-BR')}`
                             : `Entrada ${new Date(lead.data_entrada!).toLocaleDateString('pt-BR')}`

@@ -295,7 +295,7 @@ export function KanbanBoard({
     return (
         <div className={
             isFullscreen
-                ? "fixed inset-0 z-[100] bg-[#f9fafb] dark:bg-[#0A0A0A] p-6 w-screen h-screen flex flex-col overflow-hidden"
+                ? "fixed inset-0 z-[100] bg-[#f9fafb] dark:bg-[#161616] p-6 w-screen h-screen flex flex-col overflow-hidden"
                 : "h-full flex flex-col pt-4"
         }>
             {/* Toolbar */}
@@ -311,13 +311,13 @@ export function KanbanBoard({
                                 onClick={() => setBoard(b.key)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${active
                                     ? 'bg-[#A0792E] text-black border-[#A0792E] shadow-sm shadow-[#A0792E]/20'
-                                    : 'bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#222222] text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                                    : 'bg-white dark:bg-[#262626] border-gray-200 dark:border-[#2e2e2e] text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
                                     }`}
                             >
                                 {b.label}
                                 <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${active
                                     ? 'bg-black/15'
-                                    : 'bg-gray-100 dark:bg-[#222222] text-gray-500'
+                                    : 'bg-gray-100 dark:bg-[#2e2e2e] text-gray-500'
                                     }`}>
                                     {count}
                                 </span>
@@ -328,13 +328,13 @@ export function KanbanBoard({
 
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     {/* View Tabs */}
-                    <div className="flex gap-1 bg-gray-100 dark:bg-[#1A1A1A] p-1 rounded-xl border border-gray-200 dark:border-[#222222] overflow-x-auto">
+                    <div className="flex gap-1 bg-gray-100 dark:bg-[#262626] p-1 rounded-xl border border-gray-200 dark:border-[#2e2e2e] overflow-x-auto">
                         {viewTabs.map(tab => (
                             <button
                                 key={tab.key}
                                 onClick={() => setViewMode(tab.key)}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${viewMode === tab.key
-                                    ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm'
+                                    ? 'bg-white dark:bg-[#363636] text-gray-900 dark:text-white shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                     }`}
                             >
@@ -352,7 +352,7 @@ export function KanbanBoard({
                                     <select
                                         value={filterAssignee}
                                         onChange={e => setFilterAssignee(e.target.value)}
-                                        className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#A0792E]"
+                                        className="text-sm bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#A0792E]"
                                     >
                                         <option value="all">Todos</option>
                                         {assigneeOptions.map(name => (
@@ -363,7 +363,7 @@ export function KanbanBoard({
                                 <select
                                     value={filterPriority}
                                     onChange={e => setFilterPriority(e.target.value)}
-                                    className="text-sm bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#A0792E]"
+                                    className="text-sm bg-white dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e] rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-[#A0792E]"
                                 >
                                     <option value="all">Todas prioridades</option>
                                     <option value="Alta">Alta 🔥</option>
@@ -374,7 +374,7 @@ export function KanbanBoard({
                                     onClick={() => setFocusMode(!focusMode)}
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${focusMode
                                         ? 'bg-[#A0792E]/10 border-[#A0792E]/30 text-[#A0792E]'
-                                        : 'bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-[#222222] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                        : 'bg-white dark:bg-[#262626] border-gray-200 dark:border-[#2e2e2e] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                         }`}
                                     title="Modo Foco — apenas tarefas críticas"
                                 >
@@ -386,7 +386,7 @@ export function KanbanBoard({
                         {(viewMode === 'kanban' || viewMode === 'gantt') && (
                             <button
                                 onClick={() => setIsArchivedOpen(true)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222]"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-100 dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e]"
                                 title="Tarefas arquivadas"
                             >
                                 <Archive size={14} /> Arquivados
@@ -395,7 +395,7 @@ export function KanbanBoard({
 
                         <button
                             onClick={() => setIsFullscreen(!isFullscreen)}
-                            className="flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222222]"
+                            className="flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-100 dark:bg-[#262626] border border-gray-200 dark:border-[#2e2e2e]"
                             title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
                         >
                             {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
@@ -447,7 +447,7 @@ export function KanbanBoard({
                                 />
                             ))}
                             {/* New Column */}
-                            <div className="shrink-0 w-[320px] bg-gray-50 dark:bg-[#1A1A1A] rounded-2xl p-4 border border-gray-200 dark:border-[#222222] h-fit">
+                            <div className="shrink-0 w-[320px] bg-gray-50 dark:bg-[#262626] rounded-2xl p-4 border border-gray-200 dark:border-[#2e2e2e] h-fit">
                                 {isCreatingColumn ? (
                                     <input
                                         autoFocus
@@ -468,7 +468,7 @@ export function KanbanBoard({
                                             }
                                         }}
                                         onBlur={() => { setIsCreatingColumn(false); setNewColumnTitle(''); }}
-                                        className="w-full px-3 py-2 bg-white dark:bg-[#111111] border border-[#A0792E] rounded-lg focus:outline-none text-sm text-gray-900 dark:text-white"
+                                        className="w-full px-3 py-2 bg-white dark:bg-[#1d1d1d] border border-[#A0792E] rounded-lg focus:outline-none text-sm text-gray-900 dark:text-white"
                                         placeholder="Nome da coluna..."
                                     />
                                 ) : (

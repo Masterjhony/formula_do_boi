@@ -255,7 +255,7 @@ function Lane({ lane }: { lane: LaneData }) {
 
     return (
         <div
-            className="rounded-xl border bg-white dark:bg-[#0F0F0F] overflow-hidden transition-colors"
+            className="rounded-xl border bg-white dark:bg-[#1B1B1B] overflow-hidden transition-colors"
             style={{
                 borderColor:
                     lane.status === 'behind' ? '#EF44444D'
@@ -264,7 +264,7 @@ function Lane({ lane }: { lane: LaneData }) {
             }}
         >
             <div
-                className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.3fr_1.3fr_1.5fr] divide-y lg:divide-y-0 lg:divide-x divide-gray-100 dark:divide-[#1A1A1A]"
+                className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.3fr_1.3fr_1.5fr] divide-y lg:divide-y-0 lg:divide-x divide-gray-100 dark:divide-[#262626]"
             >
                 {/* ── Col 1: Estratégia ─────────────────────────────── */}
                 <div className="p-3 relative" style={{ borderLeft: `3px solid ${obj.color}` }}>
@@ -311,7 +311,7 @@ function Lane({ lane }: { lane: LaneData }) {
                                             <span className="text-[10px] text-gray-700 dark:text-gray-300 truncate flex-1 leading-tight">{kr.title}</span>
                                             <span className="text-[10px] font-bold font-mono shrink-0" style={{ color: c }}>{p}%</span>
                                         </div>
-                                        <div className="h-1 bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden">
+                                        <div className="h-1 bg-gray-100 dark:bg-[#262626] rounded-full overflow-hidden">
                                             <div className="h-full rounded-full transition-all duration-500" style={{ width: `${p}%`, backgroundColor: c }} />
                                         </div>
                                     </div>
@@ -380,7 +380,7 @@ function Lane({ lane }: { lane: LaneData }) {
                                 <Link
                                     key={i}
                                     href={ind.href}
-                                    className="rounded-lg border border-gray-100 dark:border-[#222] p-1.5 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] transition-colors group"
+                                    className="rounded-lg border border-gray-100 dark:border-[#2e2e2e] p-1.5 hover:bg-gray-50 dark:hover:bg-[#262626] transition-colors group"
                                 >
                                     <div className="flex items-center gap-1 mb-0.5">
                                         <span style={{ color: ind.color }}>{ind.icon}</span>
@@ -403,7 +403,7 @@ function Lane({ lane }: { lane: LaneData }) {
 
             {/* Rodapé contextual: leilões do trimestre + alerta de bloqueio */}
             {(lane.fechamentosQ.length > 0 || lane.upcomingQ.length > 0 || blockerCount > 0) && (
-                <div className="border-t border-gray-100 dark:border-[#1A1A1A] px-3 py-1.5 bg-gray-50/60 dark:bg-[#0B0B0B] flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]">
+                <div className="border-t border-gray-100 dark:border-[#262626] px-3 py-1.5 bg-gray-50/60 dark:bg-[#171717] flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]">
                     {lane.upcomingQ.length > 0 && (
                         <span className="text-gray-500 dark:text-gray-400 inline-flex items-center gap-1">
                             <Gavel size={10} className="text-amber-500" />
@@ -444,7 +444,7 @@ function Ring({ pct, color, size = 46, sw = 4.5 }: { pct: number; color: string;
         <div className="relative shrink-0" style={{ width: size, height: size }}>
             <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
                 <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={sw}
-                    stroke="#e5e7eb" className="dark:stroke-[#222]" />
+                    stroke="#e5e7eb" className="dark:stroke-[#2e2e2e]" />
                 <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={sw}
                     stroke={color}
                     strokeDasharray={`${dash.toFixed(2)} ${(circ - dash).toFixed(2)}`}
@@ -563,11 +563,11 @@ function EmptyChainPreview({ snapshot }: { snapshot: OKRSnapshot }) {
             </div>
 
             {/* Preview lane */}
-            <div className="rounded-xl border border-dashed border-gray-300 dark:border-[#2A2A2A] bg-white/50 dark:bg-[#0F0F0F]/60 overflow-hidden">
-                <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.3fr_1.3fr_1.5fr] divide-y lg:divide-y-0 lg:divide-x divide-gray-100 dark:divide-[#1A1A1A]">
+            <div className="rounded-xl border border-dashed border-gray-300 dark:border-[#363636] bg-white/50 dark:bg-[#1B1B1B]/60 overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.3fr_1.3fr_1.5fr] divide-y lg:divide-y-0 lg:divide-x divide-gray-100 dark:divide-[#262626]">
 
                     {/* Col 1 — CTA */}
-                    <div className="p-3 relative border-l-[3px] border-l-gray-300 dark:border-l-[#333]">
+                    <div className="p-3 relative border-l-[3px] border-l-gray-300 dark:border-l-[#3f3f3f]">
                         <span className="lg:hidden text-[9px] font-bold text-gray-400 uppercase tracking-widest">1. Estratégia</span>
                         <div className="flex flex-col items-start gap-2 mt-1 lg:mt-0">
                             <div className="w-10 h-10 rounded-xl bg-[#A0792E]/10 border border-dashed border-[#A0792E]/40 flex items-center justify-center">
@@ -634,7 +634,7 @@ function EmptyChainPreview({ snapshot }: { snapshot: OKRSnapshot }) {
                                 <Link
                                     key={i}
                                     href={ind.href}
-                                    className="rounded-lg border border-gray-100 dark:border-[#222] bg-white dark:bg-[#0F0F0F] p-1.5 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] transition-colors"
+                                    className="rounded-lg border border-gray-100 dark:border-[#2e2e2e] bg-white dark:bg-[#1B1B1B] p-1.5 hover:bg-gray-50 dark:hover:bg-[#262626] transition-colors"
                                 >
                                     <div className="flex items-center gap-1 mb-0.5">
                                         <span style={{ color: ind.color }}>{ind.icon}</span>
@@ -668,7 +668,7 @@ function GhostBar({ label }: { label: string }) {
                 <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate flex-1 italic">{label}</span>
                 <span className="text-[10px] font-bold font-mono text-gray-300">—%</span>
             </div>
-            <div className="h-1 bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden" />
+            <div className="h-1 bg-gray-100 dark:bg-[#262626] rounded-full overflow-hidden" />
         </div>
     );
 }

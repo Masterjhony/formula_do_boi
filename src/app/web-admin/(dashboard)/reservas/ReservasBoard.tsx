@@ -365,7 +365,7 @@ export default function ReservasBoard({ initial, initialColumns }: Props) {
 
     return (
         <div className={isFullscreen
-            ? 'fixed inset-0 z-[80] bg-white dark:bg-[#0A0A0A] flex flex-col p-4 overflow-auto'
+            ? 'fixed inset-0 z-[80] bg-white dark:bg-[#161616] flex flex-col p-4 overflow-auto'
             : 'flex flex-col'
         }>
             {/* ── Header ── */}
@@ -412,7 +412,7 @@ export default function ReservasBoard({ initial, initialColumns }: Props) {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Buscar por código, cliente, produto, telefone, fazenda…"
-                            className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-[#141414] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-gray-900 dark:text-[#F5F0E4]"
+                            className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-[#202020] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-gray-900 dark:text-[#F5F0E4]"
                             style={{ borderRadius: 3 }}
                         />
                     </div>
@@ -431,7 +431,7 @@ export default function ReservasBoard({ initial, initialColumns }: Props) {
                         Filtros
                         {activeAdvancedFilters > 0 && (
                             <span
-                                className="ml-1 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-[#0A0A0A] text-[#D4A85C] tabular-nums"
+                                className="ml-1 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-[#161616] text-[#D4A85C] tabular-nums"
                                 style={{ borderRadius: 2 }}
                             >
                                 {activeAdvancedFilters}
@@ -485,7 +485,7 @@ export default function ReservasBoard({ initial, initialColumns }: Props) {
 
                     <button
                         onClick={() => setCreating(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-wider bg-[#A0792E] hover:bg-[#D4A85C] text-[#0A0A0A] font-bold transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-wider bg-[#A0792E] hover:bg-[#D4A85C] text-[#161616] font-bold transition-colors"
                         style={{ borderRadius: 3, letterSpacing: '0.14em' }}
                     >
                         <Plus size={13} />
@@ -496,7 +496,7 @@ export default function ReservasBoard({ initial, initialColumns }: Props) {
                 {/* ── Linha 2 (avançada, expansível) ── */}
                 {showAdvanced && (
                     <div
-                        className="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2 bg-gray-50 dark:bg-[#141414] border border-gray-200 dark:border-[rgba(232,203,133,0.14)]"
+                        className="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2 bg-gray-50 dark:bg-[#202020] border border-gray-200 dark:border-[rgba(232,203,133,0.14)]"
                         style={{ borderRadius: 3 }}
                     >
                         <FilterSelect
@@ -716,8 +716,8 @@ function FilterPill({ active, onClick, label }: { active: boolean; onClick: () =
             onClick={onClick}
             className={`px-3 py-2 text-xs uppercase tracking-wider border transition-colors ${
                 active
-                    ? 'bg-[#A0792E] border-[#A0792E] text-[#0A0A0A]'
-                    : 'bg-white dark:bg-[#141414] border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#D4A85C]'
+                    ? 'bg-[#A0792E] border-[#A0792E] text-[#161616]'
+                    : 'bg-white dark:bg-[#202020] border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#D4A85C]'
             }`}
             style={{ borderRadius: 3, letterSpacing: '0.12em' }}
         >
@@ -739,8 +739,8 @@ function FilterButton({
             onClick={onClick}
             className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs uppercase tracking-wider border transition-colors ${
                 active
-                    ? 'bg-[#A0792E] border-[#A0792E] text-[#0A0A0A]'
-                    : 'bg-white dark:bg-[#141414] border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#D4A85C]'
+                    ? 'bg-[#A0792E] border-[#A0792E] text-[#161616]'
+                    : 'bg-white dark:bg-[#202020] border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#D4A85C]'
             }`}
             style={{ borderRadius: 3, letterSpacing: '0.12em' }}
         >
@@ -775,7 +775,7 @@ function FilterSelect({
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-gray-700 dark:text-[#F5F0E4]/80"
+                className="w-full px-2.5 py-1.5 text-xs bg-white dark:bg-[#161616] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-gray-700 dark:text-[#F5F0E4]/80"
                 style={{ borderRadius: 3 }}
             >
                 {options.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}

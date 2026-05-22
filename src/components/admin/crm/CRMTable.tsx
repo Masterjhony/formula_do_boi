@@ -130,12 +130,12 @@ export function CRMTable({ leads, onEditLead }: CRMTableProps) {
     const buttons = pageButtons(safePage, totalPages);
 
     return (
-        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222222] overflow-hidden h-full flex flex-col">
+        <div className="bg-white dark:bg-[#262626] rounded-xl border border-gray-200 dark:border-[#2e2e2e] overflow-hidden h-full flex flex-col">
 
             {/* Table */}
             <div className="overflow-x-auto flex-1 overflow-y-auto">
                 <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-[#111111] dark:text-gray-400 sticky top-0 z-10 border-b border-gray-200 dark:border-[#333]">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-[#1d1d1d] dark:text-gray-400 sticky top-0 z-10 border-b border-gray-200 dark:border-[#3f3f3f]">
                         <tr>
                             <th className="px-6 py-3 font-medium">Nome</th>
                             <th className="px-6 py-3 font-medium">Status</th>
@@ -150,19 +150,19 @@ export function CRMTable({ leads, onEditLead }: CRMTableProps) {
                             <tr
                                 key={lead.id}
                                 onClick={() => onEditLead(lead)}
-                                className="bg-white border-b dark:bg-[#1A1A1A] dark:border-[#222222] hover:bg-gray-50 dark:hover:bg-[#222222] cursor-pointer transition-colors"
+                                className="bg-white border-b dark:bg-[#262626] dark:border-[#2e2e2e] hover:bg-gray-50 dark:hover:bg-[#2e2e2e] cursor-pointer transition-colors"
                             >
                                 <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white max-w-[260px] truncate">
                                     {lead.nome}
                                 </th>
                                 <td className="px-6 py-4">
-                                    <span className="px-2 py-1 bg-gray-100 dark:bg-[#333] rounded text-xs">
+                                    <span className="px-2 py-1 bg-gray-100 dark:bg-[#3f3f3f] rounded text-xs">
                                         {lead.status}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">
                                     {lead.prioridade ? (
-                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${PRIORITY_STYLES[lead.prioridade] || 'bg-gray-100 dark:bg-[#333] text-gray-600 dark:text-gray-400'}`}>
+                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${PRIORITY_STYLES[lead.prioridade] || 'bg-gray-100 dark:bg-[#3f3f3f] text-gray-600 dark:text-gray-400'}`}>
                                             {lead.prioridade}
                                         </span>
                                     ) : '-'}
@@ -183,7 +183,7 @@ export function CRMTable({ leads, onEditLead }: CRMTableProps) {
             </div>
 
             {/* Footer: pagination + export */}
-            <div className="px-4 py-3 border-t border-gray-200 dark:border-[#333] flex flex-wrap items-center justify-between gap-3">
+            <div className="px-4 py-3 border-t border-gray-200 dark:border-[#3f3f3f] flex flex-wrap items-center justify-between gap-3">
 
                 {/* Left: count + export */}
                 <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export function CRMTable({ leads, onEditLead }: CRMTableProps) {
                         <button
                             onClick={() => handleExport('csv')}
                             disabled={exporting !== null}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-[#252525] hover:bg-gray-200 dark:hover:bg-[#2E2E2E] border border-gray-200 dark:border-[#333] rounded-lg transition-colors disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-[#313131] hover:bg-gray-200 dark:hover:bg-[#3A3A3A] border border-gray-200 dark:border-[#3f3f3f] rounded-lg transition-colors disabled:opacity-50"
                         >
                             <Download size={12} />
                             {exporting === 'csv' ? 'Exportando…' : 'CSV'}
@@ -202,7 +202,7 @@ export function CRMTable({ leads, onEditLead }: CRMTableProps) {
                         <button
                             onClick={() => handleExport('xlsx')}
                             disabled={exporting !== null}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-[#252525] hover:bg-gray-200 dark:hover:bg-[#2E2E2E] border border-gray-200 dark:border-[#333] rounded-lg transition-colors disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-[#313131] hover:bg-gray-200 dark:hover:bg-[#3A3A3A] border border-gray-200 dark:border-[#3f3f3f] rounded-lg transition-colors disabled:opacity-50"
                         >
                             <Download size={12} />
                             {exporting === 'xlsx' ? 'Exportando…' : 'XLSX'}
@@ -216,7 +216,7 @@ export function CRMTable({ leads, onEditLead }: CRMTableProps) {
                         <button
                             onClick={() => setPage(p => Math.max(1, p - 1))}
                             disabled={safePage === 1}
-                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-[#363636] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                             <ChevronLeft size={15} />
                         </button>
@@ -231,7 +231,7 @@ export function CRMTable({ leads, onEditLead }: CRMTableProps) {
                                     className={`min-w-[28px] h-7 px-1 rounded-lg text-xs font-medium transition-colors ${
                                         btn === safePage
                                             ? 'bg-[#A0792E] text-white border border-[#A0792E]'
-                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] border border-transparent'
+                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#363636] border border-transparent'
                                     }`}
                                 >
                                     {btn}
@@ -242,7 +242,7 @@ export function CRMTable({ leads, onEditLead }: CRMTableProps) {
                         <button
                             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                             disabled={safePage === totalPages}
-                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-[#363636] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                             <ChevronRight size={15} />
                         </button>

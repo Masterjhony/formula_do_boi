@@ -61,7 +61,7 @@ function LoginForm() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
+                        className="w-full bg-[#202020] border border-[#3f3f3f] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
                         placeholder="admin@formuladoboi.com"
                         required
                     />
@@ -78,7 +78,7 @@ function LoginForm() {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-[#141414] border border-[#333333] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
+                        className="w-full bg-[#202020] border border-[#3f3f3f] text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-[#A0792E]/30 focus:ring-1 focus:ring-[#A0792E]/30 transition-all placeholder:text-gray-700 font-mono text-sm"
                         placeholder="••••••••"
                         required
                     />
@@ -107,21 +107,21 @@ function LoginFormFallback() {
     return (
         <div className="space-y-6 animate-pulse">
             <div className="space-y-2">
-                <div className="h-3 w-32 bg-[#222] rounded ml-1" />
-                <div className="h-12 bg-[#141414] border border-[#333] rounded-xl" />
+                <div className="h-3 w-32 bg-[#2e2e2e] rounded ml-1" />
+                <div className="h-12 bg-[#202020] border border-[#3f3f3f] rounded-xl" />
             </div>
             <div className="space-y-2">
-                <div className="h-3 w-24 bg-[#222] rounded ml-1" />
-                <div className="h-12 bg-[#141414] border border-[#333] rounded-xl" />
+                <div className="h-3 w-24 bg-[#2e2e2e] rounded ml-1" />
+                <div className="h-12 bg-[#202020] border border-[#3f3f3f] rounded-xl" />
             </div>
-            <div className="h-12 bg-[#222] rounded-xl" />
+            <div className="h-12 bg-[#2e2e2e] rounded-xl" />
         </div>
     )
 }
 
 export default function AdminLoginPage() {
     return (
-        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-[#111111] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background Elements - Slightly different for Admin */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] bg-[#A0792E]/5 rounded-full blur-[120px]" />
@@ -144,7 +144,7 @@ export default function AdminLoginPage() {
                     <p className="text-gray-500 text-sm">Acesso restrito a gestores</p>
                 </div>
 
-                <div className="bg-[#0F0F0F] border border-[#222222] rounded-2xl p-8 backdrop-blur-sm shadow-2xl">
+                <div className="bg-[#1B1B1B] border border-[#2e2e2e] rounded-2xl p-8 backdrop-blur-sm shadow-2xl">
                     <Suspense fallback={<LoginFormFallback />}>
                         <LoginForm />
                     </Suspense>
@@ -160,7 +160,7 @@ export default function AdminLoginPage() {
                 </div>
             </div>
 
-            <div className="absolute bottom-6 text-[#333333] text-xs font-mono">
+            <div className="absolute bottom-6 text-[#3f3f3f] text-xs font-mono">
                 SECURE SATELLITE ACCESS v2.0
             </div>
         </div>

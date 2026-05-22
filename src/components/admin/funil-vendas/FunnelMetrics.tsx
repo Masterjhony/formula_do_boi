@@ -101,7 +101,7 @@ export function FunnelMetrics({ leads, stages }: FunnelMetricsProps) {
                 return (
                     <div
                         key={m.label}
-                        className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222] rounded-2xl p-4"
+                        className="bg-white dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-2xl p-4"
                     >
                         <div className="flex items-start justify-between mb-2">
                             <span className="text-xs text-gray-500 font-medium">{m.label}</span>

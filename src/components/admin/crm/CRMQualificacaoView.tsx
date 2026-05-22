@@ -159,7 +159,7 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
         }
     };
 
-    const inputCls = 'w-full px-2.5 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0F0F0F] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#A0792E] transition-colors';
+    const inputCls = 'w-full px-2.5 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-[#363636] bg-white dark:bg-[#1B1B1B] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#A0792E] transition-colors';
 
     return (
         <div className="flex flex-col gap-4 pb-2">
@@ -173,7 +173,7 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                     { label: 'Sem localização', value: stats.semLocal, icon: MapPin, color: 'text-blue-500', bg: 'bg-blue-500/10' },
                     { label: 'Prontos p/ CRM', value: stats.completos, icon: Sparkles, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                 ].map(({ label, value, icon: Icon, color, bg }) => (
-                    <div key={label} className="bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222] p-4 flex items-center gap-3">
+                    <div key={label} className="bg-white dark:bg-[#262626] rounded-xl border border-gray-200 dark:border-[#2e2e2e] p-4 flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
                             <Icon size={18} className={color} />
                         </div>
@@ -193,7 +193,7 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder="Buscar por nome, telefone, cidade, interesse…"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#1A1A1A] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E]"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-[#2e2e2e] bg-white dark:bg-[#262626] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E]"
                 />
             </div>
 
@@ -209,7 +209,7 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
 
             {/* Lista */}
             {qualificationLeads.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-gray-200 dark:border-[#2A2A2A] py-12 text-center text-gray-400">
+                <div className="rounded-2xl border border-dashed border-gray-200 dark:border-[#363636] py-12 text-center text-gray-400">
                     <ListChecks size={32} className="mx-auto mb-2 opacity-40" />
                     <p className="text-sm">Nenhum lead aguardando qualificação.</p>
                 </div>
@@ -230,7 +230,7 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                             ? 'border-[#A0792E]/60 bg-gradient-to-r from-[#A0792E]/[0.06] to-transparent ring-1 ring-[#A0792E]/30'
                             : ready
                                 ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/[0.04]'
-                                : 'border-gray-200 dark:border-[#222] bg-white dark:bg-[#1A1A1A]';
+                                : 'border-gray-200 dark:border-[#2e2e2e] bg-white dark:bg-[#262626]';
 
                         return (
                             <div
@@ -271,7 +271,7 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                                                 </span>
                                             )}
                                             {lead.source && (
-                                                <span className="inline-flex items-center text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#222] text-gray-500 dark:text-gray-400">
+                                                <span className="inline-flex items-center text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#2e2e2e] text-gray-500 dark:text-gray-400">
                                                     {lead.source}
                                                 </span>
                                             )}
@@ -402,7 +402,7 @@ export function CRMQualificacaoView({ leads, crmConfig, onLeadUpdated, onOpenLea
                     })}
 
                     {qualificationLeads.length > 0 && (
-                        <div className="rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#1A1A1A]">
+                        <div className="rounded-xl border border-gray-200 dark:border-[#2e2e2e] bg-white dark:bg-[#262626]">
                             <Pagination
                                 page={page}
                                 totalPages={totalPages}

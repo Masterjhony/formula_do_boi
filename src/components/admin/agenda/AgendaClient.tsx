@@ -205,7 +205,7 @@ export function AgendaClient({ initialEvents, options }: Props) {
                     </div>
                     <button
                         onClick={() => { setCreating(true); setCreatePreset(cursor); }}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold bg-[#A0792E] hover:bg-[#8a661f] text-[#0A0A0A] transition-colors shrink-0"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold bg-[#A0792E] hover:bg-[#8a661f] text-[#161616] transition-colors shrink-0"
                         style={{ borderRadius: 3, boxShadow: '0 0 0 1px rgba(212,168,92,0.35), 0 8px 24px rgba(160,121,46,0.20)' }}
                     >
                         <Plus size={15} /> Novo evento
@@ -215,13 +215,13 @@ export function AgendaClient({ initialEvents, options }: Props) {
                 {/* Toolbar */}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-1.5">
-                        <button onClick={goToday} className="px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:bg-gray-50 dark:hover:bg-[#171717] text-gray-700 dark:text-[#F5F0E4]/85 transition-colors" style={{ borderRadius: 3 }}>
+                        <button onClick={goToday} className="px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:bg-gray-50 dark:hover:bg-[#232323] text-gray-700 dark:text-[#F5F0E4]/85 transition-colors" style={{ borderRadius: 3 }}>
                             Hoje
                         </button>
-                        <button onClick={goPrev} className="p-1.5 border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:bg-gray-50 dark:hover:bg-[#171717] text-gray-600 dark:text-[#F5F0E4]/70 transition-colors" style={{ borderRadius: 3 }} aria-label="Anterior">
+                        <button onClick={goPrev} className="p-1.5 border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:bg-gray-50 dark:hover:bg-[#232323] text-gray-600 dark:text-[#F5F0E4]/70 transition-colors" style={{ borderRadius: 3 }} aria-label="Anterior">
                             <ChevronLeft size={15} />
                         </button>
-                        <button onClick={goNext} className="p-1.5 border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:bg-gray-50 dark:hover:bg-[#171717] text-gray-600 dark:text-[#F5F0E4]/70 transition-colors" style={{ borderRadius: 3 }} aria-label="Próximo">
+                        <button onClick={goNext} className="p-1.5 border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:bg-gray-50 dark:hover:bg-[#232323] text-gray-600 dark:text-[#F5F0E4]/70 transition-colors" style={{ borderRadius: 3 }} aria-label="Próximo">
                             <ChevronRight size={15} />
                         </button>
                         <h2 className="ml-2 text-base sm:text-lg font-bold text-gray-900 dark:text-[#F5F0E4] capitalize" style={{ letterSpacing: '-0.01em' }}>
@@ -230,7 +230,7 @@ export function AgendaClient({ initialEvents, options }: Props) {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                        <div className="inline-flex p-0.5 bg-gray-100 dark:bg-[#171717] border border-gray-200 dark:border-[rgba(212,168,92,0.18)]" style={{ borderRadius: 3 }}>
+                        <div className="inline-flex p-0.5 bg-gray-100 dark:bg-[#232323] border border-gray-200 dark:border-[rgba(212,168,92,0.18)]" style={{ borderRadius: 3 }}>
                             {(Object.keys(VIEW_LABEL) as ViewMode[]).map(v => {
                                 const Icon = VIEW_LABEL[v].icon;
                                 const active = v === view;
@@ -238,7 +238,7 @@ export function AgendaClient({ initialEvents, options }: Props) {
                                     <button
                                         key={v}
                                         onClick={() => setView(v)}
-                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium transition-all ${active ? 'bg-[#A0792E] text-[#0A0A0A]' : 'text-gray-600 dark:text-[#F5F0E4]/70 hover:text-gray-900 dark:hover:text-[#D4A85C]'}`}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium transition-all ${active ? 'bg-[#A0792E] text-[#161616]' : 'text-gray-600 dark:text-[#F5F0E4]/70 hover:text-gray-900 dark:hover:text-[#D4A85C]'}`}
                                         style={{ borderRadius: 2 }}
                                     >
                                         <Icon size={12} />
@@ -250,12 +250,12 @@ export function AgendaClient({ initialEvents, options }: Props) {
 
                         <button
                             onClick={() => setShowFilters(s => !s)}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium border transition-colors ${showFilters || typeFilters.size > 0 || responsibleFilter ? 'bg-[rgba(160,121,46,0.12)] border-[#A0792E] text-[#A0792E]' : 'border-gray-200 dark:border-[rgba(212,168,92,0.22)] text-gray-600 dark:text-[#F5F0E4]/70 hover:bg-gray-50 dark:hover:bg-[#171717]'}`}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium border transition-colors ${showFilters || typeFilters.size > 0 || responsibleFilter ? 'bg-[rgba(160,121,46,0.12)] border-[#A0792E] text-[#A0792E]' : 'border-gray-200 dark:border-[rgba(212,168,92,0.22)] text-gray-600 dark:text-[#F5F0E4]/70 hover:bg-gray-50 dark:hover:bg-[#232323]'}`}
                             style={{ borderRadius: 3 }}
                         >
                             <Filter size={12} /> Filtros
                             {(typeFilters.size > 0 || responsibleFilter) && (
-                                <span className="ml-1 inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[10px] font-bold bg-[#A0792E] text-[#0A0A0A]" style={{ borderRadius: 2 }}>
+                                <span className="ml-1 inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[10px] font-bold bg-[#A0792E] text-[#161616]" style={{ borderRadius: 2 }}>
                                     {typeFilters.size + (responsibleFilter ? 1 : 0)}
                                 </span>
                             )}
@@ -264,7 +264,7 @@ export function AgendaClient({ initialEvents, options }: Props) {
                 </div>
 
                 {showFilters && (
-                    <div className="rounded-none border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-gray-50/60 dark:bg-[#0c0c0c] p-3 flex flex-col gap-2" style={{ borderRadius: 3 }}>
+                    <div className="rounded-none border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-gray-50/60 dark:bg-[#181818] p-3 flex flex-col gap-2" style={{ borderRadius: 3 }}>
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                             <p style={{
                                 fontFamily: 'var(--font-mono), ui-monospace, monospace',
@@ -317,7 +317,7 @@ export function AgendaClient({ initialEvents, options }: Props) {
                                 <select
                                     value={responsibleFilter}
                                     onChange={(e) => setResponsibleFilter(e.target.value)}
-                                    className="text-xs bg-white dark:bg-[#171717] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] px-2 py-1 text-gray-900 dark:text-[#F5F0E4] focus:outline-none focus:border-[#A0792E]"
+                                    className="text-xs bg-white dark:bg-[#232323] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] px-2 py-1 text-gray-900 dark:text-[#F5F0E4] focus:outline-none focus:border-[#A0792E]"
                                     style={{ borderRadius: 3 }}
                                 >
                                     <option value="">— qualquer —</option>
@@ -391,11 +391,11 @@ function Sidebar({
     openEvent: (id: string) => void;
 }) {
     return (
-        <aside className="hidden lg:flex flex-col gap-3 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222]">
+        <aside className="hidden lg:flex flex-col gap-3 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#2e2e2e]">
             <MiniMonth cursor={cursor} setCursor={setCursor} />
 
             {/* Alerts */}
-            <div className="border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#0f0f0f]" style={{ borderRadius: 3 }}>
+            <div className="border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#1b1b1b]" style={{ borderRadius: 3 }}>
                 <div className="px-3 pt-2.5 pb-2 flex items-center gap-1.5">
                     <AlertTriangle size={12} className="text-[#A0792E]" />
                     <p style={{
@@ -432,7 +432,7 @@ function Sidebar({
             </div>
 
             {/* Legend */}
-            <div className="border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#0f0f0f] px-3 py-2.5" style={{ borderRadius: 3 }}>
+            <div className="border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#1b1b1b] px-3 py-2.5" style={{ borderRadius: 3 }}>
                 <p className="mb-2" style={{
                     fontFamily: 'var(--font-mono), ui-monospace, monospace',
                     fontSize: 10, fontWeight: 600, letterSpacing: '0.22em',
@@ -513,7 +513,7 @@ function MiniMonth({ cursor, setCursor }: { cursor: Date; setCursor: (d: Date) =
     const today = startOfDay(new Date());
 
     return (
-        <div className="border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#0f0f0f] px-3 py-2.5" style={{ borderRadius: 3 }}>
+        <div className="border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#1b1b1b] px-3 py-2.5" style={{ borderRadius: 3 }}>
             <div className="flex items-center justify-between mb-2">
                 <button onClick={() => setView(v => addMonths(v, -1))} className="p-1 text-gray-400 hover:text-[#A0792E]"><ChevronLeft size={14} /></button>
                 <p className="text-xs font-bold text-gray-800 dark:text-[#F5F0E4]" style={{ letterSpacing: '-0.005em' }}>
@@ -541,7 +541,7 @@ function MiniMonth({ cursor, setCursor }: { cursor: Date; setCursor: (d: Date) =
                             onClick={() => setCursor(d)}
                             className={`aspect-square flex items-center justify-center text-[11px] font-medium transition-colors ${
                                 isSel
-                                    ? 'bg-[#A0792E] text-[#0A0A0A]'
+                                    ? 'bg-[#A0792E] text-[#161616]'
                                     : isToday
                                         ? 'text-[#A0792E] font-bold'
                                         : isCurMonth
@@ -574,7 +574,7 @@ function MonthView({
     const today = startOfDay(new Date());
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#0a0a0a] overflow-hidden" style={{ borderRadius: 3 }}>
+        <div className="flex flex-col flex-1 min-h-0 border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#161616] overflow-hidden" style={{ borderRadius: 3 }}>
             <div className="grid grid-cols-7 border-b border-gray-200 dark:border-[rgba(212,168,92,0.18)]">
                 {DIAS_CURTOS.map(d => (
                     <div key={d} className="px-3 py-2 text-center" style={{
@@ -596,14 +596,14 @@ function MonthView({
                     return (
                         <div
                             key={i}
-                            className={`relative border-r border-b border-gray-100 dark:border-[rgba(212,168,92,0.10)] p-1.5 flex flex-col gap-1 group ${(i + 1) % 7 === 0 ? 'border-r-0' : ''} ${i >= 35 ? 'border-b-0' : ''} ${isCurMonth ? 'bg-white dark:bg-[#0a0a0a]' : 'bg-gray-50/60 dark:bg-[#070707]'}`}
+                            className={`relative border-r border-b border-gray-100 dark:border-[rgba(212,168,92,0.10)] p-1.5 flex flex-col gap-1 group ${(i + 1) % 7 === 0 ? 'border-r-0' : ''} ${i >= 35 ? 'border-b-0' : ''} ${isCurMonth ? 'bg-white dark:bg-[#161616]' : 'bg-gray-50/60 dark:bg-[#131313]'}`}
                         >
                             <div className="flex items-center justify-between">
                                 <button
                                     onClick={() => onPickDay(d)}
                                     className={`inline-flex items-center justify-center min-w-[22px] h-[22px] px-1 text-xs font-bold transition-colors ${
                                         isToday
-                                            ? 'bg-[#A0792E] text-[#0A0A0A]'
+                                            ? 'bg-[#A0792E] text-[#161616]'
                                             : isCurMonth
                                                 ? 'text-gray-800 dark:text-[#F5F0E4]/85 hover:text-[#A0792E]'
                                                 : 'text-gray-300 dark:text-[#F5F0E4]/25'
@@ -686,7 +686,7 @@ function WeekView({
     const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7h..20h
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#0a0a0a] overflow-hidden" style={{ borderRadius: 3 }}>
+        <div className="flex flex-col flex-1 min-h-0 border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#161616] overflow-hidden" style={{ borderRadius: 3 }}>
             <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-gray-200 dark:border-[rgba(212,168,92,0.18)]">
                 <div />
                 {days.map(d => {
@@ -695,7 +695,7 @@ function WeekView({
                         <button
                             key={d.toISOString()}
                             onClick={() => onCreateOnDay(d)}
-                            className={`px-2 py-2 text-center border-l border-gray-100 dark:border-[rgba(212,168,92,0.10)] hover:bg-gray-50 dark:hover:bg-[#171717] ${isToday ? 'bg-[rgba(160,121,46,0.06)]' : ''}`}
+                            className={`px-2 py-2 text-center border-l border-gray-100 dark:border-[rgba(212,168,92,0.10)] hover:bg-gray-50 dark:hover:bg-[#232323] ${isToday ? 'bg-[rgba(160,121,46,0.06)]' : ''}`}
                         >
                             <div style={{
                                 fontFamily: 'var(--font-mono), ui-monospace, monospace',
@@ -704,7 +704,7 @@ function WeekView({
                             }}>
                                 {DIAS_CURTOS[d.getDay()]}
                             </div>
-                            <div className={`mt-0.5 inline-flex items-center justify-center min-w-[26px] h-[26px] px-1.5 text-sm font-bold ${isToday ? 'bg-[#A0792E] text-[#0A0A0A]' : 'text-gray-800 dark:text-[#F5F0E4]/90'}`} style={{ borderRadius: 2 }}>
+                            <div className={`mt-0.5 inline-flex items-center justify-center min-w-[26px] h-[26px] px-1.5 text-sm font-bold ${isToday ? 'bg-[#A0792E] text-[#161616]' : 'text-gray-800 dark:text-[#F5F0E4]/90'}`} style={{ borderRadius: 2 }}>
                                 {d.getDate()}
                             </div>
                         </button>
@@ -712,7 +712,7 @@ function WeekView({
                 })}
             </div>
 
-            <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222]">
+            <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#2e2e2e]">
                 <div className="grid grid-cols-[56px_repeat(7,1fr)] relative">
                     {HOURS.map(h => (
                         <div key={`h-${h}`} className="contents">
@@ -789,7 +789,7 @@ function DayView({
     const HOURS = Array.from({ length: 16 }, (_, i) => i + 6); // 6..21
 
     return (
-        <div className="flex flex-col flex-1 min-h-0 border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#0a0a0a] overflow-hidden" style={{ borderRadius: 3 }}>
+        <div className="flex flex-col flex-1 min-h-0 border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#161616] overflow-hidden" style={{ borderRadius: 3 }}>
             {allDay.length > 0 && (
                 <div className="px-3 py-2 border-b border-gray-100 dark:border-[rgba(212,168,92,0.10)] flex items-center gap-2 flex-wrap">
                     <span style={{
@@ -812,7 +812,7 @@ function DayView({
                 </div>
             )}
 
-            <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222]">
+            <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#2e2e2e]">
                 <div className="relative grid grid-cols-[56px_1fr]">
                     {HOURS.map(h => (
                         <div key={`h-${h}`} className="contents">
@@ -899,7 +899,7 @@ function ListView({
 
     if (grouped.length === 0) {
         return (
-            <div className="flex-1 flex items-center justify-center border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#0a0a0a]" style={{ borderRadius: 3 }}>
+            <div className="flex-1 flex items-center justify-center border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#161616]" style={{ borderRadius: 3 }}>
                 <div className="text-center">
                     <CalIcon size={28} className="mx-auto text-[#A0792E]/40 mb-2" />
                     <p className="text-sm text-gray-400 dark:text-[#F5F0E4]/40">Nenhum evento na agenda.</p>
@@ -909,7 +909,7 @@ function ListView({
     }
 
     return (
-        <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#222]">
+        <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#2e2e2e]">
             <div className="space-y-4">
                 {grouped.map(([key, list]) => {
                     const [y, m, d] = key.split('-').map(Number);
@@ -919,7 +919,7 @@ function ListView({
                         <div key={key}>
                             <div className="flex items-center gap-2 mb-2">
                                 <div
-                                    className={`inline-flex items-center justify-center min-w-[36px] h-[36px] px-2 ${isToday ? 'bg-[#A0792E] text-[#0A0A0A]' : 'bg-gray-100 dark:bg-[#171717] text-gray-800 dark:text-[#F5F0E4]/85'}`}
+                                    className={`inline-flex items-center justify-center min-w-[36px] h-[36px] px-2 ${isToday ? 'bg-[#A0792E] text-[#161616]' : 'bg-gray-100 dark:bg-[#232323] text-gray-800 dark:text-[#F5F0E4]/85'}`}
                                     style={{ borderRadius: 3 }}
                                 >
                                     <div className="text-center leading-tight">
@@ -960,7 +960,7 @@ function ListRow({ event, onOpen, options }: { event: AgendaEvent; onOpen: () =>
         <li>
             <button
                 onClick={onOpen}
-                className="w-full text-left bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] hover:border-[#A0792E] dark:hover:border-[#A0792E] transition-all px-3 py-2.5 flex items-start gap-3"
+                className="w-full text-left bg-white dark:bg-[#1b1b1b] border border-gray-200 dark:border-[rgba(212,168,92,0.18)] hover:border-[#A0792E] dark:hover:border-[#A0792E] transition-all px-3 py-2.5 flex items-start gap-3"
                 style={{ borderRadius: 3 }}
             >
                 <div
@@ -986,7 +986,7 @@ function ListRow({ event, onOpen, options }: { event: AgendaEvent; onOpen: () =>
                     {linkSummary.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
                             {linkSummary.map((l, i) => (
-                                <span key={i} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-[#171717] text-gray-600 dark:text-[#F5F0E4]/65" style={{ borderRadius: 2 }}>
+                                <span key={i} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-[#232323] text-gray-600 dark:text-[#F5F0E4]/65" style={{ borderRadius: 2 }}>
                                     <l.icon size={10} className="text-[#A0792E]" />
                                     <span className="font-medium">{l.kind}:</span>
                                     <span className="truncate max-w-[160px]">{l.label}</span>

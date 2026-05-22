@@ -34,7 +34,7 @@ const ExcalidrawWrapper = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-[#f9fafb] dark:bg-[#0A0A0A]">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-[#f9fafb] dark:bg-[#161616]">
         <div className="w-12 h-12 border-4 border-[#A0792E] border-t-transparent rounded-full animate-spin mb-4"></div>
         <div className="text-gray-500 font-medium">Carregando Lousa...</div>
       </div>
@@ -95,7 +95,7 @@ export const WhiteboardView = React.memo(function WhiteboardView() {
 
   if (!isLoaded) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-[#f9fafb] dark:bg-[#0A0A0A]">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-[#f9fafb] dark:bg-[#161616]">
         <div className="w-12 h-12 border-4 border-[#A0792E] border-t-transparent rounded-full animate-spin mb-4"></div>
         <div className="text-gray-500 font-medium">Carregando Lousa...</div>
       </div>
@@ -103,7 +103,7 @@ export const WhiteboardView = React.memo(function WhiteboardView() {
   }
 
   return (
-    <div className="flex-1 w-full h-[calc(100vh-200px)] min-h-[600px] rounded-2xl border border-gray-200 dark:border-[#222222] overflow-hidden relative">
+    <div className="flex-1 w-full h-[calc(100vh-200px)] min-h-[600px] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] overflow-hidden relative">
       <div className="absolute inset-0 w-full h-full">
         <ExcalidrawWrapper
           initialData={initialData}

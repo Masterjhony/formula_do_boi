@@ -17,7 +17,7 @@ export default async function LotesTourosPage() {
 
     return (
         <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 border-b border-gray-200 dark:border-[#222222] pb-4 sm:pb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 border-b border-gray-200 dark:border-[#2e2e2e] pb-4 sm:pb-6">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">Lotes Touros</h1>
                     <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Gerencie os touros e lotes de sêmen do catálogo.</p>

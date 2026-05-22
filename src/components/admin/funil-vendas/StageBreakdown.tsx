@@ -35,14 +35,14 @@ export function StageBreakdown({ leads, stages }: StageBreakdownProps) {
     );
 
     return (
-        <div className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222] rounded-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-[#222]">
+        <div className="bg-white dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-[#2e2e2e]">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">Resumo por etapa</h3>
             </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="bg-gray-50 dark:bg-[#0A0A0A] text-left text-xs text-gray-500 uppercase tracking-wide">
+                        <tr className="bg-gray-50 dark:bg-[#161616] text-left text-xs text-gray-500 uppercase tracking-wide">
                             <th className="px-6 py-3 font-medium">Etapa</th>
                             <th className="px-6 py-3 font-medium text-right">Leads</th>
                             <th className="px-6 py-3 font-medium text-right">Probabilidade</th>
@@ -51,9 +51,9 @@ export function StageBreakdown({ leads, stages }: StageBreakdownProps) {
                             <th className="px-6 py-3 font-medium text-right">Ponderado</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-[#1A1A1A]">
+                    <tbody className="divide-y divide-gray-100 dark:divide-[#262626]">
                         {rows.map(r => (
-                            <tr key={r.stage.id} className="hover:bg-gray-50 dark:hover:bg-[#161616] transition-colors">
+                            <tr key={r.stage.id} className="hover:bg-gray-50 dark:hover:bg-[#222222] transition-colors">
                                 <td className="px-6 py-3">
                                     <div className="flex items-center gap-2.5">
                                         <span
@@ -74,7 +74,7 @@ export function StageBreakdown({ leads, stages }: StageBreakdownProps) {
                         ))}
                     </tbody>
                     <tfoot>
-                        <tr className="bg-gray-50 dark:bg-[#0A0A0A] font-semibold">
+                        <tr className="bg-gray-50 dark:bg-[#161616] font-semibold">
                             <td className="px-6 py-3 text-gray-700 dark:text-gray-300">Total</td>
                             <td className="px-6 py-3 text-right text-gray-900 dark:text-white">{totals.count}</td>
                             <td />

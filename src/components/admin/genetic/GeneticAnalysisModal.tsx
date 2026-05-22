@@ -47,7 +47,7 @@ export function GeneticAnalysisModal({ product, catalogProducts, onClose }: Gene
 
             <div
                 onClick={e => e.stopPropagation()}
-                className="relative w-full max-w-md bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[88vh]"
+                className="relative w-full max-w-md bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[88vh]"
                 style={{ borderRadius: 4 }}
             >
                 {/* Compact product header */}
@@ -91,7 +91,7 @@ export function GeneticAnalysisModal({ product, catalogProducts, onClose }: Gene
                     <button
                         onClick={onClose}
                         aria-label="Fechar"
-                        className="shrink-0 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
+                        className="shrink-0 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-[#262626] text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
                     >
                         <X size={16} />
                     </button>

@@ -76,8 +76,8 @@ export default function SettingsPage() {
             )}
 
             {/* ── Comunicação ──────────────────────────────────────────── */}
-            <div className="bg-white dark:bg-[#151515] rounded-xl border border-gray-200 dark:border-[#222] overflow-hidden mb-6">
-                <div className="p-6 border-b border-gray-200 dark:border-[#222]">
+            <div className="bg-white dark:bg-[#212121] rounded-xl border border-gray-200 dark:border-[#2e2e2e] overflow-hidden mb-6">
+                <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e]">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <MessageCircle className="w-5 h-5 text-brand-gold" />
                         Comunicação
@@ -85,7 +85,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="p-6 space-y-6">
-                    <div className="p-4 bg-gray-50 dark:bg-[#0a0a0a] rounded-lg border border-gray-200 dark:border-[#333]">
+                    <div className="p-4 bg-gray-50 dark:bg-[#161616] rounded-lg border border-gray-200 dark:border-[#3f3f3f]">
                         <label className="block">
                             <span className="block font-bold text-gray-900 dark:text-white mb-1">Link do grupo WhatsApp</span>
                             <span className="block text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -97,7 +97,7 @@ export default function SettingsPage() {
                                 value={waGroupLink}
                                 onChange={(e) => setWaGroupLink(e.target.value)}
                                 placeholder="https://chat.whatsapp.com/..."
-                                className="w-full px-3 py-2.5 bg-white dark:bg-[#1A1A1A] border border-gray-300 dark:border-[#333] rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold"
+                                className="w-full px-3 py-2.5 bg-white dark:bg-[#262626] border border-gray-300 dark:border-[#3f3f3f] rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold"
                             />
                             {!isValidUrl && (
                                 <p className="mt-2 text-xs text-red-500">O link deve começar com http:// ou https://</p>
@@ -118,8 +118,8 @@ export default function SettingsPage() {
             </div>
 
             {/* ── Atalhos para outras configurações ──────────────────── */}
-            <div className="bg-white dark:bg-[#151515] rounded-xl border border-gray-200 dark:border-[#222] overflow-hidden">
-                <div className="p-6 border-b border-gray-200 dark:border-[#222]">
+            <div className="bg-white dark:bg-[#212121] rounded-xl border border-gray-200 dark:border-[#2e2e2e] overflow-hidden">
+                <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e]">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <SettingsIcon className="w-5 h-5 text-brand-gold" />
                         Outras áreas de configuração
@@ -150,7 +150,7 @@ function ShortcutLink({
     return (
         <Link
             href={href}
-            className="flex items-center gap-4 p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-[#0a0a0a] transition-colors group"
+            className="flex items-center gap-4 p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-[#161616] transition-colors group"
         >
             <div className="w-10 h-10 rounded-lg bg-brand-gold/10 text-brand-gold flex items-center justify-center shrink-0">
                 {icon}

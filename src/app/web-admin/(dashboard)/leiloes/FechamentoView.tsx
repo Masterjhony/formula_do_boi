@@ -159,7 +159,7 @@ function coveragePct(vendidos: number, ofertados: number) {
   return Math.round((vendidos / ofertados) * 100)
 }
 
-const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E] transition-colors"
+const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#363636] bg-white dark:bg-[#161616] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E] transition-colors"
 
 // ── Empty Form ─────────────────────────────────────────────────────────────────
 
@@ -187,10 +187,10 @@ function KpiCard({ icon: Icon, label, value, sub, gold }: {
     <div className={`relative rounded-2xl border px-5 py-4 overflow-hidden transition-all hover:shadow-md
       ${gold
         ? 'border-[#A0792E]/30 bg-gradient-to-br from-[#A0792E]/12 to-[#A0792E]/4 hover:shadow-[#A0792E]/10'
-        : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] hover:border-gray-200 dark:hover:border-[#2A2A2A]'}`}>
+        : 'border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] hover:border-gray-200 dark:hover:border-[#363636]'}`}>
       <div className="flex items-center gap-2 mb-2.5">
         <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0
-          ${gold ? 'bg-[#A0792E]/15 text-[#A0792E]' : 'bg-gray-50 dark:bg-[#1A1A1A] text-gray-400'}`}>
+          ${gold ? 'bg-[#A0792E]/15 text-[#A0792E]' : 'bg-gray-50 dark:bg-[#262626] text-gray-400'}`}>
           <Icon size={12} />
         </div>
         <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
@@ -211,10 +211,10 @@ function FechamentoTable({ items, selectedId, onSelect }: {
   const canSeeFinance = useCanSeeFinance()
   if (!items.length) return null
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#0E0E0E] overflow-x-auto">
+    <div className="rounded-xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1A1A1A] overflow-x-auto">
       <table className="w-full text-xs">
         <thead>
-          <tr className="border-b border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#0A0A0A]">
+          <tr className="border-b border-gray-100 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#161616]">
             {[
               { label: 'Data', cls: 'text-left' },
               { label: 'Leilão', cls: 'text-left' },
@@ -249,10 +249,10 @@ function FechamentoTable({ items, selectedId, onSelect }: {
               <tr
                 key={f.id}
                 onClick={() => onSelect(f.id)}
-                className={`border-b border-gray-50 dark:border-[#171717] cursor-pointer transition-colors
+                className={`border-b border-gray-50 dark:border-[#232323] cursor-pointer transition-colors
                   ${isSelected
                     ? 'bg-[#A0792E]/8'
-                    : 'hover:bg-gray-50 dark:hover:bg-[#141414]'}`}
+                    : 'hover:bg-gray-50 dark:hover:bg-[#202020]'}`}
               >
                 <td className="px-3 py-2.5 whitespace-nowrap">
                   <span className="font-bold text-[#A0792E]">{dt.dia} {dt.mes}</span>
@@ -269,7 +269,7 @@ function FechamentoTable({ items, selectedId, onSelect }: {
                   <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold
                     ${pct >= 60 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
                       : pct >= 30 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-                      : 'bg-gray-100 text-gray-600 dark:bg-[#1A1A1A] dark:text-gray-400'}`}>
+                      : 'bg-gray-100 text-gray-600 dark:bg-[#262626] dark:text-gray-400'}`}>
                     {pct}%
                   </span>
                 </td>
@@ -298,7 +298,7 @@ function FechamentoTable({ items, selectedId, onSelect }: {
                       <span key={n} className="px-1.5 py-0.5 rounded bg-[#A0792E]/10 text-[#A0792E] text-[9px] font-bold uppercase tracking-wider">{n}</span>
                     ))}
                     {assessorNomes.length > 3 && (
-                      <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 text-[9px] font-bold">+{assessorNomes.length - 3}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#262626] text-gray-500 text-[9px] font-bold">+{assessorNomes.length - 3}</span>
                     )}
                   </div>
                 </td>
@@ -321,11 +321,11 @@ function FechamentoCard({ f, selected, onClick }: { f: Fechamento; selected: boo
       className={`w-full text-left rounded-2xl border transition-all duration-200 overflow-hidden
         ${selected
           ? 'border-[#A0792E]/50 bg-[#A0792E]/5 dark:bg-[#A0792E]/8 shadow-md shadow-[#A0792E]/10'
-          : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] hover:border-[#A0792E]/30 hover:shadow-sm'
+          : 'border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] hover:border-[#A0792E]/30 hover:shadow-sm'
         }`}
     >
       {/* Coverage bar accent */}
-      <div className="h-1 w-full bg-gray-100 dark:bg-[#1A1A1A]">
+      <div className="h-1 w-full bg-gray-100 dark:bg-[#262626]">
         <div
           className="h-full transition-all duration-500"
           style={{ width: `${pct}%`, background: pct >= 60 ? '#22c55e' : pct >= 30 ? '#A0792E' : '#ef4444' }}
@@ -404,7 +404,7 @@ function CatalogoTab({ lots }: { lots: LoteCatalogo[] }) {
         ]).map(({ key, label }) => (
           <button key={key} onClick={() => setFiltro(key)}
             className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all
-              ${filtro === key ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400 hover:text-[#A0792E]'}`}>
+              ${filtro === key ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#262626] text-gray-500 dark:text-gray-400 hover:text-[#A0792E]'}`}>
             {label}
           </button>
         ))}
@@ -414,10 +414,10 @@ function CatalogoTab({ lots }: { lots: LoteCatalogo[] }) {
           <div key={lot.lote}
             className={`rounded-xl border p-3 ${lot.vendido
               ? 'border-[#A0792E]/30 bg-[#A0792E]/4 dark:bg-[#A0792E]/6'
-              : 'border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111]'}`}>
+              : 'border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d]'}`}>
             <div className="flex items-start gap-3">
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0
-                ${lot.vendido ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400'}`}>
+                ${lot.vendido ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#262626] text-gray-500 dark:text-gray-400'}`}>
                 {lot.lote}
               </div>
               <div className="flex-1 min-w-0 space-y-1.5">
@@ -430,9 +430,9 @@ function CatalogoTab({ lots }: { lots: LoteCatalogo[] }) {
                       {a.peso_kg && <span className="text-[9px] text-gray-400">{a.peso_kg}kg</span>}
                     </div>
                     <div className="flex gap-1.5 flex-wrap mt-0.5">
-                      {a.iabcz != null && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 font-semibold">iABCZ {a.iabcz}</span>}
-                      {a.iqg != null && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 font-semibold">IQG {a.iqg}</span>}
-                      {a.mgte != null && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 font-semibold">MGTe {a.mgte}</span>}
+                      {a.iabcz != null && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400 font-semibold">iABCZ {a.iabcz}</span>}
+                      {a.iqg != null && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400 font-semibold">IQG {a.iqg}</span>}
+                      {a.mgte != null && <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400 font-semibold">MGTe {a.mgte}</span>}
                       {a.situacao && a.situacao !== '-' && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold">{a.situacao}</span>
                       )}
@@ -486,11 +486,11 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-2xl bg-white dark:bg-[#111111] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden"
+        className="relative w-full max-w-2xl bg-white dark:bg-[#1d1d1d] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-white dark:bg-[#111111] border-b border-gray-100 dark:border-[#1E1E1E] px-6 py-4 flex items-start gap-4">
+        <div className="sticky top-0 z-10 bg-white dark:bg-[#1d1d1d] border-b border-gray-100 dark:border-[#2A2A2A] px-6 py-4 flex items-start gap-4">
           <div className="flex flex-col items-center justify-center w-14 h-14 rounded-xl border border-[#A0792E]/30 bg-[#A0792E]/8 flex-shrink-0">
             <span className="text-[#A0792E] font-black text-xl leading-none">{dt.dia}</span>
             <span className="text-[#A0792E]/70 text-[10px] font-bold uppercase tracking-wider mt-0.5">{dt.mes}</span>
@@ -499,13 +499,13 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
             <h2 className="font-black text-gray-900 dark:text-white text-base leading-tight uppercase">{f.nome}</h2>
             {f.local && <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1"><MapPin size={10} />{f.local}</p>}
             <div className="flex items-center gap-2 mt-1.5">
-              <div className="flex-1 max-w-32 bg-gray-100 dark:bg-[#1A1A1A] rounded-full h-1.5 overflow-hidden">
+              <div className="flex-1 max-w-32 bg-gray-100 dark:bg-[#262626] rounded-full h-1.5 overflow-hidden">
                 <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 60 ? '#22c55e' : '#A0792E' }} />
               </div>
               <span className="text-[10px] font-bold text-gray-500">{f.lotes_vendidos}/{f.lotes_ofertados} lotes · {pct}%</span>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-gray-400 transition-colors flex-shrink-0">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#262626] text-gray-400 transition-colors flex-shrink-0">
             <X size={18} />
           </button>
         </div>
@@ -513,7 +513,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
         {/* Body (tabs + content share the same scroll container so the scrollbar gutter doesn't misalign the tab row) */}
         <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable]">
           {/* Tabs */}
-          <div className="sticky top-0 z-10 bg-white dark:bg-[#111111] flex border-b border-gray-100 dark:border-[#1E1E1E] px-4 overflow-x-auto">
+          <div className="sticky top-0 z-10 bg-white dark:bg-[#1d1d1d] flex border-b border-gray-100 dark:border-[#2A2A2A] px-4 overflow-x-auto">
             <DrawerTabBtn active={tab === 'resumo'} onClick={() => setTab('resumo')}>Resumo</DrawerTabBtn>
             <DrawerTabBtn active={tab === 'assessores'} onClick={() => setTab('assessores')}>Assessores</DrawerTabBtn>
             <DrawerTabBtn active={tab === 'compradores'} onClick={() => setTab('compradores')}>Compradores</DrawerTabBtn>
@@ -592,7 +592,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                   { icon: Users, label: 'Compradores Únicos', value: f.compradores_unicos.toString(), sub: f.por_assessor.filter(a => a.nome).length ? `${f.por_assessor.reduce((s, a) => s + a.transacoes, 0)} transações` : undefined },
                   { icon: MapPin, label: 'Estados Alcançados', value: f.estados_alcancados.toString(), sub: f.por_estado.map(e => e.uf).join(' · ') || undefined },
                 ].map(({ icon: Icon, label, value, sub, gold }) => (
-                  <div key={label} className={`rounded-xl border p-3.5 ${gold ? 'border-[#A0792E]/30 bg-[#A0792E]/8' : 'border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#151515]'}`}>
+                  <div key={label} className={`rounded-xl border p-3.5 ${gold ? 'border-[#A0792E]/30 bg-[#A0792E]/8' : 'border-gray-100 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#212121]'}`}>
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <Icon size={11} className={gold ? 'text-[#A0792E]' : 'text-gray-400'} />
                       <span className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
@@ -634,12 +634,12 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Distribuição por Empresa</p>
                     <div className="space-y-2">
                       {empresas.map(e => (
-                        <div key={e.empresa} className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#151515] p-3">
+                        <div key={e.empresa} className="rounded-xl border border-gray-100 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#212121] p-3">
                           <div className="flex justify-between items-center mb-1.5">
                             <span className="text-xs font-bold text-gray-800 dark:text-gray-200">{e.empresa}</span>
                             <span className="text-xs font-black text-[#A0792E]">{R(e.vgv)}</span>
                           </div>
-                          <div className="h-1.5 rounded-full bg-gray-200 dark:bg-[#1A1A1A] mb-1.5 overflow-hidden">
+                          <div className="h-1.5 rounded-full bg-gray-200 dark:bg-[#262626] mb-1.5 overflow-hidden">
                             <div className="h-full rounded-full transition-all"
                               style={{ width: `${(e.vgv / maxVgvE) * 100}%`, background: EMPRESA_COLORS[e.empresa] ?? '#A0792E' }} />
                           </div>
@@ -657,7 +657,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
               })()}
 
               {f.observacoes && (
-                <div className="bg-gray-50 dark:bg-[#151515] rounded-xl p-4">
+                <div className="bg-gray-50 dark:bg-[#212121] rounded-xl p-4">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Observações</p>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{f.observacoes}</p>
                 </div>
@@ -705,10 +705,10 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
             return (
               <div className="space-y-4">
                 {items.map((a, i) => (
-                  <div key={a.nome} className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-4">
+                  <div key={a.nome} className="rounded-2xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] p-4">
                     <div className="flex items-start gap-3 mb-3">
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0
-                        ${i === 0 ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400'}`}>
+                        ${i === 0 ? 'bg-[#A0792E] text-black' : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400'}`}>
                         {i === 0 ? <Star size={16} /> : a.posicao}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -726,7 +726,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                       </div>
                     </div>
                     {/* VGV bar */}
-                    <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] mb-3 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] mb-3 overflow-hidden">
                       <div className="h-full rounded-full transition-all"
                         style={{ width: `${(a.vgv / maxVgv) * 100}%`, background: EMPRESA_COLORS[a.empresa] ?? '#A0792E' }} />
                     </div>
@@ -736,7 +736,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                         { label: 'Animais', value: a.animais },
                         { label: 'Ticket Médio', value: R(a.ticket_medio) },
                       ].map(({ label, value }) => (
-                        <div key={label} className="rounded-lg bg-gray-50 dark:bg-[#151515] px-3 py-2 text-center">
+                        <div key={label} className="rounded-lg bg-gray-50 dark:bg-[#212121] px-3 py-2 text-center">
                           <p className="text-[9px] uppercase tracking-wide text-gray-400 mb-0.5">{label}</p>
                           <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{value}</p>
                         </div>
@@ -756,9 +756,9 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
               ) : (
                 <div className="space-y-2.5">
                   {f.compradores.map(c => (
-                    <div key={c.rank} className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-3.5">
+                    <div key={c.rank} className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] p-3.5">
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0
-                        ${c.rank === 1 ? 'bg-[#A0792E] text-black' : c.rank === 2 ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200' : c.rank === 3 ? 'bg-amber-700 text-white' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500'}`}>
+                        ${c.rank === 1 ? 'bg-[#A0792E] text-black' : c.rank === 2 ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200' : c.rank === 3 ? 'bg-amber-700 text-white' : 'bg-gray-100 dark:bg-[#262626] text-gray-500'}`}>
                         {c.rank}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -785,25 +785,25 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
               {f.lances.length === 0 ? (
                 <p className="text-center text-gray-400 text-sm py-12">Nenhum lance registrado</p>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-[#1E1E1E]">
+                <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-[#2A2A2A]">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="bg-gray-50 dark:bg-[#151515] border-b border-gray-100 dark:border-[#1E1E1E]">
+                      <tr className="bg-gray-50 dark:bg-[#212121] border-b border-gray-100 dark:border-[#2A2A2A]">
                         {['Lote', 'Fazenda / Comprador', 'UF', 'Assessor', 'Anim.', 'Parcela', 'VGV'].map(h => (
                           <th key={h} className="px-3 py-2.5 text-left font-semibold uppercase tracking-wider text-gray-400 whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
+                    <tbody className="divide-y divide-gray-50 dark:divide-[#262626]">
                       {f.lances.map((l, i) => (
-                        <tr key={i} className="bg-white dark:bg-[#111111] hover:bg-[#A0792E]/3 transition-colors">
+                        <tr key={i} className="bg-white dark:bg-[#1d1d1d] hover:bg-[#A0792E]/3 transition-colors">
                           <td className="px-3 py-2.5 font-bold text-[#A0792E] whitespace-nowrap">{l.lote}</td>
                           <td className="px-3 py-2.5 max-w-[160px]">
                             <p className="font-semibold text-gray-900 dark:text-white truncate">{l.fazenda}</p>
                             {l.comprador !== l.fazenda && <p className="text-gray-400 truncate">{l.comprador}</p>}
                           </td>
                           <td className="px-3 py-2.5 whitespace-nowrap">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400">{l.uf}</span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400">{l.uf}</span>
                           </td>
                           <td className="px-3 py-2.5 max-w-[120px]">
                             {(() => {
@@ -829,7 +829,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                       ))}
                     </tbody>
                     <tfoot>
-                      <tr className="bg-gray-50 dark:bg-[#151515] border-t border-gray-100 dark:border-[#1E1E1E]">
+                      <tr className="bg-gray-50 dark:bg-[#212121] border-t border-gray-100 dark:border-[#2A2A2A]">
                         <td colSpan={4} className="px-3 py-2.5 font-bold text-gray-600 dark:text-gray-400 text-[10px] uppercase tracking-wider">Total</td>
                         <td className="px-3 py-2.5 text-center font-black text-gray-900 dark:text-white">
                           {f.lances.reduce((s, l) => s + l.animais, 0)}
@@ -852,7 +852,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
               {f.por_estado.length === 0 ? (
                 <p className="text-center text-gray-400 text-sm py-12">Nenhum dado por estado</p>
               ) : f.por_estado.map(e => (
-                <div key={e.uf} className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-4">
+                <div key={e.uf} className="rounded-xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] p-4">
                   <div className="flex items-center gap-3 mb-2.5">
                     <div className="w-10 h-10 rounded-xl bg-[#A0792E]/10 flex items-center justify-center flex-shrink-0">
                       <span className="text-[#A0792E] font-black text-xs">{e.uf}</span>
@@ -866,7 +866,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                       <p className="text-[10px] text-gray-400">{PCT(e.pct_total)} do total</p>
                     </div>
                   </div>
-                  <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                     <div className="h-full rounded-full transition-all" style={{ width: `${(e.vgv / maxVgvEstado) * 100}%`, background: '#A0792E' }} />
                   </div>
                 </div>
@@ -891,11 +891,11 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">Médias Gerais do Catálogo</p>
                     <div className="space-y-3">
                       {groups.map(g => (
-                        <div key={g.label} className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] overflow-hidden">
-                          <div className="px-4 py-2 bg-gray-50 dark:bg-[#151515] border-b border-gray-100 dark:border-[#1E1E1E]">
+                        <div key={g.label} className="rounded-xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] overflow-hidden">
+                          <div className="px-4 py-2 bg-gray-50 dark:bg-[#212121] border-b border-gray-100 dark:border-[#2A2A2A]">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{g.label}</span>
                           </div>
-                          <div className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
+                          <div className="divide-y divide-gray-50 dark:divide-[#262626]">
                             {g.data.map(item => (
                               <div key={item.fonte} className="flex items-center justify-between px-4 py-2.5">
                                 <span className="text-xs text-gray-600 dark:text-gray-400">{item.fonte}</span>
@@ -919,20 +919,20 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
 
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">Índices Genéticos — Ventres Vendidos</p>
-                <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-[#1E1E1E]">
+                <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-[#2A2A2A]">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="bg-gray-50 dark:bg-[#151515] border-b border-gray-100 dark:border-[#1E1E1E]">
+                      <tr className="bg-gray-50 dark:bg-[#212121] border-b border-gray-100 dark:border-[#2A2A2A]">
                         {['Índice', 'Média Vendida', 'Média Catálogo', 'Diferença', 'Classificação'].map(h => (
                           <th key={h} className="px-3 py-2.5 text-left font-semibold uppercase tracking-wider text-gray-400 whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
+                    <tbody className="divide-y divide-gray-50 dark:divide-[#262626]">
                       {f.perfil_genetico!.indices.map(idx => {
                         const diff = parseFloat(idx.diferenca)
                         return (
-                          <tr key={idx.fonte} className="bg-white dark:bg-[#111111]">
+                          <tr key={idx.fonte} className="bg-white dark:bg-[#1d1d1d]">
                             <td className="px-3 py-3 font-semibold text-gray-800 dark:text-gray-200">{idx.fonte}</td>
                             <td className="px-3 py-3 font-black text-[#A0792E]">{idx.media_vendida}</td>
                             <td className="px-3 py-3 text-gray-600 dark:text-gray-400">{idx.media_catalogo}</td>
@@ -961,7 +961,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-3">Sexo das Crias ao Pé</p>
                   <div className="space-y-3">
                     {f.perfil_genetico!.crias_sexo.map(s => (
-                      <div key={s.sexo} className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-4">
+                      <div key={s.sexo} className="rounded-xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] p-4">
                         <div className="flex items-center justify-between mb-2">
                           <div>
                             <p className="font-bold text-gray-900 dark:text-white text-sm">{s.sexo}</p>
@@ -972,7 +972,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
                             <p className="text-[10px] text-gray-400">{PCT(s.pct)}</p>
                           </div>
                         </div>
-                        <div className="h-2 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                        <div className="h-2 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: PCT(s.pct), background: '#A0792E' }} />
                         </div>
                       </div>
@@ -993,7 +993,7 @@ function FechamentoDrawer({ f, onClose, onEdit, onDelete }: {
 
         {/* Footer — só finance-admin pode editar/excluir (API também bloqueia) */}
         {canSeeFinance && (
-          <div className="sticky bottom-0 bg-white dark:bg-[#111111] border-t border-gray-100 dark:border-[#1E1E1E] px-6 py-4 flex gap-3">
+          <div className="sticky bottom-0 bg-white dark:bg-[#1d1d1d] border-t border-gray-100 dark:border-[#2A2A2A] px-6 py-4 flex gap-3">
             <button onClick={onDelete} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-red-100 dark:border-red-500/20 transition-colors">
               <Trash2 size={14} /> Excluir
             </button>
@@ -1052,7 +1052,7 @@ function FormField({ label, required, children, className }: {
 
 function RowCard({ title, onRemove, children }: { title: string; onRemove: () => void; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-gray-50 dark:bg-[#151515] p-3">
+    <div className="rounded-xl border border-gray-100 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#212121] p-3">
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 truncate">{title}</span>
         <button onClick={onRemove} className="p-1 rounded text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 flex-shrink-0" title="Remover">
@@ -1074,7 +1074,7 @@ function AddRowButton({ label, onClick }: { label: string; onClick: () => void }
 }
 
 function EmptyRows({ label }: { label: string }) {
-  return <p className="text-center text-gray-400 text-xs py-6 border border-dashed border-gray-200 dark:border-[#2A2A2A] rounded-xl">{label}</p>
+  return <p className="text-center text-gray-400 text-xs py-6 border border-dashed border-gray-200 dark:border-[#363636] rounded-xl">{label}</p>
 }
 
 function FechamentoFormModal({ initial, onClose, onSaved }: {
@@ -1139,15 +1139,15 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      <div className="relative w-full max-w-3xl bg-white dark:bg-[#111111] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-3xl bg-white dark:bg-[#1d1d1d] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         {/* Modal header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#1E1E1E]">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-[#2A2A2A]">
           <h2 className="font-bold text-gray-900 dark:text-white text-lg">{isEdit ? 'Editar Fechamento' : 'Novo Fechamento'}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-gray-400 transition-colors"><X size={18} /></button>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#262626] text-gray-400 transition-colors"><X size={18} /></button>
         </div>
 
         {/* Form tabs */}
-        <div className="flex border-b border-gray-100 dark:border-[#1E1E1E] px-4 overflow-x-auto flex-shrink-0">
+        <div className="flex border-b border-gray-100 dark:border-[#2A2A2A] px-4 overflow-x-auto flex-shrink-0">
           {FORM_TABS.map(t => (
             <button key={t.key} onClick={() => setFormTab(t.key)}
               className={`px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors
@@ -1413,8 +1413,8 @@ function FechamentoFormModal({ initial, onClose, onSaved }: {
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-100 dark:border-[#1E1E1E] flex justify-end gap-3 flex-shrink-0">
-          <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors">Cancelar</button>
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-[#2A2A2A] flex justify-end gap-3 flex-shrink-0">
+          <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#262626] transition-colors">Cancelar</button>
           <button onClick={handleSubmit} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#A0792E] hover:bg-[#D4A85C] text-black text-sm font-semibold disabled:opacity-50 transition-colors">
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {isEdit ? 'Salvar alterações' : 'Criar fechamento'}
@@ -1544,7 +1544,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
     <div className="space-y-4">
 
       {/* Vendas por leilão — full width (VGV bars) */}
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-5">
+      <div className="rounded-2xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] p-5">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
           <div>
             <p className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Vendas por leilão</p>
@@ -1572,7 +1572,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
           {/* Grid lines */}
           <div className="absolute left-14 right-0 top-0 bottom-7 flex flex-col justify-between pointer-events-none">
             {[0, 1, 2, 3, 4].map(i => (
-              <div key={i} className="w-full border-t border-dashed border-gray-100 dark:border-[#1E1E1E]" />
+              <div key={i} className="w-full border-t border-dashed border-gray-100 dark:border-[#2A2A2A]" />
             ))}
           </div>
           {/* Bars */}
@@ -1589,7 +1589,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
               return (
                 <div key={f.id} className="flex flex-col justify-end h-full flex-1 min-w-0 group relative">
                   {/* Tooltip */}
-                  <div className={`absolute bottom-full mb-1.5 bg-gray-900 dark:bg-[#0A0A0A] border border-gray-700 text-white text-[9px] rounded-xl px-3 py-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none z-30 shadow-2xl ${tooltipPos}`}>
+                  <div className={`absolute bottom-full mb-1.5 bg-gray-900 dark:bg-[#161616] border border-gray-700 text-white text-[9px] rounded-xl px-3 py-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none z-30 shadow-2xl ${tooltipPos}`}>
                     <p className="font-bold text-[#A0792E] text-[11px]">{R(f.vgv_total)}</p>
                     <p className="text-gray-200 mt-1 max-w-[200px] truncate font-semibold">{f.nome}</p>
                     <div className="flex items-center gap-3 mt-1 text-gray-400">
@@ -1631,7 +1631,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-4 mt-3 pt-3 border-t border-gray-50 dark:border-[#1A1A1A] flex-wrap">
+        <div className="flex items-center justify-between gap-4 mt-3 pt-3 border-t border-gray-50 dark:border-[#262626] flex-wrap">
           <div className="flex gap-3 flex-wrap">
             {[
               { color: '#22c55e', label: '≥ 60% cobertura' },
@@ -1651,7 +1651,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
       </div>
 
       {/* Cobertura média — full width line chart */}
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-5">
+      <div className="rounded-2xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] p-5">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
           <div>
             <p className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Cobertura média</p>
@@ -1687,7 +1687,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
           {/* Grid lines */}
           <div className="absolute left-10 right-0 top-0 bottom-7 flex flex-col justify-between pointer-events-none">
             {[0, 1, 2, 3, 4].map(i => (
-              <div key={i} className="w-full border-t border-dashed border-gray-100 dark:border-[#1E1E1E]" />
+              <div key={i} className="w-full border-t border-dashed border-gray-100 dark:border-[#2A2A2A]" />
             ))}
           </div>
           {/* Average reference line */}
@@ -1696,7 +1696,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
             style={{ bottom: `${28 + ((coberturaAvgSimple / 100) * 100) * 0.95}%` }}
           >
             <div className="flex-1 border-t-2 border-dashed border-[#A0792E]/40" />
-            <span className="ml-1 text-[8px] font-bold tabular-nums text-[#A0792E] bg-white dark:bg-[#111111] px-1.5 -translate-y-1/2">
+            <span className="ml-1 text-[8px] font-bold tabular-nums text-[#A0792E] bg-white dark:bg-[#1d1d1d] px-1.5 -translate-y-1/2">
               {coberturaAvgSimple}% méd
             </span>
           </div>
@@ -1741,8 +1741,8 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
               const dotColor = c.pct >= 60 ? '#22c55e' : c.pct >= 30 ? '#A0792E' : '#ef4444'
               return (
                 <div key={i} className="absolute group" style={{ left: `${xPct}%`, top: `${yPct}%`, transform: 'translate(-50%, -50%)' }}>
-                  <div className="w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#111111] pointer-events-auto cursor-pointer transition-transform hover:scale-150" style={{ backgroundColor: dotColor }} />
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-gray-900 dark:bg-[#0A0A0A] border border-gray-700 text-white text-[9px] rounded-lg px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 shadow-xl">
+                  <div className="w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#1d1d1d] pointer-events-auto cursor-pointer transition-transform hover:scale-150" style={{ backgroundColor: dotColor }} />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-gray-900 dark:bg-[#161616] border border-gray-700 text-white text-[9px] rounded-lg px-2 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 shadow-xl">
                     <p className="font-bold text-[#A0792E]">{c.pct}%</p>
                     <p className="text-gray-300 max-w-[160px] truncate">{c.nome}</p>
                     <p className="text-gray-500 tabular-nums">{c.vendidos}/{c.ofertados}</p>
@@ -1767,7 +1767,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
       <div className="grid lg:grid-cols-[3fr_2fr] gap-4">
 
         {/* Top Compradores */}
-        <div className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-5">
+        <div className="rounded-2xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] p-5">
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Top Compradores</p>
@@ -1793,7 +1793,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
                               ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100'
                               : i === 2
                                 ? 'bg-amber-700 text-white'
-                                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400'}`}>
+                                : 'bg-gray-100 dark:bg-[#262626] text-gray-500 dark:text-gray-400'}`}>
                           {i + 1}
                         </span>
                         <div className="min-w-0">
@@ -1809,7 +1809,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
                       <span className="text-xs font-black text-[#A0792E] whitespace-nowrap flex-shrink-0">{R(d.vgv)}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                      <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-700"
                           style={{
@@ -1831,7 +1831,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
         </div>
 
         {/* Distribuição Geográfica */}
-        <div className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-5">
+        <div className="rounded-2xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] p-5">
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Distribuição por UF</p>
@@ -1858,7 +1858,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
                         </span>
                         <span className="text-xs font-black text-[#A0792E] tabular-nums">{R(d.vgv)}</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-700"
                           style={{ width: `${pctTotal * 100}%`, background: '#A0792E' }}
@@ -1874,7 +1874,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
       </div>
 
       {/* Vendas por Assessor — full width ranking */}
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#111111] p-5">
+      <div className="rounded-2xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1d1d1d] p-5">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
           <div>
             <p className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">Vendas por assessor</p>
@@ -1915,7 +1915,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
                 return (
                   <div key={a.nome} className="contents">
                     {/* Assessor */}
-                    <div className="flex items-center gap-2.5 min-w-0 py-2.5 border-t border-gray-50 dark:border-[#1A1A1A]">
+                    <div className="flex items-center gap-2.5 min-w-0 py-2.5 border-t border-gray-50 dark:border-[#262626]">
                       <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0
                         ${i === 0
                           ? 'bg-[#A0792E] text-black shadow-md shadow-[#A0792E]/40'
@@ -1923,7 +1923,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
                             ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100'
                             : i === 2
                               ? 'bg-amber-700 text-white'
-                              : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400'}`}>
+                              : 'bg-gray-100 dark:bg-[#262626] text-gray-500 dark:text-gray-400'}`}>
                         {i + 1}
                       </span>
                       <div className="min-w-0">
@@ -1934,12 +1934,12 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
                       </div>
                     </div>
                     {/* VGV with bar */}
-                    <div className="py-2.5 border-t border-gray-50 dark:border-[#1A1A1A] min-w-0 flex flex-col justify-center gap-1">
+                    <div className="py-2.5 border-t border-gray-50 dark:border-[#262626] min-w-0 flex flex-col justify-center gap-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-black text-[#A0792E] tabular-nums whitespace-nowrap">{R(a.vgv)}</span>
                         <span className="text-[9px] text-gray-400 tabular-nums">{(pctTotal * 100).toFixed(0)}%</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-700"
                           style={{
@@ -1951,15 +1951,15 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
                       </div>
                     </div>
                     {/* Transações */}
-                    <div className="py-2.5 border-t border-gray-50 dark:border-[#1A1A1A] flex items-center justify-end">
+                    <div className="py-2.5 border-t border-gray-50 dark:border-[#262626] flex items-center justify-end">
                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300 tabular-nums">{a.transacoes}</span>
                     </div>
                     {/* Animais */}
-                    <div className="py-2.5 border-t border-gray-50 dark:border-[#1A1A1A] flex items-center justify-end">
+                    <div className="py-2.5 border-t border-gray-50 dark:border-[#262626] flex items-center justify-end">
                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300 tabular-nums">{a.animais}</span>
                     </div>
                     {/* Leilões */}
-                    <div className="py-2.5 border-t border-gray-50 dark:border-[#1A1A1A] flex items-center justify-end">
+                    <div className="py-2.5 border-t border-gray-50 dark:border-[#262626] flex items-center justify-end">
                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300 tabular-nums">{a.leiloes}</span>
                     </div>
                   </div>
@@ -1968,7 +1968,7 @@ function InsightsSection({ items }: { items: Fechamento[] }) {
             </div>
 
             {/* Footer total */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-[#1A1A1A]">
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-[#262626]">
               <span className="text-[10px] text-gray-500 flex items-center gap-1.5">
                 <Activity size={10} className="text-[#A0792E]" />
                 Comissão e pagamento ficam restritos ao ERP
@@ -2140,7 +2140,7 @@ function FechamentoViewInner() {
 
       {/* Filtros — data, leilão e assessor */}
       {items.length > 0 && (
-        <div className="rounded-xl border border-gray-100 dark:border-[#1E1E1E] bg-white dark:bg-[#0E0E0E] p-3">
+        <div className="rounded-xl border border-gray-100 dark:border-[#2A2A2A] bg-white dark:bg-[#1A1A1A] p-3">
           <div className="flex flex-col lg:flex-row lg:items-end gap-3">
             <div className="flex flex-col gap-1 min-w-0 flex-1">
               <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Data início</label>
@@ -2148,7 +2148,7 @@ function FechamentoViewInner() {
                 type="date"
                 value={filterDataInicio}
                 onChange={e => setFilterDataInicio(e.target.value)}
-                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#363636] bg-white dark:bg-[#1d1d1d] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
               />
             </div>
             <div className="flex flex-col gap-1 min-w-0 flex-1">
@@ -2157,7 +2157,7 @@ function FechamentoViewInner() {
                 type="date"
                 value={filterDataFim}
                 onChange={e => setFilterDataFim(e.target.value)}
-                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#363636] bg-white dark:bg-[#1d1d1d] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
               />
             </div>
             <div className="flex flex-col gap-1 min-w-0 flex-[1.5]">
@@ -2165,7 +2165,7 @@ function FechamentoViewInner() {
               <select
                 value={filterLeilao}
                 onChange={e => setFilterLeilao(e.target.value)}
-                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#363636] bg-white dark:bg-[#1d1d1d] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
               >
                 <option value="">Todos</option>
                 {uniqueLeiloes.map(n => <option key={n} value={n}>{n}</option>)}
@@ -2176,7 +2176,7 @@ function FechamentoViewInner() {
               <select
                 value={filterAssessor}
                 onChange={e => setFilterAssessor(e.target.value)}
-                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#111111] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
+                className="px-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-[#363636] bg-white dark:bg-[#1d1d1d] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#A0792E]"
               >
                 <option value="">Todos</option>
                 {uniqueAssessores.map(n => <option key={n} value={n}>{n}</option>)}
@@ -2185,7 +2185,7 @@ function FechamentoViewInner() {
             {hasActiveFilter && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-gray-200 dark:border-[#2A2A2A] text-gray-500 dark:text-gray-400 hover:text-[#A0792E] hover:border-[#A0792E] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-gray-200 dark:border-[#363636] text-gray-500 dark:text-gray-400 hover:text-[#A0792E] hover:border-[#A0792E] transition-colors"
               >
                 <X size={12} /> Limpar
               </button>
@@ -2216,7 +2216,7 @@ function FechamentoViewInner() {
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-          <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-gray-200 dark:border-[#2A2A2A] flex items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-gray-200 dark:border-[#363636] flex items-center justify-center">
             <BarChart3 size={28} className="text-gray-300 dark:text-gray-700" />
           </div>
           <div>
@@ -2234,7 +2234,7 @@ function FechamentoViewInner() {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-          <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-gray-200 dark:border-[#2A2A2A] flex items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-gray-200 dark:border-[#363636] flex items-center justify-center">
             <AlertCircle size={28} className="text-gray-300 dark:text-gray-700" />
           </div>
           <div>
@@ -2243,7 +2243,7 @@ function FechamentoViewInner() {
           </div>
           <button
             onClick={clearFilters}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-[#2A2A2A] text-gray-600 dark:text-gray-300 hover:text-[#A0792E] hover:border-[#A0792E] rounded-lg font-semibold text-xs transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-[#363636] text-gray-600 dark:text-gray-300 hover:text-[#A0792E] hover:border-[#A0792E] rounded-lg font-semibold text-xs transition-colors"
           >
             <X size={13} /> Limpar filtros
           </button>
@@ -2252,8 +2252,8 @@ function FechamentoViewInner() {
         <>
           <div className="flex items-center gap-3 flex-wrap">
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Todos os leilões</p>
-            <div className="flex-1 min-w-4 h-px bg-gray-100 dark:bg-[#1E1E1E]" />
-            <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-gray-50 dark:bg-[#0A0A0A] border border-gray-100 dark:border-[#1E1E1E]">
+            <div className="flex-1 min-w-4 h-px bg-gray-100 dark:bg-[#2A2A2A]" />
+            <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-gray-50 dark:bg-[#161616] border border-gray-100 dark:border-[#2A2A2A]">
               {([
                 { key: 'recent' as const, label: 'Recentes' },
                 { key: 'vgv' as const, label: 'VGV' },
@@ -2264,20 +2264,20 @@ function FechamentoViewInner() {
                   onClick={() => setSortBy(key)}
                   className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all
                     ${sortBy === key
-                      ? 'bg-white dark:bg-[#1A1A1A] text-[#A0792E] shadow-sm'
+                      ? 'bg-white dark:bg-[#262626] text-[#A0792E] shadow-sm'
                       : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-gray-50 dark:bg-[#0A0A0A] border border-gray-100 dark:border-[#1E1E1E]">
+            <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-gray-50 dark:bg-[#161616] border border-gray-100 dark:border-[#2A2A2A]">
               <button
                 onClick={() => setViewMode('cards')}
                 title="Visualização em cards"
                 className={`flex items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all
                   ${viewMode === 'cards'
-                    ? 'bg-white dark:bg-[#1A1A1A] text-[#A0792E] shadow-sm'
+                    ? 'bg-white dark:bg-[#262626] text-[#A0792E] shadow-sm'
                     : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
               >
                 <LayoutGrid size={11} /> Cards
@@ -2287,7 +2287,7 @@ function FechamentoViewInner() {
                 title="Visualização em tabela"
                 className={`flex items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all
                   ${viewMode === 'table'
-                    ? 'bg-white dark:bg-[#1A1A1A] text-[#A0792E] shadow-sm'
+                    ? 'bg-white dark:bg-[#262626] text-[#A0792E] shadow-sm'
                     : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
               >
                 <TableIcon size={11} /> Tabela

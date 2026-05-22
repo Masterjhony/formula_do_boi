@@ -181,13 +181,13 @@ export function GlobalSearch() {
             <button
                 onClick={() => setOpen(true)}
                 aria-label="Buscar"
-                className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-gray-50 dark:bg-[#0F0F0F] hover:border-[#A0792E]/50 hover:bg-white dark:hover:bg-[#141414] transition-all group"
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-gray-50 dark:bg-[#1B1B1B] hover:border-[#A0792E]/50 hover:bg-white dark:hover:bg-[#202020] transition-all group"
                 style={{ borderRadius: 3, minWidth: 220 }}
             >
                 <Search size={13} className="text-gray-400 group-hover:text-[#A0792E] transition-colors" />
                 <span className="text-xs text-gray-400 dark:text-[#F5F0E4]/45 flex-1 text-left truncate">Buscar clientes, reservas, tarefas…</span>
                 <kbd
-                    className="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#1A1A1A]"
+                    className="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded border border-gray-200 dark:border-[rgba(212,168,92,0.18)] bg-white dark:bg-[#262626]"
                     style={{
                         fontFamily: 'var(--font-mono), ui-monospace, monospace',
                         fontSize: 9,
@@ -203,7 +203,7 @@ export function GlobalSearch() {
             <button
                 onClick={() => setOpen(true)}
                 aria-label="Buscar"
-                className="md:hidden flex items-center justify-center p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:text-[#A0792E] transition-all"
+                className="md:hidden flex items-center justify-center p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#262626] hover:text-[#A0792E] transition-all"
             >
                 <Search size={18} />
             </button>
@@ -224,7 +224,7 @@ export function GlobalSearch() {
                     {/* Panel */}
                     <div
                         onClick={e => e.stopPropagation()}
-                        className="relative w-full max-w-2xl bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[70vh]"
+                        className="relative w-full max-w-2xl bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[70vh]"
                         style={{ borderRadius: 4 }}
                     >
                         {/* Brand hairline */}
@@ -247,7 +247,7 @@ export function GlobalSearch() {
                             <button
                                 onClick={() => setOpen(false)}
                                 aria-label="Fechar"
-                                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-gray-400 hover:text-gray-700 dark:hover:text-[#F5F0E4] transition-colors"
+                                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[#262626] text-gray-400 hover:text-gray-700 dark:hover:text-[#F5F0E4] transition-colors"
                             >
                                 <X size={14} />
                             </button>
@@ -295,14 +295,14 @@ export function GlobalSearch() {
                                                             className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors group ${
                                                                 isActive
                                                                     ? 'bg-[#A0792E]/12 text-gray-900 dark:text-[#D4A85C]'
-                                                                    : 'text-gray-700 dark:text-[#F5F0E4]/80 hover:bg-gray-50 dark:hover:bg-[#1A1A1A]'
+                                                                    : 'text-gray-700 dark:text-[#F5F0E4]/80 hover:bg-gray-50 dark:hover:bg-[#262626]'
                                                             }`}
                                                         >
                                                             <div
                                                                 className="w-8 h-8 rounded-sm flex items-center justify-center shrink-0"
                                                                 style={{
                                                                     backgroundColor: isActive ? '#A0792E' : 'rgba(160,121,46,0.10)',
-                                                                    color: isActive ? '#0A0A0A' : '#A0792E',
+                                                                    color: isActive ? '#161616' : '#A0792E',
                                                                     borderRadius: 3,
                                                                 }}
                                                             >
@@ -335,7 +335,7 @@ export function GlobalSearch() {
                         </div>
 
                         {/* Footer */}
-                        <div className="border-t border-gray-100 dark:border-[rgba(212,168,92,0.14)] px-4 py-2 flex items-center justify-between bg-gray-50/50 dark:bg-[#0A0A0A]/50">
+                        <div className="border-t border-gray-100 dark:border-[rgba(212,168,92,0.14)] px-4 py-2 flex items-center justify-between bg-gray-50/50 dark:bg-[#161616]/50">
                             <div className="flex items-center gap-3 text-[10px] text-gray-500 dark:text-[#F5F0E4]/40">
                                 <ShortcutHint label="navegar">
                                     <kbd className="kbd">↑</kbd>
@@ -422,7 +422,7 @@ function EmptyHint({ shortcut }: { shortcut: string }) {
                 {examples.map(ex => (
                     <div
                         key={ex.kind}
-                        className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-[#1A1A1A] rounded-sm border border-gray-100 dark:border-[rgba(212,168,92,0.10)]"
+                        className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-[#262626] rounded-sm border border-gray-100 dark:border-[rgba(212,168,92,0.10)]"
                         style={{ borderRadius: 3 }}
                     >
                         <span

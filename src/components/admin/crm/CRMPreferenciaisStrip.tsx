@@ -74,7 +74,7 @@ export function CRMPreferenciaisStrip({ leads, crmConfig, onOpenLead }: CRMPrefe
                             key={lead.id}
                             type="button"
                             onClick={() => onOpenLead(lead)}
-                            className="group text-left bg-white dark:bg-[#1A1A1A] border border-[#A0792E]/20 hover:border-[#A0792E]/60 hover:shadow-lg hover:shadow-[#A0792E]/10 rounded-xl p-3 transition-all"
+                            className="group text-left bg-white dark:bg-[#262626] border border-[#A0792E]/20 hover:border-[#A0792E]/60 hover:shadow-lg hover:shadow-[#A0792E]/10 rounded-xl p-3 transition-all"
                         >
                             <div className="flex items-start gap-2">
                                 <div className="w-1 self-stretch rounded-full" style={{ background: stage?.color || '#A0792E' }} />

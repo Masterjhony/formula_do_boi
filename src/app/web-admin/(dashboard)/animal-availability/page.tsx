@@ -288,7 +288,7 @@ export default async function AnimalAvailabilityPage() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="border-b border-gray-200 dark:border-[#222222] pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="border-b border-gray-200 dark:border-[#2e2e2e] pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
                         <MapPin className="w-8 h-8 text-[#A0792E]" />
@@ -298,7 +298,7 @@ export default async function AnimalAvailabilityPage() {
                         Análise detalhada da disponibilidade por região, estado e categoria.
                     </p>
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-[#1A1A1A] px-3 py-1 rounded-full border border-gray-200 dark:border-[#222222] shrink-0">
+                <div className="text-sm text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-[#262626] px-3 py-1 rounded-full border border-gray-200 dark:border-[#2e2e2e] shrink-0">
                     {new Date().toLocaleDateString('pt-BR')}
                 </div>
             </div>
@@ -306,9 +306,9 @@ export default async function AnimalAvailabilityPage() {
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 {/* Total */}
-                <div className="col-span-2 lg:col-span-1 bg-white dark:bg-[#111111] p-5 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
+                <div className="col-span-2 lg:col-span-1 bg-white dark:bg-[#1d1d1d] p-5 rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 bg-gray-50 dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222222]">
+                        <div className="p-2 bg-gray-50 dark:bg-[#262626] rounded-xl border border-gray-200 dark:border-[#2e2e2e]">
                             <Package className="w-5 h-5 text-[#A0792E]" />
                         </div>
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total</span>
@@ -318,7 +318,7 @@ export default async function AnimalAvailabilityPage() {
                 </div>
 
                 {/* Disponíveis */}
-                <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
+                <div className="bg-white dark:bg-[#1d1d1d] p-5 rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2 bg-green-500/10 rounded-xl">
                             <CheckCircle className="w-5 h-5 text-green-500" />
@@ -330,7 +330,7 @@ export default async function AnimalAvailabilityPage() {
                 </div>
 
                 {/* Vendidos */}
-                <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
+                <div className="bg-white dark:bg-[#1d1d1d] p-5 rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2 bg-red-500/10 rounded-xl">
                             <XCircle className="w-5 h-5 text-red-500" />
@@ -344,7 +344,7 @@ export default async function AnimalAvailabilityPage() {
                 </div>
 
                 {/* Reservados */}
-                <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
+                <div className="bg-white dark:bg-[#1d1d1d] p-5 rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2 bg-yellow-500/10 rounded-xl">
                             <Clock className="w-5 h-5 text-yellow-500" />
@@ -358,7 +358,7 @@ export default async function AnimalAvailabilityPage() {
                 </div>
 
                 {/* MG */}
-                <div className="bg-white dark:bg-[#111111] p-5 rounded-2xl border border-[#A0792E]/30 shadow-xl">
+                <div className="bg-white dark:bg-[#1d1d1d] p-5 rounded-2xl border border-[#A0792E]/30 shadow-xl">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2 bg-[#A0792E]/10 rounded-xl">
                             <MapPin className="w-5 h-5 text-[#A0792E]" />
@@ -376,8 +376,8 @@ export default async function AnimalAvailabilityPage() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
                 {/* Distribuição por Estado */}
-                <div className="bg-white dark:bg-[#111111] p-6 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-[#222222] pb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-[#1d1d1d] p-6 rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-[#2e2e2e] pb-4 flex items-center gap-2">
                         <BarChart3 className="w-5 h-5 text-[#A0792E]" />
                         Distribuição por Estado
                     </h2>
@@ -396,7 +396,7 @@ export default async function AnimalAvailabilityPage() {
                                             <span className="font-medium text-gray-700 dark:text-gray-300">{stats.total} ({percent}%)</span>
                                         </div>
                                     </div>
-                                    <div className="w-full bg-gray-100 dark:bg-[#222222] rounded-full h-2.5 overflow-hidden">
+                                    <div className="w-full bg-gray-100 dark:bg-[#2e2e2e] rounded-full h-2.5 overflow-hidden">
                                         <div
                                             className="h-full rounded-full transition-all duration-700"
                                             style={{ width: `${percent}%`, backgroundColor: color }}
@@ -412,11 +412,11 @@ export default async function AnimalAvailabilityPage() {
                 </div>
 
                 {/* Regiões de Minas Gerais */}
-                <div className="bg-white dark:bg-[#111111] p-6 rounded-2xl border border-[#A0792E]/20 shadow-xl">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-[#222222] pb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-[#1d1d1d] p-6 rounded-2xl border border-[#A0792E]/20 shadow-xl">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-[#2e2e2e] pb-4 flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-[#A0792E]" />
                         Regiões de Minas Gerais
-                        <span className="ml-auto text-xs font-normal text-gray-500 bg-gray-100 dark:bg-[#1A1A1A] px-2 py-1 rounded-full">
+                        <span className="ml-auto text-xs font-normal text-gray-500 bg-gray-100 dark:bg-[#262626] px-2 py-1 rounded-full">
                             {totalMG} animais
                         </span>
                     </h2>
@@ -440,7 +440,7 @@ export default async function AnimalAvailabilityPage() {
                                                 <span className="font-medium text-gray-700 dark:text-gray-300">{stats.total} ({percentOfMG}%)</span>
                                             </div>
                                         </div>
-                                        <div className="w-full bg-gray-100 dark:bg-[#222222] rounded-full h-2.5 overflow-hidden">
+                                        <div className="w-full bg-gray-100 dark:bg-[#2e2e2e] rounded-full h-2.5 overflow-hidden">
                                             <div
                                                 className="h-full rounded-full transition-all duration-700"
                                                 style={{ width: `${percentOfMG}%`, backgroundColor: color }}
@@ -455,8 +455,8 @@ export default async function AnimalAvailabilityPage() {
             </div>
 
             {/* Disponibilidade por Categoria */}
-            <div className="bg-white dark:bg-[#111111] p-6 rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-[#222222] pb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-[#1d1d1d] p-6 rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-[#2e2e2e] pb-4 flex items-center gap-2">
                     <List className="w-5 h-5 text-purple-500" />
                     Disponibilidade por Categoria
                 </h2>
@@ -464,7 +464,7 @@ export default async function AnimalAvailabilityPage() {
                     {sortedCategories.map(([cat, stats]) => {
                         const availPct = stats.total > 0 ? ((stats.available / stats.total) * 100).toFixed(0) : '0';
                         return (
-                            <div key={cat} className="bg-gray-50 dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#222222] p-4">
+                            <div key={cat} className="bg-gray-50 dark:bg-[#262626] rounded-xl border border-gray-200 dark:border-[#2e2e2e] p-4">
                                 <div className="flex items-start justify-between gap-2 mb-3">
                                     <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{cat}</span>
                                     <span className="text-xs font-bold text-gray-500 shrink-0">{stats.total}</span>
@@ -500,7 +500,7 @@ export default async function AnimalAvailabilityPage() {
                                 </div>
                                 {/* Mini progress bar showing availability rate */}
                                 <div className="mt-3">
-                                    <div className="w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5 overflow-hidden">
+                                    <div className="w-full bg-gray-200 dark:bg-[#2e2e2e] rounded-full h-1.5 overflow-hidden">
                                         <div
                                             className="bg-green-500 h-full rounded-full"
                                             style={{ width: `${availPct}%` }}
@@ -519,20 +519,20 @@ export default async function AnimalAvailabilityPage() {
 
             {/* Tabela: Cidades de MG */}
             {sortedMGCities.length > 0 && (
-                <div className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] shadow-xl overflow-hidden">
-                    <div className="p-6 border-b border-gray-200 dark:border-[#222222] flex items-center gap-2">
+                <div className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] shadow-xl overflow-hidden">
+                    <div className="p-6 border-b border-gray-200 dark:border-[#2e2e2e] flex items-center gap-2">
                         <List className="w-5 h-5 text-[#A0792E]" />
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                             Detalhamento por Cidade — Minas Gerais
                         </h2>
-                        <span className="ml-auto text-xs text-gray-500 bg-gray-100 dark:bg-[#1A1A1A] px-2 py-1 rounded-full">
+                        <span className="ml-auto text-xs text-gray-500 bg-gray-100 dark:bg-[#262626] px-2 py-1 rounded-full">
                             {sortedMGCities.length} cidades
                         </span>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="bg-gray-50 dark:bg-[#0A0A0A] text-gray-500 dark:text-gray-500 text-xs uppercase tracking-wider">
+                                <tr className="bg-gray-50 dark:bg-[#161616] text-gray-500 dark:text-gray-500 text-xs uppercase tracking-wider">
                                     <th className="px-6 py-3 text-left font-medium">Cidade</th>
                                     <th className="px-6 py-3 text-left font-medium">Região</th>
                                     <th className="px-4 py-3 text-center font-medium">Total</th>
@@ -542,15 +542,15 @@ export default async function AnimalAvailabilityPage() {
                                     <th className="px-6 py-3 text-left font-medium">Disponibilidade</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-[#222222]">
+                            <tbody className="divide-y divide-gray-100 dark:divide-[#2e2e2e]">
                                 {sortedMGCities.map(([city, stats]) => {
                                     const region = MG_REGIONS[city] ?? 'Outras Regiões de MG';
                                     const availPct = stats.total > 0 ? (stats.available / stats.total) * 100 : 0;
                                     return (
-                                        <tr key={city} className="hover:bg-gray-50 dark:hover:bg-[#1A1A1A]/50 transition-colors">
+                                        <tr key={city} className="hover:bg-gray-50 dark:hover:bg-[#262626]/50 transition-colors">
                                             <td className="px-6 py-3 font-medium text-gray-900 dark:text-white">{city}</td>
                                             <td className="px-6 py-3">
-                                                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-[#1A1A1A] px-2 py-0.5 rounded-full">
+                                                <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-[#262626] px-2 py-0.5 rounded-full">
                                                     {region}
                                                 </span>
                                             </td>
@@ -584,7 +584,7 @@ export default async function AnimalAvailabilityPage() {
                                             </td>
                                             <td className="px-6 py-3">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="flex-1 bg-gray-100 dark:bg-[#222222] rounded-full h-1.5 overflow-hidden max-w-[80px]">
+                                                    <div className="flex-1 bg-gray-100 dark:bg-[#2e2e2e] rounded-full h-1.5 overflow-hidden max-w-[80px]">
                                                         <div
                                                             className="h-full rounded-full bg-green-500 transition-all"
                                                             style={{ width: `${availPct.toFixed(0)}%` }}

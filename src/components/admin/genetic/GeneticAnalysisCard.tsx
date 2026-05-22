@@ -11,7 +11,7 @@ const BRAND = {
     BRONZE_PALE: '#D4A85C',
     TECH_GREEN: '#7FD4A0',
     TECH_BLUE: '#1E3A5F',
-    INK: '#0A0A0A',
+    INK: '#161616',
 } as const;
 
 // ── Types (match avaliacao_genetica_json schema) ───────────────────────────────
@@ -154,7 +154,7 @@ export function GeneticAnalysisCard({ product, catalogProducts = [] }: GeneticAn
 
     if (!has) {
         return (
-            <div className="rounded-2xl border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-white dark:bg-[#0A0A0A] p-6 text-center space-y-3">
+            <div className="rounded-2xl border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-white dark:bg-[#161616] p-6 text-center space-y-3">
                 <div className="w-12 h-12 rounded-xl mx-auto flex items-center justify-center" style={{ backgroundColor: `${BRAND.BRONZE}14`, color: BRAND.BRONZE }}>
                     <Sparkles size={20} />
                 </div>
@@ -181,7 +181,7 @@ export function GeneticAnalysisCard({ product, catalogProducts = [] }: GeneticAn
     }
 
     return (
-        <div className="rounded-2xl border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-white dark:bg-[#0A0A0A] overflow-hidden">
+        <div className="rounded-2xl border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-white dark:bg-[#161616] overflow-hidden">
 
             {/* Brand hairline */}
             <div className="relative">
@@ -222,7 +222,7 @@ export function GeneticAnalysisCard({ product, catalogProducts = [] }: GeneticAn
                         <select
                             value={method}
                             onChange={e => setMethod(e.target.value as Method)}
-                            className="w-full appearance-none px-3 py-2 pr-9 text-xs font-medium rounded-sm border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-gray-50 dark:bg-[#111] text-gray-900 dark:text-white hover:border-[#A0792E]/50 focus:outline-none focus:border-[#A0792E] transition-colors"
+                            className="w-full appearance-none px-3 py-2 pr-9 text-xs font-medium rounded-sm border border-gray-200 dark:border-[rgba(212,168,92,0.20)] bg-gray-50 dark:bg-[#1d1d1d] text-gray-900 dark:text-white hover:border-[#A0792E]/50 focus:outline-none focus:border-[#A0792E] transition-colors"
                             style={{ borderRadius: 3 }}
                         >
                             <option value="dep">DEP (Diferença Esperada na Progênie)</option>
@@ -251,7 +251,7 @@ export function GeneticAnalysisCard({ product, catalogProducts = [] }: GeneticAn
                 <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                         <thead>
-                            <tr className="border-b border-gray-100 dark:border-[#1E1E1E]">
+                            <tr className="border-b border-gray-100 dark:border-[#2A2A2A]">
                                 {['Característica', 'Selecionado', 'Catálogo', 'Diferença'].map((h, i) => (
                                     <th
                                         key={h}
@@ -262,7 +262,7 @@ export function GeneticAnalysisCard({ product, catalogProducts = [] }: GeneticAn
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50 dark:divide-[#1A1A1A]">
+                        <tbody className="divide-y divide-gray-50 dark:divide-[#262626]">
                             {AXES.map(axis => {
                                 const a = data.animal[axis];
                                 const c = data.catalog[axis];
@@ -315,7 +315,7 @@ export function GeneticAnalysisCard({ product, catalogProducts = [] }: GeneticAn
                     style={{
                         borderRadius: 3,
                         background: `linear-gradient(135deg, ${BRAND.BRONZE}, ${BRAND.BRONZE_PALE})`,
-                        color: '#0A0A0A',
+                        color: '#161616',
                     }}
                 >
                     <FileText size={13} />
@@ -429,7 +429,7 @@ function RadarChart({
                 return (
                     <g key={`a-${i}`}>
                         <circle cx={x} cy={y} r="5.5" fill={BRAND.TECH_GREEN} opacity="0.18" />
-                        <circle cx={x} cy={y} r="3.5" fill={BRAND.TECH_GREEN} stroke="#0A0A0A" strokeWidth="1" />
+                        <circle cx={x} cy={y} r="3.5" fill={BRAND.TECH_GREEN} stroke="#161616" strokeWidth="1" />
                     </g>
                 );
             })}

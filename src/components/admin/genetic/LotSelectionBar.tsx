@@ -21,7 +21,7 @@ export function LotSelectionBar({ selected, onRemove, onClear }: LotSelectionBar
     return (
         <div className="fixed bottom-4 left-3 right-3 sm:left-6 sm:right-6 z-40">
             <div
-                className="mx-auto max-w-4xl bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 backdrop-blur-xl flex items-center gap-3 px-4 py-3"
+                className="mx-auto max-w-4xl bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] shadow-2xl shadow-black/30 backdrop-blur-xl flex items-center gap-3 px-4 py-3"
                 style={{ borderRadius: 6 }}
             >
                 {/* Brand hairline */}
@@ -34,7 +34,7 @@ export function LotSelectionBar({ selected, onRemove, onClear }: LotSelectionBar
                             className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black shadow-md"
                             style={{
                                 background: `linear-gradient(135deg, ${BRAND.BRONZE}, ${BRAND.BRONZE_PALE})`,
-                                color: '#0A0A0A',
+                                color: '#161616',
                                 fontFamily: 'var(--font-mono), ui-monospace, monospace',
                                 boxShadow: `0 4px 14px ${BRAND.BRONZE}40`,
                             }}

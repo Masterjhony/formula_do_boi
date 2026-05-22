@@ -99,7 +99,7 @@ export default function ReservaCreate({ onClose, onCreated }: Props) {
     return (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto" onClick={onClose}>
             <div
-                className="relative w-full max-w-2xl bg-white dark:bg-[#0A0A0A] border border-[rgba(232,203,133,0.28)]"
+                className="relative w-full max-w-2xl bg-white dark:bg-[#161616] border border-[rgba(232,203,133,0.28)]"
                 onClick={(e) => e.stopPropagation()}
                 style={{ borderRadius: 4 }}
             >
@@ -142,8 +142,8 @@ export default function ReservaCreate({ onClose, onCreated }: Props) {
                                 onClick={() => set('product_kind', kind)}
                                 className={`flex-1 px-4 py-2.5 text-xs uppercase font-bold transition-colors border ${
                                     form.product_kind === kind
-                                        ? 'bg-[#A0792E] border-[#A0792E] text-[#0A0A0A]'
-                                        : 'bg-white dark:bg-[#141414] border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/70 hover:border-[#D4A85C]'
+                                        ? 'bg-[#A0792E] border-[#A0792E] text-[#161616]'
+                                        : 'bg-white dark:bg-[#202020] border-gray-200 dark:border-[rgba(232,203,133,0.18)] text-gray-700 dark:text-[#F5F0E4]/70 hover:border-[#D4A85C]'
                                 }`}
                                 style={{ borderRadius: 3, letterSpacing: '0.16em' }}
                             >
@@ -326,7 +326,7 @@ export default function ReservaCreate({ onClose, onCreated }: Props) {
                         <button
                             type="submit"
                             disabled={saving}
-                            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] disabled:opacity-50 text-[#0A0A0A] text-xs font-bold uppercase transition-colors"
+                            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#A0792E] hover:bg-[#D4A85C] disabled:opacity-50 text-[#161616] text-xs font-bold uppercase transition-colors"
                             style={{ borderRadius: 3, letterSpacing: '0.16em' }}
                         >
                             <Save size={13} />
@@ -339,7 +339,7 @@ export default function ReservaCreate({ onClose, onCreated }: Props) {
     );
 }
 
-const inp = "w-full px-2.5 py-2 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-sm text-gray-900 dark:text-[#F5F0E4]";
+const inp = "w-full px-2.5 py-2 bg-white dark:bg-[#202020] border border-gray-200 dark:border-[rgba(232,203,133,0.18)] focus:border-[#D4A85C] focus:outline-none text-sm text-gray-900 dark:text-[#F5F0E4]";
 
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
     return (

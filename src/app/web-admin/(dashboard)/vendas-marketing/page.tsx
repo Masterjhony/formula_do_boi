@@ -21,7 +21,7 @@ const FUNNEL_PIPELINE = ['Lead', 'Qualificado', 'Proposta', 'Negociação', 'Fec
 const STALLED_STAGES = ['Qualificado', 'Proposta', 'Negociação'];
 const STALLED_DAYS = 30;
 
-const card = 'rounded-2xl border border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#0A0A0A]';
+const card = 'rounded-2xl border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#161616]';
 const labelCls = 'text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400';
 const dataCls = 'font-mono tabular-nums';
 
@@ -407,7 +407,7 @@ export default async function VendasMarketingPage() {
         <div className="space-y-6">
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-5 border-b border-gray-200 dark:border-[#1E1E1E]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-5 border-b border-gray-200 dark:border-[#2A2A2A]">
                 <div className="flex items-center gap-3">
                     <div className="p-2.5 rounded-xl border" style={{ borderColor: `${BRAND.BRONZE}4D`, backgroundColor: `${BRAND.BRONZE}14` }}>
                         <BarChart3 className="w-5 h-5" style={{ color: BRAND.BRONZE }} />
@@ -622,7 +622,7 @@ export default async function VendasMarketingPage() {
                                                 <span className={`${dataCls}`}>({pct.toFixed(0)}%)</span>
                                             </span>
                                         </div>
-                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                                             <div className="h-full rounded-full transition-all duration-700"
                                                 style={{ width: `${pct}%`, backgroundColor: pct > 30 ? BRAND.LOSS : BRAND.BRONZE, opacity: 0.85 }} />
                                         </div>
@@ -639,7 +639,7 @@ export default async function VendasMarketingPage() {
 
                 {/* Canais */}
                 <div className={`${card} overflow-hidden flex flex-col`}>
-                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center gap-2">
+                    <div className="p-5 border-b border-gray-100 dark:border-[#2A2A2A] flex items-center gap-2">
                         <Activity size={14} style={{ color: BRAND.BRONZE }} />
                         <div>
                             <p className={labelCls}>Canais</p>
@@ -663,7 +663,7 @@ export default async function VendasMarketingPage() {
                                                 <span className={`text-[9px] text-gray-500 ${dataCls}`}>({pct.toFixed(0)}%)</span>
                                             </div>
                                         </div>
-                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                                             <div className="h-full rounded-full"
                                                 style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
                                         </div>
@@ -676,7 +676,7 @@ export default async function VendasMarketingPage() {
 
                 {/* Campanhas */}
                 <div className={`${card} overflow-hidden flex flex-col`}>
-                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center gap-2">
+                    <div className="p-5 border-b border-gray-100 dark:border-[#2A2A2A] flex items-center gap-2">
                         <Megaphone size={14} style={{ color: BRAND.BRONZE_PALE }} />
                         <div>
                             <p className={labelCls}>Top campanhas</p>
@@ -697,7 +697,7 @@ export default async function VendasMarketingPage() {
                                             </span>
                                             <span className={`text-xs font-bold ${dataCls}`} style={{ color: BRAND.BRONZE }}>{count}</span>
                                         </div>
-                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                                             <div className="h-full rounded-full"
                                                 style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_PALE}, ${BRAND.BRONZE})` }} />
                                         </div>
@@ -710,7 +710,7 @@ export default async function VendasMarketingPage() {
 
                 {/* Audiência — momento_pecuaria */}
                 <div className={`${card} overflow-hidden flex flex-col`}>
-                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center gap-2">
+                    <div className="p-5 border-b border-gray-100 dark:border-[#2A2A2A] flex items-center gap-2">
                         <Sparkles size={14} style={{ color: BRAND.TECH_BLUE }} />
                         <div>
                             <p className={labelCls}>Audiência</p>
@@ -733,7 +733,7 @@ export default async function VendasMarketingPage() {
                                                 <span className={`text-[9px] text-gray-500 ${dataCls}`}>({pct.toFixed(0)}%)</span>
                                             </div>
                                         </div>
-                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                                             <div className="h-full rounded-full"
                                                 style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.TECH_BLUE}, ${BRAND.BRONZE})` }} />
                                         </div>
@@ -778,7 +778,7 @@ export default async function VendasMarketingPage() {
                                 { label: 'Leads gerados', value: Number(metaAccount.leads).toLocaleString('pt-BR'), accent: BRAND.BRONZE },
                                 { label: 'CPL · custo por lead', value: metaAccount.cpl != null ? fmtMoney(Number(metaAccount.cpl)) : '—', accent: BRAND.TECH_GREEN },
                             ]).map(({ label, value, accent }) => (
-                                <div key={label} className="rounded-xl border border-gray-100 dark:border-[#1A1A1A] p-3.5">
+                                <div key={label} className="rounded-xl border border-gray-100 dark:border-[#262626] p-3.5">
                                     <p className={`${labelCls} mb-1.5`}>{label}</p>
                                     <p className={`text-2xl font-black ${dataCls}`} style={{ color: accent }}>{value}</p>
                                 </div>
@@ -803,7 +803,7 @@ export default async function VendasMarketingPage() {
                                                 {fmtMoney(invest)}
                                             </span>
                                         </div>
-                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                                             <div className="h-full rounded-full"
                                                 style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
                                         </div>
@@ -812,7 +812,7 @@ export default async function VendasMarketingPage() {
                             })}
                         </div>
 
-                        <p className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 dark:border-[#1A1A1A]">
+                        <p className="text-[10px] text-gray-400 mt-4 pt-3 border-t border-gray-100 dark:border-[#262626]">
                             CPL = Investimento ÷ Leads · período lifetime
                             {metaAccount.date_start && metaAccount.date_stop && (
                                 <> · {fmtDateBR(metaAccount.date_start)}–{fmtDateBR(metaAccount.date_stop)}</>
@@ -851,7 +851,7 @@ export default async function VendasMarketingPage() {
                                             <span className={`text-xs font-bold text-gray-800 dark:text-gray-200 ${dataCls}`}>{uf}</span>
                                             <span className={`text-[10px] ${dataCls}`} style={{ color: BRAND.BRONZE }}>{count}</span>
                                         </div>
-                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                                             <div className="h-full rounded-full"
                                                 style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
                                         </div>
@@ -888,7 +888,7 @@ export default async function VendasMarketingPage() {
                                             <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0"
                                                 style={{
                                                     backgroundColor: i === 0 ? BRAND.BRONZE : i === 1 ? '#C8C8C8' : i === 2 ? BRAND.BRONZE_DEEP : `${BRAND.BRONZE}1F`,
-                                                    color: i === 0 ? '#000' : i === 2 ? '#fff' : i === 1 ? '#1A1A1A' : BRAND.BRONZE,
+                                                    color: i === 0 ? '#000' : i === 2 ? '#fff' : i === 1 ? '#262626' : BRAND.BRONZE,
                                                 }}>
                                                 {i + 1}
                                             </span>
@@ -903,7 +903,7 @@ export default async function VendasMarketingPage() {
                                             {fmtBRL(b.vgv)}
                                         </span>
                                     </div>
-                                    <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                    <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
                                         <div className="h-full rounded-full transition-all duration-700"
                                             style={{
                                                 width: `${(b.vgv / maxBuyerVgv) * 100}%`,
@@ -952,7 +952,7 @@ export default async function VendasMarketingPage() {
                                     </div>
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2">
-                                            <div className="flex-1 h-3 rounded-sm bg-gray-50 dark:bg-[#111] overflow-hidden">
+                                            <div className="flex-1 h-3 rounded-sm bg-gray-50 dark:bg-[#1d1d1d] overflow-hidden">
                                                 <div className="h-full rounded-sm transition-all duration-700"
                                                     style={{ width: `${vgvPct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
                                             </div>
@@ -963,7 +963,7 @@ export default async function VendasMarketingPage() {
                                         {(r.investido > 0 || r.retorno > 0) && (
                                             <>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="flex-1 h-1.5 rounded-sm bg-gray-50 dark:bg-[#111] overflow-hidden">
+                                                    <div className="flex-1 h-1.5 rounded-sm bg-gray-50 dark:bg-[#1d1d1d] overflow-hidden">
                                                         <div className="h-full rounded-sm" style={{ width: `${investidoPct}%`, backgroundColor: BRAND.LOSS, opacity: 0.7 }} />
                                                     </div>
                                                     <span className={`text-[9px] w-20 text-right ${dataCls}`} style={{ color: BRAND.LOSS }}>
@@ -971,7 +971,7 @@ export default async function VendasMarketingPage() {
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="flex-1 h-1.5 rounded-sm bg-gray-50 dark:bg-[#111] overflow-hidden">
+                                                    <div className="flex-1 h-1.5 rounded-sm bg-gray-50 dark:bg-[#1d1d1d] overflow-hidden">
                                                         <div className="h-full rounded-sm" style={{ width: `${retornoPct}%`, backgroundColor: BRAND.TECH_GREEN }} />
                                                     </div>
                                                     <span className={`text-[9px] w-20 text-right ${dataCls}`} style={{ color: BRAND.TECH_GREEN }}>
@@ -996,7 +996,7 @@ export default async function VendasMarketingPage() {
                         })}
                     </div>
 
-                    <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 dark:border-[#1A1A1A] text-[10px] text-gray-500 flex-wrap">
+                    <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 dark:border-[#262626] text-[10px] text-gray-500 flex-wrap">
                         <span className="flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-sm" style={{ background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
                             VGV
@@ -1048,7 +1048,7 @@ export default async function VendasMarketingPage() {
                             { label: 'Taxa de entrega', value: fmtPct(wppSentRate), color: BRAND.TECH_GREEN, isText: true },
                             { label: 'Taxa de resposta', value: fmtPct(wppReplyRate), color: BRAND.BRONZE_PALE, isText: true },
                         ].map(({ label, value, color, isText }) => (
-                            <div key={label} className="rounded-xl border border-gray-100 dark:border-[#1A1A1A] p-3">
+                            <div key={label} className="rounded-xl border border-gray-100 dark:border-[#262626] p-3">
                                 <p className={`${labelCls} mb-1`}>{label}</p>
                                 <p className={`text-xl font-black ${dataCls}`} style={{ color }}>
                                     {isText ? value : Number(value).toLocaleString('pt-BR')}
@@ -1064,7 +1064,7 @@ export default async function VendasMarketingPage() {
 
                 {/* Hot leads — MQL ativos */}
                 <div className={`${card} overflow-hidden flex flex-col`}>
-                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
+                    <div className="p-5 border-b border-gray-100 dark:border-[#2A2A2A] flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Flame size={14} style={{ color: BRAND.LOSS }} />
                             <div>
@@ -1082,12 +1082,12 @@ export default async function VendasMarketingPage() {
                             <p className="text-xs">Nenhum MQL ativo no momento.</p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-gray-100 dark:divide-[#1E1E1E]">
+                        <div className="divide-y divide-gray-100 dark:divide-[#2A2A2A]">
                             {hotLeads.map(l => {
                                 const created = new Date(l.created_at);
                                 const diasAtras = Math.floor((now.getTime() - created.getTime()) / 86400000);
                                 return (
-                                    <Link href="/crm" key={l.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-[#111] transition-colors group">
+                                    <Link href="/crm" key={l.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-[#1d1d1d] transition-colors group">
                                         <div className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
                                             style={{ background: `linear-gradient(135deg, ${BRAND.BRONZE}, ${BRAND.BRONZE_PALE})`, color: '#000' }}>
                                             <Crown size={14} />
@@ -1108,7 +1108,7 @@ export default async function VendasMarketingPage() {
 
                 {/* Leads recentes */}
                 <div className={`${card} overflow-hidden flex flex-col`}>
-                    <div className="p-5 border-b border-gray-100 dark:border-[#1E1E1E] flex items-center justify-between">
+                    <div className="p-5 border-b border-gray-100 dark:border-[#2A2A2A] flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Sparkles size={14} style={{ color: BRAND.BRONZE }} />
                             <div>
@@ -1126,13 +1126,13 @@ export default async function VendasMarketingPage() {
                             <p className="text-xs">Nenhum lead cadastrado ainda.</p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-gray-100 dark:divide-[#1E1E1E]">
+                        <div className="divide-y divide-gray-100 dark:divide-[#2A2A2A]">
                             {recentLeads.map(l => {
                                 const created = new Date(l.created_at);
                                 const diasAtras = Math.floor((now.getTime() - created.getTime()) / 86400000);
                                 const prioColor = l.prioridade === 'Alta' ? BRAND.LOSS : l.prioridade === 'Média' ? BRAND.BRONZE : BRAND.TECH_BLUE;
                                 return (
-                                    <Link href="/crm" key={l.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-[#111] transition-colors group">
+                                    <Link href="/crm" key={l.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-[#1d1d1d] transition-colors group">
                                         <div className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
                                             style={{ backgroundColor: `${BRAND.BRONZE}14`, color: BRAND.BRONZE }}>
                                             {(l.nome || '?').charAt(0).toUpperCase()}

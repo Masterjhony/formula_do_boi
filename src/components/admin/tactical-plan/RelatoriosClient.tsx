@@ -102,7 +102,7 @@ function FilterSelect({
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] rounded text-sm py-2 px-3 focus:outline-none focus:border-[#A0792E] text-gray-900 dark:text-[#F5F0E4]"
+                className="bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] rounded text-sm py-2 px-3 focus:outline-none focus:border-[#A0792E] text-gray-900 dark:text-[#F5F0E4]"
                 style={{ borderRadius: 3 }}
             >
                 <option value="">{placeholder}</option>
@@ -130,7 +130,7 @@ function KPICard({
     }
     const t = toneClasses[tone] ?? toneClasses.gold
     return (
-        <div className="relative bg-white dark:bg-[#0F0F0F] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] p-4 overflow-hidden" style={{ borderRadius: 3 }}>
+        <div className="relative bg-white dark:bg-[#1B1B1B] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] p-4 overflow-hidden" style={{ borderRadius: 3 }}>
             <span className={`absolute top-0 left-0 right-0 h-[2px] ${t.stripe}`} aria-hidden />
             <div className="flex items-start justify-between mb-2">
                 <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-gray-500 dark:text-[#F5F0E4]/50">
@@ -285,7 +285,7 @@ export function RelatoriosClient({
                         onClick={() => setConfigOpen(v => !v)}
                         className={`flex items-center gap-1.5 px-3.5 py-2 text-sm transition-colors ${configOpen
                             ? 'bg-[#A0792E]/10 border border-[#A0792E] text-[#A0792E] dark:text-[#D4A85C]'
-                            : 'bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#A0792E]'
+                            : 'bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#A0792E]'
                             }`}
                         style={{ borderRadius: 3 }}
                         aria-expanded={configOpen}
@@ -298,7 +298,7 @@ export function RelatoriosClient({
                         type="button"
                         onClick={() => handleGenerate('executive')}
                         disabled={generating !== null}
-                        className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-white dark:bg-[#0F0F0F] border border-[#A0792E]/60 text-[#A0792E] dark:text-[#D4A85C] hover:bg-[#A0792E]/5 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-white dark:bg-[#1B1B1B] border border-[#A0792E]/60 text-[#A0792E] dark:text-[#D4A85C] hover:bg-[#A0792E]/5 transition-colors disabled:opacity-50"
                         style={{ borderRadius: 3 }}
                     >
                         <FileText size={14} />
@@ -308,7 +308,7 @@ export function RelatoriosClient({
                         type="button"
                         onClick={() => handleGenerate('detailed')}
                         disabled={generating !== null}
-                        className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#A0792E] text-[#0A0A0A] hover:bg-[#8A6826] transition-colors disabled:opacity-50 font-medium shadow-sm shadow-[#A0792E]/30"
+                        className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#A0792E] text-[#161616] hover:bg-[#8A6826] transition-colors disabled:opacity-50 font-medium shadow-sm shadow-[#A0792E]/30"
                         style={{ borderRadius: 3 }}
                     >
                         <Download size={14} />
@@ -328,8 +328,8 @@ export function RelatoriosClient({
                             type="button"
                             onClick={() => setBoard(b.key)}
                             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border transition-colors ${active
-                                ? 'bg-[#A0792E] text-[#0A0A0A] border-[#A0792E]'
-                                : 'bg-white dark:bg-[#0F0F0F] border-gray-200 dark:border-[rgba(212,168,92,0.22)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#A0792E]'
+                                ? 'bg-[#A0792E] text-[#161616] border-[#A0792E]'
+                                : 'bg-white dark:bg-[#1B1B1B] border-gray-200 dark:border-[rgba(212,168,92,0.22)] text-gray-700 dark:text-[#F5F0E4]/80 hover:border-[#A0792E]'
                                 }`}
                             style={{ borderRadius: 3 }}
                         >
@@ -337,7 +337,7 @@ export function RelatoriosClient({
                             <span
                                 className={`text-[11px] font-mono px-1.5 py-0.5 ${active
                                     ? 'bg-black/15'
-                                    : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-500'
+                                    : 'bg-gray-100 dark:bg-[#262626] text-gray-500'
                                     }`}
                                 style={{ borderRadius: 2 }}
                             >
@@ -349,7 +349,7 @@ export function RelatoriosClient({
             </div>
 
             {/* ─── Filtros ─── */}
-            <div className="bg-gradient-to-br from-white to-gray-50 dark:from-[#0F0F0F] dark:to-[#0A0A0A] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] p-4 sm:p-5" style={{ borderRadius: 3 }}>
+            <div className="bg-gradient-to-br from-white to-gray-50 dark:from-[#1B1B1B] dark:to-[#161616] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] p-4 sm:p-5" style={{ borderRadius: 3 }}>
                 <div className="flex items-center gap-2 mb-4">
                     <Filter size={14} className="text-[#A0792E] dark:text-[#D4A85C]" />
                     <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-gray-700 dark:text-[#F5F0E4]/80 font-medium">Filtros</span>
@@ -421,7 +421,7 @@ export function RelatoriosClient({
                                 type="date"
                                 value={customFrom}
                                 onChange={(e) => setCustomFrom(e.target.value)}
-                                className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] rounded text-sm py-2 px-3 focus:outline-none focus:border-[#A0792E] text-gray-900 dark:text-[#F5F0E4]"
+                                className="bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] rounded text-sm py-2 px-3 focus:outline-none focus:border-[#A0792E] text-gray-900 dark:text-[#F5F0E4]"
                                 style={{ borderRadius: 3 }}
                             />
                         </label>
@@ -431,7 +431,7 @@ export function RelatoriosClient({
                                 type="date"
                                 value={customTo}
                                 onChange={(e) => setCustomTo(e.target.value)}
-                                className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] rounded text-sm py-2 px-3 focus:outline-none focus:border-[#A0792E] text-gray-900 dark:text-[#F5F0E4]"
+                                className="bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] rounded text-sm py-2 px-3 focus:outline-none focus:border-[#A0792E] text-gray-900 dark:text-[#F5F0E4]"
                                 style={{ borderRadius: 3 }}
                             />
                         </label>
@@ -462,7 +462,7 @@ export function RelatoriosClient({
             {configOpen && (
                 <div
                     id="rel-config-panel"
-                    className="bg-white dark:bg-[#0F0F0F] border border-[#A0792E]/40 overflow-hidden"
+                    className="bg-white dark:bg-[#1B1B1B] border border-[#A0792E]/40 overflow-hidden"
                     style={{ borderRadius: 3 }}
                 >
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-[rgba(212,168,92,0.14)] flex items-center gap-2 bg-gradient-to-r from-[#A0792E]/5 to-transparent">
@@ -492,7 +492,7 @@ export function RelatoriosClient({
                                 type="button"
                                 onClick={() => startTransition(() => router.refresh())}
                                 disabled={pending}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:border-[#A0792E] text-gray-700 dark:text-[#F5F0E4]/80 transition-colors disabled:opacity-50"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:border-[#A0792E] text-gray-700 dark:text-[#F5F0E4]/80 transition-colors disabled:opacity-50"
                                 style={{ borderRadius: 3 }}
                             >
                                 <RefreshCw size={12} className={pending ? 'animate-spin' : ''} />
@@ -518,7 +518,7 @@ export function RelatoriosClient({
                                 type="button"
                                 onClick={() => handleNormalizeChecklists(true)}
                                 disabled={normalizing !== 'idle'}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:border-[#A0792E] text-gray-700 dark:text-[#F5F0E4]/80 transition-colors disabled:opacity-50"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[rgba(212,168,92,0.22)] hover:border-[#A0792E] text-gray-700 dark:text-[#F5F0E4]/80 transition-colors disabled:opacity-50"
                                 style={{ borderRadius: 3 }}
                             >
                                 <RefreshCw size={12} className={normalizing === 'preview' ? 'animate-spin' : ''} />
@@ -531,7 +531,7 @@ export function RelatoriosClient({
                                     handleNormalizeChecklists(false)
                                 }}
                                 disabled={normalizing !== 'idle'}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] bg-[#A0792E] text-[#0A0A0A] hover:bg-[#8A6826] transition-colors disabled:opacity-50 font-medium"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] bg-[#A0792E] text-[#161616] hover:bg-[#8A6826] transition-colors disabled:opacity-50 font-medium"
                                 style={{ borderRadius: 3 }}
                             >
                                 <Wand2 size={12} />
@@ -548,7 +548,7 @@ export function RelatoriosClient({
 
                         {normalizeResult && normalizeResult.changes.length > 0 && (
                             <div className="mt-4 border border-gray-100 dark:border-[rgba(212,168,92,0.14)] overflow-hidden" style={{ borderRadius: 3 }}>
-                                <div className="bg-gray-50 dark:bg-[#0A0A0A] px-3 py-2 text-[10px] font-mono uppercase tracking-[0.16em] text-gray-500 dark:text-[#F5F0E4]/40 flex items-center justify-between">
+                                <div className="bg-gray-50 dark:bg-[#161616] px-3 py-2 text-[10px] font-mono uppercase tracking-[0.16em] text-gray-500 dark:text-[#F5F0E4]/40 flex items-center justify-between">
                                     <span>Mostrando {Math.min(normalizeResult.changes.length, 50)} de {normalizeResult.totalChanges} alterações</span>
                                     {normalizeResult.dryRun && <span className="text-amber-600 dark:text-amber-400">DRY RUN</span>}
                                 </div>
@@ -602,7 +602,7 @@ export function RelatoriosClient({
             {/* ─── Status geral + Por responsável ─── */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
                 {/* Status geral */}
-                <div className="lg:col-span-2 bg-white dark:bg-[#0F0F0F] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] overflow-hidden" style={{ borderRadius: 3 }}>
+                <div className="lg:col-span-2 bg-white dark:bg-[#1B1B1B] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] overflow-hidden" style={{ borderRadius: 3 }}>
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-[rgba(212,168,92,0.14)] flex items-center justify-between">
                         <div>
                             <h3 className="text-sm font-bold text-gray-900 dark:text-[#F5F0E4]">Status geral das tarefas</h3>
@@ -632,7 +632,7 @@ export function RelatoriosClient({
                                                 <td className="px-3 py-2.5 text-right font-mono">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <span className="text-[11px] text-gray-500">{fmtPct(pct)}</span>
-                                                        <span className="block h-1.5 bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden w-16">
+                                                        <span className="block h-1.5 bg-gray-100 dark:bg-[#262626] rounded-full overflow-hidden w-16">
                                                             <span className="block h-full bg-[#A0792E]" style={{ width: `${pct}%` }} />
                                                         </span>
                                                     </div>
@@ -647,7 +647,7 @@ export function RelatoriosClient({
                 </div>
 
                 {/* Por responsável (ranking) */}
-                <div className="lg:col-span-3 bg-white dark:bg-[#0F0F0F] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] overflow-hidden" style={{ borderRadius: 3 }}>
+                <div className="lg:col-span-3 bg-white dark:bg-[#1B1B1B] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] overflow-hidden" style={{ borderRadius: 3 }}>
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-[rgba(212,168,92,0.14)] flex items-center justify-between">
                         <div>
                             <h3 className="text-sm font-bold text-gray-900 dark:text-[#F5F0E4]">Carga por responsável</h3>
@@ -677,7 +677,7 @@ export function RelatoriosClient({
                                             <tr key={name} className="border-t border-gray-100 dark:border-[rgba(212,168,92,0.1)]">
                                                 <td className="px-3 py-2.5">
                                                     <div className="font-medium text-gray-900 dark:text-[#F5F0E4]">{name}</div>
-                                                    <div className="mt-1 h-1 w-full max-w-[180px] bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden">
+                                                    <div className="mt-1 h-1 w-full max-w-[180px] bg-gray-100 dark:bg-[#262626] rounded-full overflow-hidden">
                                                         <span className="block h-full bg-emerald-500" style={{ width: `${pctComp}%` }} />
                                                     </div>
                                                 </td>
@@ -699,7 +699,7 @@ export function RelatoriosClient({
             {/* ─── Atrasadas + Checklists preview ─── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Atrasadas */}
-                <div className="bg-white dark:bg-[#0F0F0F] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] overflow-hidden" style={{ borderRadius: 3 }}>
+                <div className="bg-white dark:bg-[#1B1B1B] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] overflow-hidden" style={{ borderRadius: 3 }}>
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-[rgba(212,168,92,0.14)] flex items-center justify-between">
                         <div>
                             <h3 className="text-sm font-bold text-gray-900 dark:text-[#F5F0E4] flex items-center gap-2">
@@ -736,7 +736,7 @@ export function RelatoriosClient({
                 </div>
 
                 {/* Checklists snapshot */}
-                <div className="bg-white dark:bg-[#0F0F0F] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] overflow-hidden" style={{ borderRadius: 3 }}>
+                <div className="bg-white dark:bg-[#1B1B1B] border border-gray-200/70 dark:border-[rgba(212,168,92,0.22)] overflow-hidden" style={{ borderRadius: 3 }}>
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-[rgba(212,168,92,0.14)] flex items-center justify-between">
                         <div>
                             <h3 className="text-sm font-bold text-gray-900 dark:text-[#F5F0E4] flex items-center gap-2">
@@ -772,7 +772,7 @@ export function RelatoriosClient({
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="h-1.5 flex-1 bg-gray-100 dark:bg-[#1A1A1A] rounded-full overflow-hidden">
+                                            <div className="h-1.5 flex-1 bg-gray-100 dark:bg-[#262626] rounded-full overflow-hidden">
                                                 <span className="block h-full bg-[#A0792E]" style={{ width: `${pct}%` }} />
                                             </div>
                                             <span className="text-[10px] font-mono text-gray-500 dark:text-[#F5F0E4]/50 shrink-0">{fmtPct(pct)}</span>

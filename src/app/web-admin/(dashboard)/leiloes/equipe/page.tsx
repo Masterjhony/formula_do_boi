@@ -38,7 +38,7 @@ function autoIniciais(nome: string): string {
   return nome.trim().split(/\s+/).map(p => p[0] ?? '').join('').slice(0, 2).toUpperCase()
 }
 
-const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#0A0A0A] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E] transition-colors"
+const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#363636] bg-white dark:bg-[#161616] text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:border-[#A0792E] transition-colors"
 const labelCls = "block text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1"
 
 export default function EquipePage() {
@@ -80,7 +80,7 @@ export default function EquipePage() {
         <div className="dcl-pagehead-right">
           <button
             onClick={() => setShowInactive(s => !s)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-[#2A2A2A] hover:bg-gray-50 dark:hover:bg-[#161616]"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-[#363636] hover:bg-gray-50 dark:hover:bg-[#222222]"
           >
             <Power size={13} /> {showInactive ? 'Esconder inativos' : `Mostrar inativos (${items.length - ativos})`}
           </button>
@@ -178,7 +178,7 @@ export default function EquipePage() {
 
 function StatCard({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: string }) {
   return (
-    <div className="p-4 rounded-2xl bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#1F1F1F]">
+    <div className="p-4 rounded-2xl bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[#2B2B2B]">
       <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold">
         <Icon size={12} /> {label}
       </div>
@@ -190,7 +190,7 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ComponentType<{ si
 function MembroCard({ membro, onEdit }: { membro: EquipeMembro; onEdit: () => void }) {
   return (
     <div
-      className={`p-4 rounded-2xl bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#1F1F1F] hover:border-[#A0792E]/50 transition-colors cursor-pointer ${membro.ativo ? '' : 'opacity-60'}`}
+      className={`p-4 rounded-2xl bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[#2B2B2B] hover:border-[#A0792E]/50 transition-colors cursor-pointer ${membro.ativo ? '' : 'opacity-60'}`}
       onClick={onEdit}
     >
       <div className="flex items-start gap-3">
@@ -220,7 +220,7 @@ function MembroCard({ membro, onEdit }: { membro: EquipeMembro; onEdit: () => vo
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onEdit() }}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#1A1A1A]"
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#262626]"
           aria-label="Editar"
         >
           <Edit2 size={14} />
@@ -228,7 +228,7 @@ function MembroCard({ membro, onEdit }: { membro: EquipeMembro; onEdit: () => vo
       </div>
 
       {(membro.telefone || membro.email) && (
-        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-[#1A1A1A] flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-[#262626] flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400">
           {membro.telefone && (
             <div className="flex items-center gap-1.5"><Phone size={11} /> {membro.telefone}</div>
           )}
@@ -276,11 +276,11 @@ function FormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#1F1F1F] shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-[#1B1B1B] border border-gray-200 dark:border-[#2B2B2B] shadow-2xl"
       >
-        <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-[#1F1F1F]">
+        <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-[#2B2B2B]">
           <h2 className="font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
-          <button type="button" onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A]">
+          <button type="button" onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-[#262626]">
             <X size={18} />
           </button>
         </div>
@@ -340,7 +340,7 @@ function FormModal({
               <input
                 type="color" value={form.cor}
                 onChange={e => set('cor', e.target.value)}
-                className="w-10 h-10 rounded-lg border border-gray-200 dark:border-[#2A2A2A] cursor-pointer"
+                className="w-10 h-10 rounded-lg border border-gray-200 dark:border-[#363636] cursor-pointer"
               />
               <input
                 value={form.cor}
@@ -371,7 +371,7 @@ function FormModal({
           </button>
 
           {advanced && (
-            <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-[#1A1A1A]">
+            <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-[#262626]">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>Telefone</label>
@@ -426,7 +426,7 @@ function FormModal({
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-3 p-5 border-t border-gray-200 dark:border-[#1F1F1F]">
+        <div className="flex items-center justify-between gap-3 p-5 border-t border-gray-200 dark:border-[#2B2B2B]">
           {allowDelete && onDelete ? (
             <button
               type="button"
@@ -445,7 +445,7 @@ function FormModal({
           <div className="flex items-center gap-2">
             <button
               type="button" onClick={onClose}
-              className="px-3 py-2 rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-[#2A2A2A] hover:bg-gray-50 dark:hover:bg-[#161616]"
+              className="px-3 py-2 rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-[#363636] hover:bg-gray-50 dark:hover:bg-[#222222]"
             >
               Cancelar
             </button>

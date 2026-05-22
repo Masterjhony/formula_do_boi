@@ -47,7 +47,7 @@ export default function ReservaCard({ reservation: r, onClick, dragging }: Props
                 e.stopPropagation();
                 onClick?.();
             }}
-            className={`relative cursor-grab active:cursor-grabbing bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-[rgba(232,203,133,0.16)] hover:border-[#D4A85C] dark:hover:border-[#D4A85C] transition-colors group ${dragging ? 'shadow-2xl shadow-black/40 ring-1 ring-[#D4A85C]/40' : ''}`}
+            className={`relative cursor-grab active:cursor-grabbing bg-white dark:bg-[#2A2A2A] border border-gray-200 dark:border-[rgba(232,203,133,0.16)] hover:border-[#D4A85C] dark:hover:border-[#D4A85C] transition-colors group ${dragging ? 'shadow-2xl shadow-black/40 ring-1 ring-[#D4A85C]/40' : ''}`}
             style={dragStyle}
         >
             {/* hairline tick */}

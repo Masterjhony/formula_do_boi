@@ -140,7 +140,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                     { label: 'Reservadas', value: counts.reservado, icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
                     { label: 'Vendidas', value: counts.vendido, icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10' },
                 ].map(({ label, value, icon: Icon, color, bg }) => (
-                    <div key={label} className="bg-white dark:bg-[#111111] rounded-2xl border border-gray-200 dark:border-[#222222] p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
+                    <div key={label} className="bg-white dark:bg-[#1d1d1d] rounded-2xl border border-gray-200 dark:border-[#2e2e2e] p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
                         <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
                             <Icon size={18} className={color} />
                         </div>
@@ -161,13 +161,13 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                         placeholder="Buscar por nome, RGD, pai..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/30 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none focus:border-[#A0792E]/50 focus:ring-1 focus:ring-[#A0792E]/30 transition-all"
                     />
                 </div>
                 <select
                     value={categoryFilter}
                     onChange={e => setCategoryFilter(e.target.value)}
-                    className="px-4 py-2.5 bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 cursor-pointer sm:min-w-[160px]"
+                    className="px-4 py-2.5 bg-white dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#A0792E]/50 cursor-pointer sm:min-w-[160px]"
                 >
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -178,7 +178,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                             onClick={() => setStatusFilter(s)}
                             className={`px-2 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${statusFilter === s
                                 ? 'bg-gradient-to-r from-[#A0792E] to-[#D4A85C] text-black shadow-md shadow-[#A0792E]/20'
-                                : 'bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#222222] text-gray-600 dark:text-gray-400 hover:border-[#A0792E]/40'
+                                : 'bg-white dark:bg-[#1d1d1d] border border-gray-200 dark:border-[#2e2e2e] text-gray-600 dark:text-gray-400 hover:border-[#A0792E]/40'
                                 }`}
                         >
                             {s}
@@ -194,7 +194,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                 <div>
                     {filtered.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-[#1A1A1A] flex items-center justify-center">
+                            <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-[#262626] flex items-center justify-center">
                                 <AlertCircle size={24} className="text-gray-400" />
                             </div>
                             <p className="text-gray-500">Nenhuma doadora encontrada.</p>
@@ -217,14 +217,14 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                                 return (
                                     <div
                                         key={p.id}
-                                        className={`group bg-white dark:bg-[#111111] rounded-2xl border overflow-hidden transition-all duration-200 flex flex-col ${
+                                        className={`group bg-white dark:bg-[#1d1d1d] rounded-2xl border overflow-hidden transition-all duration-200 flex flex-col ${
                                             isSelected
                                                 ? 'border-[#7FD4A0] shadow-lg shadow-[#7FD4A0]/20'
-                                                : 'border-gray-200 dark:border-[#222222] hover:border-[#A0792E]/40 hover:shadow-lg hover:shadow-[#A0792E]/5'
+                                                : 'border-gray-200 dark:border-[#2e2e2e] hover:border-[#A0792E]/40 hover:shadow-lg hover:shadow-[#A0792E]/5'
                                         } ${p.active === false ? 'opacity-60' : ''}`}
                                     >
                                         {/* Image */}
-                                        <div className="relative h-44 bg-gray-100 dark:bg-[#1A1A1A] overflow-hidden">
+                                        <div className="relative h-44 bg-gray-100 dark:bg-[#262626] overflow-hidden">
                                             {img ? (
                                                 img.endsWith('.mp4') ? (
                                                     <video src={img} className="w-full h-full object-cover" muted playsInline />
@@ -242,7 +242,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                                                 )
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center">
-                                                    <Dna size={40} className="text-gray-300 dark:text-[#333333]" />
+                                                    <Dna size={40} className="text-gray-300 dark:text-[#3f3f3f]" />
                                                 </div>
                                             )}
                                             <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold backdrop-blur-sm ${style.badge}`}>
@@ -301,7 +301,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                                             )}
 
                                             {/* Actions */}
-                                            <div className="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-[#222222] mt-auto">
+                                            <div className="flex gap-1.5 pt-2 border-t border-gray-100 dark:border-[#2e2e2e] mt-auto">
                                                 <Link
                                                     href={`/products/${p.id}`}
                                                     className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#A0792E]/10 text-[#A0792E] hover:bg-[#A0792E]/20 text-[11px] font-bold uppercase tracking-wider transition-all"
@@ -315,7 +315,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                                                     className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all ${
                                                         isSelected
                                                             ? 'bg-[#7FD4A0]/20 text-[#7FD4A0] hover:bg-[#7FD4A0]/30'
-                                                            : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#252525]'
+                                                            : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#313131]'
                                                     }`}
                                                 >
                                                     <CheckCircle size={11} />
@@ -326,7 +326,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                                                         onClick={() => handleDownloadMedia(p)}
                                                         disabled={downloadingId === p.id}
                                                         title="Baixar mídia"
-                                                        className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 hover:bg-gray-200 dark:hover:bg-[#252525] transition-all disabled:opacity-60"
+                                                        className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#262626] text-gray-500 hover:bg-gray-200 dark:hover:bg-[#313131] transition-all disabled:opacity-60"
                                                     >
                                                         {downloadingId === p.id
                                                             ? <Loader2 size={13} className="animate-spin" />
@@ -336,7 +336,7 @@ export default function LotesDoadoresClient({ initialProducts }: { initialProduc
                                                 <button
                                                     onClick={() => handleToggleActive(p)}
                                                     title={p.active === false ? 'Tornar visível' : 'Ocultar'}
-                                                    className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 hover:bg-gray-200 dark:hover:bg-[#252525] transition-all"
+                                                    className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#262626] text-gray-500 hover:bg-gray-200 dark:hover:bg-[#313131] transition-all"
                                                 >
                                                     {p.active === false ? <Eye size={13} /> : <EyeOff size={13} />}
                                                 </button>

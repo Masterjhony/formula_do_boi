@@ -189,7 +189,7 @@ export default function BreedersPage() {
 
             {/* Add Form */}
             {isAdding && (
-                <div className="bg-white dark:bg-[#1A1A1A] p-6 rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm animate-in slide-in-from-top-2">
+                <div className="bg-white dark:bg-[#262626] p-6 rounded-xl border border-gray-200 dark:border-[#3f3f3f] shadow-sm animate-in slide-in-from-top-2">
                     <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4">Novo Cadastro</h3>
                     <form onSubmit={handleAddBreeder} className="flex gap-4 items-end">
                         <div className="flex-1 space-y-1">
@@ -198,7 +198,7 @@ export default function BreedersPage() {
                                 autoFocus
                                 value={newBreederName}
                                 onChange={(e) => setNewBreederName(e.target.value)}
-                                className="w-full p-2 border border-gray-300 dark:border-[#333333] bg-white dark:bg-[#111111] text-gray-900 dark:text-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-brand-gold/50"
+                                className="w-full p-2 border border-gray-300 dark:border-[#3f3f3f] bg-white dark:bg-[#1d1d1d] text-gray-900 dark:text-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-brand-gold/50"
                                 placeholder="Ex: Agropecuária Visual"
                             />
                         </div>
@@ -223,7 +223,7 @@ export default function BreedersPage() {
             {/* Edit Modal (Simple Inline or Overlay? Let's do Overlay for clarity) */}
             {isEditing && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-[#1A1A1A] p-6 rounded-xl shadow-xl w-full max-w-md border border-gray-200 dark:border-[#333333]">
+                    <div className="bg-white dark:bg-[#262626] p-6 rounded-xl shadow-xl w-full max-w-md border border-gray-200 dark:border-[#3f3f3f]">
                         <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-4">Editar Criador</h3>
                         <form onSubmit={handleUpdateBreeder} className="space-y-4">
                             <div>
@@ -232,7 +232,7 @@ export default function BreedersPage() {
                                     autoFocus
                                     value={editName}
                                     onChange={(e) => setEditName(e.target.value)}
-                                    className="w-full mt-1 p-2 border border-gray-300 dark:border-[#333333] bg-white dark:bg-[#111111] text-gray-900 dark:text-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-brand-gold/50"
+                                    className="w-full mt-1 p-2 border border-gray-300 dark:border-[#3f3f3f] bg-white dark:bg-[#1d1d1d] text-gray-900 dark:text-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-brand-gold/50"
                                 />
                                 <p className="text-xs text-yellow-600 mt-1">
                                     Nota: Isso também atualizará o nome nos animais vinculados.
@@ -259,8 +259,8 @@ export default function BreedersPage() {
                 </div>
             )}
 
-            <div className="bg-white dark:bg-[#1A1A1A] rounded-xl border border-gray-200 dark:border-[#333333] shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-gray-200 dark:border-[#333333] bg-gray-50 dark:bg-[#111111] font-medium text-gray-500 dark:text-gray-400 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center">
+            <div className="bg-white dark:bg-[#262626] rounded-xl border border-gray-200 dark:border-[#3f3f3f] shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-gray-200 dark:border-[#3f3f3f] bg-gray-50 dark:bg-[#1d1d1d] font-medium text-gray-500 dark:text-gray-400 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center">
                     <div className="w-12 text-center">#</div>
                     <div>Nome</div>
                     <div className="text-center w-32">Animais</div>
@@ -277,7 +277,7 @@ export default function BreedersPage() {
                         Nenhum criador cadastrado.
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100 dark:divide-[#333333]">
+                    <div className="divide-y divide-gray-100 dark:divide-[#3f3f3f]">
                         {breeders.map((breeder, index) => {
                             const count = productCounts[breeder.name] || 0;
                             const isExpanded = expandedBreeders.has(breeder.name);
@@ -285,7 +285,7 @@ export default function BreedersPage() {
 
                             return (
                                 <div key={breeder.id}>
-                                    <div className="p-4 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-50 dark:hover:bg-[#111111] transition-colors">
+                                    <div className="p-4 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-50 dark:hover:bg-[#1d1d1d] transition-colors">
                                         <div className="w-12 text-center text-gray-400 dark:text-gray-600 text-sm">{index + 1}</div>
                                         <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                                             <User className="w-4 h-4 text-gray-400" />
@@ -328,16 +328,16 @@ export default function BreedersPage() {
 
                                     {/* Expanded animals list */}
                                     {isExpanded && animals.length > 0 && (
-                                        <div className="bg-gray-50 dark:bg-[#111111] border-t border-gray-100 dark:border-[#2a2a2a]">
+                                        <div className="bg-gray-50 dark:bg-[#1d1d1d] border-t border-gray-100 dark:border-[#363636]">
                                             <div className="px-6 py-3 grid grid-cols-[auto_1fr_auto_auto] gap-4 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                                                 <div className="w-12"></div>
                                                 <div>Animal</div>
                                                 <div className="w-32 text-center">Categoria</div>
                                                 <div className="w-24 text-right">Preço</div>
                                             </div>
-                                            <div className="divide-y divide-gray-100 dark:divide-[#2a2a2a]">
+                                            <div className="divide-y divide-gray-100 dark:divide-[#363636]">
                                                 {animals.map((animal) => (
-                                                    <div key={animal.id} className="px-6 py-3 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-colors">
+                                                    <div key={animal.id} className="px-6 py-3 grid grid-cols-[auto_1fr_auto_auto] gap-4 items-center hover:bg-gray-100 dark:hover:bg-[#262626] transition-colors">
                                                         <div className="w-12 flex justify-center">
                                                             {animal.image_url ? (
                                                                 <img
