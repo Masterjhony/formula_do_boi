@@ -8,9 +8,9 @@ export const EMBRYOS = [
         logistica: "frete_gratis",
         forma_pagamento: "Entrada + 30x",
         location: "Uberaba - MG",
-        image: "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770325189/Trufa_Berrante_Ouro_wkoaiv.mp4",
+        image: "https://res.cloudinary.com/dny0ibgbn/video/upload/v1779417290/TRUFA_BERRANTE_DE_OURO_-_Pacote_10_Embri_es_hf9zfc.mp4",
         gallery: [
-            "https://res.cloudinary.com/dkh2nsugb/video/upload/v1770325189/Trufa_Berrante_Ouro_wkoaiv.mp4",
+            "https://res.cloudinary.com/dny0ibgbn/video/upload/v1779417290/TRUFA_BERRANTE_DE_OURO_-_Pacote_10_Embri_es_hf9zfc.mp4",
         ],
         price: "12.000,00",
         installments: "320,00",
