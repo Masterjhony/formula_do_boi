@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import {
     Users, Target, MessageSquare, ArrowRight, TrendingUp, TrendingDown, CheckCircle2,
     Sparkles, ChevronRight, Activity, Trophy, Lightbulb, BarChart3,
-    Crown, Zap, MapPin, Megaphone, Hourglass, Flame, Calendar, DollarSign,
+    Crown, Zap, Megaphone, Hourglass, Flame, Calendar, DollarSign,
 } from 'lucide-react';
 import Link from 'next/link';
 import { FunnelChart } from '@/components/charts/FunnelChart';
@@ -254,15 +254,26 @@ export default async function VendasMarketingPage() {
     }
     const momentoSorted = Object.entries(momentoCounts).sort(([, a], [, b]) => b - a);
 
-    // ───── Geo — Top UFs ─────
-    const ufCounts: Record<string, number> = {};
-    for (const l of allLeads) {
-        const k = (l.estado || '').toString().toUpperCase().trim();
-        if (!k || k.length > 2) continue;
-        ufCounts[k] = (ufCounts[k] || 0) + 1;
-    }
-    const topUFs = Object.entries(ufCounts).sort(([, a], [, b]) => b - a).slice(0, 6);
-    const maxUF = topUFs[0]?.[1] || 1;
+    // ───── Porte do rebanho — distribuição por quantidade_animais ─────
+    const HERD_BUCKETS: { label: string; min: number; max: number; mql: boolean }[] = [
+        { label: 'Até 50 cab.',    min: 1,    max: 50,       mql: false },
+        { label: '51–100 cab.',    min: 51,   max: 100,      mql: false },
+        { label: '101–300 cab.',   min: 101,  max: 300,      mql: true  },
+        { label: '301–1.000 cab.', min: 301,  max: 1000,     mql: true  },
+        { label: 'Acima de 1.000', min: 1001, max: Infinity, mql: true  },
+    ];
+    const herdCounts = HERD_BUCKETS.map(b => ({
+        ...b,
+        count: allLeads.filter(l => {
+            const n = Number(l.quantidade_animais) || 0;
+            return n >= b.min && n <= b.max;
+        }).length,
+    }));
+    const herdInformed = herdCounts.reduce((s, b) => s + b.count, 0);
+    const herdUnknown = Math.max(totalLeads - herdInformed, 0);
+    const herdMqlGrade = herdCounts.filter(b => b.mql).reduce((s, b) => s + b.count, 0);
+    const herdMqlShare = herdInformed > 0 ? (herdMqlGrade / herdInformed) * 100 : 0;
+    const maxHerd = Math.max(...herdCounts.map(b => b.count), 1);
 
     // ───── WhatsApp engagement ─────
     const allWpp = whatsappMessages ?? [];
@@ -298,21 +309,22 @@ export default async function VendasMarketingPage() {
     const totalInvestido = roiData.reduce((s, r) => s + r.investido, 0);
     const roiMedio = totalInvestido > 0 ? (totalReceita / totalInvestido) * 100 : 0;
 
-    // ───── Top compradores ─────
-    const buyerMap = new Map<string, { name: string; vgv: number; lotes: number; animais: number; leiloes: number; uf: string }>();
-    for (const f of fechamentos) {
-        for (const c of (f.compradores ?? [])) {
-            if (!c.fazenda) continue;
-            const cur = buyerMap.get(c.fazenda) ?? { name: c.fazenda, vgv: 0, lotes: 0, animais: 0, leiloes: 0, uf: c.uf || '' };
-            cur.vgv += Number(c.vgv) || 0;
-            cur.lotes += Number(c.lotes) || 0;
-            cur.animais += Number(c.animais) || 0;
-            cur.leiloes += 1;
-            buyerMap.set(c.fazenda, cur);
-        }
+    // ───── Desempenho por responsável ─────
+    const repMap = new Map<string, { name: string; total: number; closed: number; pipeline: number }>();
+    for (const l of allLeads) {
+        const name = (l.responsavel || '').toString().trim();
+        if (!name) continue;
+        const cur = repMap.get(name) ?? { name, total: 0, closed: 0, pipeline: 0 };
+        cur.total += 1;
+        if (l.status === 'Fechado') cur.closed += 1;
+        else if (l.status !== 'Perdido') cur.pipeline += Number(l.valor_estimado) || 0;
+        repMap.set(name, cur);
     }
-    const topBuyers = [...buyerMap.values()].sort((a, b) => b.vgv - a.vgv).slice(0, 5);
-    const maxBuyerVgv = topBuyers[0]?.vgv || 1;
+    const reps = [...repMap.values()]
+        .map(r => ({ ...r, conv: r.total > 0 ? (r.closed / r.total) * 100 : 0 }))
+        .sort((a, b) => b.closed - a.closed || b.total - a.total)
+        .slice(0, 6);
+    const maxRepTotal = Math.max(...reps.map(r => r.total), 1);
 
     // ───── Hot leads — MQL ainda em qualificação/negociação, sem fechamento ─────
     const hotLeads = mqlAll
@@ -821,97 +833,145 @@ export default async function VendasMarketingPage() {
                 )}
             </div>
 
-            {/* Geografia + Top Compradores */}
+            {/* Qualificação + Time comercial */}
             <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-4">
-                {/* Top UFs */}
+                {/* Porte do rebanho */}
                 <div className={`${card} p-5`}>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                            <MapPin size={14} style={{ color: BRAND.BRONZE }} />
+                            <Target size={14} style={{ color: BRAND.BRONZE }} />
                             <div>
-                                <p className={labelCls}>Geografia</p>
-                                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Top UFs por captação</p>
+                                <p className={labelCls}>Qualificação</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Porte do rebanho</p>
                             </div>
                         </div>
                         <span className={`text-[10px] ${dataCls} text-gray-500`}>
-                            {Object.keys(ufCounts).length} estados
+                            {herdInformed} informados
                         </span>
                     </div>
-                    {topUFs.length === 0 ? (
-                        <p className="text-xs text-gray-400 italic">Sem geolocalização registrada.</p>
+                    {herdInformed === 0 ? (
+                        <p className="text-xs text-gray-400 italic">Nenhum lead com porte de rebanho informado.</p>
                     ) : (
-                        <div className="grid grid-cols-2 gap-x-5 gap-y-2.5">
-                            {topUFs.map(([uf, count]) => {
-                                const pct = (count / maxUF) * 100;
-                                return (
-                                    <div key={uf}>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className={`text-xs font-bold text-gray-800 dark:text-gray-200 ${dataCls}`}>{uf}</span>
-                                            <span className={`text-[10px] ${dataCls}`} style={{ color: BRAND.BRONZE }}>{count}</span>
+                        <>
+                            <div className="space-y-2.5">
+                                {herdCounts.map(b => {
+                                    const pct = (b.count / maxHerd) * 100;
+                                    const share = herdInformed > 0 ? (b.count / herdInformed) * 100 : 0;
+                                    return (
+                                        <div key={b.label}>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                                                    {b.label}
+                                                    {b.mql && (
+                                                        <span className="text-[8px] font-black uppercase tracking-wider px-1 py-0.5 rounded"
+                                                            style={{ backgroundColor: `${BRAND.TECH_GREEN}1F`, color: BRAND.TECH_GREEN }}>
+                                                            MQL
+                                                        </span>
+                                                    )}
+                                                </span>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className={`text-xs font-bold ${dataCls}`} style={{ color: b.mql ? BRAND.TECH_GREEN : BRAND.BRONZE }}>{b.count}</span>
+                                                    <span className={`text-[9px] text-gray-500 ${dataCls}`}>({share.toFixed(0)}%)</span>
+                                                </div>
+                                            </div>
+                                            <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
+                                                <div className="h-full rounded-full"
+                                                    style={{
+                                                        width: `${pct}%`,
+                                                        background: b.mql
+                                                            ? `linear-gradient(90deg, ${BRAND.BRONZE}, ${BRAND.TECH_GREEN})`
+                                                            : `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})`,
+                                                    }} />
+                                            </div>
                                         </div>
-                                        <div className="w-full h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
-                                            <div className="h-full rounded-full"
-                                                style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-[#262626]">
+                                <span className="text-[10px] text-gray-500">Porte MQL · ≥100 cabeças</span>
+                                <span className={`text-xs font-black ${dataCls}`} style={{ color: BRAND.TECH_GREEN }}>
+                                    {fmtPct(herdMqlShare)}
+                                </span>
+                            </div>
+                            {herdUnknown > 0 && (
+                                <p className="text-[9px] text-gray-400 mt-2">
+                                    {herdUnknown} {herdUnknown === 1 ? 'lead sem porte informado' : 'leads sem porte informado'}
+                                </p>
+                            )}
+                        </>
                     )}
                 </div>
 
-                {/* Top Compradores */}
+                {/* Desempenho por responsável */}
                 <div className={`${card} p-5`}>
                     <div className="flex items-center justify-between mb-4">
-                        <div>
-                            <p className={labelCls}>Top Compradores</p>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Fazendas por VGV acumulado</p>
+                        <div className="flex items-center gap-2">
+                            <Trophy size={14} style={{ color: BRAND.BRONZE }} />
+                            <div>
+                                <p className={labelCls}>Time comercial</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">Desempenho por responsável</p>
+                            </div>
                         </div>
-                        <Trophy size={14} style={{ color: BRAND.BRONZE }} />
+                        <Link href="/crm" className="text-[10px] font-bold uppercase tracking-wider hover:opacity-80 transition-opacity flex items-center gap-1" style={{ color: BRAND.BRONZE }}>
+                            Abrir CRM <ArrowRight size={10} />
+                        </Link>
                     </div>
 
-                    {topBuyers.length === 0 ? (
-                        <div className="py-6 text-center">
-                            <p className="text-xs text-gray-400">Sem fechamentos registrados</p>
-                            <Link href="/leiloes" className="inline-flex items-center gap-1 mt-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: BRAND.BRONZE }}>
-                                Cadastrar leilão <ArrowRight size={10} />
+                    {reps.length === 0 ? (
+                        <div className="py-8 text-center">
+                            <Users size={20} className="mx-auto mb-2 opacity-30" style={{ color: BRAND.BRONZE }} />
+                            <p className="text-xs text-gray-400">Nenhum lead atribuído a um responsável.</p>
+                            <Link href="/crm" className="inline-flex items-center gap-1 mt-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: BRAND.BRONZE }}>
+                                Distribuir leads <ArrowRight size={10} />
                             </Link>
                         </div>
                     ) : (
-                        <div className="space-y-3">
-                            {topBuyers.map((b, i) => (
-                                <div key={b.name} className="space-y-1.5">
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2 min-w-0">
-                                            <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0"
-                                                style={{
-                                                    backgroundColor: i === 0 ? BRAND.BRONZE : i === 1 ? '#C8C8C8' : i === 2 ? BRAND.BRONZE_DEEP : `${BRAND.BRONZE}1F`,
-                                                    color: i === 0 ? '#000' : i === 2 ? '#fff' : i === 1 ? '#262626' : BRAND.BRONZE,
-                                                }}>
-                                                {i + 1}
-                                            </span>
-                                            <div className="min-w-0">
-                                                <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{b.name}</p>
-                                                <p className={`text-[9px] text-gray-500 ${dataCls}`}>
-                                                    {b.uf && `${b.uf} · `}{b.lotes} lote{b.lotes !== 1 ? 's' : ''} · {b.animais} animais
-                                                </p>
+                        <>
+                            <div className="space-y-3">
+                                {reps.map((r, i) => (
+                                    <div key={r.name} className="space-y-1.5">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0"
+                                                    style={{
+                                                        backgroundColor: i === 0 ? BRAND.BRONZE : i === 1 ? '#C8C8C8' : i === 2 ? BRAND.BRONZE_DEEP : `${BRAND.BRONZE}1F`,
+                                                        color: i === 0 ? '#000' : i === 2 ? '#fff' : i === 1 ? '#262626' : BRAND.BRONZE,
+                                                    }}>
+                                                    {i + 1}
+                                                </span>
+                                                <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{r.name}</p>
                                             </div>
+                                            <span className={`text-[10px] text-gray-500 whitespace-nowrap ${dataCls}`}>
+                                                {r.closed} fechado{r.closed !== 1 ? 's' : ''} · pipe {fmtBRL(r.pipeline)}
+                                            </span>
                                         </div>
-                                        <span className={`text-xs font-black whitespace-nowrap ${dataCls}`} style={{ color: BRAND.BRONZE }}>
-                                            {fmtBRL(b.vgv)}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
+                                                <div className="h-full rounded-full transition-all duration-700"
+                                                    style={{
+                                                        width: `${(r.total / maxRepTotal) * 100}%`,
+                                                        background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})`,
+                                                    }} />
+                                            </div>
+                                            <span className={`text-[10px] text-gray-500 w-16 text-right ${dataCls}`}>
+                                                {r.total} lead{r.total !== 1 ? 's' : ''}
+                                            </span>
+                                            <span className={`text-xs font-black w-12 text-right ${dataCls}`}
+                                                style={{ color: r.conv >= 20 ? BRAND.TECH_GREEN : r.conv > 0 ? BRAND.BRONZE : '#9CA3AF' }}>
+                                                {fmtPct(r.conv)}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="h-1.5 rounded-full bg-gray-100 dark:bg-[#262626] overflow-hidden">
-                                        <div className="h-full rounded-full transition-all duration-700"
-                                            style={{
-                                                width: `${(b.vgv / maxBuyerVgv) * 100}%`,
-                                                background: i === 0 ? `linear-gradient(90deg, ${BRAND.BRONZE}, ${BRAND.BRONZE_PALE})` : BRAND.BRONZE,
-                                                opacity: 1 - i * 0.12,
-                                            }} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                            <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-[#262626] text-[9px] text-gray-500 flex-wrap">
+                                <span className="flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-sm" style={{ background: `linear-gradient(90deg, ${BRAND.BRONZE_DEEP}, ${BRAND.BRONZE})` }} />
+                                    Leads atribuídos
+                                </span>
+                                <span>· % = conversão p/ Fechado · pipe = valor estimado em aberto</span>
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
