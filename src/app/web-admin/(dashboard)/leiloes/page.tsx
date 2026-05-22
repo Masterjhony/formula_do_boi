@@ -165,6 +165,26 @@ function daysApart(a: string, b: string): number {
   const d = (Date.parse(a) - Date.parse(b)) / 86_400_000
   return Number.isFinite(d) ? Math.abs(d) : 999
 }
+// Similaridade de caracteres (Dice sobre bigramas) — 0..1. Pega variação de
+// grafia/erro de digitação no MESMO leilão (ex.: "Neoraço" × "Neloraço").
+function diceSim(a: string, b: string): number {
+  const norm = (s: string) =>
+    (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '')
+  const na = norm(a), nb = norm(b)
+  if (na.length < 2 || nb.length < 2) return na.length > 0 && na === nb ? 1 : 0
+  const grams = (s: string) => {
+    const m = new Map<string, number>()
+    for (let i = 0; i < s.length - 1; i++) {
+      const g = s.slice(i, i + 2)
+      m.set(g, (m.get(g) ?? 0) + 1)
+    }
+    return m
+  }
+  const ga = grams(na), gb = grams(nb)
+  let inter = 0
+  for (const [g, ca] of ga) inter += Math.min(ca, gb.get(g) ?? 0)
+  return (2 * inter) / ((na.length - 1) + (nb.length - 1))
+}
 
 /**
  * Junta os registros internos (bula_leiloes) com a planilha (cronograma_leiloes).
@@ -186,10 +206,15 @@ function mergeLeiloes(bula: (BulaLeilao & { catalogo_url?: string })[], crono: D
         nameScore(b.nome, c.nome),
         nameScore(b.nome, c.criador || ''),
       )
-      // Mesma data aceita casamento fraco; datas diferentes exigem nome forte.
-      const ok = dd === 0 ? nm >= 0.34 : nm >= 0.6
+      // Mesma data: casa por tokens fracos OU por nome muito parecido
+      // (variação de grafia — "Neoraço" × "Neloraço"). Datas diferentes:
+      // exige tokens fortes (não arrisca casar grafia entre datas).
+      const ch = dd === 0
+        ? Math.max(diceSim(b.nome, c.nome), diceSim(b.nome, c.criador || ''))
+        : 0
+      const ok = dd === 0 ? (nm >= 0.34 || ch >= 0.78) : nm >= 0.6
       if (!ok) return
-      cands.push({ bi, ci, score: nm - dd * 0.03 })
+      cands.push({ bi, ci, score: Math.max(nm, ch >= 0.78 ? ch : 0) - dd * 0.03 })
     })
   })
   // 2. Pareamento guloso: maior pontuação primeiro, cada registro 1x só.
