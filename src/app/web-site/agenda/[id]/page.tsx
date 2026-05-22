@@ -87,7 +87,7 @@ async function getLeilao(id: string): Promise<LeilaoDetalhe | null> {
 
     const { data: crono } = await supabase
         .from("cronograma_leiloes")
-        .select("id, nome, data, dia_semana, hora, raca, qtd_animais, presencial, leiloeira, criador, catalogo_url")
+        .select("id, nome, data, dia_semana, hora, raca, qtd_animais, presencial, leiloeira, criador, catalogo_url, img")
         .eq("id", id)
         .maybeSingle();
 
@@ -98,7 +98,7 @@ async function getLeilao(id: string): Promise<LeilaoDetalhe | null> {
             data: crono.data,
             tipo: crono.raca ?? null,
             animais: crono.qtd_animais ?? null,
-            img: null,
+            img: crono.img?.startsWith("http") ? crono.img : null,
             horario: crono.hora ?? null,
             transmissao: null,
             modelo: crono.presencial ?? null,

@@ -1,22 +1,28 @@
 """
-Sincroniza TODAS as capas embutidas na planilha ESCALA LEILÕES 2026 (fonte:
-Google Sheets) para a tabela bula_leiloes.img no Supabase.
+Sincroniza as capas embutidas na planilha ESCALA LEILÕES 2026 (Google Sheets)
+para a coluna `img` da tabela cronograma_leiloes no Supabase.
 
 Fonte: https://docs.google.com/spreadsheets/d/1rzEUSB1Rt4DQ7xlj3Wej4Rn-NwnMSgGk
        (export automático em formato xlsx)
 
-Para cada imagem embutida nas planilhas mensais:
-  1. Identifica (data, leilão, criador) pela linha-âncora
-  2. Procura registro em bula_leiloes pela data + similaridade de nome
-  3. Se não existe, cria um registro novo
-  4. Faz upload ao bucket leilao-covers e atualiza img
-
-Nunca apaga img de registros não-mapeados (o script antigo fazia isso e
-apagava capas inseridas manualmente).
+Comportamento (modelo espelho — decisão do operador, 2026-05-21):
+  Para cada imagem embutida nas planilhas mensais:
+    1. Identifica (data, leilão, criador) pela linha-âncora.
+    2. Procura o leilão correspondente em cronograma_leiloes (mesma data
+       + similaridade de nome).
+    3. Se achar, sobe a capa pro bucket e atualiza `img`.
+    4. Se NÃO achar, apenas registra um aviso e segue — NUNCA cria
+       registro novo. O texto do leilão é responsabilidade exclusiva do
+       sync_cronograma_from_sheets.py; aqui só anexamos capa a leilões
+       que já vieram da planilha.
 
 Uso:
     export SUPABASE_SERVICE_ROLE_KEY=...
     python scripts/upload_leilao_images.py
+
+Acompanha scripts/sync_cronograma_from_sheets.py — ambos rodam pela mesma
+GitHub Action (.github/workflows/sync-leiloes.yml). Rode o sync de texto
+ANTES deste, pra que os leilões já existam quando a capa for anexada.
 """
 
 import difflib
@@ -75,6 +81,8 @@ def similar(a, b):
 
 
 def find_match(records, data_iso, leilao_name, criador_name, used_ids):
+    """Acha o leilão em cronograma_leiloes pra essa imagem. None se não houver
+    candidato confiável — neste caso a capa é simplesmente ignorada."""
     cands = [r for r in records if r["data"][:10] == data_iso and r["id"] not in used_ids]
     if not cands:
         return None
@@ -121,39 +129,20 @@ def iso_data(v, sheet_name=None):
     return s[:10]
 
 
-def pretty_nome(criador, leilao):
-    src = (criador or leilao or "").strip()
-    if not src:
-        return "LEILÃO"
-    return src.title() if src.isupper() else src
-
-
 def query_all():
+    """Lê os leilões de cronograma_leiloes pra casar com as capas."""
     r = requests.get(
-        f"{SUPABASE_URL}/rest/v1/bula_leiloes?select=id,nome,data,img&order=data",
+        f"{SUPABASE_URL}/rest/v1/cronograma_leiloes?select=id,nome,data,img&order=data",
         headers=HEADERS_JSON,
     )
     r.raise_for_status()
     return r.json()
 
 
-def create_record(payload):
-    r = requests.post(
-        f"{SUPABASE_URL}/rest/v1/bula_leiloes",
-        headers={**HEADERS_JSON, "Prefer": "return=representation"},
-        json=payload,
-    )
-    if r.status_code not in (200, 201):
-        print(f"ERRO criar: {r.status_code} {r.text}")
-        return None
-    d = r.json()
-    return d[0] if isinstance(d, list) else d
-
-
 def upload_image(rec_id, media_name, data_bytes):
     ext = media_name.rsplit(".", 1)[-1].lower()
     content_type = "image/png" if ext == "png" else "image/jpeg"
-    path = f"bula_{rec_id}.{ext}"
+    path = f"crono_{rec_id}.{ext}"
     requests.delete(f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{path}", headers=HEADERS)
     r = requests.post(
         f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{path}",
@@ -166,7 +155,7 @@ def upload_image(rec_id, media_name, data_bytes):
 
 def patch_img(rec_id, url):
     r = requests.patch(
-        f"{SUPABASE_URL}/rest/v1/bula_leiloes?id=eq.{rec_id}",
+        f"{SUPABASE_URL}/rest/v1/cronograma_leiloes?id=eq.{rec_id}",
         headers=HEADERS_JSON,
         json={"img": url},
     )
@@ -274,38 +263,35 @@ def main():
                 )
 
         records = query_all()
-        print(f"bula_leiloes: {len(records)} registros\n")
+        print(f"cronograma_leiloes: {len(records)} leilões\n")
 
         used_ids = set()
+        attached = skipped = 0
         for it in items:
             if not it["bytes"]:
                 print(f"SKIP {it['sheet']} img#{it['idx']}: sem bytes")
+                skipped += 1
                 continue
             match = find_match(records, it["data_iso"], it["leilao"], it["criador"], used_ids)
             if match is None:
-                payload = {
-                    "nome": pretty_nome(it["criador"], it["leilao"]),
-                    "data": it["data_iso"],
-                    "tipo": "Fêmeas P.O.",
-                    "local": "",
-                    "horario": "",
-                    "modelo": "VIRTUAL",
-                    "leiloeira": "BULA",
-                    "status": "confirmado",
-                }
-                match = create_record(payload)
-                if not match:
-                    continue
-                records.append(match)
-                print(f"Criado: {match['nome']} ({match['data'][:10]}) id={match['id']}")
+                # Sem leilão correspondente na planilha-texto — não criamos
+                # registro; o sync de texto é a única fonte da agenda.
+                print(
+                    f"SKIP [{it['sheet']} img#{it['idx']}] {it['data_iso']} | "
+                    f"{it['criador'] or it['leilao']}  -> sem leilão correspondente"
+                )
+                skipped += 1
+                continue
 
             url = upload_image(match["id"], it["media_name"], it["bytes"])
             ok = patch_img(match["id"], url)
             used_ids.add(match["id"])
+            if ok:
+                attached += 1
             tag = "OK " if ok else "ERR"
             print(f"{tag} [{it['sheet']} img#{it['idx']}] {it['data_iso']} | {it['criador']}  ->  '{match['nome']}'")
 
-        print(f"\nDone — {len(used_ids)} registros com capa atualizada.")
+        print(f"\nDone — {attached} capas anexadas, {skipped} ignoradas.")
     finally:
         try:
             os.unlink(xlsx_path)

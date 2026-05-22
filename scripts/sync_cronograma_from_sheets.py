@@ -1,18 +1,26 @@
 """
-Sincroniza informações textuais (data, hora, leiloeira, criador, qtd, etc.)
-da planilha "ESCALA LEILÕES 2026" para a tabela cronograma_leiloes no Supabase.
+Sincroniza a tabela cronograma_leiloes no Supabase para ser um ESPELHO EXATO
+da planilha "ESCALA LEILÕES 2026" (Google Sheets).
 
 Fonte: https://docs.google.com/spreadsheets/d/1rzEUSB1Rt4DQ7xlj3Wej4Rn-NwnMSgGk
 
-Comportamento:
+Comportamento (modelo espelho — decisão do operador, 2026-05-21):
   - Detecta cabeçalhos por nome (fuzzy match) — tolera variação de
-    layout entre abas (ex: ABRIL2026 começa as informações na col E,
-    MAIO2026 tem coluna CATÁLOGO no meio).
-  - UPSERT em cronograma_leiloes por (data, nome normalizado).
-  - Match → UPDATE só dos campos que a planilha preenche.
-  - Sem match → INSERT.
-  - Nunca apaga registros que não estão na planilha (preserva o que
-    foi criado/editado manualmente no admin).
+    layout entre abas.
+  - UPSERT em cronograma_leiloes por (data, nome normalizado):
+      • Match  → UPDATE só dos campos que a planilha preenche.
+      • Sem match → INSERT.
+  - ESPELHO: leilões FUTUROS que estão no banco mas não estão mais na
+    planilha são APAGADOS (fantasmas de renomeação/remoção). Antes de
+    apagar, catálogo/capa do fantasma são transferidos pro leilão
+    sobrevivente mais parecido na mesma data.
+  - Registros PASSADOS (data < hoje) nunca são tocados — histórico.
+  - Guardas anti-catástrofe:
+      • aborta se a extração devolver menos de 20 leilões (download/
+        layout quebrado);
+      • só apaga em meses que a planilha efetivamente produziu linhas —
+        se uma aba não foi parseada, aquele mês fica intocado em vez de
+        ser esvaziado.
 
 Uso:
     export SUPABASE_SERVICE_ROLE_KEY=...
@@ -23,6 +31,7 @@ GitHub Action (.github/workflows/sync-leiloes.yml).
 """
 
 import datetime as _dt
+import difflib
 import os
 import re
 import sys
@@ -55,6 +64,10 @@ HEADERS = {
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json",
 }
+
+# Mínimo de leilões plausível na planilha do ano inteiro. Abaixo disso,
+# a extração quase certamente quebrou — abortamos sem mexer no banco.
+MIN_ROWS_SANITY = 20
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -219,7 +232,7 @@ def fetch_existing():
         r = requests.get(
             f"{SUPABASE_URL}/rest/v1/cronograma_leiloes",
             headers={**HEADERS, "Range-Unit": "items", "Range": f"{page * 1000}-{(page + 1) * 1000 - 1}"},
-            params={"select": "id,data,nome,dia_semana,hora,criador,presencial,leiloeira,raca,qtd_animais,sexo,comissao,contrato"},
+            params={"select": "id,data,nome,dia_semana,hora,criador,presencial,leiloeira,raca,qtd_animais,sexo,comissao,contrato,catalogo_url,img"},
         )
         if r.status_code not in (200, 206):
             raise RuntimeError(f"Falha ao listar cronograma: {r.status_code} {r.text}")
@@ -249,6 +262,14 @@ def update_row(rec_id, payload):
         f"{SUPABASE_URL}/rest/v1/cronograma_leiloes?id=eq.{rec_id}",
         headers={**HEADERS, "Prefer": "return=minimal"},
         json=payload,
+    )
+    return r.status_code in (200, 204)
+
+
+def delete_row(rec_id):
+    r = requests.delete(
+        f"{SUPABASE_URL}/rest/v1/cronograma_leiloes?id=eq.{rec_id}",
+        headers={**HEADERS, "Prefer": "return=minimal"},
     )
     return r.status_code in (200, 204)
 
@@ -287,6 +308,39 @@ def extract_rows_from_sheet(ws):
         yield row
 
 
+def carry_over_assets(ghost, index, sheet_keys):
+    """Antes de apagar um fantasma, transfere catálogo/capa pro leilão
+    sobrevivente (que está na planilha) mais parecido na mesma data."""
+    cat = ghost.get("catalogo_url")
+    img = ghost.get("img")
+    if not cat and not img:
+        return
+    data_iso = ghost["data"][:10]
+    survivors = [
+        rec for (d, n), rec in index.items()
+        if d == data_iso and (d, n) in sheet_keys and rec["id"] != ghost["id"]
+    ]
+    if not survivors:
+        return
+    best, best_score = None, 0.0
+    for s in survivors:
+        score = difflib.SequenceMatcher(
+            None, norm(ghost["nome"]), norm(s["nome"])
+        ).ratio()
+        if score > best_score:
+            best, best_score = s, score
+    if not best or best_score < 0.4:
+        return
+    patch = {}
+    if cat and not best.get("catalogo_url"):
+        patch["catalogo_url"] = cat
+    if img and not best.get("img"):
+        patch["img"] = img
+    if patch and update_row(best["id"], patch):
+        best.update(patch)
+        print(f"     ↪ anexos ({', '.join(patch)}) transferidos para '{best['nome']}'", flush=True)
+
+
 def main():
     print(f"📥 Baixando planilha {GSHEETS_ID}...", flush=True)
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
@@ -321,6 +375,20 @@ def main():
 
         print(f"\n📊 Total extraído: {len(all_rows)} leilões", flush=True)
 
+        # Guarda anti-catástrofe: a planilha tem 100+ leilões no ano. Se a
+        # extração devolveu quase nada, o download/layout quebrou — aborta
+        # antes que o espelho apague o banco inteiro.
+        if len(all_rows) < MIN_ROWS_SANITY:
+            raise SystemExit(
+                f"❌ Extração devolveu só {len(all_rows)} leilões "
+                f"(mínimo esperado: {MIN_ROWS_SANITY}). Download/layout "
+                "provavelmente quebrado — abortando SEM sincronizar."
+            )
+
+        # Chave de identidade do leilão na planilha + meses cobertos.
+        sheet_keys = {(row["data"], norm(row["nome"])) for row in all_rows}
+        sheet_months = {row["data"][:7] for row in all_rows}  # {"2026-06", ...}
+
         existing = fetch_existing()
         # index: (data, nome_norm) → record
         index = {}
@@ -328,6 +396,7 @@ def main():
             key = (rec["data"][:10], norm(rec["nome"]))
             index[key] = rec
 
+        # ── UPSERT — adiciona/atualiza tudo que está na planilha ──────────
         inserted = updated = unchanged = 0
         for row in all_rows:
             key = (row["data"], norm(row["nome"]))
@@ -354,13 +423,37 @@ def main():
                 if diff:
                     if update_row(existing_rec["id"], diff):
                         updated += 1
+                        existing_rec.update(diff)
                         print(f"  🔄 {row['data']} | {row['nome']}  ({', '.join(diff.keys())})", flush=True)
                 else:
                     unchanged += 1
 
+        # ── ESPELHO — apaga fantasmas (futuros, em meses que a planilha
+        #    cobriu) que não estão mais na planilha ──────────────────────
+        today = _dt.datetime.now(_dt.timezone(_dt.timedelta(hours=-3))).date()
+        deleted = 0
+        for rec in existing:
+            data_iso = rec["data"][:10]
+            try:
+                rec_date = _dt.date.fromisoformat(data_iso)
+            except ValueError:
+                continue
+            if rec_date < today:
+                continue  # passado: histórico, nunca apaga
+            if data_iso[:7] not in sheet_months:
+                continue  # planilha não cobriu esse mês — não arrisca apagar
+            key = (data_iso, norm(rec["nome"]))
+            if key in sheet_keys:
+                continue  # está na planilha — mantém
+            # fantasma → preserva catálogo/capa antes de apagar
+            carry_over_assets(rec, index, sheet_keys)
+            if delete_row(rec["id"]):
+                deleted += 1
+                print(f"  🗑  {data_iso} | {rec['nome']}  (fora da planilha)", flush=True)
+
         print(
             f"\n✅ Done — {inserted} inseridos, {updated} atualizados, "
-            f"{unchanged} sem mudança ({len(all_rows)} total)",
+            f"{deleted} removidos, {unchanged} sem mudança ({len(all_rows)} na planilha)",
             flush=True,
         )
     finally:
