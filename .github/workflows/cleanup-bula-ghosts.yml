@@ -1,0 +1,32 @@
+name: Faxina — registros vazios da bula_leiloes
+
+# Limpeza única dos registros VAZIOS (fantasmas) da bula_leiloes que
+# poluem o painel /web-admin/leiloes com cards duplicados.
+#
+# Só roda manualmente (workflow_dispatch). O script é idempotente e
+# protegido por CUTOFF de data — re-rodar não apaga leilão novo.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet requests
+
+      - name: Remover registros vazios da bula_leiloes
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/cleanup_bula_ghosts.py
