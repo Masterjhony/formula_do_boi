@@ -9,9 +9,12 @@ Um registro só é apagado se for comprovadamente VAZIO — NENHUM dado real:
   - nenhuma subtarefa/checklist marcada como concluída;
   - expectativa + meta_bula + realizado_bula == 0;
   - nenhum assessor vinculado  (bula_leilao_assessores);
-  - nenhum fechamento vinculado (bula_leilao_fechamento);
   - created_at < CUTOFF — só limpa o passivo ANTIGO; um leilão criado
     depois desta faxina nunca é tocado.
+
+A tabela bula_leilao_fechamento é uma entidade À PARTE (sem FK pra
+bula_leiloes — é casada por nome/data), então apagar um bula_leilao
+vazio nunca afeta um fechamento registrado.
 
 Seguro de re-rodar (idempotente): registros novos ficam fora do CUTOFF,
 então uma segunda execução não apaga nada. Trava MAX_DELETE aborta se a
@@ -74,14 +77,10 @@ def main():
     })
     print(f"bula_leiloes: {len(leiloes)} registros", flush=True)
 
-    # IDs com vínculo real — nunca podem ser apagados.
+    # Assessores vinculados (bula_leilao_assessores tem FK leilao_id) —
+    # registro com assessor nunca é apagado.
     with_assessor = {r["leilao_id"] for r in get("bula_leilao_assessores", {"select": "leilao_id"})}
-    try:
-        with_fechamento = {r["leilao_id"] for r in get("bula_leilao_fechamento", {"select": "leilao_id"})}
-    except Exception as e:  # noqa: BLE001
-        print(f"❌ Não consegui ler bula_leilao_fechamento ({e}). Abortando por segurança.", flush=True)
-        return 1
-    print(f"  com assessor: {len(with_assessor)} | com fechamento: {len(with_fechamento)}", flush=True)
+    print(f"  com assessor vinculado: {len(with_assessor)}", flush=True)
 
     ghosts, kept = [], 0
     for l in leiloes:
@@ -90,7 +89,6 @@ def main():
             not has_progress(l.get("tasks"))
             and fin == 0
             and l["id"] not in with_assessor
-            and l["id"] not in with_fechamento
             and (l.get("created_at") or "") < CUTOFF
         )
         if is_ghost:
