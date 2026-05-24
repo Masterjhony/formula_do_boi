@@ -41,7 +41,10 @@ export async function POST(request: Request) {
             landing_url,
         } = body ?? {};
 
-        if (!nome || !whatsapp || !email) {
+        // E-mail é opcional desde 2026-05 (CRO M05): o pecuarista resolve
+        // tudo pelo WhatsApp e a obrigatoriedade no mobile era a maior fonte
+        // de abandono. Validamos apenas nome + whatsapp.
+        if (!nome || !whatsapp) {
             return NextResponse.json({ error: 'Campos obrigatórios faltando' }, { status: 400 });
         }
 

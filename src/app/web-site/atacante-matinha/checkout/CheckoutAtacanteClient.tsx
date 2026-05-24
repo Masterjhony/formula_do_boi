@@ -22,6 +22,16 @@ const DANGER = "#E74C3C";
    Decide o redirect /obrigado-mql vs /obrigado — mudou o critério? edite aqui. */
 const MQL_DOSES = ["101-200", "201-500", "500+"];
 
+/* Tabela de preços Aceleradora 2026 — espelha o hero da landing.
+   Mantém UM source-of-truth aqui no front; mudança comercial é editar este map. */
+const PRECO_POR_FAIXA: Record<string, string> = {
+    "1-100":   "R$ 29,50 / dose",
+    "101-200": "R$ 27,50 / dose",
+    "201-500": "R$ 25,50 / dose",
+    "500+":    "R$ 23,50 / dose",
+    "indef":   "Definido com o curador",
+};
+
 /* UFs do Brasil — alimentam o select de estado. As cidades de cada UF
    são buscadas sob demanda na API pública do IBGE quando o estado muda. */
 const ESTADOS = [
@@ -112,6 +122,10 @@ export default function CheckoutAtacanteClient() {
     const [doses, setDoses] = useState("");
     const [tipo, setTipo] = useState("convencional");
     const [estacao, setEstacao] = useState("");
+    // qtdMatrizes vai pro campo `qtd` no Sheets/Supabase (col I do Sheets).
+    // Texto livre porque o pecuarista costuma responder em faixas
+    // ("uns 300", "+/- 500") e travar com number-input atrapalha.
+    const [qtdMatrizes, setQtdMatrizes] = useState("");
     const [nome, setNome] = useState("");
     const [whatsapp, setWhatsapp] = useState("");
     const [email, setEmail] = useState("");
@@ -166,7 +180,11 @@ export default function CheckoutAtacanteClient() {
         if (!doses) e.doses = "Selecione a faixa de doses.";
         if (!nome.trim() || nome.trim().length < 3) e.nome = "Preencha seu nome completo.";
         if (!whatsapp.trim() || whatsapp.replace(/\D/g, "").length < 10) e.whatsapp = "Informe um WhatsApp válido.";
-        if (!email.trim() || !email.includes("@") || !email.includes(".")) e.email = "Informe um e-mail válido.";
+        // M05 · E-mail é opcional — pecuarista resolve tudo pelo WhatsApp.
+        // Se o lead preencher, validamos o formato; em branco é aceito.
+        if (email.trim() && (!email.includes("@") || !email.includes("."))) {
+            e.email = "E-mail em formato inválido.";
+        }
         setErrors(e);
         return Object.keys(e).length === 0;
     }
@@ -190,6 +208,7 @@ export default function CheckoutAtacanteClient() {
             whatsapp,
             email: email.trim(),
             cidade: cidadeUf,
+            qtd: qtdMatrizes.trim(),
             doses,
             tipo,
             estacao,
@@ -314,6 +333,9 @@ export default function CheckoutAtacanteClient() {
                                 borderRadius: 4,
                             }}
                         >
+                            {/* M03 · Resumo compacto do pedido (mobile only) */}
+                            <CheckoutSummaryMobile />
+
                             <SectionLabel>01 · Reserva</SectionLabel>
 
                             <div className="grid sm:grid-cols-2 gap-4 mt-6">
@@ -328,6 +350,20 @@ export default function CheckoutAtacanteClient() {
                                             <option key={o.value} value={o.value}>{o.label}</option>
                                         ))}
                                     </select>
+                                </Field>
+
+                                <Field
+                                    label="Quantidade de matrizes"
+                                    hint="Aproximado tudo bem — usado pra dimensionar a proposta"
+                                >
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={qtdMatrizes}
+                                        onChange={(e) => setQtdMatrizes(e.target.value)}
+                                        placeholder="Ex: 300"
+                                        style={inputStyle(false)}
+                                    />
                                 </Field>
 
                                 <Field label="Tipo de sêmen">
@@ -382,12 +418,16 @@ export default function CheckoutAtacanteClient() {
                                     />
                                 </Field>
 
-                                <Field label="E-mail *" error={errors.email}>
+                                <Field
+                                    label="E-mail"
+                                    error={errors.email}
+                                    hint="Opcional — podemos confirmar pelo WhatsApp"
+                                >
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="voce@exemplo.com"
+                                        placeholder="voce@exemplo.com (opcional)"
                                         style={inputStyle(!!errors.email)}
                                     />
                                 </Field>
@@ -593,7 +633,17 @@ export default function CheckoutAtacanteClient() {
                                 <SummaryRow label="IQG" value="50,32" />
                                 <SummaryRow label="Central" value="Bela Vista" />
                                 <SummaryRow label="Doses pretendidas" value={dosesLabel} small />
+                                {qtdMatrizes.trim() && (
+                                    <SummaryRow label="Matrizes" value={qtdMatrizes.trim()} small />
+                                )}
                                 <SummaryRow label="Tipo de sêmen" value={tipoLabel} small />
+                                {doses && PRECO_POR_FAIXA[doses] && (
+                                    <SummaryRow
+                                        label="Valor unitário"
+                                        value={PRECO_POR_FAIXA[doses]}
+                                        small
+                                    />
+                                )}
 
                                 <div
                                     style={{
@@ -760,6 +810,122 @@ function SummaryRow({ label, value, small }: { label: string; value: string; sma
     );
 }
 
+/* M03 · Resumo compacto do pedido — visível apenas no mobile.
+   Replica em formato horizontal os dados que o sidebar mostra no desktop,
+   dando âncora visual antes do lead começar a preencher. */
+function CheckoutSummaryMobile() {
+    return (
+        <>
+            <style>{`
+                .checkout-summary-mobile { display: none; }
+                @media (max-width: 1023px) {
+                    .checkout-summary-mobile {
+                        display: flex;
+                        align-items: center;
+                        gap: 14px;
+                        padding: 14px;
+                        margin-bottom: 28px;
+                        border: 1px solid ${LINE_STRONG};
+                        border-left: 3px solid ${BRONZE};
+                        background: linear-gradient(90deg, rgba(212,168,92,0.08) 0%, rgba(212,168,92,0) 100%);
+                        border-radius: 3px;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .checkout-summary-mobile .csm-thumb {
+                        position: relative;
+                        width: 72px; height: 72px;
+                        flex-shrink: 0;
+                        overflow: hidden;
+                        border: 1px solid ${LINE_STRONG};
+                        border-radius: 2px;
+                        background: ${INK_3};
+                    }
+                    .checkout-summary-mobile .csm-thumb video,
+                    .checkout-summary-mobile .csm-thumb img {
+                        position: absolute; inset: 0;
+                        width: 100%; height: 100%;
+                        object-fit: cover;
+                    }
+                    .checkout-summary-mobile .csm-thumb-badge {
+                        position: absolute; top: 4px; left: 4px;
+                        font-family: var(--font-mono);
+                        font-size: 8.5px;
+                        letter-spacing: 0.16em;
+                        text-transform: uppercase;
+                        color: ${INK};
+                        background: ${BRONZE};
+                        padding: 2px 5px;
+                        font-weight: 600;
+                        border-radius: 1px;
+                    }
+                    .checkout-summary-mobile .csm-info {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 4px;
+                        min-width: 0;
+                        flex: 1;
+                    }
+                    .checkout-summary-mobile .csm-name {
+                        font-family: var(--font-display);
+                        font-size: 15px;
+                        font-weight: 500;
+                        color: ${FG};
+                        letter-spacing: -0.005em;
+                        line-height: 1.15;
+                    }
+                    .checkout-summary-mobile .csm-meta {
+                        font-family: var(--font-mono);
+                        font-size: 9.5px;
+                        letter-spacing: 0.16em;
+                        text-transform: uppercase;
+                        color: ${FG_MUTED_55};
+                    }
+                    .checkout-summary-mobile .csm-badges {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 4px 12px;
+                        margin-top: 4px;
+                    }
+                    .checkout-summary-mobile .csm-badge {
+                        font-family: var(--font-mono);
+                        font-size: 9px;
+                        letter-spacing: 0.14em;
+                        text-transform: uppercase;
+                        color: ${BRONZE_LIGHT};
+                        font-weight: 600;
+                    }
+                    .checkout-summary-mobile .csm-badge::before {
+                        content: "✓";
+                        color: ${BRONZE};
+                        margin-right: 4px;
+                        font-weight: 700;
+                    }
+                }
+            `}</style>
+            <div className="checkout-summary-mobile" aria-label="Resumo do pedido">
+                <div className="csm-thumb">
+                    <video
+                        src="/atacante-matinha/assets/atacante-video.mp4"
+                        poster="/atacante-matinha/assets/photos/atacante-04.jpeg"
+                        autoPlay loop muted playsInline
+                        aria-hidden="true"
+                    />
+                    <span className="csm-thumb-badge">TOP 0,1%</span>
+                </div>
+                <div className="csm-info">
+                    <span className="csm-name">Atacante da Matinha</span>
+                    <span className="csm-meta">MGTe 42,38 · Nelore PO</span>
+                    <div className="csm-badges">
+                        <span className="csm-badge">Pré-reserva gratuita</span>
+                        <span className="csm-badge">Frete incluso</span>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
+
 function inputStyle(hasError: boolean): React.CSSProperties {
     return {
         width: "100%",
@@ -768,8 +934,10 @@ function inputStyle(hasError: boolean): React.CSSProperties {
         borderRadius: 2,
         color: FG,
         fontFamily: "var(--font-sans, inherit)",
-        fontSize: 15,
-        padding: "13px 16px",
+        // 16px no mobile evita o zoom automático do iOS ao focar (M04)
+        fontSize: 16,
+        padding: "14px 16px",
+        minHeight: 50,
         outline: "none",
         transition: "border-color .25s ease, background .25s ease",
     };
