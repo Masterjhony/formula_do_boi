@@ -18,7 +18,7 @@ const TECH_GREEN = "#7FD4A0";
 type Resumo = {
     code: string | null;
     doadora: string;
-    cruzamento: string;
+    cruzamento: string | null;
     quantidade: number;
     total: number;
 };
@@ -173,7 +173,8 @@ export default function ObrigadoClient() {
                                     marginBottom: 14,
                                 }}
                             >
-                                {resumo.doadora} × {resumo.cruzamento}
+                                {resumo.doadora}
+                                {resumo.cruzamento ? ` × ${resumo.cruzamento}` : ""}
                             </div>
 
                             <ResumoLinha label="Embriões" value={`${resumo.quantidade} unidades`} />
@@ -200,7 +201,7 @@ export default function ObrigadoClient() {
                         >
                             Próximos passos
                         </div>
-                        <Passo index="01" title="Contato em até 24h" text="Um assessor entra em contato pelo WhatsApp para confirmar o cruzamento e tirar dúvidas." />
+                        <Passo index="01" title="Contato em até 24h" text="Um assessor entra em contato pelo WhatsApp para confirmar o pacote e tirar dúvidas." />
                         <Passo index="02" title="Proposta personalizada" text="Você recebe a proposta formal com prazos de produção, datas de transferência e condições de pagamento." divider />
                         <Passo index="03" title="Confirmação do pacote" text="Após o aceite, sua pré-reserva vira reserva confirmada e entra na fila de produção da safra." divider />
                     </div>

@@ -56,7 +56,8 @@ export type Doadora = {
     slug: string;
     rgd: string;
     nomeAbcz: string | null;
-    cruzamento: string;
+    /** Touro do acasalamento. `null` quando ainda não definido. */
+    cruzamento: string | null;
     classificacaoTop: string;
     iabcz: { valor: number; percentil: string };
     iqg: { valor: number; top: string };
@@ -73,6 +74,16 @@ export type Doadora = {
     avaliacao?: Avaliacao;
     /** PDF da ficha técnica oficial ABCZ (servido de /public). */
     fichaTecnica?: string;
+    /** Quando a doadora tem múltiplas fichas (ANCP/GenePlus/PMGZ), use este array. Sobrepõe `fichaTecnica`. */
+    fichasTecnicas?: Array<{ label: string; href: string }>;
+    /** Origem da doadora — sobrepõe DOADORAS_CONDICOES quando a doadora não é da Fazenda Visual. */
+    origem?: {
+        proprietario: string;
+        fazenda: string;
+        municipio: string;
+    };
+    /** Label de origem exibida no card do catálogo. Default: "Safra 2026 · Nelore Visual". */
+    originLabel?: string;
 };
 
 const AVAL_VIS_4622: Avaliacao = {
@@ -345,7 +356,99 @@ const PEDIGREE_VIS_4817: Pedigree = {
     },
 };
 
+/* ──────────────────────────────────────────────────────────────
+ * FCCH 3955 — Cachoeirão (José Rodrigues Pereira, Bandeirantes-MS)
+ * Fontes: ANCP (1ª AG ABR/2026), GenePlus (Abril/2026), PMGZ 2026-2.
+ * Genealogia 3 gerações extraída da PMGZ ABCZ (genômica).
+ * ────────────────────────────────────────────────────────────── */
+const AVAL_FCCH_3955: Avaliacao = {
+    corte: "2026-2",
+    iabcz: 33.44,
+    deca: 1,
+    pPct: 0.1,
+    fPct: 0.98,
+    grupos: {
+        crescimento: [
+            { label: "Peso à desmama — efeito direto", code: "PD-EDg", unit: "kg", dep: 15.27, ac: 41, deca: 1, pct: 0.1 },
+            { label: "Peso ao ano — efeito direto", code: "PA-EDg", unit: "kg", dep: 25.99, ac: 40, deca: 1, pct: 0.1 },
+            { label: "Peso ao sobreano — efeito direto", code: "PS-EDg", unit: "kg", dep: 33.83, ac: 41, deca: 1, pct: 0.1 },
+        ],
+        maternas: [
+            { label: "Peso à fase materna — efeito materno", code: "PM-EMg", unit: "kg", dep: 1.72, ac: 30, deca: 3, pct: null },
+        ],
+        reprodutivas: [
+            { label: "Idade ao primeiro parto", code: "IPPg", unit: "dias", dep: -40.89, ac: 23, deca: 1, pct: 0.1 },
+            { label: "Stayability", code: "STAYg", unit: "%", dep: 64.89, ac: 15, deca: 1, pct: 0.5 },
+            { label: "Perímetro escrotal aos 365 dias", code: "PE-365g", unit: "cm", dep: 1.409, ac: 37, deca: 1, pct: 0.5 },
+        ],
+        acabamento: [
+            { label: "Área de olho de lombo", code: "AOLg", unit: "cm²", dep: 4.774, ac: 37, deca: 1, pct: 0.5 },
+            { label: "Acabamento de carcaça", code: "ACABg", unit: "mm", dep: 2.725, ac: 29, deca: 1, pct: 2 },
+        ],
+        crescimentoExtra: [
+            { label: "Peso ao nascimento — efeito direto", code: "PN-EDg", unit: "kg", dep: 0.14, ac: 41, deca: 6, pct: null },
+        ],
+        reprodutivasExtra: [
+            { label: "Precocidade sexual natural", code: "PSNg", unit: "%", dep: 53.56, ac: 17, deca: 1, pct: 0.5 },
+        ],
+        carcaca: [
+            { label: "Marmoreio", code: "MARg", unit: "%", dep: 1.85, ac: 28, deca: 1, pct: 0.1 },
+        ],
+        morfologicas: [
+            { label: "Estrutura corporal", code: "Eg", unit: "", dep: 1.838, ac: 36, deca: 1, pct: null },
+            { label: "Precocidade", code: "Pg", unit: "", dep: 7.588, ac: 36, deca: 1, pct: 0.5 },
+            { label: "Musculosidade", code: "Mg", unit: "", dep: 5.830, ac: 36, deca: 1, pct: null },
+        ],
+    },
+};
+
+const PEDIGREE_FCCH_3955: Pedigree = {
+    pai: {
+        nome: "CASANOVA BONS",
+        rg: "BONS4404",
+        pai: { nome: "QUARUP BONS", rg: "BONS3108" },
+        mae: { nome: "TAPIRANA BONS", rg: "BONN2668" },
+    },
+    mae: {
+        nome: "3027 FC CACHOEIRAO",
+        rg: "FCCH3027",
+        pai: { nome: "REM HERMOSO FIV GENETICA ADITIVA", rg: "REMP816" },
+        mae: { nome: "FCCH 1002", rg: "FCCH1002" },
+    },
+};
+
 export const DOADORAS: Doadora[] = [
+    {
+        slug: "fcch-3955",
+        rgd: "FCCH 3955",
+        nomeAbcz: "3955 FIV FC CACHOEIRAO",
+        cruzamento: null,
+        classificacaoTop: "TOP 0,1%",
+        iabcz: { valor: 33.44, percentil: "P 0,1%" },
+        iqg: { valor: 37.86, top: "TOP 0,5%" },
+        mgte: { valor: 28.65, top: "TOP 4%" },
+        precoEmbriao: 1100,
+        pacoteTotal: 13200,
+        quantidadeEmbrioes: 12,
+        nascimento: "15/07/2025",
+        idAbcz: null,
+        foto: null,
+        video: "https://res.cloudinary.com/dny0ibgbn/video/upload/v1779738203/LOTE_09_-_FCCH_3955_1_1_wlfdau.mp4",
+        pendencias: ["Foto oficial em alta resolução"],
+        pedigree: PEDIGREE_FCCH_3955,
+        avaliacao: AVAL_FCCH_3955,
+        fichasTecnicas: [
+            { label: "PMGZ · ABCZ — iABCZg 33,44 · DECA 1", href: "/FCCH-3955-PMGZ.pdf" },
+            { label: "GenePlus · Embrapa — IQGg 37,86 · Classe E", href: "/FCCH-3955-GENEPLUS.pdf" },
+            { label: "ANCP — MGTe 28,65 · TOP 4%", href: "/FCCH-3955-ANCP.pdf" },
+        ],
+        origem: {
+            proprietario: "José Rodrigues Pereira",
+            fazenda: "Fazenda Cachoeirão",
+            municipio: "Bandeirantes/MS",
+        },
+        originLabel: "Cachoeirão · Nelore PO",
+    },
     {
         slug: "vis-4622",
         rgd: "VIS 4622",

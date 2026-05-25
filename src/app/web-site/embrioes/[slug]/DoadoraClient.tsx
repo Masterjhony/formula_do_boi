@@ -28,6 +28,18 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
     const nomeHero = doadora.nomeAbcz ?? "Nome ABCZ a confirmar";
     const hasPedigree = !!doadora.pedigree;
     const hasAvaliacao = !!doadora.avaliacao;
+    const origem = doadora.origem ?? {
+        proprietario: DOADORAS_CONDICOES.proprietario,
+        fazenda: DOADORAS_CONDICOES.fazenda,
+        municipio: DOADORAS_CONDICOES.municipio,
+    };
+    const hasCruzamento = !!doadora.cruzamento;
+    const fichas: Array<{ label: string; href: string }> =
+        doadora.fichasTecnicas ??
+        (doadora.fichaTecnica
+            ? [{ label: "Ficha técnica oficial · ABCZ", href: doadora.fichaTecnica }]
+            : []);
+    const hasFichas = fichas.length > 0;
 
     return (
         <main className="min-h-screen" style={{ background: INK }}>
@@ -133,10 +145,15 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                     marginBottom: 14,
                                 }}
                             >
-                                {nomeHero}{" "}
-                                <span style={{ color: BRONZE_LIGHT, fontWeight: 400 }}>
-                                    × {doadora.cruzamento}
-                                </span>
+                                {nomeHero}
+                                {hasCruzamento && (
+                                    <>
+                                        {" "}
+                                        <span style={{ color: BRONZE_LIGHT, fontWeight: 400 }}>
+                                            × {doadora.cruzamento}
+                                        </span>
+                                    </>
+                                )}
                             </h1>
 
                             <div
@@ -190,8 +207,8 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                     maxWidth: "56ch",
                                 }}
                             >
-                                Doadora da safra Nelore Visual 2026, criada por {DOADORAS_CONDICOES.proprietario}{" "}
-                                — {DOADORAS_CONDICOES.fazenda}, {DOADORAS_CONDICOES.municipio}.
+                                Doadora Nelore PO criada por {origem.proprietario}{" "}
+                                — {origem.fazenda}, {origem.municipio}.
                                 Embrião VIT, pacote mínimo de {DOADORAS_CONDICOES.pacoteMinimo} unidades com{" "}
                                 {DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes garantidas.
                             </p>
@@ -225,7 +242,8 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                             maxWidth: "26ch",
                         }}
                     >
-                        Pacote {nome} × {doadora.cruzamento}.
+                        Pacote {nome}
+                        {hasCruzamento ? ` × ${doadora.cruzamento}` : ""}.
                     </h2>
 
                     <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-10">
@@ -359,7 +377,9 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                     }}
                 >
                     <div className="container mx-auto px-4 py-14 md:py-20" style={{ maxWidth: 1300 }}>
-                        <SectionLabel>05 · Ficha técnica</SectionLabel>
+                        <SectionLabel>
+                            05 · {fichas.length > 1 ? "Fichas técnicas" : "Ficha técnica"}
+                        </SectionLabel>
                         <h2
                             className="font-display mt-5"
                             style={{
@@ -371,7 +391,9 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 maxWidth: "22ch",
                             }}
                         >
-                            Avaliação genética oficial.
+                            {fichas.length > 1
+                                ? "Avaliações genéticas oficiais."
+                                : "Avaliação genética oficial."}
                         </h2>
                         <p
                             style={{
@@ -382,17 +404,23 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 maxWidth: "62ch",
                             }}
                         >
-                            Todas as DEPs por característica e a genealogia oficial publicadas
-                            pela ABCZ estão reunidas na ficha técnica completa.
+                            {fichas.length > 1
+                                ? "Avaliação cruzada nos três principais programas brasileiros de melhoramento genético do Nelore — DEPs por característica, percentis e genealogia oficial reunidos em PDFs separados."
+                                : "Todas as DEPs por característica e a genealogia oficial publicadas pela ABCZ estão reunidas na ficha técnica completa."}
                         </p>
 
-                        <div style={{ maxWidth: 720 }}>
-                            {doadora.fichaTecnica ? (
-                                <FichaTecnicaDownload
-                                    href={doadora.fichaTecnica}
-                                    corte={doadora.avaliacao.corte}
-                                    rgd={doadora.rgd}
-                                />
+                        <div style={{ maxWidth: 720, display: "flex", flexDirection: "column", gap: 14 }}>
+                            {hasFichas ? (
+                                fichas.map((f) => (
+                                    <FichaTecnicaDownload
+                                        key={f.href}
+                                        href={f.href}
+                                        label={f.label}
+                                        corte={doadora.avaliacao!.corte}
+                                        rgd={doadora.rgd}
+                                        multi={fichas.length > 1}
+                                    />
+                                ))
                             ) : (
                                 <p
                                     style={{
@@ -1142,17 +1170,23 @@ function FichaTecnicaDownload({
     href,
     corte,
     rgd,
+    label,
+    multi,
 }: {
     href: string;
     corte: string;
     rgd: string;
+    label?: string;
+    multi?: boolean;
 }) {
+    const displayLabel = label ?? "Ficha técnica oficial · ABCZ";
+    const downloadName = href.split("/").pop() || `ficha-tecnica-${rgd.replace(/\s+/g, "-")}.pdf`;
     return (
         <a
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            download={`ficha-tecnica-${rgd.replace(/\s+/g, "-")}.pdf`}
+            download={downloadName}
             className="fdb-ficha-download"
         >
             <span aria-hidden className="fdb-ficha-icon">
@@ -1173,12 +1207,14 @@ function FichaTecnicaDownload({
             </span>
 
             <span className="fdb-ficha-text">
-                <span className="fdb-ficha-label">Ficha técnica oficial · ABCZ</span>
+                <span className="fdb-ficha-label">{displayLabel}</span>
                 <span className="fdb-ficha-title font-display">
-                    Avaliação genética completa
+                    {multi ? "DEPs + genealogia oficial" : "Avaliação genética completa"}
                 </span>
                 <span className="fdb-ficha-meta">
-                    Todas as DEPs por característica + genealogia · corte {corte} · PDF
+                    {multi
+                        ? `Programa oficial · DEPs por característica · PDF`
+                        : `Todas as DEPs por característica + genealogia · corte ${corte} · PDF`}
                 </span>
             </span>
 

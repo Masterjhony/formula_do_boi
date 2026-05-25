@@ -20,7 +20,8 @@ export async function generateMetadata({
     if (!doadora) return { title: "Doadora não encontrada · Fórmula do Boi" };
 
     const nome = doadora.nomeAbcz ?? doadora.rgd;
-    const title = `${nome} × ${doadora.cruzamento} — Embrião FIV · Fórmula do Boi`;
+    const cruzamentoSuffix = doadora.cruzamento ? ` × ${doadora.cruzamento}` : "";
+    const title = `${nome}${cruzamentoSuffix} — Embrião FIV · Fórmula do Boi`;
     const description = `Embrião VIT Nelore PO. ${doadora.classificacaoTop} · MGTe ${doadora.mgte.valor.toString().replace(".", ",")} ${doadora.mgte.top} · iABCZ ${doadora.iabcz.valor.toString().replace(".", ",")} ${doadora.iabcz.percentil}. Pacote 12 embriões com 4 prenhezes garantidas.`;
 
     return {

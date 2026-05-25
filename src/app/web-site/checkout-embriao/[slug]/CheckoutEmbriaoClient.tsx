@@ -66,6 +66,8 @@ type Errors = Partial<Record<
 
 export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora }) {
     const nome = doadora.nomeAbcz ?? doadora.rgd;
+    const cruzSuffix = doadora.cruzamento ? ` × ${doadora.cruzamento}` : "";
+    const central = doadora.origem?.fazenda ?? DOADORAS_CONDICOES.fazenda;
 
     const [customerName, setCustomerName] = useState("");
     const [tel, setTel] = useState("");
@@ -114,10 +116,10 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
         }
 
         const payload = {
-            product_name: `${nome} × ${doadora.cruzamento}`,
+            product_name: `${nome}${cruzSuffix}`,
             product_category: "Embrião",
             product_kind: "embriao" as const,
-            central: DOADORAS_CONDICOES.fazenda,
+            central,
             customer_name: customerName.trim(),
             customer_phone: tel,
             customer_email: email.trim() || null,
@@ -131,7 +133,7 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
             payment_method: pagamento || null,
             notes: [
                 `Doadora: ${nome} (RGD ${doadora.rgd})`,
-                `Cruzamento: × ${doadora.cruzamento}`,
+                doadora.cruzamento ? `Cruzamento: × ${doadora.cruzamento}` : "",
                 `Origem: site /embrioes/${doadora.slug}`,
                 notes.trim() ? `\nObservação do cliente:\n${notes.trim()}` : "",
             ].filter(Boolean).join("\n"),
@@ -270,7 +272,7 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
                     >
                         Pré-reserva{" "}
                         <span style={{ color: BRONZE_LIGHT }}>
-                            {nome} × {doadora.cruzamento}.
+                            {nome}{cruzSuffix}.
                         </span>
                     </h1>
 
@@ -418,7 +420,7 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
                                 </Field>
                             </div>
 
-                            <Field label="Observações" hint="Prazo desejado, dúvidas, exigências de cruzamento, etc.">
+                            <Field label="Observações" hint="Prazo desejado, dúvidas, condições de entrega, etc.">
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
@@ -591,7 +593,7 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
                                         marginBottom: 18,
                                     }}
                                 >
-                                    × {doadora.cruzamento} · RGD {doadora.rgd}
+                                    {doadora.cruzamento ? `× ${doadora.cruzamento} · ` : ""}RGD {doadora.rgd}
                                 </div>
 
                                 <SummaryRow label="Embrião VIT (unidade)" value={fmtBRL(doadora.precoEmbriao)} />
@@ -644,7 +646,7 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
                                         textTransform: "uppercase",
                                     }}
                                 >
-                                    Valor sujeito à confirmação pelo curador conforme cruzamento e prazo.
+                                    Valor sujeito à confirmação pelo curador conforme quantidade e prazo.
                                 </p>
                             </div>
                         </aside>

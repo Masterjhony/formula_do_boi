@@ -90,7 +90,7 @@ function safraToItem(
         code: d.rgd,
         badge: d.classificacaoTop,
         origin: "safra",
-        originLabel: "Safra 2026 · Nelore Visual",
+        originLabel: d.originLabel ?? "Safra 2026 · Nelore Visual",
         pelagem: toPelagem(visRacaByRegistro[d.rgd]),
         name: d.nomeAbcz ?? d.rgd,
         cruzamento: d.cruzamento,

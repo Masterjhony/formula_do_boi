@@ -20,9 +20,10 @@ export async function generateMetadata({
     if (!doadora) return { title: "Pré-reserva · Fórmula do Boi" };
 
     const nome = doadora.nomeAbcz ?? doadora.rgd;
+    const cruz = doadora.cruzamento ? ` × ${doadora.cruzamento}` : "";
     return {
-        title: `Pré-reserva ${nome} × ${doadora.cruzamento} — Fórmula do Boi`,
-        description: `Solicite a pré-reserva do pacote ${nome} × ${doadora.cruzamento}. Embrião VIT, ${doadora.quantidadeEmbrioes} unidades, prenhezes garantidas.`,
+        title: `Pré-reserva ${nome}${cruz} — Fórmula do Boi`,
+        description: `Solicite a pré-reserva do pacote ${nome}${cruz}. Embrião VIT, ${doadora.quantidadeEmbrioes} unidades, prenhezes garantidas.`,
         robots: { index: false, follow: false },
     };
 }
