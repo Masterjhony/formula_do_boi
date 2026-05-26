@@ -8,6 +8,9 @@ import {
     type Doadora,
     type PedigreeNode,
     DOADORAS_CONDICOES,
+    criatorioLabel,
+    tipoEmbriaoLabel,
+    tipoEmbriaoShort,
 } from "@/data/doadoras";
 
 const BRONZE = "#A0792E";
@@ -26,6 +29,9 @@ function fmtDecimal(n: number) {
 export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
     const nome = doadora.nomeAbcz ?? doadora.rgd;
     const nomeHero = doadora.nomeAbcz ?? "Nome ABCZ a confirmar";
+    const criatorio = criatorioLabel(doadora);
+    const tipoVerbose = tipoEmbriaoLabel(doadora);
+    const tipoShort = tipoEmbriaoShort(doadora);
     const hasPedigree = !!doadora.pedigree;
     const hasAvaliacao = !!doadora.avaliacao;
     const origem = doadora.origem ?? {
@@ -131,7 +137,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 }}
                             >
                                 <span style={{ width: 24, height: 1, background: BRONZE }} />
-                                Embrião FIV · Nelore Visual × Fórmula do Boi
+                                Embrião FIV · {criatorio} × Fórmula do Boi
                             </div>
 
                             <h1
@@ -166,7 +172,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                     marginBottom: 28,
                                 }}
                             >
-                                RGD {doadora.rgd} · {doadora.classificacaoTop} · {DOADORAS_CONDICOES.tipoEmbriao}
+                                RGD {doadora.rgd} · {doadora.classificacaoTop} · {tipoVerbose}
                             </div>
 
                             {/* Métricas — barra de 3 colunas */}
@@ -209,7 +215,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                             >
                                 Doadora Nelore PO criada por {origem.proprietario}{" "}
                                 — {origem.fazenda}, {origem.municipio}.
-                                Embrião VIT, pacote mínimo de {DOADORAS_CONDICOES.pacoteMinimo} unidades com{" "}
+                                Embrião {tipoShort}, pacote mínimo de {DOADORAS_CONDICOES.pacoteMinimo} unidades com{" "}
                                 {DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes garantidas.
                             </p>
 
@@ -257,7 +263,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 overflow: "hidden",
                             }}
                         >
-                            <DataRow label="Quantidade" value={`${doadora.quantidadeEmbrioes} embriões VIT`} highlight />
+                            <DataRow label="Quantidade" value={`${doadora.quantidadeEmbrioes} embriões ${tipoShort}`} highlight />
                             <DataRow label="Valor por embrião" value={fmtBRL(doadora.precoEmbriao)} />
                             <DataRow label="Total do pacote" value={fmtBRL(doadora.pacoteTotal)} />
                             <DataRow label="Garantia" value={`${DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes confirmadas`} />

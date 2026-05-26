@@ -25,8 +25,8 @@ INSERT INTO public.products (
 SELECT v.*
 FROM (VALUES
   (
-    '3955 FIV FC CACHOEIRAO - Pacote 12 Embriões VIT',
-    'Embrião VIT',
+    '3955 FIV FC CACHOEIRAO - Pacote 12 Embriões DT',
+    'Embrião DT',
     'embriao',
     'venda_direta',
     'frete_compartilhado',
@@ -49,8 +49,10 @@ FROM (VALUES
       'top', 'TOP 0,1%',
       'status', 'Disponível',
       'proprietario', 'José Rodrigues Pereira',
-      'breeder', 'Fazenda Cachoeirão',
-      'comentario', 'Embrião VIT Nelore PO · Doadora Cachoeirão (Bandeirantes/MS). Avaliação cruzada nos três programas: PMGZ/ABCZ iABCZg 33,44 (DECA 1 · P 0,1%) · GenePlus IQGg 37,86 (Classe E · P 0,5%) · ANCP MGTe 28,65 (TOP 4%). Pacote 12 embriões, 4 prenhezes garantidas.',
+      'breeder', 'Nelore Leão',
+      'fazenda', 'Fazenda Cachoeirão',
+      'tipo_embriao', 'DT',
+      'comentario', 'Embrião DT Nelore PO · Criatório Nelore Leão · Doadora Cachoeirão (Bandeirantes/MS). Avaliação cruzada nos três programas: PMGZ/ABCZ iABCZg 33,44 (DECA 1 · P 0,1%) · GenePlus IQGg 37,86 (Classe E · P 0,5%) · ANCP MGTe 28,65 (TOP 4%). Pacote 12 embriões, 4 prenhezes garantidas.',
       'slug', 'fcch-3955',
       'cruzamento', null,
       'classificacao_top', 'TOP 0,1%',
@@ -76,3 +78,21 @@ WHERE NOT EXISTS (
   FROM public.products p
   WHERE p.details->>'registro' = v.details->>'registro'
 );
+
+-- ==============================================================================
+-- UPDATE pós-correção (2026-05-25): criador correto é Nelore Leão (não Visual)
+-- e os embriões são DT (transferência direta), não VIT.
+-- Idempotente: pode rodar várias vezes sem efeito colateral.
+-- ==============================================================================
+UPDATE public.products
+SET
+  name = '3955 FIV FC CACHOEIRAO - Pacote 12 Embriões DT',
+  category = 'Embrião DT',
+  details = details
+    || jsonb_build_object(
+      'breeder', 'Nelore Leão',
+      'fazenda', 'Fazenda Cachoeirão',
+      'tipo_embriao', 'DT',
+      'comentario', 'Embrião DT Nelore PO · Criatório Nelore Leão · Doadora Cachoeirão (Bandeirantes/MS). Avaliação cruzada nos três programas: PMGZ/ABCZ iABCZg 33,44 (DECA 1 · P 0,1%) · GenePlus IQGg 37,86 (Classe E · P 0,5%) · ANCP MGTe 28,65 (TOP 4%). Pacote 12 embriões, 4 prenhezes garantidas.'
+    )
+WHERE details->>'registro' = 'FCCH 3955';

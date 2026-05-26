@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DOADORAS, getDoadora } from "@/data/doadoras";
+import { DOADORAS, getDoadora, tipoEmbriaoShort } from "@/data/doadoras";
 import { createClient } from "@/utils/supabase/server";
 import DoadoraClient from "./DoadoraClient";
 
@@ -20,9 +20,9 @@ export async function generateMetadata({
     if (!doadora) return { title: "Doadora não encontrada · Fórmula do Boi" };
 
     const nome = doadora.nomeAbcz ?? doadora.rgd;
-    const cruzamentoSuffix = doadora.cruzamento ? ` × ${doadora.cruzamento}` : "";
-    const title = `${nome}${cruzamentoSuffix} — Embrião FIV · Fórmula do Boi`;
-    const description = `Embrião VIT Nelore PO. ${doadora.classificacaoTop} · MGTe ${doadora.mgte.valor.toString().replace(".", ",")} ${doadora.mgte.top} · iABCZ ${doadora.iabcz.valor.toString().replace(".", ",")} ${doadora.iabcz.percentil}. Pacote 12 embriões com 4 prenhezes garantidas.`;
+    const tipo = tipoEmbriaoShort(doadora);
+    const title = `Embriões ${tipo} da "${nome}" · Doadora Fórmula do Boi`;
+    const description = `Embrião ${tipo} Nelore PO. ${doadora.classificacaoTop} · MGTe ${doadora.mgte.valor.toString().replace(".", ",")} ${doadora.mgte.top} · iABCZ ${doadora.iabcz.valor.toString().replace(".", ",")} ${doadora.iabcz.percentil}. Pacote 12 embriões com 4 prenhezes garantidas.`;
 
     return {
         title,

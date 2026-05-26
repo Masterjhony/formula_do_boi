@@ -88,7 +88,26 @@ export type Doadora = {
     parcelamento?: string;
     /** Label resumido de pagamento exibido no card do catálogo (ex.: "Até 20× sem juros"). Default: "Até 10× sem juros". */
     parcelamentoCardLabel?: string;
+    /** Criatório/marca da genética exibido na tagline do hero e nos metadados sociais. Default: "Nelore Visual". */
+    criatorio?: string;
+    /** Tipo do embrião (default VIT). Afeta título da página, OG, labels de quantidade e preço. */
+    tipoEmbriao?: "VIT" | "DT";
 };
+
+/** Verbose: "VIT (vitrificado)" ou "DT (transferência direta)". */
+export function tipoEmbriaoLabel(d: Doadora): string {
+    return d.tipoEmbriao === "DT" ? "DT (transferência direta)" : DOADORAS_CONDICOES.tipoEmbriao;
+}
+
+/** Short code: "VIT" ou "DT". */
+export function tipoEmbriaoShort(d: Doadora): string {
+    return d.tipoEmbriao === "DT" ? "DT" : "VIT";
+}
+
+/** Criatório exibido (default "Nelore Visual" para as doadoras VIS). */
+export function criatorioLabel(d: Doadora): string {
+    return d.criatorio ?? "Nelore Visual";
+}
 
 const AVAL_VIS_4622: Avaliacao = {
     corte: "2026-1",
@@ -454,6 +473,8 @@ export const DOADORAS: Doadora[] = [
         originLabel: "Cachoeirão · Nelore PO",
         parcelamento: "20× sem juros (1+19)",
         parcelamentoCardLabel: "Até 20× sem juros",
+        criatorio: "Nelore Leão",
+        tipoEmbriao: "DT",
     },
     {
         slug: "vis-4622",

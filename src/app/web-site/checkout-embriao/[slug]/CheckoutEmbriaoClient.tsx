@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { type Doadora, DOADORAS_CONDICOES } from "@/data/doadoras";
+import { type Doadora, DOADORAS_CONDICOES, tipoEmbriaoShort } from "@/data/doadoras";
 
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
@@ -594,7 +594,7 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
                                     {doadora.cruzamento ? `× ${doadora.cruzamento} · ` : ""}RGD {doadora.rgd}
                                 </div>
 
-                                <SummaryRow label="Embrião VIT (unidade)" value={fmtBRL(doadora.precoEmbriao)} />
+                                <SummaryRow label={`Embrião ${tipoEmbriaoShort(doadora)} (unidade)`} value={fmtBRL(doadora.precoEmbriao)} />
                                 <SummaryRow label="Quantidade" value={`${quantidade || 0} embriões`} />
                                 <SummaryRow label="Garantia" value={`${DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes`} />
                                 <SummaryRow label="Pagamento" value={doadora.parcelamento ?? DOADORAS_CONDICOES.parcelamento} small />

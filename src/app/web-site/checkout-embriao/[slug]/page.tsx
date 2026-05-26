@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DOADORAS, getDoadora } from "@/data/doadoras";
+import { DOADORAS, getDoadora, tipoEmbriaoShort } from "@/data/doadoras";
 import { createClient } from "@/utils/supabase/server";
 import CheckoutEmbriaoClient from "./CheckoutEmbriaoClient";
 
@@ -21,9 +21,10 @@ export async function generateMetadata({
 
     const nome = doadora.nomeAbcz ?? doadora.rgd;
     const cruz = doadora.cruzamento ? ` × ${doadora.cruzamento}` : "";
+    const tipo = tipoEmbriaoShort(doadora);
     return {
-        title: `Pré-reserva ${nome}${cruz} — Fórmula do Boi`,
-        description: `Solicite a pré-reserva do pacote ${nome}${cruz}. Embrião VIT, ${doadora.quantidadeEmbrioes} unidades, prenhezes garantidas.`,
+        title: `Pré-reserva Embriões ${tipo} da "${nome}"${cruz} — Fórmula do Boi`,
+        description: `Solicite a pré-reserva do pacote ${nome}${cruz}. Embrião ${tipo}, ${doadora.quantidadeEmbrioes} unidades, prenhezes garantidas.`,
         robots: { index: false, follow: false },
     };
 }

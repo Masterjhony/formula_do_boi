@@ -5,7 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { EMBRYOS } from "@/data/embryos";
-import { DOADORAS, DOADORAS_CONDICOES } from "@/data/doadoras";
+import { DOADORAS, DOADORAS_CONDICOES, tipoEmbriaoShort } from "@/data/doadoras";
 import { Product } from "@/services/products";
 
 const BRONZE = "#A0792E";
@@ -100,11 +100,11 @@ function safraToItem(
             { label: "MGTe", value: fmtDecimal(d.mgte.valor) },
         ],
         specs: [
-            { label: "Pacote mínimo", value: `${d.quantidadeEmbrioes} embriões VIT` },
+            { label: "Pacote mínimo", value: `${d.quantidadeEmbrioes} embriões ${tipoEmbriaoShort(d)}` },
             { label: "Pagamento", value: d.parcelamentoCardLabel ?? "Até 10× sem juros" },
             { label: "Localização", value: DOADORAS_CONDICOES.municipio },
         ],
-        priceCaption: "Por embrião VIT",
+        priceCaption: `Por embrião ${tipoEmbriaoShort(d)}`,
         price: fmtBRL(d.precoEmbriao),
     };
 }
