@@ -6,11 +6,9 @@ import { SettingsService } from "@/services/settingsService";
 export type NavItem = { href: string; label: string };
 
 const BASE: Record<string, NavItem> = {
-    home: { href: "/", label: "Início" },
     semen: { href: "/semen", label: "Sêmen" },
     touros: { href: "/touros", label: "Touros" },
     embrioes: { href: "/embrioes", label: "Embriões" },
-    leiloes: { href: "/agenda", label: "Leilões" },
     grupoVip: { href: "/grupo-vip", label: "Grupo VIP" },
 };
 
@@ -20,10 +18,10 @@ type FlagInput = {
 };
 
 export function buildNavItems({ semenEnabled, tourosEnabled }: FlagInput): NavItem[] {
-    const items: NavItem[] = [BASE.home];
+    const items: NavItem[] = [];
     if (semenEnabled === true) items.push(BASE.semen);
     if (tourosEnabled !== false) items.push(BASE.touros);
-    items.push(BASE.embrioes, BASE.leiloes, BASE.grupoVip);
+    items.push(BASE.embrioes, BASE.grupoVip);
     return items;
 }
 
