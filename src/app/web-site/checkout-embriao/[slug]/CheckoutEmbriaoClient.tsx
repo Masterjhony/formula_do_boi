@@ -299,7 +299,7 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
                         {/* ── FORM ────────────────────────────────── */}
                         <form
                             onSubmit={submit}
-                            className="card-engraved"
+                            className="card-engraved order-2 lg:order-1"
                             style={{
                                 background: INK,
                                 border: `1px solid ${LINE_STRONG}`,
@@ -506,14 +506,12 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
 
                         {/* ── SUMMARY ─────────────────────────────── */}
                         <aside
-                            className="card-engraved"
+                            className="card-engraved order-1 lg:order-2 lg:sticky lg:top-6"
                             style={{
                                 background: INK,
                                 border: `1px solid ${LINE_STRONG}`,
                                 borderRadius: 4,
                                 overflow: "hidden",
-                                position: "sticky",
-                                top: 24,
                             }}
                         >
                             {/* Imagem ou placeholder */}
@@ -599,7 +597,7 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
                                 <SummaryRow label="Embrião VIT (unidade)" value={fmtBRL(doadora.precoEmbriao)} />
                                 <SummaryRow label="Quantidade" value={`${quantidade || 0} embriões`} />
                                 <SummaryRow label="Garantia" value={`${DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes`} />
-                                <SummaryRow label="Pagamento" value={DOADORAS_CONDICOES.parcelamento} small />
+                                <SummaryRow label="Pagamento" value={doadora.parcelamento ?? DOADORAS_CONDICOES.parcelamento} small />
 
                                 <div
                                     style={{

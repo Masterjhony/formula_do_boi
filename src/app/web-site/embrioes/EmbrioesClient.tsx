@@ -101,7 +101,7 @@ function safraToItem(
         ],
         specs: [
             { label: "Pacote mínimo", value: `${d.quantidadeEmbrioes} embriões VIT` },
-            { label: "Pagamento", value: "Até 10× sem juros" },
+            { label: "Pagamento", value: d.parcelamentoCardLabel ?? "Até 10× sem juros" },
             { label: "Localização", value: DOADORAS_CONDICOES.municipio },
         ],
         priceCaption: "Por embrião VIT",

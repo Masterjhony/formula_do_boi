@@ -6,7 +6,7 @@
 --
 -- Fonte: src/data/doadoras.ts + fichas ANCP/GenePlus/PMGZ (mai-2026).
 -- Proprietário: José Rodrigues Pereira · Fazenda Cachoeirão · Bandeirantes/MS.
--- Pacote: 12 embriões VIT, 4 prenhezes garantidas, 10× sem juros (R$ 13.200 total).
+-- Pacote: 12 embriões VIT, 4 prenhezes garantidas, 20× sem juros 1+19 (R$ 13.200 total).
 --
 -- Tag `SAFRA_VIS_2026` é reaproveitada como gate de visibilidade no site:
 --   - /web-site/embrioes/page.tsx lê `active` por tag pra esconder doadoras;
@@ -30,12 +30,12 @@ FROM (VALUES
     'embriao',
     'venda_direta',
     'frete_compartilhado',
-    'Entrada + 9x',
+    'Entrada + 19x',
     'Bandeirantes - MS',
     'https://res.cloudinary.com/dny0ibgbn/video/upload/v1779738203/LOTE_09_-_FCCH_3955_1_1_wlfdau.mp4',
     ARRAY['https://res.cloudinary.com/dny0ibgbn/video/upload/v1779738203/LOTE_09_-_FCCH_3955_1_1_wlfdau.mp4'],
     1100::numeric,
-    '10x sem juros',
+    '20x sem juros',
     'SAFRA_VIS_2026',
     jsonb_build_object(
       'registro', 'FCCH 3955',
@@ -56,7 +56,7 @@ FROM (VALUES
       'classificacao_top', 'TOP 0,1%',
       'pacote_total', 13200,
       'quantidade_embrioes', 12,
-      'parcelamento', '10× sem juros (1 entrada + 9 parcelas)',
+      'parcelamento', '20× sem juros (1+19)',
       'video', 'https://res.cloudinary.com/dny0ibgbn/video/upload/v1779738203/LOTE_09_-_FCCH_3955_1_1_wlfdau.mp4',
       'fichas_tecnicas', jsonb_build_array(
         jsonb_build_object('programa', 'PMGZ/ABCZ', 'corte', '2026-2', 'url', '/FCCH-3955-PMGZ.pdf'),

@@ -84,6 +84,10 @@ export type Doadora = {
     };
     /** Label de origem exibida no card do catálogo. Default: "Safra 2026 · Nelore Visual". */
     originLabel?: string;
+    /** Override de parcelamento da doadora (catálogo + ficha + checkout). Sobrepõe DOADORAS_CONDICOES.parcelamento. */
+    parcelamento?: string;
+    /** Label resumido de pagamento exibido no card do catálogo (ex.: "Até 20× sem juros"). Default: "Até 10× sem juros". */
+    parcelamentoCardLabel?: string;
 };
 
 const AVAL_VIS_4622: Avaliacao = {
@@ -448,6 +452,8 @@ export const DOADORAS: Doadora[] = [
             municipio: "Bandeirantes/MS",
         },
         originLabel: "Cachoeirão · Nelore PO",
+        parcelamento: "20× sem juros (1+19)",
+        parcelamentoCardLabel: "Até 20× sem juros",
     },
     {
         slug: "vis-4622",

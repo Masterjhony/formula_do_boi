@@ -261,7 +261,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                             <DataRow label="Valor por embrião" value={fmtBRL(doadora.precoEmbriao)} />
                             <DataRow label="Total do pacote" value={fmtBRL(doadora.pacoteTotal)} />
                             <DataRow label="Garantia" value={`${DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes confirmadas`} />
-                            <DataRow label="Pagamento" value={DOADORAS_CONDICOES.parcelamento} />
+                            <DataRow label="Pagamento" value={doadora.parcelamento ?? DOADORAS_CONDICOES.parcelamento} />
                             <DataRow label="Laboratório" value={DOADORAS_CONDICOES.laboratorio} />
                             <DataRow label="Avaliações" value={DOADORAS_CONDICOES.avaliacoesGeneticas.join(" · ")} last />
                         </div>
