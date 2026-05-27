@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     openGraph: {
         title: "Catálogo de Embriões e Doadoras | Fórmula do Boi",
         description: "Embriões e doadoras de alta genética para o seu rebanho.",
-        images: ['/cattle/vaca_embrioes_og.webp'],
+        images: ['/cattle/embrioes-hero-nelore.webp'],
     },
 };
 

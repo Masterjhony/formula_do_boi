@@ -288,9 +288,9 @@ export default function EmbrioesClient({
                 <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                        backgroundImage: 'url("/Imagem embrio.png")',
+                        backgroundImage: 'url("/cattle/embrioes-hero-nelore.webp")',
                         backgroundSize: "cover",
-                        backgroundPosition: "center",
+                        backgroundPosition: "center 42%",
                     }}
                 />
                 {/* Véu escuro — garante a legibilidade do texto sobre a foto */}
