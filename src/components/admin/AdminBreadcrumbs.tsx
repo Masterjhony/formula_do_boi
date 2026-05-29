@@ -18,8 +18,6 @@ const ROUTE_MAP: Record<string, { label: string; section?: string }> = {
     'genealogia': { label: 'Genealogia' },
     'ia': { label: 'IA Mapeamento', section: 'Ferramentas' },
     'leads': { label: 'Leads', section: 'Vendas & Marketing' },
-    'leiloes': { label: 'Leilões' },
-    'fechamento': { label: 'Fechamento', section: 'Leilões' },
     'lotes-doadoras': { label: 'Lotes Doadoras', section: 'Animais' },
     'lotes-touros': { label: 'Lotes Touros', section: 'Animais' },
     'okr': { label: 'OKR', section: 'Operações' },
@@ -38,7 +36,7 @@ function labelFor(segment: string, idx: number, segments: string[]): string {
     if (known) return known.label;
     // Dynamic id segment: try to show "#<short-id>" or fallback to title-cased
     const prev = segments[idx - 1];
-    if (prev === 'products' || prev === 'leads' || prev === 'crm' || prev === 'leiloes') {
+    if (prev === 'products' || prev === 'leads' || prev === 'crm') {
         return segment.length > 8 ? `#${segment.slice(0, 6)}` : `#${segment}`;
     }
     return segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');

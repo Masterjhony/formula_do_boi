@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import {
     Search, X, Loader2, ArrowRight,
-    Users, Gavel, BarChart3, ListChecks, Award, CornerDownLeft,
+    Users, ListChecks, Award, CornerDownLeft,
     ClipboardCheck, Calendar, FileSignature, Dna, Crown,
 } from 'lucide-react';
 
@@ -15,8 +15,6 @@ type HitType =
     | 'agenda'
     | 'task'
     | 'contract'
-    | 'leilao'
-    | 'fechamento'
     | 'breeder'
     | 'lote_touro'
     | 'lote_doadora';
@@ -35,8 +33,6 @@ const TYPE_META: Record<HitType, { label: string; icon: React.ElementType }> = {
     agenda:       { label: 'Agenda',         icon: Calendar },
     task:         { label: 'Tarefa',         icon: ListChecks },
     contract:     { label: 'Contrato',       icon: FileSignature },
-    leilao:       { label: 'Leilão',         icon: Gavel },
-    fechamento:   { label: 'Fechamento',     icon: BarChart3 },
     breeder:      { label: 'Criador',        icon: Award },
     lote_touro:   { label: 'Touro Doador',   icon: Crown },
     lote_doadora: { label: 'Doadora',        icon: Dna },
@@ -48,8 +44,6 @@ const TYPE_ORDER: HitType[] = [
     'agenda',
     'task',
     'contract',
-    'leilao',
-    'fechamento',
     'breeder',
     'lote_touro',
     'lote_doadora',
@@ -238,7 +232,7 @@ export function GlobalSearch() {
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
                                 onKeyDown={onKeyDown}
-                                placeholder="Buscar clientes, reservas, agenda, tarefas, contratos, leilões…"
+                                placeholder="Buscar clientes, reservas, agenda, tarefas, contratos…"
                                 className="flex-1 bg-transparent text-sm text-gray-900 dark:text-[#F5F0E4] placeholder:text-gray-400 dark:placeholder:text-[#F5F0E4]/35 outline-none border-none"
                                 autoComplete="off"
                                 spellCheck={false}

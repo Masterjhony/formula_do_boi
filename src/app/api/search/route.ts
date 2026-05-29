@@ -19,11 +19,9 @@ import { createClient } from '@/utils/supabase/server';
 //   3. Agenda
 //   4. Tarefa / projeto
 //   5. Contrato
-//   6. Leilão (operacional Bula)
-//   7. Fechamento (relatório de leilão)
-//   8. Criador
-//   9. Touro doador (lote de sêmen)
-//  10. Doadora (lote de embrião)
+//   6. Criador
+//   7. Touro doador (lote de sêmen)
+//   8. Doadora (lote de embrião)
 
 export type HitType =
     | 'lead'
@@ -31,8 +29,6 @@ export type HitType =
     | 'agenda'
     | 'task'
     | 'contract'
-    | 'leilao'
-    | 'fechamento'
     | 'breeder'
     | 'lote_touro'
     | 'lote_doadora';
@@ -62,8 +58,6 @@ export async function GET(req: NextRequest) {
         agendaRes,
         tasksRes,
         contractsRes,
-        leiloesRes,
-        fechamentosRes,
         breedersRes,
         lotesTourosRes,
         lotesDoadorasRes,
@@ -130,28 +124,6 @@ export async function GET(req: NextRequest) {
             .or([
                 `title.ilike.${pattern}`,
                 `client_name.ilike.${pattern}`,
-            ].join(','))
-            .limit(PER_TYPE_LIMIT),
-
-        // Leilões (Bula operacional) — exclui cancelado.
-        supabase
-            .from('bula_leiloes')
-            .select('id, nome, local, data, tipo, status')
-            .neq('status', 'cancelado')
-            .or([
-                `nome.ilike.${pattern}`,
-                `local.ilike.${pattern}`,
-                `tipo.ilike.${pattern}`,
-            ].join(','))
-            .limit(PER_TYPE_LIMIT),
-
-        // Fechamentos — relatório histórico, todos relevantes.
-        supabase
-            .from('bula_leilao_fechamento')
-            .select('id, nome, data, local, vgv_total')
-            .or([
-                `nome.ilike.${pattern}`,
-                `local.ilike.${pattern}`,
             ].join(','))
             .limit(PER_TYPE_LIMIT),
 
@@ -260,35 +232,6 @@ export async function GET(req: NextRequest) {
             title: c.title || '(sem título)',
             subtitle: subtitleParts.join(' · ') || undefined,
             href: '/contratos',
-        });
-    }
-
-    type LeilaoRow = { id: string; nome: string | null; local: string | null; data: string | null; tipo: string | null; status: string | null };
-    for (const a of (leiloesRes.data ?? []) as LeilaoRow[]) {
-        const data = a.data ? new Date(a.data).toLocaleDateString('pt-BR') : null;
-        const subtitleParts = [a.tipo, a.local, data].filter(Boolean);
-        hits.push({
-            id: `leilao-${a.id}`,
-            type: 'leilao',
-            title: a.nome || '(sem nome)',
-            subtitle: subtitleParts.join(' · ') || undefined,
-            href: '/leiloes',
-        });
-    }
-
-    type FechamentoRow = { id: string; nome: string | null; data: string | null; local: string | null; vgv_total: number | null };
-    for (const f of (fechamentosRes.data ?? []) as FechamentoRow[]) {
-        const vgv = f.vgv_total
-            ? f.vgv_total >= 1_000_000 ? `R$ ${(f.vgv_total / 1_000_000).toFixed(1)}M` : `R$ ${Math.round(f.vgv_total / 1_000)}k`
-            : null;
-        const data = f.data ? new Date(f.data).toLocaleDateString('pt-BR') : null;
-        const subtitleParts = [data, f.local, vgv].filter(Boolean);
-        hits.push({
-            id: `fechamento-${f.id}`,
-            type: 'fechamento',
-            title: f.nome || '(sem nome)',
-            subtitle: subtitleParts.join(' · ') || undefined,
-            href: `/leiloes/fechamento?id=${f.id}`,
         });
     }
 

@@ -6,9 +6,9 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, LogOut, Menu, X, Users, Settings, Calendar,
-    MessageCircle, FileText, Sparkles, Gavel, Dna, Award,
-    ImageIcon, Shield, ChevronDown, BarChart2, Target, BarChart3,
-    Megaphone, FileBarChart, Briefcase, CalendarCheck, Package, Mail,
+    MessageCircle, FileText, Sparkles, Dna, Award,
+    ImageIcon, Shield, ChevronDown, BarChart2, Target,
+    Megaphone, Package, Mail,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -35,16 +35,6 @@ const navConfig: NavEntry[] = [
         ],
     },
     {
-        label: 'Leilões', icon: Gavel,
-        items: [
-            { href: '/leiloes', label: 'Leilões', icon: Gavel },
-            { href: '/leiloes/fechamento', label: 'Fechamento de Leilões', icon: BarChart3 },
-            { href: '/leiloes/vendas-por-assessor', label: 'Vendas por Assessor', icon: Briefcase },
-            { href: '/leiloes/relatorios', label: 'Relatórios', icon: FileBarChart },
-            { href: '/leiloes/equipe', label: 'Equipe', icon: Users },
-        ],
-    },
-    {
         label: 'Produtos', icon: Dna,
         items: [
             { href: '/lotes-doadoras', label: 'Doadoras', icon: Dna },
@@ -56,9 +46,6 @@ const navConfig: NavEntry[] = [
         label: 'Operações', icon: Calendar,
         items: [
             { href: '/projetos', label: 'Projetos', icon: Calendar },
-            { href: '/agenda', label: 'Agenda Oficial', icon: CalendarCheck },
-            { href: '/agendamentos', label: 'Agendamentos', icon: CalendarCheck },
-            { href: '/projetos/relatorios', label: 'Relatórios', icon: FileBarChart },
             { href: '/okr', label: 'OKR', icon: Target },
             { href: '/contratos', label: 'Contratos', icon: FileText },
         ],
