@@ -88,32 +88,33 @@ export function LeadsRegionMap({ byUf, unknownCount = 0 }: Props) {
         [byUf],
     );
 
-    const tileStyle = (count: number): React.CSSProperties => {
+    const tileStyle = (count: number, isHover: boolean): React.CSSProperties => {
         if (count <= 0) {
+            // Estado sem leads — recua para não virar "buraco", mas mantém a silhueta do Brasil.
             return {
-                backgroundColor: 'transparent',
-                borderColor: 'rgba(160,121,46,0.18)',
-                color: '#9CA3AF',
+                backgroundColor: 'rgba(160,121,46,0.05)',
+                borderColor: 'rgba(160,121,46,0.10)',
+                color: 'rgba(148,151,158,0.55)',
             };
         }
         const t = count / max;            // 0..1
-        const alpha = 0.18 + t * 0.82;
+        const alpha = 0.28 + t * 0.72;    // piso mais alto para legibilidade
         return {
             backgroundColor: `rgba(160,121,46,${alpha.toFixed(3)})`,
-            borderColor: `rgba(160,121,46,${Math.min(1, alpha + 0.15).toFixed(3)})`,
-            color: t > 0.55 ? '#161616' : 'inherit',
+            borderColor: isHover ? '#D4A85C' : `rgba(160,121,46,${Math.min(1, alpha + 0.2).toFixed(3)})`,
+            color: t > 0.5 ? '#161616' : '#F5F0E4',
         };
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-start">
             {/* Cartograma */}
-            <div>
+            <div className="w-full max-w-[330px] mx-auto lg:mx-0">
                 <div
-                    className="grid gap-1.5"
+                    className="grid gap-[5px]"
                     style={{
                         gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))`,
-                        gridTemplateRows: `repeat(${GRID_ROWS}, minmax(0, 1fr))`,
+                        gridTemplateRows: `repeat(${GRID_ROWS}, auto)`,
                     }}
                 >
                     {GRID.map(cell => {
@@ -125,18 +126,19 @@ export function LeadsRegionMap({ byUf, unknownCount = 0 }: Props) {
                                 onMouseEnter={() => setHover(cell.uf)}
                                 onMouseLeave={() => setHover(null)}
                                 title={`${cell.nome} (${cell.uf}) · ${count} lead${count === 1 ? '' : 's'}`}
-                                className="relative rounded-md border flex flex-col items-center justify-center aspect-square transition-transform"
+                                className="relative rounded-[5px] border flex flex-col items-center justify-center aspect-square transition-transform duration-150 cursor-default"
                                 style={{
                                     gridColumnStart: cell.col + 1,
                                     gridRowStart: cell.row + 1,
-                                    transform: isHover ? 'scale(1.08)' : undefined,
-                                    zIndex: isHover ? 2 : 1,
-                                    ...tileStyle(count),
+                                    transform: isHover ? 'scale(1.12)' : undefined,
+                                    boxShadow: isHover && count > 0 ? '0 4px 14px rgba(0,0,0,0.35)' : undefined,
+                                    zIndex: isHover ? 3 : 1,
+                                    ...tileStyle(count, isHover),
                                 }}
                             >
                                 <span className="text-[10px] font-black leading-none tracking-tight">{cell.uf}</span>
                                 {count > 0 && (
-                                    <span className="text-[9px] font-bold leading-none mt-0.5 font-mono">{count}</span>
+                                    <span className="text-[10px] font-bold leading-none mt-0.5 font-mono tabular-nums">{count}</span>
                                 )}
                             </div>
                         );
@@ -144,12 +146,13 @@ export function LeadsRegionMap({ byUf, unknownCount = 0 }: Props) {
                 </div>
 
                 {/* Legenda de intensidade */}
-                <div className="flex items-center gap-2 mt-3">
+                <div className="flex items-center gap-2 mt-4">
                     <span className="text-[9px] uppercase tracking-wider font-bold text-gray-400">Menos</span>
-                    <div className="flex-1 h-2 rounded-full" style={{ background: 'linear-gradient(90deg, rgba(160,121,46,0.18), rgba(160,121,46,1))' }} />
+                    <div className="flex-1 h-2 rounded-full" style={{ background: 'linear-gradient(90deg, rgba(160,121,46,0.28), rgba(160,121,46,1))' }} />
                     <span className="text-[9px] uppercase tracking-wider font-bold text-gray-400">Mais</span>
                     <span className="text-[9px] text-gray-400 ml-1 font-mono">pico {max}</span>
                 </div>
+                <p className="text-[9px] text-gray-400 mt-1.5">Cartograma · cada quadro é um estado, intensidade = volume de leads</p>
             </div>
 
             {/* Rollup por macrorregião */}
