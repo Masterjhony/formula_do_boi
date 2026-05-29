@@ -157,6 +157,23 @@
   --font-mono:    var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
 }
 
+/* ══════════════════════════════════════════════════════════
+   LP Volante MRA — tokens adicionais (página de detalhe em /volante).
+   Aditivo: cria utilitários novos (bg-bronze-500, text-bronze-300,
+   bg-nelore, text-selo…) usados só pela LP do Volante. A escala
+   bronze numérica mapeia para os mesmos hex da família bronze do
+   brandbook; nelore/selo são preto/branco puros da LP original.
+══════════════════════════════════════════════════════════ */
+@theme {
+  --color-bronze-100: #E8CB85;
+  --color-bronze-300: #D4A85C;
+  --color-bronze-500: #A0792E;
+  --color-bronze-700: #6B4F1E;
+  --color-bronze-900: #3D2D11;
+  --color-nelore: #000000;
+  --color-selo:   #FFFFFF;
+}
+
 /* ── Base ── */
 body {
   font-family: var(--font-sans);
