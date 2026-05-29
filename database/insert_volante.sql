@@ -32,8 +32,8 @@ SELECT
     '/volante/volante-4.jpg',
     '/volante/volante-video.mp4'
   ],
-  '23,50',
-  'À vista',
+  NULL,            -- price é coluna numérica; card de sêmen exibe "Sob consulta"
+  'Sob Consulta',
   'LANÇAMENTO 2026',
   '{
     "registro": "MRA 10701 · 10701-P MRA",
