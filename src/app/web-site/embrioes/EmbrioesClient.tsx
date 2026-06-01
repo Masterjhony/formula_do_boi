@@ -284,15 +284,22 @@ export default function EmbrioesClient({
                     minHeight: "clamp(560px, 78vh, 780px)",
                 }}
             >
-                {/* Foto de fundo — pasto Nelore ao entardecer */}
-                <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                        backgroundImage: 'url("/cattle/embrioes-hero-nelore.webp")',
-                        backgroundSize: "cover",
-                        backgroundPosition: "center 42%",
-                    }}
-                />
+                {/* Vídeo de fundo — pasto Nelore ao entardecer */}
+                <video
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    poster="/cattle/embrioes-hero-nelore.webp"
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                    style={{ objectPosition: "center 42%" }}
+                >
+                    <source
+                        src="https://res.cloudinary.com/dny0ibgbn/video/upload/v1780252444/video_de_fundo_jmvezn.mp4"
+                        type="video/mp4"
+                    />
+                </video>
                 {/* Véu escuro — garante a legibilidade do texto sobre a foto */}
                 <div
                     className="absolute inset-0 pointer-events-none"
