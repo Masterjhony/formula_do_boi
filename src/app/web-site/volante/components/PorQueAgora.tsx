@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { volante } from '../volante.data'
+import { VolanteCta } from './VolanteCta'
 
 type Pilar = { n: string; titulo: string; subtitulo: string; texto: string }
 
@@ -153,6 +154,11 @@ export function PorQueAgora() {
           {volante.pilares.map((p, i) => (
             <ReasonCard key={p.n} pilar={p} index={i} />
           ))}
+        </div>
+
+        {/* CTA final */}
+        <div className="mt-14 md:mt-16 flex justify-center">
+          <VolanteCta align="center" sub="Tabela 2026 válida só até o fim da Aceleradora" />
         </div>
       </div>
     </section>

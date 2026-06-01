@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 import { volante } from '../volante.data'
+import { VolanteCta } from './VolanteCta'
 
 export function Hero() {
   const ladder = volante.tabela
@@ -20,7 +20,7 @@ export function Hero() {
       {/* Mídia de fundo · vídeo no desktop, foto no mobile */}
       <video
         className="absolute inset-0 w-full h-full object-cover z-0 hidden md:block pointer-events-none select-none"
-        style={{ filter: 'brightness(0.95) contrast(1.05) saturate(0.95) sepia(0.03)' }}
+        style={{ filter: 'brightness(0.9) contrast(1.05) saturate(0.95) sepia(0.03)' }}
         src="/volante/volante-hero.mp4"
         poster={volante.fotoHero}
         autoPlay
@@ -37,8 +37,8 @@ export function Hero() {
         alt={`${volante.nome} — ${volante.registro}`}
         className="absolute inset-0 w-full h-full object-cover z-0 md:hidden"
         style={{
-          objectPosition: 'center 20%',
-          filter: 'brightness(0.95) contrast(1.05) saturate(0.95) sepia(0.03)',
+          objectPosition: 'center 35%',
+          filter: 'brightness(0.9) contrast(1.05) saturate(0.95) sepia(0.03)',
         }}
       />
 
@@ -48,7 +48,7 @@ export function Hero() {
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
           background:
-            'linear-gradient(180deg, rgba(0,0,0,0.40) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.55) 78%, rgba(0,0,0,0.92) 100%), radial-gradient(ellipse at 30% 55%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.22) 85%)',
+            'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.05) 18%, rgba(0,0,0,0.12) 42%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.80) 80%, rgba(0,0,0,0.96) 100%), radial-gradient(ellipse at 28% 60%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.34) 90%)',
         }}
       />
 
@@ -133,8 +133,8 @@ export function Hero() {
             <span className="block text-bronze-300">MRA.</span>
           </h1>
 
-          {/* Hero foot · lede + CTA único */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between flex-wrap gap-6 md:gap-10 mt-7">
+          {/* Hero foot · lede */}
+          <div className="mt-7">
             <p
               className="text-gray-100 max-w-xl"
               style={{ fontSize: 'clamp(15px, 1.4vw, 19px)', lineHeight: 1.55 }}
@@ -144,21 +144,6 @@ export function Hero() {
               {ix.MGTe} · iABCZ {ix.iABCZ} · IQG {ix.IQG} —{' '}
               <b className="text-bronze-300 font-medium">elite em Peso, ACAB e STAY</b>.
             </p>
-            <div className="flex flex-wrap gap-3.5 items-center w-full md:w-auto">
-              <Link
-                href="/volante/checkout"
-                className="inline-flex items-center justify-center gap-2.5 w-full md:w-auto px-5 md:px-6 py-3.5 text-xs font-bold uppercase tracking-[0.08em] bg-bronze-500 text-nelore border border-bronze-500 hover:bg-bronze-300 hover:border-bronze-300 hover:-translate-y-px transition-all"
-              >
-                Reservar dose
-                <svg viewBox="0 0 14 10" fill="none" className="w-3.5 h-2.5">
-                  <path
-                    d="M1 5h12m0 0L9 1m4 4L9 9"
-                    stroke="currentColor"
-                    strokeWidth="1.4"
-                  />
-                </svg>
-              </Link>
-            </div>
           </div>
 
           {/* M01 · Hero price hint */}
@@ -167,7 +152,7 @@ export function Hero() {
             style={{
               fontSize: '10.5px',
               letterSpacing: '0.14em',
-              color: 'rgba(232,203,133,0.62)',
+              color: 'rgba(232,203,133,0.82)',
             }}
           >
             <span className="hidden md:inline-block w-[18px] h-px bg-bronze-700" />
@@ -183,10 +168,12 @@ export function Hero() {
 
           {/* M01 · Hero price ladder */}
           <div
-            className="relative mt-5 w-full max-w-full md:max-w-[420px] border border-bronze-500/30"
+            className="relative mt-5 w-full max-w-full md:max-w-[420px] border border-bronze-500/40"
             style={{
               background:
-                'linear-gradient(135deg, rgba(160,121,46,0.10), rgba(10,10,10,0.55))',
+                'linear-gradient(135deg, rgba(160,121,46,0.16), rgba(10,10,10,0.82))',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(3px)',
             }}
             aria-label="Tabela de preços por volume"
           >
@@ -237,14 +224,10 @@ export function Hero() {
             })}
           </div>
 
-          {/* M02 · Microtexto de segurança */}
-          <p
-            className="mt-3.5 inline-flex items-center gap-2.5 font-mono uppercase font-medium text-[9.5px] md:text-[10.5px] tracking-[0.20em] md:tracking-[0.24em]"
-            style={{ color: 'rgba(255,255,255,0.42)' }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-bronze-500 inline-block" />
-            Pré-reserva gratuita · Curador confirma em até 24h
-          </p>
+          {/* CTA principal · abaixo da tabela (briefing), animado e chamativo */}
+          <div className="mt-6">
+            <VolanteCta sub="Pré-reserva gratuita · Curador confirma em até 24h" />
+          </div>
         </motion.div>
       </div>
     </section>

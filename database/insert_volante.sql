@@ -26,10 +26,10 @@ SELECT
   'Central Bela Vista',
   '/volante/volante-video.mp4',
   ARRAY[
-    '/volante/volante-hero.jpg',
-    '/volante/volante-2.jpg',
-    '/volante/volante-3.jpg',
-    '/volante/volante-4.jpg',
+    '/volante/volante-corpo.jpg',
+    '/volante/volante-frontal.jpg',
+    '/volante/volante-pasto.jpg',
+    '/volante/volante-retrato.jpg',
     '/volante/volante-video.mp4'
   ],
   NULL,            -- price é coluna numérica; card de sêmen exibe "Sob consulta"
@@ -44,7 +44,7 @@ SELECT
     "mgte": "27,01",
     "iabcz": "22,53",
     "iqg": "25,18",
-    "proprietario": "Fórmula do Boi · Aceleradora",
+    "proprietario": "Nelore Leão",
     "breeder": "MRA · Botucatu/SP",
     "tipo": "Sêmen Convencional",
     "comentario": "Touro Nelore PO superprecoce. MGTe 27,01 — TOP 6%. Elite em Peso, ACAB e STAY. Doses a partir de R$ 23,50. Pré-reserva aberta.",

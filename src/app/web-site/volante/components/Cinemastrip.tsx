@@ -12,9 +12,9 @@ export function Cinemastrip() {
       aria-label="Volante MRA · Pelagem branca de tipicidade"
       className="relative overflow-hidden border-b border-bronze-500/20"
       style={{
-        backgroundImage: "url('/volante/volante-cinema.jpg')",
+        backgroundImage: "url('/volante/volante-pasto.jpg')",
         backgroundSize: 'cover',
-        backgroundPosition: 'center 35%',
+        backgroundPosition: 'center 40%',
         // Brandbook §08 · cinematic warm shadows
         filter: 'brightness(0.65) contrast(1.20) saturate(0.78) sepia(0.05)',
         height: 'clamp(260px, 36vw, 360px)',

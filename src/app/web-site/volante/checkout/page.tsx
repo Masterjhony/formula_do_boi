@@ -400,7 +400,7 @@ export default function VolanteCheckout() {
                 <div className="csm-thumb">
                   <video
                     src="/volante/volante-video.mp4"
-                    poster="/volante/volante-hero.jpg"
+                    poster="/volante/volante-corpo.jpg"
                     autoPlay
                     loop
                     muted
@@ -623,7 +623,7 @@ export default function VolanteCheckout() {
               >
                 <video
                   src="/volante/volante-video.mp4"
-                  poster="/volante/volante-hero.jpg"
+                  poster="/volante/volante-corpo.jpg"
                   autoPlay
                   loop
                   muted

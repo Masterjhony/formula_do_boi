@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
 import { volante } from '../volante.data'
+import { VolanteCta } from './VolanteCta'
 
 /* ============================================================
  * Pedigree do Volante MRA · espelha 1:1 a seção do Atacante.
@@ -285,26 +285,7 @@ export function Pedigree() {
           <p className="fdb-pedigree-cta-headline">
             Genética <i>validada.</i> Reserve as suas doses.
           </p>
-          <Link
-            href="/volante/checkout"
-            className="inline-flex items-center justify-center gap-2.5 w-full md:w-auto px-5 md:px-6 py-3.5 text-xs font-bold uppercase tracking-[0.08em] bg-bronze-500 text-nelore border border-bronze-500 hover:bg-bronze-300 hover:border-bronze-300 hover:-translate-y-px transition-all"
-          >
-            Reservar dose
-            <svg viewBox="0 0 14 10" fill="none" className="w-3.5 h-2.5">
-              <path
-                d="M1 5h12m0 0L9 1m4 4L9 9"
-                stroke="currentColor"
-                strokeWidth="1.4"
-              />
-            </svg>
-          </Link>
-          <p
-            className="inline-flex items-center gap-2.5 font-mono uppercase font-medium text-[9.5px] md:text-[10.5px] tracking-[0.20em] md:tracking-[0.24em]"
-            style={{ color: 'rgba(255,255,255,0.42)' }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-bronze-500 inline-block" />
-            Pré-reserva gratuita · Frete grátis a partir de 100 doses
-          </p>
+          <VolanteCta align="center" sub="Pré-reserva gratuita · Frete grátis a partir de 100 doses" />
         </div>
       </div>
     </section>

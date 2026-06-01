@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { VolanteCta } from './VolanteCta'
 
 // Stats topo · MGTe + 2x2 (Peso · ACAB · AOL · STAY) ─ números reais do Volante MRA
 const indiceGeral = {
@@ -232,6 +233,11 @@ export function Aval() {
             />
           ))}
         </motion.div>
+
+        {/* CTA */}
+        <div className="mt-14 md:mt-16 flex justify-center">
+          <VolanteCta align="center" sub="Dados validados · Reserve as suas doses" />
+        </div>
       </div>
     </section>
   )

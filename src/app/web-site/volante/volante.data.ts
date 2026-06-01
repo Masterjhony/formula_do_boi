@@ -19,7 +19,7 @@ export const volante = {
   circEscrotal: '41 cm',
   disponibilidade: 'Em quarentena · Central Bela Vista',
   criador: 'MRA',
-  proprietario: 'Fórmula do Boi · Aceleradora',
+  proprietario: 'Nelore Leão',
   local: 'Botucatu — SP',
   ippMae: '—',
   consanguinidade: '—',
@@ -30,13 +30,13 @@ export const volante = {
   tagline: 'O reprodutor que decide a próxima arroba antes do bezerro nascer.',
   whatsapp: 'https://wa.me/5531975659900?text=Tenho%20interesse%20no%20Volante%20MRA',
 
-  // Galeria de fotos
-  fotoHero: '/volante/volante-hero.jpg',
+  // Galeria de fotos (fotos novas · jun/2026)
+  fotoHero: '/volante/volante-corpo.jpg',
   fotos: [
-    { src: '/volante/volante-2.jpg', alt: 'Volante MRA — perfil lateral no campo' },
-    { src: '/volante/volante-3.jpg', alt: 'Volante MRA — perfil oposto' },
-    { src: '/volante/volante-4.jpg', alt: 'Volante MRA — manejo no pasto' },
-    { src: '/volante/volante-hero.jpg', alt: 'Volante MRA — frontal' },
+    { src: '/volante/volante-corpo.jpg', alt: 'Volante MRA — perfil lateral no campo' },
+    { src: '/volante/volante-frontal.jpg', alt: 'Volante MRA — frontal' },
+    { src: '/volante/volante-pasto.jpg', alt: 'Volante MRA — no pasto' },
+    { src: '/volante/volante-retrato.jpg', alt: 'Volante MRA — retrato' },
   ],
 
   // 3 sumários (índices principais)

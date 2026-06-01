@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { volante } from '../volante.data'
+import { VolanteCta } from './VolanteCta'
 
 type Indice = { sigla: string; valor: string; top: string; sumario: string }
 
@@ -132,6 +133,11 @@ export function Apresenta() {
 
           {/* Trio de índices */}
           <TrioIndices indices={volante.indices} />
+
+          {/* CTA */}
+          <div className="mt-9 md:mt-10">
+            <VolanteCta sub="Pré-reserva gratuita · Curador confirma em até 24h" />
+          </div>
         </motion.div>
 
         {/* Coluna direita · foto + ficha */}
@@ -146,11 +152,11 @@ export function Apresenta() {
             className="relative overflow-hidden border border-bronze-500/30"
             style={{
               aspectRatio: '4 / 5',
-              backgroundImage: 'url(/volante/volante-pagina4.jpg)',
+              backgroundImage: 'url(/volante/volante-retrato.jpg)',
               backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              backgroundPosition: 'center 30%',
               filter:
-                'brightness(0.92) contrast(1.30) saturate(0.85) sepia(0.06)',
+                'brightness(0.98) contrast(1.12) saturate(0.9) sepia(0.04)',
             }}
           >
             <Corners />

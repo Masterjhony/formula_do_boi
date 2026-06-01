@@ -28,6 +28,50 @@
 }
 
 /* =====================================================================
+   CTA ANIMADO · pulso + glow dourado + shine sweep.
+   Espelha o padrão .grupo-cta da LP /grupo-vip. Aplicado em todas as
+   seções via o componente <VolanteCta>. Respeita prefers-reduced-motion.
+   ===================================================================== */
+@keyframes fdbCtaPulse {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 0 1px rgba(212,168,92,0.40), 0 0 26px rgba(212,168,92,0.30);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.035);
+    box-shadow: 0 0 0 2px rgba(232,203,133,0.85), 0 16px 52px rgba(212,168,92,0.55), 0 0 88px rgba(212,168,92,0.42);
+  }
+}
+@keyframes fdbCtaShine {
+  0%        { transform: translateX(-180%) skewX(-18deg); }
+  55%, 100% { transform: translateX(280%) skewX(-18deg); }
+}
+.fdb-cta-anim {
+  position: relative;
+  overflow: hidden;
+  animation: fdbCtaPulse 1.8s ease-in-out infinite;
+  will-change: transform;
+}
+.fdb-cta-anim::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
+  animation: fdbCtaShine 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.fdb-cta-anim:hover {
+  animation-play-state: paused;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 0 0 2px rgba(232,203,133,0.9), 0 16px 56px rgba(212,168,92,0.65);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fdb-cta-anim { animation: none; }
+  .fdb-cta-anim::before { display: none; }
+}
+
+/* =====================================================================
    PEDIGREE CINEMA MODE · cópia fiel da seção Pedigree do Atacante
    ===================================================================== */
 .pedi-cinema {

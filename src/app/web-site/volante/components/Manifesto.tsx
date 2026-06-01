@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { volante } from '../volante.data'
+import { VolanteCta } from './VolanteCta'
 
 export function Manifesto() {
   const m = volante.manifesto
@@ -12,71 +13,13 @@ export function Manifesto() {
       className="relative overflow-hidden border-b border-bronze-500/20 px-[5vw] md:px-[6vw] py-20 md:py-32 lg:py-40"
       style={{
         background:
-          'radial-gradient(circle at 20% 30%, rgba(160,121,46,0.06), transparent 40%), #000000',
+          'radial-gradient(circle at 20% 30%, rgba(160,121,46,0.08), transparent 45%), #000000',
       }}
     >
-      {/* Foto sangrando · desktop: lateral direita.
-          Zona ampliada (60%) + mask em 7 stops para fade ultra-suave
-          até a área escura à esquerda. Sem overlay preto que cortaria. */}
-      <div
-        aria-hidden="true"
-        className="hidden md:block absolute top-0 right-0 bottom-0 pointer-events-none"
-        style={{
-          width: '60%',
-          backgroundImage: 'url(/volante/volante-4.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'right center',
-          maskImage:
-            'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.04) 12%, rgba(0,0,0,0.16) 28%, rgba(0,0,0,0.36) 45%, rgba(0,0,0,0.58) 62%, rgba(0,0,0,0.76) 80%, rgba(0,0,0,0.88) 100%)',
-          WebkitMaskImage:
-            'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.04) 12%, rgba(0,0,0,0.16) 28%, rgba(0,0,0,0.36) 45%, rgba(0,0,0,0.58) 62%, rgba(0,0,0,0.76) 80%, rgba(0,0,0,0.88) 100%)',
-          filter: 'brightness(0.55) contrast(1.20) saturate(0.75) sepia(0.05)',
-          zIndex: 1,
-        }}
-      />
-      {/* Véu bronze suave no miolo da transição · soft-light blend
-          puxa o tom da seção pra dentro da foto na zona de fade */}
-      <div
-        aria-hidden="true"
-        className="hidden md:block absolute top-0 bottom-0 pointer-events-none z-[2]"
-        style={{
-          left: '28%',
-          width: '34%',
-          background:
-            'linear-gradient(90deg, transparent 0%, rgba(61,45,17,0.55) 50%, transparent 100%)',
-          mixBlendMode: 'soft-light',
-        }}
-      />
-
-      {/* Mobile · foto full-bleed com fade de cima pra baixo */}
-      <div
-        aria-hidden="true"
-        className="md:hidden absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: 'url(/volante/volante-4.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          maskImage:
-            'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.35) 70%, rgba(0,0,0,0.5) 100%)',
-          WebkitMaskImage:
-            'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.35) 70%, rgba(0,0,0,0.5) 100%)',
-          filter: 'brightness(0.4) contrast(1.20) saturate(0.75) sepia(0.05)',
-          zIndex: 1,
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="md:hidden absolute inset-0 pointer-events-none z-[2]"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.85) 100%)',
-        }}
-      />
-
       {/* Padrão topografia (Brandbook §07.05) */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 pointer-events-none opacity-[0.18] mix-blend-screen z-[3]"
+        className="absolute inset-0 pointer-events-none opacity-[0.14] mix-blend-screen z-[1]"
       >
         <svg
           viewBox="0 0 1200 600"
@@ -103,18 +46,19 @@ export function Manifesto() {
         className="relative z-10 max-w-[1320px] mx-auto"
       >
         {/* Kicker */}
-        <div className="inline-flex items-center gap-3.5 font-mono text-[10px] md:text-[11px] tracking-[0.28em] md:tracking-[0.32em] uppercase text-bronze-300 mb-8 md:mb-10">
+        <div className="inline-flex items-center gap-3.5 font-mono text-[10px] md:text-[11px] tracking-[0.28em] md:tracking-[0.32em] uppercase text-bronze-300 mb-8 md:mb-12">
           <span className="text-bronze-500 text-[8px] leading-none">●</span>
           Manifesto
         </div>
 
-        {/* Grid · 1fr / 1.3fr no desktop · empilha no mobile */}
-        <div className="grid lg:grid-cols-[1fr_1.3fr] gap-10 lg:gap-24 items-end">
+        {/* Grid · texto à esquerda · foto enquadrada à direita */}
+        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-16 items-center">
+          {/* Coluna de texto */}
           <div>
             <h2
               className="text-selo font-medium"
               style={{
-                fontSize: 'clamp(32px, 6vw, 80px)',
+                fontSize: 'clamp(32px, 5.5vw, 76px)',
                 letterSpacing: '-0.025em',
                 lineHeight: 1.02,
                 marginBottom: 24,
@@ -123,11 +67,9 @@ export function Manifesto() {
               {m.tituloInicio}{' '}
               <i className="italic text-bronze-300">{m.tituloItalico}</i>
             </h2>
-          </div>
 
-          <div className="max-w-xl">
             <p
-              className="text-gray-200"
+              className="text-gray-200 max-w-xl"
               style={{ fontSize: 'clamp(15px, 1.4vw, 17px)', lineHeight: 1.7 }}
             >
               O{' '}
@@ -135,11 +77,56 @@ export function Manifesto() {
               {m.paragrafoPrincipal}
             </p>
             <p
-              className="mt-4 md:mt-5 text-gray-200"
+              className="mt-4 md:mt-5 text-gray-200 max-w-xl"
               style={{ fontSize: 'clamp(15px, 1.4vw, 17px)', lineHeight: 1.7 }}
             >
               {m.paragrafoSecundario}
             </p>
+
+            <div className="mt-9 md:mt-10">
+              <VolanteCta sub="Sêmen convencional · Pré-reserva aberta" />
+            </div>
+          </div>
+
+          {/* Coluna da foto · imagem clara do touro com moldura bronze */}
+          <div
+            className="relative overflow-hidden border border-bronze-500/30"
+            style={{ aspectRatio: '3 / 4' }}
+          >
+            <img
+              src="/volante/volante-frontal.jpg"
+              alt="Volante MRA — Nelore PO no campo"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{
+                objectPosition: 'center center',
+                filter: 'brightness(0.96) contrast(1.08) saturate(0.92) sepia(0.04)',
+              }}
+            />
+            {/* Fade inferior pra caption */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.78) 100%)',
+              }}
+            />
+
+            {/* 4 cantos bronze */}
+            <span aria-hidden="true" className="absolute top-2.5 left-2.5 w-4 h-4 border-t border-l border-bronze-500 pointer-events-none" />
+            <span aria-hidden="true" className="absolute top-2.5 right-2.5 w-4 h-4 border-t border-r border-bronze-500 pointer-events-none" />
+            <span aria-hidden="true" className="absolute bottom-2.5 left-2.5 w-4 h-4 border-b border-l border-bronze-500 pointer-events-none" />
+            <span aria-hidden="true" className="absolute bottom-2.5 right-2.5 w-4 h-4 border-b border-r border-bronze-500 pointer-events-none" />
+
+            {/* Caption */}
+            <div className="absolute left-4 right-4 bottom-4 flex items-end justify-between gap-3">
+              <div className="font-medium italic text-selo text-base md:text-lg">
+                Volante MRA
+              </div>
+              <div className="font-mono text-[9px] md:text-[10px] tracking-[0.24em] uppercase text-bronze-300">
+                Nelore PO
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>

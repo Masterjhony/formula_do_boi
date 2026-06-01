@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './volante.css'
 
-const OG_IMAGE = '/volante/volante-hero.jpg'
+const OG_IMAGE = '/volante/volante-corpo.jpg'
 
 export const metadata: Metadata = {
   title: 'Volante MRA | Fórmula do Boi',

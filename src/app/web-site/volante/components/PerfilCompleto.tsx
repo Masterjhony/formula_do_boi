@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
+import { VolanteCta } from './VolanteCta'
 
 /* ============================================================
  * Perfil Completo · 5 categorias com ícones SVG inline.
@@ -121,6 +122,11 @@ export function PerfilCompleto() {
               </div>
             </motion.div>
           ))}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-14 md:mt-16 flex justify-center">
+          <VolanteCta align="center" sub="Touro equilibrado · Pré-reserva aberta" />
         </div>
       </div>
     </motion.section>
