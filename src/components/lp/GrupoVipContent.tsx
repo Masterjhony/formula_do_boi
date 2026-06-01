@@ -19,45 +19,76 @@ type Props = { waGroupLink: string };
 export default function GrupoVipContent({ waGroupLink }: Props) {
     return (
         <>
-            {/* Animação dos CTAs — bounce + glow pulsante, pausa no hover e
-                respeita prefers-reduced-motion. O floating usa só o glow porque
-                seu transform já é controlado pela lógica de visibilidade. */}
+            {/* Animação dos CTAs — pulso (sobe + escala + glow dourado) somado a
+                um brilho que varre o botão (shine). Pausa no hover e respeita
+                prefers-reduced-motion. O floating usa o glow (sem deslocar, pois
+                seu transform já é controlado pela lógica de visibilidade) + shine. */}
             <style jsx global>{`
-                @keyframes grupoCtaBounce {
+                @keyframes grupoCtaPulse {
                     0%, 100% {
-                        transform: translateY(0);
-                        box-shadow: 0 0 0 1px rgba(212, 168, 92, 0.35), 0 0 30px rgba(212, 168, 92, 0.22);
+                        transform: translateY(0) scale(1);
+                        box-shadow: 0 0 0 1px rgba(212, 168, 92, 0.4), 0 0 26px rgba(212, 168, 92, 0.3);
                     }
                     50% {
-                        transform: translateY(-5px);
-                        box-shadow: 0 0 0 1px rgba(212, 168, 92, 0.65), 0 12px 46px rgba(212, 168, 92, 0.5);
+                        transform: translateY(-6px) scale(1.04);
+                        box-shadow: 0 0 0 2px rgba(232, 203, 133, 0.85), 0 16px 52px rgba(212, 168, 92, 0.6), 0 0 92px rgba(212, 168, 92, 0.45);
                     }
                 }
                 @keyframes grupoCtaGlow {
                     0%, 100% {
-                        box-shadow: 0 0 0 1px rgba(212, 168, 92, 0.35), 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 40px rgba(212, 168, 92, 0.22);
+                        box-shadow: 0 0 0 1px rgba(212, 168, 92, 0.4), 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 40px rgba(212, 168, 92, 0.25);
                     }
                     50% {
-                        box-shadow: 0 0 0 1px rgba(212, 168, 92, 0.7), 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 70px rgba(212, 168, 92, 0.55);
+                        box-shadow: 0 0 0 2px rgba(232, 203, 133, 0.85), 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 80px rgba(212, 168, 92, 0.6);
                     }
                 }
-                .grupo-cta {
-                    animation: grupoCtaBounce 2s ease-in-out infinite;
-                    will-change: transform;
+                @keyframes grupoCtaShine {
+                    0% {
+                        transform: translateX(-180%) skewX(-18deg);
+                    }
+                    55%, 100% {
+                        transform: translateX(280%) skewX(-18deg);
+                    }
+                }
+                .grupo-cta,
+                .grupo-cta-float {
+                    position: relative;
+                    overflow: hidden;
                     text-decoration: none;
+                }
+                .grupo-cta {
+                    animation: grupoCtaPulse 1.8s ease-in-out infinite;
+                    will-change: transform;
+                }
+                .grupo-cta-float {
+                    animation: grupoCtaGlow 1.8s ease-in-out infinite;
+                }
+                /* Brilho que varre o botão periodicamente */
+                .grupo-cta::before,
+                .grupo-cta-float::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 45%;
+                    height: 100%;
+                    background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+                    animation: grupoCtaShine 2.6s ease-in-out infinite;
+                    pointer-events: none;
                 }
                 .grupo-cta:hover {
                     animation-play-state: paused;
-                    transform: translateY(-3px) scale(1.02);
-                    box-shadow: 0 0 0 1px rgba(212, 168, 92, 0.7), 0 14px 52px rgba(212, 168, 92, 0.55);
-                }
-                .grupo-cta-float {
-                    animation: grupoCtaGlow 2s ease-in-out infinite;
+                    transform: translateY(-3px) scale(1.05);
+                    box-shadow: 0 0 0 2px rgba(232, 203, 133, 0.9), 0 16px 56px rgba(212, 168, 92, 0.65);
                 }
                 @media (prefers-reduced-motion: reduce) {
                     .grupo-cta,
                     .grupo-cta-float {
                         animation: none;
+                    }
+                    .grupo-cta::before,
+                    .grupo-cta-float::before {
+                        display: none;
                     }
                 }
             `}</style>
