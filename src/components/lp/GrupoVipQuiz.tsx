@@ -65,6 +65,15 @@ const CABECAS_OPTIONS = [
     { value: "500+", label: "500+" },
 ];
 
+const INTERESSE_OPTIONS = [
+    { value: "embrioes", label: "Embriões" },
+    { value: "semen", label: "Sêmen" },
+    { value: "touros-po", label: "Touros P.O" },
+    { value: "matrizes-po", label: "Matrizes P.O" },
+    { value: "bezerras-po", label: "Bezerras P.O" },
+    { value: "nao-sei", label: "Não sei ainda" },
+];
+
 const MQL_QCABECAS = new Set(["100-300", "300-500", "500+"]);
 
 type Attribution = {
@@ -148,7 +157,7 @@ function maskPhone(v: string): string {
 }
 
 type Errors = Partial<Record<
-    "nome" | "email" | "tel" | "uf" | "cidade" | "momento" | "cabecas",
+    "nome" | "email" | "tel" | "uf" | "cidade" | "momento" | "cabecas" | "interesse",
     string
 >>;
 
@@ -165,6 +174,7 @@ export default function GrupoVipQuiz({ waGroupLink }: { waGroupLink: string }) {
     const [loadingCidades, setLoadingCidades] = useState(false);
     const [momento, setMomento] = useState("");
     const [cabecas, setCabecas] = useState("");
+    const [interesse, setInteresse] = useState("");
 
     const [errors, setErrors] = useState<Errors>({});
 
@@ -235,6 +245,7 @@ export default function GrupoVipQuiz({ waGroupLink }: { waGroupLink: string }) {
         const e: Errors = {};
         if (!momento) e.momento = "Selecione seu momento na pecuária.";
         if (!cabecas) e.cabecas = "Selecione a quantidade de cabeças.";
+        if (!interesse) e.interesse = "Selecione seu interesse.";
         setErrors(e);
         return Object.keys(e).length === 0;
     }
@@ -266,6 +277,9 @@ export default function GrupoVipQuiz({ waGroupLink }: { waGroupLink: string }) {
             cidade,
             momento_pecuaria: momento,
             quantidade_cabecas: cabecas,
+            // Envia o rótulo legível ("Touros P.O") — vai pra coluna `interesse`
+            // do CRM, lida por humanos na tela de Qualificação.
+            interesse: INTERESSE_OPTIONS.find((o) => o.value === interesse)?.label || interesse,
             utm_source: attr.utm_source || null,
             utm_medium: attr.utm_medium || null,
             utm_campaign: attr.utm_campaign || null,
@@ -299,6 +313,7 @@ export default function GrupoVipQuiz({ waGroupLink }: { waGroupLink: string }) {
                 cidade: lead.cidade,
                 momento_pecuaria: lead.momento_pecuaria,
                 quantidade_cabecas: lead.quantidade_cabecas,
+                interesse: lead.interesse,
                 utm_source: lead.utm_source,
                 utm_medium: lead.utm_medium,
                 utm_campaign: lead.utm_campaign,
@@ -307,6 +322,7 @@ export default function GrupoVipQuiz({ waGroupLink }: { waGroupLink: string }) {
         trackEvent('lp_form_submit', {
             mql: isMql,
             quantidade_cabecas: lead.quantidade_cabecas,
+            interesse: lead.interesse,
             uf: lead.uf,
             momento_pecuaria: lead.momento_pecuaria,
             utm_source: lead.utm_source,
@@ -551,6 +567,24 @@ export default function GrupoVipQuiz({ waGroupLink }: { waGroupLink: string }) {
                                 {CABECAS_OPTIONS.map((c) => (
                                     <option key={c.value} value={c.value}>
                                         {c.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </FormField>
+
+                        <FormField
+                            label="Qual seu interesse? *"
+                            error={errors.interesse}
+                        >
+                            <select
+                                value={interesse}
+                                onChange={(e) => setInteresse(e.target.value)}
+                                style={selectStyle(!!errors.interesse)}
+                            >
+                                <option value="">Selecione...</option>
+                                {INTERESSE_OPTIONS.map((o) => (
+                                    <option key={o.value} value={o.value}>
+                                        {o.label}
                                     </option>
                                 ))}
                             </select>

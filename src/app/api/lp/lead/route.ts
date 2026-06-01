@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
 
         const {
             nome, email, tel, uf, cidade, momento_pecuaria, quantidade_cabecas,
+            interesse,
             utm_source, utm_medium, utm_campaign, utm_content, utm_term,
             gclid, fbclid, referrer, landing_url,
         } = body;
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
         const notesLines = [
             `Momento na pecuária: ${momento_pecuaria}`,
             `Quantidade de cabeças: ${quantidade_cabecas}`,
+            ...(interesse ? [`Interesse: ${interesse}`] : []),
             `UF: ${uf}`,
             `Cidade: ${cidade}`,
         ];
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
                 status: 'Lead',
                 position,
                 notes: notesLines.join('\n'),
+                interesse: interesse || null,
                 momento_pecuaria: momento_pecuaria || null,
                 quantidade_animais: quantidade_cabecas,
                 is_mql: isMql,
@@ -142,15 +145,17 @@ export async function POST(request: NextRequest) {
 
                 const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
-                // Estendido para A:R — adiciona UTMs e referrer ao final (L..R).
-                // Cabeçalho esperado na linha 1 (criar/atualizar manualmente uma vez):
+                // Estendido para A:S — adiciona UTMs/referrer (L..R) e Interesse (S).
+                // Interesse vai numa coluna nova no final pra não deslocar nada já
+                // mapeado em fórmulas/relatórios. Cabeçalho esperado na linha 1
+                // (criar/atualizar manualmente uma vez):
                 //   A=Data/Hora B=Nome C=Email D=Telefone E=Cabeças F=(reservado)
                 //   G=Momento H=(reservado) I=(reservado) J=UF K=Cidade
                 //   L=utm_source M=utm_medium N=utm_campaign O=utm_content P=utm_term
-                //   Q=gclid/fbclid R=referrer
+                //   Q=gclid/fbclid R=referrer S=Interesse
                 await sheets.spreadsheets.values.append({
                     spreadsheetId: SPREADSHEET_ID,
-                    range: `${SHEET_NAME}!A:R`,
+                    range: `${SHEET_NAME}!A:S`,
                     valueInputOption: 'USER_ENTERED',
                     requestBody: {
                         values: [[
@@ -172,6 +177,7 @@ export async function POST(request: NextRequest) {
                             attrTerm || '',
                             gclid || fbclid || '',
                             referrer || '',
+                            interesse || '',
                         ]],
                     },
                 });
