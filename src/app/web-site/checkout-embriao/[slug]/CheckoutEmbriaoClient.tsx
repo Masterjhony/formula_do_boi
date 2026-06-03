@@ -120,6 +120,10 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
             product_category: "Embrião",
             product_kind: "embriao" as const,
             central,
+            // Espelhamento no Sheets: aba = doadora (nome ABCZ / RGD), + colunas limpas.
+            sheet_tab: nome,
+            doadora_rgd: doadora.rgd,
+            doadora_cruzamento: doadora.cruzamento ?? "",
             customer_name: customerName.trim(),
             customer_phone: tel,
             customer_email: email.trim() || null,

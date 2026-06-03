@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { makeCode } from '@/lib/reservations';
+import { appendReservationToSheet } from '@/lib/reservations-sheet';
 
 function getSupabaseAdmin() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -42,6 +43,9 @@ export async function POST(request: NextRequest) {
             // UTM / attribution
             utm_source, utm_medium, utm_campaign, utm_content, utm_term,
             gclid, fbclid, referrer, landing_url,
+            // Identificação da doadora para a planilha (aba = doadora). Opcional —
+            // só o checkout de embrião envia; o ReservaModal cai no fallback de product_name.
+            sheet_tab, doadora_rgd, doadora_cruzamento,
         } = body ?? {};
 
         if (website) {
@@ -135,10 +139,47 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Não foi possível registrar a reserva.' }, { status: 500 });
         }
 
+        const code = makeCode(data.seq);
+
+        // Espelha no Google Sheets — só embrião, numa aba por doadora.
+        // Best-effort: a reserva já está salva; falha aqui não quebra o checkout.
+        if (product_kind === 'embriao') {
+            try {
+                const tab = String(sheet_tab || product_name || 'Reservas-Embrioes').trim();
+                await appendReservationToSheet({
+                    tab,
+                    dataHora: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+                    code,
+                    nome: String(customer_name ?? ''),
+                    whatsapp: String(customer_phone ?? ''),
+                    email: customer_email ? String(customer_email) : '',
+                    doc: customer_doc ? String(customer_doc) : '',
+                    fazenda: customer_fazenda ? String(customer_fazenda) : '',
+                    cidade: customer_city ? String(customer_city) : '',
+                    uf: customer_uf ? String(customer_uf) : '',
+                    quantidade: qty,
+                    unit: asNumber(unit_price) ?? '',
+                    total: asNumber(total_value) ?? '',
+                    pagamento: payment_method ? String(payment_method) : '',
+                    doadora: String(sheet_tab || product_name || ''),
+                    rgd: doadora_rgd ? String(doadora_rgd) : '',
+                    cruzamento: doadora_cruzamento ? String(doadora_cruzamento) : '',
+                    observacoes: notes ? String(notes) : '',
+                    utm_source: utm_source ? String(utm_source) : '',
+                    utm_medium: utm_medium ? String(utm_medium) : '',
+                    utm_campaign: utm_campaign ? String(utm_campaign) : '',
+                    utm_content: utm_content ? String(utm_content) : '',
+                    landing_url: landing_url ? String(landing_url) : '',
+                });
+            } catch (sheetErr) {
+                console.error('[api/reservas] Sheets espelhamento falhou (reserva já salva):', sheetErr);
+            }
+        }
+
         return NextResponse.json({
             ok: true,
             id: data.id,
-            code: makeCode(data.seq),
+            code,
         });
     } catch (err) {
         console.error('[api/reservas] error', err);
