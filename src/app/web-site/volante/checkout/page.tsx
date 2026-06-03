@@ -451,7 +451,7 @@ export default function VolanteCheckout() {
           <div className="grid lg:grid-cols-[1fr_0.65fr] gap-8 lg:gap-12 items-start">
             {/* ===== Form ===== */}
             <form
-              className="card-engraved"
+              className="card-engraved order-2 lg:order-1"
               style={{
                 background: INK,
                 border: `1px solid ${BRONZE_BORDER}`,
@@ -461,119 +461,11 @@ export default function VolanteCheckout() {
               onSubmit={submit}
             >
               <style>{`
-                .checkout-summary-mobile { display: none; }
-                @media (max-width: 1023px) {
-                  .checkout-summary-mobile {
-                    display: flex;
-                    align-items: center;
-                    gap: 14px;
-                    padding: 14px;
-                    margin-bottom: 28px;
-                    border: 1px solid rgba(212,168,92,0.28);
-                    border-left: 3px solid #A0792E;
-                    background: linear-gradient(90deg, rgba(212,168,92,0.08) 0%, rgba(212,168,92,0) 100%);
-                    border-radius: 3px;
-                    position: relative;
-                    overflow: hidden;
-                  }
-                  .checkout-summary-mobile .csm-thumb {
-                    position: relative;
-                    width: 72px; height: 72px;
-                    flex-shrink: 0;
-                    overflow: hidden;
-                    border: 1px solid rgba(212,168,92,0.28);
-                    border-radius: 2px;
-                    background: #2a2a2a;
-                  }
-                  .checkout-summary-mobile .csm-thumb video,
-                  .checkout-summary-mobile .csm-thumb img {
-                    position: absolute; inset: 0;
-                    width: 100%; height: 100%;
-                    object-fit: cover;
-                  }
-                  .checkout-summary-mobile .csm-thumb-badge {
-                    position: absolute; top: 4px; left: 4px;
-                    font-family: "JetBrains Mono", ui-monospace, monospace;
-                    font-size: 8.5px;
-                    letter-spacing: 0.16em;
-                    text-transform: uppercase;
-                    color: #161616;
-                    background: #A0792E;
-                    padding: 2px 5px;
-                    font-weight: 600;
-                    border-radius: 1px;
-                  }
-                  .checkout-summary-mobile .csm-info {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                    min-width: 0;
-                    flex: 1;
-                  }
-                  .checkout-summary-mobile .csm-name {
-                    font-family: "Space Grotesk", system-ui, sans-serif;
-                    font-size: 15px;
-                    font-weight: 500;
-                    color: #F5F0E4;
-                    letter-spacing: -0.005em;
-                    line-height: 1.15;
-                  }
-                  .checkout-summary-mobile .csm-meta {
-                    font-family: "JetBrains Mono", ui-monospace, monospace;
-                    font-size: 9.5px;
-                    letter-spacing: 0.16em;
-                    text-transform: uppercase;
-                    color: rgba(245,240,228,0.55);
-                  }
-                  .checkout-summary-mobile .csm-badges {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 4px 12px;
-                    margin-top: 4px;
-                  }
-                  .checkout-summary-mobile .csm-badge {
-                    font-family: "JetBrains Mono", ui-monospace, monospace;
-                    font-size: 9px;
-                    letter-spacing: 0.14em;
-                    text-transform: uppercase;
-                    color: #D4A85C;
-                    font-weight: 600;
-                  }
-                  .checkout-summary-mobile .csm-badge::before {
-                    content: "✓";
-                    color: #A0792E;
-                    margin-right: 4px;
-                    font-weight: 700;
-                  }
-                }
                 .ck-input:focus, .ck-select:focus {
                   border-color: ${BRONZE_LIGHT} !important;
                   background: #303030 !important;
                 }
               `}</style>
-
-              <div className="checkout-summary-mobile" aria-label="Resumo do pedido">
-                <div className="csm-thumb">
-                  <video
-                    src="/volante/volante-video.mp4"
-                    poster="/volante/volante-corpo.jpg"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    aria-hidden="true"
-                  />
-                  <span className="csm-thumb-badge">TOP 6%</span>
-                </div>
-                <div className="csm-info">
-                  <span className="csm-name">Volante MRA</span>
-                  <span className="csm-meta">MGTe 27,01 · Nelore PO</span>
-                  <div className="csm-badges">
-                    <span className="csm-badge">Pré-reserva gratuita</span>
-                    <span className="csm-badge">Frete incluso</span>
-                  </div>
-                </div>
-              </div>
 
               {/* 01 · Reserva */}
               <div className="inline-flex items-center gap-3" style={sectionLabel}>
@@ -836,14 +728,12 @@ export default function VolanteCheckout() {
 
             {/* ===== Sidebar ===== */}
             <aside
-              className="card-engraved"
+              className="card-engraved order-1 lg:order-2 lg:sticky lg:top-6"
               style={{
                 background: INK,
                 border: `1px solid ${BRONZE_BORDER}`,
                 borderRadius: '4px',
                 overflow: 'hidden',
-                position: 'sticky',
-                top: '24px',
               }}
             >
               <div
