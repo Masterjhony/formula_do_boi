@@ -86,7 +86,7 @@ function safraToItem(
         media: d.video,
         isVideo: !!d.video,
         isYouTube: false,
-        poster: d.foto,
+        poster: d.videoPoster ?? d.foto,
         code: d.rgd,
         badge: d.classificacaoTop,
         origin: "safra",
@@ -612,6 +612,16 @@ function EmbriaoCard({ item }: { item: CatalogItem }) {
                                 preload="metadata"
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                             />
+                            {/* Poster fixo no repouso — cobre o frame inicial (e o reset pós-hover),
+                                que em alguns vídeos abre escuro. Some só enquanto o vídeo toca. */}
+                            {item.poster && (
+                                <img
+                                    src={item.poster}
+                                    alt={item.name}
+                                    aria-hidden
+                                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${playing ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+                                />
+                            )}
                             <div
                                 className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${playing ? "opacity-0" : "opacity-100"}`}
                             >

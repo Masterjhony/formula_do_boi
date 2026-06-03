@@ -69,6 +69,9 @@ export type Doadora = {
     idAbcz: string | null;
     foto: string | null;
     video: string | null;
+    /** Poster do vídeo (card/hero/checkout) — frame estático mostrado antes do play.
+     *  Útil quando o vídeo abre com intro escura. Default: 1º frame do vídeo. */
+    videoPoster?: string;
     pendencias: string[];
     pedigree?: Pedigree;
     avaliacao?: Avaliacao;
@@ -635,6 +638,7 @@ export const DOADORAS: Doadora[] = [
         idAbcz: null,
         foto: null,
         video: "https://res.cloudinary.com/dny0ibgbn/video/upload/v1780514254/lote-77_Wo8Wijj8_t4fjt6.mp4",
+        videoPoster: "https://res.cloudinary.com/dny0ibgbn/video/upload/so_auto,w_800,h_450,c_fill,g_auto,q_auto/v1780514254/lote-77_Wo8Wijj8_t4fjt6.jpg",
         pendencias: [],
         pedigree: PEDIGREE_GARTA,
         avaliacao: AVAL_GARTA,
@@ -667,6 +671,7 @@ export const DOADORAS: Doadora[] = [
         idAbcz: null,
         foto: null,
         video: "https://res.cloudinary.com/dny0ibgbn/video/upload/v1780514262/img-8157_f11T2ejZ_aesasw.mp4",
+        videoPoster: "https://res.cloudinary.com/dny0ibgbn/video/upload/so_4,w_800,h_450,c_fill,g_auto,q_auto/v1780514262/img-8157_f11T2ejZ_aesasw.jpg",
         pendencias: [],
         pedigree: PEDIGREE_JATY,
         avaliacao: AVAL_JATY,
@@ -700,6 +705,7 @@ export const DOADORAS: Doadora[] = [
         idAbcz: null,
         foto: null,
         video: "https://res.cloudinary.com/dny0ibgbn/video/upload/v1780514318/VIDEO_VITRINE_xj9i1n.mp4",
+        videoPoster: "https://res.cloudinary.com/dny0ibgbn/video/upload/so_auto,w_800,h_450,c_fill,g_auto,q_auto/v1780514318/VIDEO_VITRINE_xj9i1n.jpg",
         pendencias: [],
         pedigree: PEDIGREE_EAO_6735,
         avaliacao: AVAL_EAO_6735,

@@ -533,6 +533,7 @@ export default function CheckoutEmbriaoClient({ doadora }: { doadora: Doadora })
                                 ) : doadora.video ? (
                                     <video
                                         src={doadora.video}
+                                        poster={doadora.videoPoster ?? undefined}
                                         autoPlay muted loop playsInline preload="metadata"
                                         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                                     />

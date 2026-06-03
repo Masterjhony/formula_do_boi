@@ -85,6 +85,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                             ) : doadora.video ? (
                                 <video
                                     src={doadora.video}
+                                    poster={doadora.videoPoster ?? undefined}
                                     autoPlay
                                     muted
                                     loop
