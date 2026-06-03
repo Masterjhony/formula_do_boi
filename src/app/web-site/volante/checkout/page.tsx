@@ -7,7 +7,7 @@
  * ============================================================ */
 
 import Link from 'next/link'
-import type { CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties, type FormEvent } from 'react'
 
 const BRONZE = '#A0792E'
 const BRONZE_LIGHT = '#D4A85C'
@@ -15,6 +15,7 @@ const SELO = '#F5F0E4'
 const INK = '#161616'
 const INK_2 = '#1f1f1f'
 const INK_FIELD = '#2a2a2a'
+const DANGER = '#E74C3C'
 
 const FONT_MONO = '"JetBrains Mono", ui-monospace, monospace'
 const FONT_DISPLAY = '"Space Grotesk", system-ui, sans-serif'
@@ -69,6 +70,12 @@ const helperStyle: CSSProperties = {
   marginTop: '6px',
 }
 
+const errorStyle: CSSProperties = {
+  fontSize: '12.5px',
+  color: DANGER,
+  marginTop: '6px',
+}
+
 const sectionLabel: CSSProperties = {
   fontFamily: FONT_MONO,
   fontSize: '11px',
@@ -112,7 +119,156 @@ const ESTADOS: [string, string][] = [
   ['SP', 'São Paulo'], ['SE', 'Sergipe'], ['TO', 'Tocantins'],
 ]
 
+const DOSES_LABEL: Record<string, string> = {
+  '1-100': '1 a 100 doses',
+  '101-200': '101 a 200 doses',
+  '201-500': '201 a 500 doses',
+  '500+': 'Acima de 500 doses',
+  'indef': 'Quero orientação do curador',
+}
+
+const TIPO_LABEL: Record<string, string> = {
+  convencional: 'Convencional',
+  sexado: 'Sexado',
+  ambos: 'Ambos',
+  indef: 'A definir',
+}
+
+function maskPhone(v: string): string {
+  const digits = v.replace(/\D/g, '').slice(0, 11)
+  if (digits.length > 6) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  if (digits.length > 2) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  if (digits.length) return `(${digits}`
+  return ''
+}
+
+// UTMs vêm da própria URL do checkout — a LP repassa a query string nos
+// botões "Reservar dose". Default de campanha = 'volante'.
+function getUtmParams() {
+  try {
+    const p = new URLSearchParams(window.location.search)
+    return {
+      utm_source: p.get('utm_source') || 'site',
+      utm_medium: p.get('utm_medium') || 'organic',
+      utm_campaign: p.get('utm_campaign') || 'volante',
+      utm_content: p.get('utm_content') || '',
+      utm_term: p.get('utm_term') || '',
+      gclid: p.get('gclid') || '',
+      fbclid: p.get('fbclid') || '',
+    }
+  } catch {
+    return {}
+  }
+}
+
+type Errors = Partial<Record<'doses' | 'nome' | 'whatsapp' | 'email', string>>
+
 export default function VolanteCheckout() {
+  const [doses, setDoses] = useState('')
+  const [tipo, setTipo] = useState('convencional')
+  const [estacao, setEstacao] = useState('')
+  const [qtdMatrizes, setQtdMatrizes] = useState('')
+  const [nome, setNome] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
+  const [email, setEmail] = useState('')
+  const [estado, setEstado] = useState('')
+  const [cidade, setCidade] = useState('')
+  const [cidadeOptions, setCidadeOptions] = useState<string[]>([])
+  const [loadingCidades, setLoadingCidades] = useState(false)
+  const [cidadesError, setCidadesError] = useState(false)
+
+  const [errors, setErrors] = useState<Errors>({})
+  const [submitting, setSubmitting] = useState(false)
+  const [serverError, setServerError] = useState<string | null>(null)
+
+  // Cidades vêm da API pública do IBGE, sob demanda quando o estado muda.
+  // Se a chamada falhar, o campo cidade vira texto livre pra não travar o envio.
+  useEffect(() => {
+    if (!estado) {
+      setCidadeOptions([])
+      setCidadesError(false)
+      return
+    }
+    let cancelled = false
+    setCidade('')
+    setCidadeOptions([])
+    setCidadesError(false)
+    setLoadingCidades(true)
+    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado}/municipios?orderBy=nome`)
+      .then((r) => {
+        if (!r.ok) throw new Error('ibge')
+        return r.json()
+      })
+      .then((data: Array<{ nome: string }>) => {
+        if (!cancelled) setCidadeOptions(data.map((d) => d.nome))
+      })
+      .catch(() => {
+        if (!cancelled) setCidadesError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingCidades(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [estado])
+
+  function validate(): boolean {
+    const e: Errors = {}
+    if (!doses) e.doses = 'Selecione a faixa de doses.'
+    if (!nome.trim() || nome.trim().length < 3) e.nome = 'Preencha seu nome completo.'
+    if (!whatsapp.trim() || whatsapp.replace(/\D/g, '').length < 10) e.whatsapp = 'Informe um WhatsApp válido.'
+    if (email.trim() && (!email.includes('@') || !email.includes('.'))) {
+      e.email = 'E-mail em formato inválido.'
+    }
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  async function submit(ev: FormEvent) {
+    ev.preventDefault()
+    if (!validate()) return
+    setSubmitting(true)
+    setServerError(null)
+
+    // `cidade` vai ao backend como string combinada "Cidade / UF" —
+    // splitCityUf() no servidor separa cidade e estado.
+    const cidadeUf =
+      cidade.trim() && estado ? `${cidade.trim()} / ${estado}`
+        : estado ? `/ ${estado}`
+          : cidade.trim()
+
+    const payload = {
+      nome: nome.trim(),
+      whatsapp,
+      email: email.trim(),
+      cidade: cidadeUf,
+      qtd: qtdMatrizes.trim(),
+      doses,
+      tipo,
+      estacao,
+      ...getUtmParams(),
+      referrer: typeof document !== 'undefined' ? document.referrer || '' : '',
+      landing_url: typeof window !== 'undefined' ? window.location.href : '',
+    }
+
+    try {
+      const res = await fetch('/api/lead-volante', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('server')
+      window.location.href = '/volante/obrigado'
+    } catch {
+      setServerError('Não foi possível enviar a pré-reserva. Tente novamente em instantes.')
+      setSubmitting(false)
+    }
+  }
+
+  const dosesLabel = DOSES_LABEL[doses] ?? '—'
+  const tipoLabel = TIPO_LABEL[tipo] ?? 'Convencional'
+
   return (
     <main className="volante-scope min-h-screen" style={{ background: INK }}>
       {/* ============ HEADER · brandbar igual à LP ============ */}
@@ -302,7 +458,7 @@ export default function VolanteCheckout() {
                 padding: 'clamp(24px, 4vw, 40px)',
                 borderRadius: '4px',
               }}
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={submit}
             >
               <style>{`
                 .checkout-summary-mobile { display: none; }
@@ -428,7 +584,12 @@ export default function VolanteCheckout() {
               <div className="grid sm:grid-cols-2 gap-4 mt-6">
                 <div style={{ marginBottom: '4px', gridColumn: '1 / -1' }}>
                   <label style={labelStyle}>Doses que pretende reservar *</label>
-                  <select className="ck-select" style={selectStyle} defaultValue="">
+                  <select
+                    className="ck-select"
+                    style={{ ...selectStyle, borderColor: errors.doses ? DANGER : BRONZE_BORDER }}
+                    value={doses}
+                    onChange={(e) => setDoses(e.target.value)}
+                  >
                     <option value="">Selecione…</option>
                     <option value="1-100">1 a 100 doses</option>
                     <option value="101-200">101 a 200 doses</option>
@@ -436,6 +597,7 @@ export default function VolanteCheckout() {
                     <option value="500+">Acima de 500 doses</option>
                     <option value="indef">Quero orientação do curador</option>
                   </select>
+                  {errors.doses && <div style={errorStyle}>{errors.doses}</div>}
                 </div>
 
                 <div style={{ marginBottom: '4px' }}>
@@ -446,6 +608,8 @@ export default function VolanteCheckout() {
                     inputMode="numeric"
                     placeholder="Ex: 300"
                     style={fieldStyle}
+                    value={qtdMatrizes}
+                    onChange={(e) => setQtdMatrizes(e.target.value)}
                   />
                   <div style={helperStyle}>
                     Aproximado tudo bem — usado pra dimensionar a proposta
@@ -454,7 +618,12 @@ export default function VolanteCheckout() {
 
                 <div style={{ marginBottom: '4px' }}>
                   <label style={labelStyle}>Tipo de sêmen</label>
-                  <select className="ck-select" style={selectStyle} defaultValue="convencional">
+                  <select
+                    className="ck-select"
+                    style={selectStyle}
+                    value={tipo}
+                    onChange={(e) => setTipo(e.target.value)}
+                  >
                     <option value="convencional">Convencional</option>
                     <option value="sexado">Sexado</option>
                     <option value="ambos">Ambos</option>
@@ -464,7 +633,12 @@ export default function VolanteCheckout() {
 
                 <div style={{ marginBottom: '4px' }}>
                   <label style={labelStyle}>Estação reprodutiva</label>
-                  <select className="ck-select" style={selectStyle} defaultValue="">
+                  <select
+                    className="ck-select"
+                    style={selectStyle}
+                    value={estacao}
+                    onChange={(e) => setEstacao(e.target.value)}
+                  >
                     <option value="">Selecione…</option>
                     <option value="2026-1">1º semestre 2026</option>
                     <option value="2026-2">2º semestre 2026</option>
@@ -489,8 +663,11 @@ export default function VolanteCheckout() {
                     className="ck-input"
                     type="text"
                     placeholder="Seu nome completo"
-                    style={fieldStyle}
+                    style={{ ...fieldStyle, borderColor: errors.nome ? DANGER : BRONZE_BORDER }}
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
                   />
+                  {errors.nome && <div style={errorStyle}>{errors.nome}</div>}
                 </div>
 
                 <div style={{ marginBottom: '4px' }}>
@@ -500,8 +677,11 @@ export default function VolanteCheckout() {
                     type="tel"
                     inputMode="tel"
                     placeholder="(31) 99999-9999"
-                    style={fieldStyle}
+                    style={{ ...fieldStyle, borderColor: errors.whatsapp ? DANGER : BRONZE_BORDER }}
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(maskPhone(e.target.value))}
                   />
+                  {errors.whatsapp && <div style={errorStyle}>{errors.whatsapp}</div>}
                 </div>
 
                 <div style={{ marginBottom: '4px' }}>
@@ -510,14 +690,25 @@ export default function VolanteCheckout() {
                     className="ck-input"
                     type="email"
                     placeholder="voce@exemplo.com (opcional)"
-                    style={fieldStyle}
+                    style={{ ...fieldStyle, borderColor: errors.email ? DANGER : BRONZE_BORDER }}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
-                  <div style={helperStyle}>Opcional — podemos confirmar pelo WhatsApp</div>
+                  {errors.email ? (
+                    <div style={errorStyle}>{errors.email}</div>
+                  ) : (
+                    <div style={helperStyle}>Opcional — podemos confirmar pelo WhatsApp</div>
+                  )}
                 </div>
 
                 <div style={{ marginBottom: '4px' }}>
                   <label style={labelStyle}>Estado</label>
-                  <select className="ck-select" style={selectStyle} defaultValue="">
+                  <select
+                    className="ck-select"
+                    style={selectStyle}
+                    value={estado}
+                    onChange={(e) => setEstado(e.target.value)}
+                  >
                     <option value="">Selecione…</option>
                     {ESTADOS.map(([uf, nome]) => (
                       <option key={uf} value={uf}>
@@ -530,18 +721,42 @@ export default function VolanteCheckout() {
 
                 <div style={{ marginBottom: '4px' }}>
                   <label style={labelStyle}>Cidade</label>
-                  <select
-                    disabled
-                    style={{
-                      ...selectStyle,
-                      opacity: 0.55,
-                      cursor: 'not-allowed',
-                    }}
-                    defaultValue=""
-                  >
-                    <option value="">Selecione o estado primeiro</option>
-                  </select>
-                  <div style={helperStyle}>Selecione o estado primeiro</div>
+                  {cidadesError ? (
+                    <input
+                      className="ck-input"
+                      type="text"
+                      placeholder="Digite sua cidade"
+                      style={fieldStyle}
+                      value={cidade}
+                      onChange={(e) => setCidade(e.target.value)}
+                    />
+                  ) : (
+                    <select
+                      className="ck-select"
+                      style={{
+                        ...selectStyle,
+                        opacity: !estado || loadingCidades ? 0.55 : 1,
+                        cursor: estado ? 'pointer' : 'not-allowed',
+                      }}
+                      value={cidade}
+                      onChange={(e) => setCidade(e.target.value)}
+                      disabled={!estado || loadingCidades}
+                    >
+                      <option value="">
+                        {!estado
+                          ? 'Selecione o estado primeiro'
+                          : loadingCidades
+                            ? 'Carregando cidades…'
+                            : 'Selecione…'}
+                      </option>
+                      {cidadeOptions.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <div style={helperStyle}>{estado ? 'Opcional' : 'Selecione o estado primeiro'}</div>
                 </div>
               </div>
 
@@ -557,8 +772,25 @@ export default function VolanteCheckout() {
                 e-mail. Não compartilhamos seus dados.
               </p>
 
+              {serverError && (
+                <div
+                  style={{
+                    marginTop: '20px',
+                    padding: '12px 14px',
+                    border: `1px solid ${DANGER}`,
+                    color: DANGER,
+                    fontSize: '13.5px',
+                    borderRadius: '2px',
+                    background: 'rgba(231,76,60,0.06)',
+                  }}
+                >
+                  {serverError}
+                </div>
+              )}
+
               <button
                 type="submit"
+                disabled={submitting}
                 className="inline-flex items-center justify-center gap-2.5 transition-all"
                 style={{
                   width: '100%',
@@ -573,16 +805,18 @@ export default function VolanteCheckout() {
                   fontSize: '13px',
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  opacity: 1,
+                  cursor: submitting ? 'wait' : 'pointer',
+                  opacity: submitting ? 0.7 : 1,
                   boxShadow:
                     '0 0 0 1px rgba(212,168,92,0.35), 0 0 60px rgba(212,168,92,0.18)',
                 }}
               >
-                Enviar pré-reserva
-                <span aria-hidden="true" style={{ marginLeft: '4px' }}>
-                  →
-                </span>
+                {submitting ? 'Enviando…' : 'Enviar pré-reserva'}
+                {!submitting && (
+                  <span aria-hidden="true" style={{ marginLeft: '4px' }}>
+                    →
+                  </span>
+                )}
               </button>
 
               <p
@@ -689,8 +923,8 @@ export default function VolanteCheckout() {
                   ['iABCZ', '22,53'],
                   ['IQG', '25,18'],
                   ['Central', 'Bela Vista'],
-                  ['Doses pretendidas', '—'],
-                  ['Tipo de sêmen', 'Convencional'],
+                  ['Doses pretendidas', dosesLabel],
+                  ['Tipo de sêmen', tipoLabel],
                 ] as [string, string][]).map(([k, v]) => (
                   <div key={k} className="flex items-baseline justify-between gap-3" style={sideRow}>
                     <span style={sideLabel}>{k}</span>
