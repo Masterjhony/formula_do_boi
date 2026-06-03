@@ -214,7 +214,7 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                 }}
                             >
                                 Doadora Nelore PO criada por {origem.proprietario}{" "}
-                                — {origem.fazenda}, {origem.municipio}.
+                                — {origem.fazenda}{origem.municipio ? `, ${origem.municipio}` : ""}.
                                 Embrião {tipoShort}, pacote mínimo de {DOADORAS_CONDICOES.pacoteMinimo} unidades com{" "}
                                 {DOADORAS_CONDICOES.prenhezesGarantidas} prenhezes garantidas.
                             </p>
@@ -1186,7 +1186,10 @@ function FichaTecnicaDownload({
     multi?: boolean;
 }) {
     const displayLabel = label ?? "Ficha técnica oficial · ABCZ";
-    const downloadName = href.split("/").pop() || `ficha-tecnica-${rgd.replace(/\s+/g, "-")}.pdf`;
+    // Detecta o tipo de arquivo: fichas de criatório podem vir como imagem (.jpg/.png).
+    const isImage = /\.(jpe?g|png|webp)$/i.test(href);
+    const kind = isImage ? "imagem" : "PDF";
+    const downloadName = href.split("/").pop() || `ficha-tecnica-${rgd.replace(/\s+/g, "-")}.${isImage ? "jpg" : "pdf"}`;
     return (
         <a
             href={href}
@@ -1219,13 +1222,13 @@ function FichaTecnicaDownload({
                 </span>
                 <span className="fdb-ficha-meta">
                     {multi
-                        ? `Programa oficial · DEPs por característica · PDF`
-                        : `Todas as DEPs por característica + genealogia · corte ${corte} · PDF`}
+                        ? `Programa oficial · DEPs por característica · ${isImage ? "Imagem" : "PDF"}`
+                        : `Todas as DEPs por característica + genealogia · corte ${corte} · ${isImage ? "Imagem" : "PDF"}`}
                 </span>
             </span>
 
             <span className="fdb-ficha-cta">
-                Baixar PDF
+                Baixar {kind}
                 <span aria-hidden style={{ marginLeft: 6 }}>↓</span>
             </span>
 

@@ -80,7 +80,8 @@ export type Doadora = {
     origem?: {
         proprietario: string;
         fazenda: string;
-        municipio: string;
+        /** Opcional — algumas origens (ex.: consignações) não expõem município. */
+        municipio?: string;
     };
     /** Label de origem exibida no card do catálogo. Default: "Safra 2026 · Nelore Visual". */
     originLabel?: string;
@@ -440,6 +441,148 @@ const PEDIGREE_FCCH_3955: Pedigree = {
     },
 };
 
+/* ──────────────────────────────────────────────────────────────
+ * Safra 2026 · Curadoria Nelore Leão (Garta, EAO) e Rancho da
+ * Matinha/Nelore Visual (Jaty) × Fórmula do Boi.
+ * Genealogia (3 gerações) e índices (iABCZ / IQG / MGTe) extraídos
+ * das fichas de avaliação do criatório (PMGZ · GenePlus · ANCP),
+ * arquivadas como imagem em /public/doadoras/*.jpg. RG dos
+ * ancestrais preenchido quando documentado nas demais doadoras;
+ * vazio ("") renderiza "Registro pendente" no pedigree.
+ *
+ * As avaliações abaixo trazem só o resumo (corte + índices) — o
+ * detalhamento por DEP vive nas imagens de ficha (download na
+ * seção "Ficha técnica"), por isso `grupos` fica vazio.
+ * ────────────────────────────────────────────────────────────── */
+const GRUPOS_VAZIO: Avaliacao["grupos"] = {
+    crescimento: [],
+    maternas: [],
+    reprodutivas: [],
+    acabamento: [],
+    crescimentoExtra: [],
+    reprodutivasExtra: [],
+    carcaca: [],
+    morfologicas: [],
+};
+
+// GARTA MAT. (RDM A5372) — REM HERMOSO FIV GEN. ADT. × CORA MAT.
+const PEDIGREE_GARTA: Pedigree = {
+    pai: {
+        nome: "REM HERMOSO FIV GEN. ADT.",
+        rg: "REMP816",
+        pai: {
+            nome: "REM ESPIAO 007",
+            rg: "",
+            pai: { nome: "REM AGORTAN", rg: "" },
+            mae: { nome: "REM CONSTELACAO", rg: "" },
+        },
+        mae: {
+            nome: "REM VOTUPORANGA",
+            rg: "",
+            pai: { nome: "BACKUP", rg: "AAAP1653" },
+            mae: { nome: "REM RALI", rg: "" },
+        },
+    },
+    mae: {
+        nome: "CORA MAT.",
+        rg: "",
+        pai: {
+            nome: "REM ARMADOR",
+            rg: "REMC5326",
+            pai: { nome: "REM TORIXOREU", rg: "REMC3462" },
+            mae: { nome: "REM RONDA", rg: "" },
+        },
+        mae: {
+            nome: "REPLICA MAT.",
+            rg: "",
+            pai: { nome: "TECELAO DA SM", rg: "" },
+            mae: { nome: "MATARANA MAT.", rg: "" },
+        },
+    },
+};
+
+// JATY MAT. (RDM B3610) — INVICTUS TE DA HORA × FISALIS MAT.
+const PEDIGREE_JATY: Pedigree = {
+    pai: {
+        nome: "INVICTUS TE DA HORA",
+        rg: "",
+        pai: {
+            nome: "TNT",
+            rg: "",
+            pai: { nome: "TRUCK DA ALO BRASIL", rg: "" },
+            mae: { nome: "GOROTEIA", rg: "" },
+        },
+        mae: {
+            nome: "3484 DA JHR",
+            rg: "",
+            pai: { nome: "REM TORIXOREU", rg: "REMC3462" },
+            mae: { nome: "2460 DA JHR", rg: "" },
+        },
+    },
+    mae: {
+        nome: "FISALIS MAT.",
+        rg: "",
+        pai: {
+            nome: "COWBOY MAT.",
+            rg: "",
+            pai: { nome: "VELERO MAT.", rg: "" },
+            mae: { nome: "TORMAY MAT.", rg: "" },
+        },
+        mae: {
+            nome: "DRYAS MAT.",
+            rg: "",
+            pai: { nome: "REM ARMADOR", rg: "REMC5326" },
+            mae: { nome: "SAIHA MAT.", rg: "RDM5804" },
+        },
+    },
+};
+
+// EAON 6735 — EVEREST EAO × EAO B3912 (família B3912)
+const PEDIGREE_EAO_6735: Pedigree = {
+    pai: {
+        nome: "EVEREST EAO",
+        rg: "",
+        pai: {
+            nome: "ALQUIMISTA EAO",
+            rg: "",
+            pai: { nome: "REM ARMADOR", rg: "REMC5326" },
+            mae: { nome: "9152 EAO", rg: "" },
+        },
+        mae: {
+            nome: "A9051 EAO",
+            rg: "",
+            pai: { nome: "ORMON EAO", rg: "" },
+            mae: { nome: "9335 EAO", rg: "" },
+        },
+    },
+    mae: {
+        nome: "EAO B3912",
+        rg: "",
+        pai: {
+            nome: "REM ESPIÃO",
+            rg: "",
+            pai: { nome: "REM AGORTAN", rg: "" },
+            mae: { nome: "REM CONSTELAÇÃO", rg: "" },
+        },
+        mae: {
+            nome: "EAO A4674",
+            rg: "",
+            pai: { nome: "REM USP", rg: "" },
+            mae: { nome: "EAO 2924", rg: "" },
+        },
+    },
+};
+
+const AVAL_GARTA: Avaliacao = {
+    corte: "2026", iabcz: 32.83, deca: 1, pPct: 0.1, fPct: 0, grupos: GRUPOS_VAZIO,
+};
+const AVAL_JATY: Avaliacao = {
+    corte: "2026", iabcz: 36.42, deca: 1, pPct: 0.1, fPct: 0, grupos: GRUPOS_VAZIO,
+};
+const AVAL_EAO_6735: Avaliacao = {
+    corte: "2026", iabcz: 30.14, deca: 1, pPct: 0.5, fPct: 0, grupos: GRUPOS_VAZIO,
+};
+
 export const DOADORAS: Doadora[] = [
     {
         slug: "fcch-3955",
@@ -475,6 +618,103 @@ export const DOADORAS: Doadora[] = [
         parcelamentoCardLabel: "Até 20× sem juros",
         criatorio: "Nelore Leão",
         tipoEmbriao: "DT",
+    },
+    {
+        slug: "garta-mat",
+        rgd: "RDM A5372",
+        nomeAbcz: "GARTA MAT.",
+        cruzamento: "A7286 MAT.",
+        classificacaoTop: "TOP 0,1%",
+        iabcz: { valor: 32.83, percentil: "P 0,1%" },
+        iqg: { valor: 41.14, top: "TOP 0,1%" },
+        mgte: { valor: 33.02, top: "TOP 0,5%" },
+        precoEmbriao: 1300,
+        pacoteTotal: 15600,
+        quantidadeEmbrioes: 12,
+        nascimento: "06/07/2021",
+        idAbcz: null,
+        foto: null,
+        video: "https://res.cloudinary.com/dny0ibgbn/video/upload/v1780514254/lote-77_Wo8Wijj8_t4fjt6.mp4",
+        pendencias: [],
+        pedigree: PEDIGREE_GARTA,
+        avaliacao: AVAL_GARTA,
+        fichasTecnicas: [
+            { label: "Avaliação genética · iABCZ 32,83 · IQG 41,14 · MGTe 33,02", href: "/doadoras/garta-mat-avaliacao.jpg" },
+        ],
+        origem: {
+            proprietario: "Rancho da Matinha",
+            fazenda: "Nelore Leão",
+            municipio: "Esmeraldas/MG",
+        },
+        originLabel: "Garta · Nelore Leão",
+        parcelamento: "20× sem juros",
+        parcelamentoCardLabel: "Até 20× sem juros",
+        criatorio: "Nelore Leão",
+    },
+    {
+        slug: "jaty-mat",
+        rgd: "RDM B3610",
+        nomeAbcz: "JATY MAT.",
+        cruzamento: "HANDI MAT.",
+        classificacaoTop: "TOP 0,1%",
+        iabcz: { valor: 36.42, percentil: "P 0,1%" },
+        iqg: { valor: 45.06, top: "TOP 0,1%" },
+        mgte: { valor: 37.70, top: "TOP 0,1%" },
+        precoEmbriao: 1300,
+        pacoteTotal: 15600,
+        quantidadeEmbrioes: 12,
+        nascimento: "27/08/2024",
+        idAbcz: null,
+        foto: null,
+        video: "https://res.cloudinary.com/dny0ibgbn/video/upload/v1780514262/img-8157_f11T2ejZ_aesasw.mp4",
+        pendencias: [],
+        pedigree: PEDIGREE_JATY,
+        avaliacao: AVAL_JATY,
+        fichasTecnicas: [
+            { label: "Avaliação genética · iABCZ 36,42 · MGTe 37,70", href: "/doadoras/jaty-mat-avaliacao.jpg" },
+            { label: "IQG 45,06 · Situação reprodutiva", href: "/doadoras/jaty-mat-iqg-reproducao.jpg" },
+        ],
+        origem: {
+            proprietario: "Rancho da Matinha",
+            fazenda: "Nelore Visual",
+            municipio: "Esmeraldas/MG",
+        },
+        originLabel: "Jaty · Rancho da Matinha",
+        parcelamento: "20× sem juros",
+        parcelamentoCardLabel: "Até 20× sem juros",
+        criatorio: "Rancho da Matinha",
+    },
+    {
+        slug: "vitrine-eao",
+        rgd: "EAON 6735",
+        nomeAbcz: "EAON 6735",
+        cruzamento: "GOLFE DA EAO",
+        classificacaoTop: "TOP 0,5%",
+        iabcz: { valor: 30.14, percentil: "DECA 1" },
+        iqg: { valor: 37.41, top: "TOP 0,5%" },
+        mgte: { valor: 30.67, top: "TOP 2%" },
+        precoEmbriao: 900,
+        pacoteTotal: 10800,
+        quantidadeEmbrioes: 12,
+        nascimento: "08/08/2024",
+        idAbcz: null,
+        foto: null,
+        video: "https://res.cloudinary.com/dny0ibgbn/video/upload/v1780514318/VIDEO_VITRINE_xj9i1n.mp4",
+        pendencias: [],
+        pedigree: PEDIGREE_EAO_6735,
+        avaliacao: AVAL_EAO_6735,
+        fichasTecnicas: [
+            { label: "Ficha genômica · PMGZ · GenePlus · ANCP", href: "/doadoras/eao-6735-ficha.jpg" },
+            { label: "Ventre projetado × Golfe da EAO · 70 oócitos", href: "/doadoras/eao-6735-ventre-projetado.jpg" },
+        ],
+        origem: {
+            proprietario: "Nelore EAO",
+            fazenda: "Nelore Leão",
+        },
+        originLabel: "EAO · Nelore Leão",
+        parcelamento: "20× sem juros",
+        parcelamentoCardLabel: "Até 20× sem juros",
+        criatorio: "Nelore Leão",
     },
     {
         slug: "vis-4622",
