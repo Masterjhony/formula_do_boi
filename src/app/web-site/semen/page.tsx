@@ -2,11 +2,11 @@ import { Metadata } from 'next';
 import { getProductsServer } from '@/services/products.server';
 import SemenClient from './SemenClient';
 
-// Preview social: retrato do reprodutor Atacante (Nelore PO), cabeça centralizada.
+// Preview social: retrato do reprodutor Volante (Nelore PO), cabeça centralizada.
 // Imagem já em 1200×630 e square-safe — nada é cortado nem no banner nem na
 // miniatura quadrada do WhatsApp/Telegram.
-const OG_IMAGE = '/cattle/semen-og-atacante.jpg';
-const OG_ALT = 'Atacante — Reprodutor Nelore PO · Aceleradora de Touros Fórmula do Boi';
+const OG_IMAGE = '/cattle/semen-og-volante.jpg';
+const OG_ALT = 'Volante — Reprodutor Nelore PO · Aceleradora de Touros Fórmula do Boi';
 const OG_DESC = 'O absoluto ápice da genética provada nacional. Aceleradora de Touros Fórmula do Boi.';
 
 export const metadata: Metadata = {
