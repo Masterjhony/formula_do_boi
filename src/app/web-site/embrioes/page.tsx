@@ -3,10 +3,9 @@ import { getProductsServer } from "@/services/products.server";
 import { createClient } from "@/utils/supabase/server";
 import EmbrioesClient from "./EmbrioesClient";
 
-// Preview social: retrato da doadora JATY MAT. (RDM B3610, TOP 0,1% em iABCZ/IQG/MGTe),
-// nossa doadora-vitrine. Frame extraído do vídeo oficial e enquadrado em 1200×630.
-const OG_IMAGE = "/cattle/embrioes-og-doadora-jaty.jpg";
-const OG_ALT = "Doadora JATY MAT. — Nelore PO Fêmea, TOP 0,1% iABCZ · Fórmula do Boi";
+// Preview social: retrato de doadora Nelore PO, enquadrado no rosto em 1200×630.
+const OG_IMAGE = "/cattle/embrioes-og-doadora.jpg";
+const OG_ALT = "Doadora Nelore PO — Embriões de alta genética · Fórmula do Boi";
 
 export const metadata: Metadata = {
     title: "Catálogo de Embriões e Doadoras | Fórmula do Boi",
