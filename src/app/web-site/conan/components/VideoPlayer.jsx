@@ -46,7 +46,7 @@ export default function VideoPlayer() {
             Viu o potencial. <b>Agora garanta as suas doses.</b>
           </p>
           <div className="video-player__cta-wrap">
-            <a href={checkoutUrl} className="btn-primary fdb-cta-anim" target="_blank" rel="noopener">RESERVAR DOSE →</a>
+            <a href={checkoutUrl} className="btn-primary fdb-cta-anim">RESERVAR DOSE →</a>
             <p className="video-player__note">
               <span className="video-player__note-dot" aria-hidden="true" />
               Pré-reserva gratuita · Sem compromisso

@@ -147,7 +147,7 @@ export default function Pedigree() {
           <div className="pedi-cin-cta-block">
             <div className="pedi-cin-cta-divider" />
             <p className="pedi-cin-cta-headline">Genética <i>validada.</i> Reserve as suas doses.</p>
-            <a href={checkoutUrl} className="btn-primary fdb-cta-anim" target="_blank" rel="noopener">
+            <a href={checkoutUrl} className="btn-primary fdb-cta-anim">
               RESERVAR DOSE →
             </a>
           </div>

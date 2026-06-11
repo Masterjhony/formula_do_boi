@@ -26,7 +26,7 @@ export default function Manifesto() {
 
             <div className="manifesto__cta-wrap">
               <div className="hero-cta-group">
-                <a href={checkoutUrl} className="btn-primary fdb-cta-anim" target="_blank" rel="noopener">RESERVAR DOSE →</a>
+                <a href={checkoutUrl} className="btn-primary fdb-cta-anim">RESERVAR DOSE →</a>
                 <p className="hero-cta-note">
                   <span className="hero-cta-note__dot" />
                   Sêmen convencional · Pré-reserva aberta

@@ -63,6 +63,24 @@ const kpiRow = {
 const kpiKey = { fontFamily: MONO, fontSize: '10.5px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(245,240,228,0.55)' }
 const kpiVal = { color: '#F5F0E4', fontSize: '14px', fontWeight: 500, textAlign: 'right' }
 
+// UTM/click-id da URL — default de campanha = 'conan' (mesmo racional do /volante).
+function getUtmParams() {
+  try {
+    const p = new URLSearchParams(window.location.search)
+    return {
+      utm_source: p.get('utm_source') || 'site',
+      utm_medium: p.get('utm_medium') || 'organic',
+      utm_campaign: p.get('utm_campaign') || 'conan',
+      utm_content: p.get('utm_content') || '',
+      utm_term: p.get('utm_term') || '',
+      gclid: p.get('gclid') || '',
+      fbclid: p.get('fbclid') || '',
+    }
+  } catch {
+    return {}
+  }
+}
+
 export default function Checkout() {
   const [doses, setDoses] = useState('')
   const [matrizes, setMatrizes] = useState('')
@@ -73,27 +91,53 @@ export default function Checkout() {
   const [email, setEmail] = useState('')
   const [estado, setEstado] = useState('')
   const [cidade, setCidade] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [serverError, setServerError] = useState(null)
 
   useEffect(() => { document.title = 'Pré-reserva · CONAN FIV TresMar — Fórmula do Boi' }, [])
 
   const dosesLabel = DOSES_OPTS.find(o => o.value === doses && o.value)?.label || '—'
   const semenLabel = SEMEN_OPTS.find(o => o.value === semen)?.label || '—'
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault()
-    const linhas = [
-      'Pré-reserva — CONAN FIV TresMar (Lote 01)',
-      `Nome: ${nome || '—'}`,
-      `WhatsApp: ${whats || '—'}`,
-      email ? `E-mail: ${email}` : null,
-      `Doses: ${dosesLabel}`,
-      matrizes ? `Matrizes: ${matrizes}` : null,
-      `Tipo de sêmen: ${semenLabel}`,
-      estacao ? `Estação: ${ESTACAO_OPTS.find(o => o.value === estacao)?.label}` : null,
-      (estado || cidade) ? `Local: ${[cidade, estado].filter(Boolean).join(' / ')}` : null,
-    ].filter(Boolean)
-    const msg = encodeURIComponent(linhas.join('\n'))
-    window.open(`https://wa.me/5531994149161?text=${msg}`, '_blank', 'noopener')
+    if (submitting) return
+    setSubmitting(true)
+    setServerError(null)
+
+    // `cidade` vai ao backend como string combinada "Cidade / UF" —
+    // splitCityUf() no servidor separa cidade e estado.
+    const cidadeUf =
+      cidade.trim() && estado ? `${cidade.trim()} / ${estado}`
+        : estado ? `/ ${estado}`
+          : cidade.trim()
+
+    const payload = {
+      nome: nome.trim(),
+      whatsapp: whats,
+      email: email.trim(),
+      cidade: cidadeUf,
+      qtd: matrizes.trim(),
+      doses,
+      tipo: semen,
+      estacao,
+      ...getUtmParams(),
+      referrer: typeof document !== 'undefined' ? document.referrer || '' : '',
+      landing_url: typeof window !== 'undefined' ? window.location.href : '',
+    }
+
+    try {
+      const res = await fetch('/api/lead-conan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('server')
+      window.location.href = '/conan/obrigado'
+    } catch {
+      setServerError('Não foi possível enviar a pré-reserva. Tente novamente em instantes.')
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -201,8 +245,14 @@ export default function Checkout() {
                 Ao enviar você autoriza o contato do time Fórmula do Boi via WhatsApp ou e-mail. Não compartilhamos seus dados.
               </p>
 
-              <button type="submit" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', marginTop: '28px', background: '#A0792E', color: '#161616', border: '1px solid #A0792E', padding: '16px 24px', borderRadius: '2px', fontFamily: MONO, fontWeight: 600, fontSize: '13px', letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer', boxShadow: 'rgba(212,168,92,0.35) 0px 0px 0px 1px, rgba(212,168,92,0.18) 0px 0px 60px' }}>
-                Enviar pré-reserva<span aria-hidden="true" style={{ marginLeft: '4px' }}>→</span>
+              {serverError && (
+                <p role="alert" style={{ marginTop: '20px', fontSize: '13px', color: '#E74C3C', lineHeight: 1.5 }}>
+                  {serverError}
+                </p>
+              )}
+
+              <button type="submit" disabled={submitting} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', marginTop: '28px', background: '#A0792E', color: '#161616', border: '1px solid #A0792E', padding: '16px 24px', borderRadius: '2px', fontFamily: MONO, fontWeight: 600, fontSize: '13px', letterSpacing: '0.14em', textTransform: 'uppercase', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, boxShadow: 'rgba(212,168,92,0.35) 0px 0px 0px 1px, rgba(212,168,92,0.18) 0px 0px 60px' }}>
+                {submitting ? 'Enviando…' : <>Enviar pré-reserva<span aria-hidden="true" style={{ marginLeft: '4px' }}>→</span></>}
               </button>
               <p style={{ marginTop: '14px', fontFamily: MONO, fontSize: '10.5px', letterSpacing: '0.14em', color: 'rgba(245,240,228,0.55)', textTransform: 'uppercase', textAlign: 'center' }}>
                 Pré-reserva sem custo · Confirmação por WhatsApp

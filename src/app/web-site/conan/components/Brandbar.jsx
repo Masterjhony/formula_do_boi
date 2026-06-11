@@ -14,7 +14,7 @@ export default function Brandbar() {
             className="brandbar__logo-img"
           />
         </a>
-        <a href={checkoutUrl} className="btn-primary brandbar__cta" target="_blank" rel="noopener">
+        <a href={checkoutUrl} className="btn-primary brandbar__cta">
           RESERVAR DOSE →
         </a>
       </div>

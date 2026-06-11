@@ -61,7 +61,7 @@ export default function PerfilCompleto() {
 
         <div className="perfil__cta">
           <div className="hero-cta-group" style={{ alignItems: 'center', textAlign: 'center' }}>
-            <a href={checkoutUrl} className="btn-primary fdb-cta-anim" target="_blank" rel="noopener">RESERVAR DOSE →</a>
+            <a href={checkoutUrl} className="btn-primary fdb-cta-anim">RESERVAR DOSE →</a>
             <p className="hero-cta-note">
               <span className="hero-cta-note__dot" />
               Touro equilibrado · Pré-reserva aberta
