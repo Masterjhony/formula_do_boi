@@ -1,7 +1,11 @@
 import type { Metadata } from 'next'
 import './conan.css'
 
-const OG_IMAGE = '/conan/assets/conan-frontal.jpg'
+// OG dedicada 1200×630 (~58 KB). A foto full-res conan-frontal.jpg tem
+// 4680×3120 / 5,4 MB — acima do limite de preview do WhatsApp (o iOS, mais
+// rígido, simplesmente não renderizava a miniatura). Imagem leve garante o
+// preview em todos os clientes.
+const OG_IMAGE = '/conan/assets/og-conan.jpg'
 
 export const metadata: Metadata = {
   title: 'CONAN FIV TresMar | Fórmula do Boi',
