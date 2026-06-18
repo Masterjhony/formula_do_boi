@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CompatibleVideo from "@/components/site/CompatibleVideo";
+import { getVideoPosterUrl, isVideoUrl } from "@/lib/video-delivery";
 
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
@@ -11,7 +13,41 @@ const INK = "#161616";
 const INK_2 = "#1f1f1f";
 const FG = "#F5F0E4";
 
-type GenealogyNode = { nome?: string; rg?: string } | null | undefined;
+type ProductDetails = {
+    status?: string | null;
+    registro?: string | null;
+    breeder?: string | null;
+    proprietario?: string | null;
+    pdf?: string | null;
+    comentario?: string | null;
+    video?: string | null;
+};
+
+type GenealogyJson = Partial<
+    Record<
+        | "pai"
+        | "mae"
+        | "avo_paterno"
+        | "avo_paterna"
+        | "avo_materno"
+        | "avo_materna"
+        | "bisavo_ppp"
+        | "bisavo_mpp"
+        | "bisavo_pmp"
+        | "bisavo_mmp"
+        | "bisavo_ppm"
+        | "bisavo_mpm"
+        | "bisavo_pmm"
+        | "bisavo_mmm",
+        PedNode | null
+    >
+>;
+
+type AvaliacaoGenetica = {
+    iabcz?: string | number | null;
+    deca?: string | number | null;
+    corte?: string | null;
+};
 
 interface ProductLike {
     id: number;
@@ -25,7 +61,7 @@ interface ProductLike {
     forma_pagamento?: string;
     tag?: string;
     video_object_position?: string;
-    details?: any;
+    details?: ProductDetails | null;
     registro?: string;
     raca?: string;
     nascimento?: string;
@@ -35,8 +71,8 @@ interface ProductLike {
     iabcz?: string;
     mgte?: string;
     iqg?: string;
-    genealogia_json?: any;
-    avaliacao_genetica_json?: any;
+    genealogia_json?: GenealogyJson | null;
+    avaliacao_genetica_json?: AvaliacaoGenetica | null;
 }
 
 function fmtBRL(n: number) {
@@ -519,14 +555,20 @@ export default function EmbriaoLoteView({ product }: { product: ProductLike }) {
  * ───────────────────────────────────────────────────────────── */
 
 function MediaPlayer({ product }: { product: ProductLike }) {
-    const url = product.image || "";
+    const galleryVideo = product.gallery?.find((item) => typeof item === "string" && isVideoUrl(item));
+    const videoUrl = product.details?.video || (isVideoUrl(product.image) ? product.image : undefined) || galleryVideo;
+    const url = videoUrl || product.image || product.gallery?.[0] || "";
     const objectPosition = product.video_object_position || "center center";
 
-    if (url.endsWith(".mp4") || url.includes("cloudinary.com")) {
-        const src = url.endsWith(".mp4") ? url : url;
+    if (isVideoUrl(url)) {
+        const galleryPoster = product.gallery?.find((item) => typeof item === "string" && !isVideoUrl(item));
+        const imagePoster = product.image && !isVideoUrl(product.image) ? product.image : undefined;
+        const poster = getVideoPosterUrl(url, imagePoster || galleryPoster);
         return (
-            <video
-                src={src}
+            <CompatibleVideo
+                src={url}
+                poster={poster}
+                alt={product.name}
                 autoPlay
                 muted
                 loop
@@ -692,7 +734,7 @@ function PedigreeCinema({
     pedigree: { pai?: PedNode; mae?: PedNode };
     heroName: string;
     rgd?: string;
-    av?: any;
+    av?: AvaliacaoGenetica | null;
 }) {
     const rootRef = useRef<HTMLDivElement>(null);
 
@@ -1161,7 +1203,7 @@ function PedigreeAncLine({ label, node }: { label: string; node?: PedNode }) {
  * A listagem completa de DEPs por característica vive no PDF da ABCZ
  * (mesmo modelo das doadoras novas em /embrioes/[slug]). */
 
-function AvaliacaoSection({ av, pdf, rgd }: { av?: any; pdf?: string; rgd?: string }) {
+function AvaliacaoSection({ av, pdf, rgd }: { av?: AvaliacaoGenetica | null; pdf?: string; rgd?: string }) {
     if (!pdf) return null;
 
     return (
@@ -1201,7 +1243,7 @@ function AvaliacaoSection({ av, pdf, rgd }: { av?: any; pdf?: string; rgd?: stri
                 </p>
 
                 <div style={{ maxWidth: 720 }}>
-                    <FichaTecnicaDownload href={pdf} corte={av?.corte} rgd={rgd || ""} />
+                    <FichaTecnicaDownload href={pdf} corte={av?.corte ?? undefined} rgd={rgd || ""} />
                 </div>
             </div>
         </section>

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CompatibleVideo from "@/components/site/CompatibleVideo";
 import {
     type Doadora,
     type PedigreeNode,
@@ -83,9 +84,10 @@ export default function DoadoraClient({ doadora }: { doadora: Doadora }) {
                                     className="absolute inset-0 w-full h-full object-cover"
                                 />
                             ) : doadora.video ? (
-                                <video
+                                <CompatibleVideo
                                     src={doadora.video}
                                     poster={doadora.videoPoster ?? undefined}
+                                    alt={`Video da doadora ${nome}`}
                                     autoPlay
                                     muted
                                     loop
