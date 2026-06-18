@@ -1,6 +1,7 @@
 // Service worker mínimo — existe só para manter o PWA instalável.
 // Bump a versão sempre que este arquivo mudar (força os clientes a atualizarem).
-const SW_VERSION = 'formula-boi-v2';
+const SW_VERSION = 'formula-boi-v3';
+self.__FORMULA_BOI_SW_VERSION = SW_VERSION;
 
 self.addEventListener('install', () => {
     self.skipWaiting();
