@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     'Volante MRA — MRA 10701. Touro Nelore PO superprecoce. MGTe 27,01 · TOP 6%. iABCZ 22,53 · IQG 25,18. Elite em Peso, ACAB e STAY. Pré-reserva de sêmen aberta — Aceleradora 2026.',
   openGraph: {
     type: 'website',
-    url: 'https://formuladoboi.com/volante',
+    url: 'https://www.formuladoboi.com/volante',
     siteName: 'Fórmula do Boi',
     title: 'Volante MRA | Fórmula do Boi',
     description:

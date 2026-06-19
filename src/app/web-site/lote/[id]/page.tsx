@@ -55,7 +55,7 @@ export async function generateMetadata(
             return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
         }
         if (url.endsWith('.mp4')) return null; // Can't use other videos as images
-        if (url.startsWith('/')) return `https://formuladoboi.com${url}`;
+        if (url.startsWith('/')) return `https://www.formuladoboi.com${url}`;
         return url;
     };
 
@@ -77,7 +77,7 @@ export async function generateMetadata(
 
     // 3. Fallback if still no image
     if (!previewImage) {
-        previewImage = 'https://formuladoboi.com/icon.png';
+        previewImage = 'https://www.formuladoboi.com/icon.png';
     }
 
     // fallback to a default image if still empty (optional)
@@ -92,7 +92,7 @@ export async function generateMetadata(
         openGraph: {
             title: `Lote ${product.id} | ${product.name} - Fórmula do Boi`,
             description: description,
-            url: `https://formuladoboi.com/lote/${product.id}`,
+            url: `https://www.formuladoboi.com/lote/${product.id}`,
             siteName: 'Fórmula do Boi',
             images: images,
             locale: 'pt_BR',

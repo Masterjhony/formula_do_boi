@@ -19,7 +19,12 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://formuladoboi.com'),
+  // Host canônico = www. O apex (formuladoboi.com) faz 308 → www na Vercel,
+  // e crawlers de preview rígidos (WhatsApp/iOS) NÃO seguem redirect no
+  // og:image — caíam no fallback sem imagem. Resolver tudo já no www garante
+  // og:image/og:url 200 direto em todas as páginas. (Android, mais tolerante,
+  // seguia o redirect e por isso renderizava.)
+  metadataBase: new URL('https://www.formuladoboi.com'),
   title: "Fórmula do Boi | Curadoria de Nelore PO",
   description: "Genética de elite. Precisão de dados. Curadoria de Nelore PO de alto padrão, sêmen top 0.1% e embriões FIV selecionados.",
   manifest: "/manifest.webmanifest",

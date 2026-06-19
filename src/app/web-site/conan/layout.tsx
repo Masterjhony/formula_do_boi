@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     'CONAN FIV TresMar — RG LCF 1265. Touro Nelore PO superprecoce. MGTe 35,12 · TOP 0,1% ANCP. iABCZg 36,5 · DECA 1 PMGZ. IQGg 38,25 · TOP 0,5% GenePlus. Elite em Peso, AOL e Precocidade. Pré-reserva de sêmen aberta — Aceleradora 2026.',
   openGraph: {
     type: 'website',
-    url: 'https://formuladoboi.com/conan',
+    url: 'https://www.formuladoboi.com/conan',
     siteName: 'Fórmula do Boi',
     title: 'CONAN FIV TresMar | Fórmula do Boi',
     description:

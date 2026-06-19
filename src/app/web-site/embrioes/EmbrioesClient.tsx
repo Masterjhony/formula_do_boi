@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { EMBRYOS } from "@/data/embryos";
 import { DOADORAS, DOADORAS_CONDICOES, tipoEmbriaoShort } from "@/data/doadoras";
 import { Product } from "@/services/products";
+import { getVideoPosterUrl } from "@/lib/video-delivery";
 
 const BRONZE = "#A0792E";
 const BRONZE_LIGHT = "#D4A85C";
@@ -566,6 +567,14 @@ function EmbriaoCard({ item }: { item: CatalogItem }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [playing, setPlaying] = useState(false);
 
+    /* Poster garantido para todo card com vídeo. Sem isto, o iOS Safari
+     * renderiza um retângulo PRETO: ao contrário do Chrome/Android, ele NÃO
+     * pinta o frame do `#t=0.1` com `preload="metadata"`, e os cards só dão
+     * play no hover (que não existe no toque). Doadoras sem `videoPoster`
+     * (ex.: vis-4622/4817/4632/4634) caíam exatamente nesse buraco. O helper
+     * deriva um still-frame do Cloudinary direto da URL do vídeo. */
+    const posterUrl = item.isVideo ? getVideoPosterUrl(item.media, item.poster) : item.poster ?? undefined;
+
     const handleEnter = () => {
         const v = videoRef.current;
         if (v) {
@@ -605,7 +614,7 @@ function EmbriaoCard({ item }: { item: CatalogItem }) {
                             <video
                                 ref={videoRef}
                                 src={`${item.media}#t=0.1`}
-                                poster={item.poster || undefined}
+                                poster={posterUrl}
                                 muted
                                 loop
                                 playsInline
@@ -613,10 +622,12 @@ function EmbriaoCard({ item }: { item: CatalogItem }) {
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                             />
                             {/* Poster fixo no repouso — cobre o frame inicial (e o reset pós-hover),
-                                que em alguns vídeos abre escuro. Some só enquanto o vídeo toca. */}
-                            {item.poster && (
+                                que em alguns vídeos abre escuro. No iOS é o ÚNICO frame visível
+                                (não há hover pra dar play), por isso é sempre renderizado quando
+                                há poster derivado. Some só enquanto o vídeo toca. */}
+                            {posterUrl && (
                                 <img
-                                    src={item.poster}
+                                    src={posterUrl}
                                     alt={item.name}
                                     aria-hidden
                                     className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${playing ? "opacity-0 pointer-events-none" : "opacity-100"}`}

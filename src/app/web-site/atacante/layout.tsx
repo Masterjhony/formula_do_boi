@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Atacante da Matinha — RDM B 3224 MAT. Touro Jovem Nelore PO. MGTe 42,38 · TOP 0,1%. Pré-reserva de sêmen aberta. Fórmula do Boi × Nelore Visual.',
   openGraph: {
     type: 'website',
-    url: 'https://formuladoboi.com/atacante',
+    url: 'https://www.formuladoboi.com/atacante',
     siteName: 'Fórmula do Boi',
     title: 'Atacante da Matinha | Fórmula do Boi',
     description: 'Touro jovem Nelore PO. Resultado direto no campo, na balança e no bolso. Pacotes de sêmen exclusivos para o lançamento — pré-reserva aberta.',

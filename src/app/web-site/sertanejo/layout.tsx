@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'O touro que está transformando o rebanho brasileiro. Sertanejo Terra Brava — Nelore PO, MGTe TOP 16%, iABCZ 11,37 (DECA 2).',
   openGraph: {
     type: 'website',
-    url: 'https://formuladoboi.com/sertanejo',
+    url: 'https://www.formuladoboi.com/sertanejo',
     siteName: 'Fórmula do Boi',
     title: 'Sertanejo Terra Brava | Fórmula do Boi',
     description: 'Conheça o Sertanejo, o touro que está transformando o rebanho brasileiro com genética Nelore PO comprovada.',
