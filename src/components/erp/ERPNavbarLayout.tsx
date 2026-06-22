@@ -6,9 +6,9 @@ import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
     LayoutDashboard, Wallet, Calculator, LogOut, Menu, X, Settings,
-    ChevronDown, ArrowDownToLine, ArrowUpFromLine, BarChart3, Gavel,
+    ChevronDown, ArrowDownToLine, ArrowUpFromLine, BarChart3,
     CheckCircle2, TrendingUp, Scale, BookOpen, Receipt, FileSpreadsheet,
-    FileUp, Handshake, Percent,
+    FileUp,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -32,14 +32,6 @@ const navConfig: NavEntry[] = [
             { href: '/financeiro/fluxo-caixa', label: 'Fluxo de Caixa', icon: BarChart3 },
             { href: '/financeiro/conciliacao', label: 'Conciliação', icon: CheckCircle2 },
             { href: '/financeiro/conciliacao-ofx', label: 'Conciliação OFX', icon: FileUp },
-        ],
-    },
-    {
-        label: 'Leilões', icon: Gavel,
-        items: [
-            { href: '/leiloes', label: 'Fechamentos', icon: Gavel },
-            { href: '/leiloes/acordos', label: 'Acordos com Criadores', icon: Handshake },
-            { href: '/leiloes/comissoes', label: 'Comissões de Assessores', icon: Percent },
         ],
     },
     {
@@ -120,11 +112,6 @@ export default function ERPNavbarLayout({ children }: { children: React.ReactNod
         // Bare /contabil with no tab → active only when no tab is selected
         if (item.href === '/contabil') {
             return pathname === '/contabil' && !currentTab;
-        }
-        // /leiloes (Fechamentos) é o item "raiz" do grupo — só ativo quando exato,
-        // senão Acordos/Comissões marcariam Fechamentos como ativo também.
-        if (item.href === '/leiloes') {
-            return pathname === '/leiloes';
         }
         if (item.href === '/') return pathname === '/';
         return pathname === item.href || pathname.startsWith(item.href + '/');

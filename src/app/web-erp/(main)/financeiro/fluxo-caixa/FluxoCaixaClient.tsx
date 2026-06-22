@@ -4,10 +4,10 @@ import { useMemo, useState } from 'react';
 import {
     Wallet, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown,
     BarChart3, Sparkles, Calendar, Target, Activity,
-    Download, Printer, FileSpreadsheet, Building2, AlertTriangle,
+    Printer, FileSpreadsheet, Building2, AlertTriangle,
     ChevronDown, ChevronUp, Scale, LineChart,
 } from 'lucide-react';
-import type { Account, Category, Transaction, FechamentoLite } from '../_lib/types';
+import type { Account, Transaction } from '../_lib/types';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -67,13 +67,11 @@ function Delta({ v, inverse = false }: { v: number; inverse?: boolean }) {
 interface Props {
     accounts: Account[];
     transactions: Transaction[];
-    categories: Category[];
-    fechamentos: FechamentoLite[];
 }
 
 type Granularity = 'month' | 'quarter' | 'year';
 
-export default function FluxoCaixaClient({ accounts, transactions, fechamentos }: Props) {
+export default function FluxoCaixaClient({ accounts, transactions }: Props) {
     const [granularity, setGranularity] = useState<Granularity>('month');
     const [selectedYear, setSelectedYear] = useState<string>(String(new Date().getFullYear()));
     const [showOnlyCompleted, setShowOnlyCompleted] = useState(false);
@@ -188,13 +186,10 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                 supplierExp: d.supplierExp,
                 clientInc: d.clientInc,
             }));
-        // Running balance
-        let bal = initialBalance;
-        return entries.map(e => {
-            const openBal = bal;
-            bal += e.net;
-            return { ...e, openBalance: openBal, closeBalance: bal };
-        });
+        return entries.reduce<Array<(typeof entries)[number] & { openBalance: number; closeBalance: number }>>((acc, e) => {
+            const openBalance = acc.length > 0 ? acc[acc.length - 1].closeBalance : initialBalance;
+            return [...acc, { ...e, openBalance, closeBalance: openBalance + e.net }];
+        }, []);
     }, [filtered, initialBalance, selectedYear]);
 
     // ── Quarterly rollup ─────────────────────────────────────────────────
@@ -311,20 +306,13 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
             });
         }
         items.sort((a, b) => a.date.localeCompare(b.date));
-        // Add leilão fechamentos receita
-        const f90Receita = fechamentos
-            .filter(f => f.data && f.data >= todayISO && f.data <= ninetyISO)
-            .reduce((s, f) => s + (Number(f.receita_bula) || 0), 0);
-        const f90Comissao = fechamentos
-            .filter(f => f.data && f.data >= todayISO && f.data <= ninetyISO)
-            .reduce((s, f) => s + (Number(f.comissao_assessoria) || 0), 0);
         return {
-            entradas: proIn + f90Receita,
-            saidas: proOut + f90Comissao,
-            liquido: (proIn + f90Receita) - (proOut + f90Comissao),
+            entradas: proIn,
+            saidas: proOut,
+            liquido: proIn - proOut,
             items: items.slice(0, 15),
         };
-    }, [transactions, fechamentos]);
+    }, [transactions]);
 
     // ── DRE Estimada Mensal ──────────────────────────────────────────────
     // Simples aproximação: Receita - Impostos (simulado 15%) - Despesas (vari + fix split)
@@ -457,13 +445,6 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
         a.click();
         URL.revokeObjectURL(url);
     };
-
-    const topMonths = useMemo(() => {
-        return [...monthly]
-            .filter(m => m.income > 0 || m.expense > 0)
-            .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
-            .slice(0, 3);
-    }, [monthly]);
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 print:pb-0">
@@ -881,7 +862,7 @@ export default function FluxoCaixaClient({ accounts, transactions, fechamentos }
                                 Projeção de Caixa · Próximos 90 dias
                             </h3>
                             <p className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-widest">
-                                Baseada em contas pendentes e fechamentos de leilão
+                                Baseada em contas pendentes
                             </p>
                         </div>
                     </div>

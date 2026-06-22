@@ -1,13 +1,11 @@
 import Link from 'next/link'
 import {
     Wallet, Calculator, ArrowRight, TrendingUp, TrendingDown, Activity,
-    BarChart3, Gavel, ArrowDownToLine, ArrowUpFromLine, AlertTriangle, Calendar,
+    BarChart3, ArrowDownToLine, ArrowUpFromLine, AlertTriangle, Calendar,
     Trophy, PieChart, Building2, Flame,
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
-import { buildReceivables, buildPayables } from './financeiro/_lib/helpers'
-import type { Account, Transaction, BulaLeilao, FechamentoLite, UnifiedItem } from './financeiro/_lib/types'
-import { resolverAcordo, formatarAcordoCurto } from '@/lib/leilao-acordos'
+import type { Account, Transaction } from './financeiro/_lib/types'
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -50,8 +48,6 @@ export default async function ERPDashboard() {
     const [
         { data: accounts },
         { data: allTxFull },
-        { data: leiloes },
-        { data: fechamentosFull },
     ] = await Promise.all([
         supabase.from('erp_finance_accounts').select('id, name, type, initial_balance, current_balance').order('name'),
         supabase.from('erp_finance_transactions')
@@ -62,18 +58,10 @@ export default async function ERPDashboard() {
             `)
             .order('transaction_date', { ascending: false })
             .limit(5000),
-        supabase.from('bula_leiloes')
-            .select('id, nome, data, criador, status, comissao, comissao_receber, recebido, faturamento_realizado, venda_bula, realizado_bula')
-            .order('data', { ascending: false }),
-        supabase.from('bula_leilao_fechamento')
-            .select('id, nome, data, vgv_total, faturamento_total_leilao, comissao_assessoria, receita_bula, sobra_bruta, por_assessor, lances')
-            .order('data', { ascending: false }),
     ])
 
     const txsAll = (allTxFull as unknown as Transaction[]) ?? []
     const accountsList = (accounts as unknown as Account[]) ?? []
-    const leiloesList = (leiloes as unknown as BulaLeilao[]) ?? []
-    const fechamentosList = (fechamentosFull as unknown as FechamentoLite[]) ?? []
     // KPIs simples ainda usam shape compacto
     const allTx = txsAll.map(t => ({
         amount: t.amount,
@@ -82,8 +70,6 @@ export default async function ERPDashboard() {
         transaction_date: t.transaction_date,
         description: t.description,
     }))
-    // Top 6 só pra render da tabela "Últimos Fechamentos" — KPI 12m soma a lista cheia.
-    const fechamentosTop = fechamentosList.slice(0, 6)
 
     const totalInitial = accountsList.reduce((s, a) => s + (Number(a.initial_balance) || 0), 0)
     const txs = allTx ?? []
@@ -124,29 +110,24 @@ export default async function ERPDashboard() {
     const lastMonthBalance = saldoAtual - thisMonthNet
     const saldoDelta = pct(saldoAtual, lastMonthBalance)
 
-    // A Receber × A Pagar — usa os MESMOS builders das páginas reais
-    // (transações ERP + virtuais de fechamento/leilão) para ficar sincronizado.
-    const receivables = buildReceivables(txsAll, leiloesList, fechamentosList)
-    const payables = buildPayables(txsAll, fechamentosList)
+    // A Receber × A Pagar agora considera somente lançamentos reais do ERP.
+    const isOpenTx = (tx: Transaction) => tx.status !== 'completed' && tx.status !== 'cancelled'
+    const openReceivables = txsAll.filter(tx => tx.type === 'income' && isOpenTx(tx))
+    const openPayables = txsAll.filter(tx => tx.type === 'expense' && isOpenTx(tx))
 
-    // Apenas o saldo em aberto (pendente / virtual). 'completed' já entrou no Saldo Atual.
-    const isOpen = (i: UnifiedItem) => i.status !== 'completed' && i.status !== 'cancelled'
-    const openReceivables = receivables.filter(isOpen)
-    const openPayables = payables.filter(isOpen)
+    const sumAmount = (list: Transaction[]) => list.reduce((s, tx) => s + (Number(tx.amount) || 0), 0)
 
-    const sumBalance = (list: UnifiedItem[]) => list.reduce((s, i) => s + (Number(i.balance) || 0), 0)
-
-    const aReceber = sumBalance(openReceivables)
-    const aPagar = sumBalance(openPayables)
+    const aReceber = sumAmount(openReceivables)
+    const aPagar = sumAmount(openPayables)
 
     // Vencendo em 30d (≥ hoje e ≤ hoje+30d)
     const inWindow = (d: string) => d && d >= today && d <= in30d
-    const venc30dReceber = sumBalance(openReceivables.filter(i => inWindow(i.dueDate)))
-    const venc30dPagar = sumBalance(openPayables.filter(i => inWindow(i.dueDate)))
+    const venc30dReceber = sumAmount(openReceivables.filter(i => inWindow(i.transaction_date)))
+    const venc30dPagar = sumAmount(openPayables.filter(i => inWindow(i.transaction_date)))
 
     // Vencidos (dueDate < hoje)
-    const vencidosReceber = sumBalance(openReceivables.filter(i => i.dueDate && i.dueDate < today))
-    const vencidosPagar = sumBalance(openPayables.filter(i => i.dueDate && i.dueDate < today))
+    const vencidosReceber = sumAmount(openReceivables.filter(i => i.transaction_date && i.transaction_date < today))
+    const vencidosPagar = sumAmount(openPayables.filter(i => i.transaction_date && i.transaction_date < today))
 
     // Próximos vencimentos (top 6, mesclado a pagar + a receber)
     const proximosVenc: Array<{
@@ -154,16 +135,14 @@ export default async function ERPDashboard() {
         transaction_date: string
         amount: number
         type: 'income' | 'expense'
-        source: 'erp' | 'leilao' | 'fechamento'
     }> = [...openReceivables, ...openPayables]
-        .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''))
+        .sort((a, b) => (a.transaction_date || '').localeCompare(b.transaction_date || ''))
         .slice(0, 6)
         .map(i => ({
-            description: i.title,
-            transaction_date: i.dueDate,
-            amount: i.balance,
-            type: i.type,
-            source: i.source,
+            description: i.description,
+            transaction_date: i.transaction_date,
+            amount: Number(i.amount) || 0,
+            type: i.type as 'income' | 'expense',
         }))
 
     // Últimos 6 meses (entradas × saídas) — somando todas transações independente de status
@@ -317,32 +296,12 @@ export default async function ERPDashboard() {
         return acc
     }, [])
 
-    // Leilões — KPIs somam TODOS os fechamentos dos últimos 12m (não só os 6 do topo)
-    const fechs = fechamentosTop
-    const fechs12m = fechamentosList.filter(f => {
-        if (!f.data) return false
-        const diff = (now.getTime() - new Date(f.data).getTime()) / (1000 * 60 * 60 * 24)
-        return diff <= 365
-    })
-    const faturamentoBula12m = fechs12m.reduce((s, f) => s + (Number(f.receita_bula) || 0), 0)
-    const lucroBruto12m = fechs12m.reduce((s, f) => s + (Number(f.sobra_bruta) || 0), 0)
-
     const modules = [
         {
             name: 'Financeiro',
             description: 'Contas a pagar, receber, fluxo de caixa, conciliação e categorias.',
             href: '/financeiro',
             icon: Wallet,
-            color: 'from-[#A0792E] to-[#9A7209]',
-            textColor: 'text-[#D4A85C]',
-            bgColor: 'bg-[#A0792E]/10',
-            borderColor: 'border-[#A0792E]/20',
-        },
-        {
-            name: 'Leilões',
-            description: 'Receita, comissão e fechamentos de leilões da Bula Genética.',
-            href: '/leiloes',
-            icon: Gavel,
             color: 'from-[#A0792E] to-[#9A7209]',
             textColor: 'text-[#D4A85C]',
             bgColor: 'bg-[#A0792E]/10',
@@ -444,7 +403,7 @@ export default async function ERPDashboard() {
             </div>
 
             {/* ─── Pendências e Projeção ────────────────────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* A Receber */}
                 <Link
                     href="/financeiro/a-receber"
@@ -497,29 +456,6 @@ export default async function ERPDashboard() {
                     </div>
                 </Link>
 
-                {/* Faturamento Bula (12m) — receita_bula somada dos últimos 12 meses */}
-                <Link
-                    href="/leiloes"
-                    className="bg-white dark:bg-[#111111] border border-gray-200 dark:border-[#2A2A2A] hover:border-[#A0792E]/40 rounded-2xl p-6 shadow-xl transition-all duration-300 group"
-                >
-                    <div className="flex items-center justify-between mb-3">
-                        <p className="text-xs font-bold text-gray-500 dark:text-[#888] uppercase tracking-widest">Faturamento Bula (12m)</p>
-                        <Gavel className="w-5 h-5 text-[#D4A85C]" />
-                    </div>
-                    <p className="text-2xl font-extrabold text-[#D4A85C] tracking-tight">
-                        {formatCurrency(faturamentoBula12m)}
-                    </p>
-                    <div className="mt-4 space-y-1.5 text-[11px]">
-                        <div className="flex justify-between text-gray-500 dark:text-[#777]">
-                            <span>Lucro bruto 12m</span>
-                            <span className={`font-bold ${lucroBruto12m >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{formatCurrency(lucroBruto12m)}</span>
-                        </div>
-                        <div className="flex justify-between text-gray-500 dark:text-[#777]">
-                            <span>Fechamentos 12m</span>
-                            <span className="font-bold text-gray-700 dark:text-gray-300">{fechs12m.length}</span>
-                        </div>
-                    </div>
-                </Link>
             </div>
 
             {/* ─── Chart + Próximos Vencimentos ─────────────────────── */}
@@ -881,95 +817,6 @@ export default async function ERPDashboard() {
                 </div>
             </div>
 
-            {/* ─── Últimos Leilões ──────────────────────────────────── */}
-            {fechs.length > 0 && (
-                <div className="bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#222] rounded-2xl overflow-hidden shadow-xl">
-                    <div className="p-5 border-b border-gray-100 dark:border-[#222] flex items-center justify-between bg-gradient-to-r from-[#A0792E]/5 to-transparent">
-                        <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-5 bg-gradient-to-b from-[#A0792E] to-[#D4A85C] rounded-full" />
-                            <h3 className="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
-                                Últimos Fechamentos de Leilão
-                            </h3>
-                        </div>
-                        <Link
-                            href="/leiloes"
-                            className="text-[10px] font-bold uppercase tracking-widest text-[#D4A85C] hover:text-[#A0792E] flex items-center gap-1"
-                        >
-                            Ver todos <ArrowRight className="w-3 h-3" />
-                        </Link>
-                    </div>
-                    {/* Legenda — deixa explícito o que é da leiloeira e o que é nosso */}
-                    <div className="px-5 py-3 bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-100 dark:border-[#1A1A1A] flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-widest">
-                        <span className="text-gray-500 dark:text-[#777]">
-                            <span className="text-gray-400 dark:text-[#555]">Fat. Leiloeira</span> = total do leilão inteiro (referência)
-                        </span>
-                        <span className="text-gray-300 dark:text-[#333]">·</span>
-                        <span className="text-gray-500 dark:text-[#777]">
-                            <span className="text-gray-400 dark:text-[#555]">VGV Cobertura</span> = venda Fórmula+Bula
-                        </span>
-                        <span className="text-gray-300 dark:text-[#333]">·</span>
-                        <span className="text-emerald-500">
-                            Faturamento Bula = NOSSA receita
-                        </span>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead className="text-[10px] text-gray-500 dark:text-[#888] bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-[#222] uppercase tracking-widest">
-                                <tr>
-                                    <th className="px-4 py-3 text-left font-bold">Data</th>
-                                    <th className="px-4 py-3 text-left font-bold">Leilão</th>
-                                    <th className="px-4 py-3 text-left font-bold">Acordo</th>
-                                    <th className="px-4 py-3 text-right font-bold">Fat. Leiloeira</th>
-                                    <th className="px-4 py-3 text-right font-bold">VGV Cobertura</th>
-                                    <th className="px-4 py-3 text-right font-bold text-emerald-500">Fat. Bula (nosso)</th>
-                                    <th className="px-4 py-3 text-right font-bold">Lucro Bruto</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {fechs.slice(0, 6).map(f => {
-                                    const acordo = resolverAcordo(f as { id?: string | null })
-                                    const fatLeiloeira = (f as { faturamento_total_leilao?: number | null }).faturamento_total_leilao
-                                    return (
-                                    <tr key={f.id} className="border-b border-gray-100 dark:border-[#1A1A1A] hover:bg-gray-50 dark:hover:bg-[#141414] transition-colors">
-                                        <td className="px-4 py-4 text-gray-500 dark:text-[#888] font-mono text-xs whitespace-nowrap">
-                                            {f.data ? fmtDateBR(f.data) : '—'}
-                                        </td>
-                                        <td className="px-4 py-4 font-bold text-gray-900 dark:text-white">{f.nome || '—'}</td>
-                                        <td className="px-4 py-4">
-                                            {acordo ? (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#A0792E]/10 text-[#D4A85C] text-[10px] font-bold tracking-wide" title={acordo.descricao}>
-                                                    {formatarAcordoCurto(acordo)}
-                                                </span>
-                                            ) : <span className="text-gray-300 dark:text-gray-600 text-[10px]">—</span>}
-                                        </td>
-                                        <td className="px-4 py-4 text-right text-gray-400 dark:text-[#666] font-mono text-xs">
-                                            {fatLeiloeira ? formatCurrency(Number(fatLeiloeira)) : <span className="text-gray-300 dark:text-gray-700">—</span>}
-                                        </td>
-                                        <td className="px-4 py-4 text-right text-gray-700 dark:text-gray-300 font-mono">
-                                            {formatCurrency(Number(f.vgv_total) || 0)}
-                                        </td>
-                                        <td className="px-4 py-4 text-right text-emerald-500 font-extrabold">
-                                            {formatCurrency(Number(f.receita_bula) || 0)}
-                                        </td>
-                                        <td className={`px-4 py-4 text-right font-extrabold ${(Number(f.sobra_bruta) || 0) < 0 ? 'text-rose-500' : 'text-[#D4A85C]'}`}>
-                                            {(Number(f.sobra_bruta) || 0) >= 0 ? '+' : ''}{formatCurrency(Number(f.sobra_bruta) || 0)}
-                                        </td>
-                                    </tr>
-                                    )
-                                })}
-                            </tbody>
-                            <tfoot className="bg-gray-50 dark:bg-[#0A0A0A] border-t-2 border-gray-200 dark:border-[#222]">
-                                <tr>
-                                    <td colSpan={5} className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-[#777]">Total 12 meses</td>
-                                    <td className="px-4 py-3 text-right text-emerald-500 font-extrabold text-base">{formatCurrency(faturamentoBula12m)}</td>
-                                    <td className={`px-4 py-3 text-right font-extrabold text-base ${lucroBruto12m < 0 ? 'text-rose-500' : 'text-[#D4A85C]'}`}>{formatCurrency(lucroBruto12m)}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            )}
-
             {/* ─── Módulos do Sistema ───────────────────────────────── */}
             <div className="pt-4">
                 <div className="flex items-center gap-3 mb-6">
@@ -979,7 +826,7 @@ export default async function ERPDashboard() {
                     </h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {modules.map((module) => {
                         const Icon = module.icon
                         return (

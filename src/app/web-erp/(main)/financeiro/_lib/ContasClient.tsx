@@ -28,8 +28,8 @@ interface Props {
     accounts: Account[];
     categories: Category[];
     transactions: Transaction[];
-    leiloes: BulaLeilao[];
-    fechamentos: FechamentoLite[];
+    leiloes?: BulaLeilao[];
+    fechamentos?: FechamentoLite[];
 }
 
 const MODE = {
@@ -59,7 +59,7 @@ const MODE = {
     },
 } as const;
 
-export default function ContasClient({ mode, accounts, categories, transactions, leiloes, fechamentos }: Props) {
+export default function ContasClient({ mode, accounts, categories, transactions, leiloes = [], fechamentos = [] }: Props) {
     const router = useRouter();
     const cfg = MODE[mode];
 
@@ -406,7 +406,7 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                             {cfg.title}
                         </h2>
                         <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-sm text-gray-500 dark:text-[#888] font-medium tracking-wider uppercase">
-                            Gestão de {cfg.actionSubject}s · aging · baixas · leilões
+                            Gestão de {cfg.actionSubject}s · aging · baixas
                         </p>
                         <p className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#A0792E]/10 text-[#A0792E] text-[10px] font-bold uppercase tracking-widest">
                             <Calendar className="w-3 h-3" /> Validade: itens a partir de {new Date((mode === 'receber' ? A_RECEBER_INICIO : A_PAGAR_INICIO) + 'T00:00:00').toLocaleDateString('pt-BR')}
@@ -598,12 +598,17 @@ export default function ContasClient({ mode, accounts, categories, transactions,
                         </select>
                         <select
                             value={sourceFilter}
-                            onChange={e => setSourceFilter(e.target.value as any)}
+                            onChange={e => {
+                                const next = e.target.value;
+                                if (next === 'all' || next === 'erp' || next === 'virtual') {
+                                    setSourceFilter(next);
+                                }
+                            }}
                             className="px-3 py-1.5 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#222] rounded-lg text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#D4A85C]/50"
                         >
                             <option value="all">Todas origens</option>
                             <option value="erp">ERP</option>
-                            <option value="virtual">Leilões (virtual)</option>
+                            {virtuaisCount > 0 && <option value="virtual">Leilões (virtual)</option>}
                         </select>
                         <div className="flex items-center gap-1">
                             <input

@@ -393,7 +393,7 @@ export default function ContabilClient({
                             <PlanoGrupo codigo="1" nome="Ativo" subs={['1.1 Ativo Circulante (Caixa, Bancos, Contas a Receber)', '1.2 Ativo Não-Circulante (Imobilizado, Investimentos)']} />
                             <PlanoGrupo codigo="2" nome="Passivo" subs={['2.1 Passivo Circulante (Contas a Pagar, Salários, Impostos)', '2.2 Passivo Não-Circulante (Financiamentos LP)']} />
                             <PlanoGrupo codigo="3" nome="Patrimônio Líquido" subs={['3.1 Capital Social', '3.2 Lucros/Prejuízos Acumulados']} />
-                            <PlanoGrupo codigo="4" nome="Receitas" subs={['4.1 Receita de Leilões (comissões)', '4.2 Outras Receitas Operacionais']} />
+                            <PlanoGrupo codigo="4" nome="Receitas" subs={['4.1 Receita de Sêmen e Embriões', '4.2 Outras Receitas Operacionais']} />
                             <PlanoGrupo codigo="5" nome="Despesas" subs={['5.1 Despesas Operacionais', '5.2 Despesas com Pessoal', '5.3 Tributárias']} />
                         </div>
                     </div>
