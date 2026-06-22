@@ -24,7 +24,7 @@ export interface OfxStatement {
     transactions: OfxTransaction[];
 }
 
-const stripBom = (s: string) => s.replace(/^﻿/, '');
+const stripBom = (s: string) => s.replace(/^\uFEFF|^\u00EF\u00BB\u00BF/, '');
 
 // OFX SGML não fecha as tags; transformamos cada `<TAG>value` em `<TAG>value</TAG>`
 // só nas tags de dados (que sempre vêm seguidas de texto não-tag). Tags estruturais
@@ -38,8 +38,9 @@ function sgmlToXml(input: string): string {
     for (const raw of lines) {
         const line = raw.trim();
         if (!line) continue;
-        // Tags de dados: `<TAG>value` sem outro `<` depois
-        const m = line.match(/^<([A-Z0-9.]+)>([^<].*)$/);
+        // Tags de dados SGML: `<TAG>value` sem outro `<` depois.
+        // Se o banco já mandou XML (`<TAG>value</TAG>`), preserva a linha.
+        const m = line.match(/^<([A-Z0-9.]+)>([^<]+)$/);
         if (m) {
             out.push(`<${m[1]}>${escapeXml(m[2])}</${m[1]}>`);
         } else {
