@@ -1,8 +1,9 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
-      "Bash(npx vercel:*)"
-    ]
+      "Bash(npx vercel:*)",
+      "mcp__Claude_Code_Remote__send_later"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }
