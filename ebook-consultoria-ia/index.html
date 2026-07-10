@@ -8,246 +8,235 @@
   /* ============================================================
      E-BOOK DE VENDAS — CONSULTORIA DE IA (ECOSSISTEMA CLAUDE)
      Identidade "Fabrício Advogado" — vermelho #A81D20 / cinza
-     A4 retrato · pronto para exportação em PDF
+     A4 retrato · ilustrado · pronto para exportação em PDF
      ============================================================ */
 
   :root{
     --red:#A81D20;
     --red-dark:#7d1518;
-    --ink:#333333;
+    --red-2:#c23a3d;
+    --ink:#2b2b2b;
+    --ink-2:#333333;
     --gray:#7F7F7F;
-    --line:#e2e2e2;
-    --panel:#f6f4f2;
-    --panel-2:#f1eeeb;
+    --line:#e4e0dc;
+    --panel:#f6f3f1;
+    --panel-2:#f0ebe7;
+    --tint:#fbf2f2;
     --serif: "Iowan Old Style","Palatino Linotype","Palatino","Book Antiqua",Georgia,"Times New Roman",serif;
   }
 
   *{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-
   html,body{ margin:0; padding:0; }
-  body{
-    background:#d9d9d9;
-    font-family:var(--serif);
-    color:var(--ink);
-    line-height:1.5;
-    font-size:11.2pt;
-  }
+  body{ background:#d7d5d3; font-family:var(--serif); color:var(--ink); line-height:1.48; font-size:11.4pt; }
 
   /* ---------- PAGE FRAME ---------- */
   .page{
-    position:relative;
-    width:210mm;
-    height:297mm;
-    background:#ffffff;
-    margin:10mm auto;
-    padding:20mm 20mm 22mm 20mm;
-    overflow:hidden;
-    box-shadow:0 3px 18px rgba(0,0,0,.22);
-    display:flex;
-    flex-direction:column;
+    position:relative; width:210mm; height:297mm; background:#fff;
+    margin:9mm auto; padding:16mm 17mm 14mm 17mm; overflow:hidden;
+    box-shadow:0 4px 20px rgba(0,0,0,.24); display:flex; flex-direction:column;
   }
-
-  /* top brand rule on interior pages */
-  .page.interior::before{
-    content:"";
-    position:absolute;
-    left:20mm; right:20mm; top:14mm;
-    height:2px;
-    background:var(--red);
-  }
-  .kicker{
-    position:absolute;
-    left:20mm; top:15.4mm;
-    font-size:8pt; letter-spacing:.28em;
-    text-transform:uppercase;
-    color:var(--gray);
-    font-family:var(--serif);
-  }
+  .page.interior::before{ content:""; position:absolute; left:17mm; right:17mm; top:11mm; height:2px; background:var(--red); }
+  .kicker{ position:absolute; left:17mm; top:12.2mm; font-size:8pt; letter-spacing:.26em; text-transform:uppercase; color:var(--gray); }
 
   /* ---------- FOOTER ---------- */
   .foot{
-    position:absolute;
-    left:20mm; right:20mm; bottom:12mm;
+    position:absolute; left:17mm; right:17mm; bottom:9mm;
     display:flex; justify-content:space-between; align-items:flex-end;
-    font-size:7.6pt; color:var(--gray);
-    font-style:italic;
-    border-top:1px solid var(--line);
-    padding-top:3mm;
+    font-size:7.4pt; color:var(--gray); font-style:italic;
+    border-top:1px solid var(--line); padding-top:2.6mm;
   }
-  .foot .reg{ max-width:135mm; line-height:1.3; }
+  .foot .reg{ max-width:140mm; line-height:1.3; }
   .foot .pg{ font-style:normal; letter-spacing:.05em; white-space:nowrap; }
 
   /* ---------- TYPE ---------- */
   h1,h2,h3{ font-weight:700; color:var(--ink); margin:0; }
-  h2.title{
-    font-size:23pt; line-height:1.12; color:var(--red);
-    margin:0 0 3mm 0; letter-spacing:-.01em;
-  }
+  h2.title{ font-size:25pt; line-height:1.1; color:var(--red); margin:0 0 3mm; letter-spacing:-.012em; }
   h2.title .u{ border-bottom:3px solid var(--red); padding-bottom:1px; }
-  .lead{ font-size:12.4pt; color:var(--ink); }
-  p{ margin:0 0 3.2mm 0; }
+  .lead{ font-size:13pt; color:var(--ink-2); line-height:1.5; }
+  p{ margin:0 0 3mm; }
   .muted{ color:var(--gray); }
   .small{ font-size:9pt; }
   .redword{ color:var(--red); font-weight:700; }
-  .content{ flex:1 1 auto; }
+  .content{ flex:1 1 auto; display:flex; flex-direction:column; margin-top:8mm; }
 
-  /* section eyebrow */
-  .eyebrow{
-    font-size:8.5pt; letter-spacing:.26em; text-transform:uppercase;
-    color:var(--red); font-weight:700; margin-bottom:2mm;
-    display:flex; align-items:center; gap:3mm;
-  }
+  .eyebrow{ font-size:8.5pt; letter-spacing:.24em; text-transform:uppercase; color:var(--red); font-weight:700; margin-bottom:2.5mm; display:flex; align-items:center; gap:3mm; }
   .eyebrow::after{ content:""; flex:1; height:1px; background:var(--line); }
 
+  /* ---------- ICONS ---------- */
+  .ico{ width:24px; height:24px; stroke:var(--red); stroke-width:1.6; fill:none; stroke-linecap:round; stroke-linejoin:round; display:block; }
+  .ico.g{ stroke:var(--gray); }
+  .ico.w{ stroke:#fff; }
+  .ibadge{ width:15mm; height:15mm; border:1.6px solid var(--red); border-radius:50%; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .ibadge .ico{ width:30px; height:30px; }
+  .ibadge.solid{ background:var(--red); border-color:var(--red); }
+
   /* ---------- PANELS ---------- */
-  .panel{
-    background:var(--panel);
-    border-left:3px solid var(--red);
-    padding:5mm 6mm;
-    margin:4mm 0;
-  }
-  .panel h3{ color:var(--red); font-size:11pt; margin-bottom:1.5mm; letter-spacing:.02em; }
+  .panel{ background:var(--panel); border-left:3px solid var(--red); padding:5mm 6mm; }
+  .panel h3{ color:var(--red); font-size:11pt; margin-bottom:1.5mm; }
+  .panel.dark{ background:var(--red); border:none; color:#fff; }
+  .panel.dark h3{ color:#fff; }
 
-  .cost{
-    background:var(--panel-2);
-    border:1px solid var(--line);
-    border-top:3px solid var(--red);
-    padding:5mm 6mm; margin-top:5mm;
-  }
-  .cost .lbl{ font-size:8pt; letter-spacing:.22em; text-transform:uppercase; color:var(--gray); }
-  .cost .big{ font-size:20pt; color:var(--red); font-weight:700; line-height:1.1; }
-  .cost .big small{ font-size:10pt; color:var(--ink); font-weight:400; font-style:italic; }
+  /* ---------- ICON LIST ---------- */
+  ul.iconlist{ list-style:none; margin:0; padding:0; }
+  ul.iconlist li{ display:flex; gap:5mm; align-items:center; padding:4.6mm 0; border-bottom:1px solid var(--line); }
+  ul.iconlist li:first-child{ padding-top:0; }
+  ul.iconlist li:last-child{ border-bottom:none; }
+  ul.iconlist li .txt strong{ color:var(--ink); }
+  ul.iconlist li .txt{ font-size:11.4pt; line-height:1.42; }
+  .liico{ width:11mm; height:11mm; border-radius:50%; background:var(--tint); display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .liico .ico{ width:22px; height:22px; }
 
-  /* ---------- LISTS ---------- */
-  ul.clean{ list-style:none; margin:0 0 0 0; padding:0; }
-  ul.clean li{ position:relative; padding:1.6mm 0 1.6mm 8mm; border-bottom:1px solid var(--line); }
-  ul.clean li:last-child{ border-bottom:none; }
-  ul.clean li::before{
-    content:""; position:absolute; left:0; top:3.4mm;
-    width:4mm; height:2px; background:var(--red);
-  }
+  /* ---------- COST STAT ---------- */
+  .statwrap{ display:flex; gap:6mm; align-items:stretch; }
+  .stat{ flex:1; background:var(--red); color:#fff; padding:6mm; display:flex; flex-direction:column; justify-content:center; }
+  .stat .lbl{ font-size:8pt; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.78); }
+  .stat .num{ font-size:34pt; font-weight:700; line-height:1; margin:2mm 0; letter-spacing:-.02em; }
+  .stat .num small{ font-size:13pt; font-weight:400; }
+  .stat .sub{ font-size:9pt; color:rgba(255,255,255,.9); font-style:italic; line-height:1.35; }
+  .illo{ flex:0 0 52mm; background:var(--panel); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; }
 
-  /* case-study layout */
-  .case-grid{ display:grid; grid-template-columns:1fr 1fr; gap:5mm; margin-top:4mm; }
-  .case-box{ border:1px solid var(--line); padding:4.5mm 5mm; }
-  .case-box.after{ border-color:var(--red); background:#fbf3f3; }
-  .case-box .cap{ font-size:8pt; letter-spacing:.2em; text-transform:uppercase; color:var(--gray); margin-bottom:2mm; }
+  /* ---------- DIAGNÓSTICO (two-column) ---------- */
+  .diag{ display:grid; grid-template-columns:1.42fr 1fr; gap:9mm; flex:1 1 auto; }
+  .dleft{ display:flex; flex-direction:column; }
+  .dleft .iconlist{ flex:1 1 auto; display:flex; flex-direction:column; justify-content:space-around; margin-top:7mm; }
+  .dstat{ background:var(--red); color:#fff; padding:9mm 8mm; display:flex; flex-direction:column; justify-content:space-between; text-align:center; }
+  .dstat .stop .lbl{ font-size:8pt; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.78); }
+  .dstat .stop .num{ font-size:42pt; font-weight:700; line-height:1; margin:3mm 0; letter-spacing:-.02em; }
+  .dstat .stop .num small{ font-size:14pt; font-weight:400; }
+  .dstat .stop .sub{ font-size:9pt; color:rgba(255,255,255,.9); font-style:italic; line-height:1.4; }
+  .dstat .smid{ display:flex; justify-content:center; }
+  .dstat .smid .ico{ width:58px; height:58px; stroke:#fff; stroke-width:1.3; }
+  .dstat .qz{ font-size:13.5pt; font-weight:700; line-height:1.34; color:#fff; }
+
+  /* ---------- CASE ---------- */
+  .casehead{ display:flex; align-items:center; gap:6mm; }
+  .casenum{ font-size:46pt; font-weight:700; color:var(--tint); line-height:.8; letter-spacing:-.03em; }
+  .case-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6mm; }
+  .case-box{ border:1px solid var(--line); padding:6.5mm 6.5mm; display:flex; flex-direction:column; min-height:70mm; }
+  .case-box.after{ border:1.6px solid var(--red); background:var(--tint); }
+  .case-box .cap{ font-size:8.4pt; letter-spacing:.2em; text-transform:uppercase; color:var(--gray); margin-bottom:3.5mm; display:flex; align-items:center; gap:3mm; }
   .case-box.after .cap{ color:var(--red); }
-  .result{
-    margin-top:5mm; background:var(--red); color:#fff; padding:4.5mm 6mm;
-    display:flex; align-items:baseline; gap:4mm;
-  }
-  .result .k{ font-size:8pt; letter-spacing:.22em; text-transform:uppercase; opacity:.82; white-space:nowrap; }
-  .result .v{ font-size:11.5pt; font-weight:700; }
+  .case-box .cap .dot{ width:8px; height:8px; border-radius:50%; background:var(--gray); }
+  .case-box.after .cap .dot{ background:var(--red); }
+  .case-box p{ margin:0; font-size:11.6pt; line-height:1.55; }
+  .result{ background:var(--red); color:#fff; padding:6.5mm 6mm; display:flex; align-items:center; gap:5mm; }
+  .result .ico{ width:26px; height:26px; }
+  .result .k{ font-size:8pt; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.78); }
+  .result .v{ font-size:13pt; font-weight:700; line-height:1.25; }
+  .howband{ border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:10mm 0; }
+  .howband .hcap{ text-align:center; font-size:8pt; letter-spacing:.24em; text-transform:uppercase; color:var(--gray); margin-bottom:6mm; }
+  .howrow{ display:flex; gap:0; align-items:flex-start; }
+  .howrow .hstep{ flex:1; text-align:center; padding:0 3mm; display:flex; flex-direction:column; align-items:center; gap:3mm; }
+  .howrow .hstep .ico{ width:32px; height:32px; }
+  .howrow .hstep .hl{ font-size:9.4pt; color:var(--gray); line-height:1.3; }
+  .howrow .harr{ display:flex; align-items:center; color:var(--red); font-size:16pt; padding-top:5mm; }
 
   /* ---------- TABLE ---------- */
-  table.cmp{ width:100%; border-collapse:collapse; margin-top:4mm; font-size:10pt; }
-  table.cmp th, table.cmp td{ text-align:left; padding:3mm 4mm; border-bottom:1px solid var(--line); }
-  table.cmp thead th{
-    background:var(--red); color:#fff; font-size:8.4pt; letter-spacing:.12em;
-    text-transform:uppercase; font-weight:700; border-bottom:none;
-  }
+  table.cmp{ width:100%; border-collapse:collapse; font-size:10.2pt; }
+  table.cmp th, table.cmp td{ text-align:left; padding:3.6mm 4mm; border-bottom:1px solid var(--line); vertical-align:middle; }
+  table.cmp thead th{ background:var(--red); color:#fff; font-size:8.4pt; letter-spacing:.1em; text-transform:uppercase; border-bottom:none; }
   table.cmp thead th:first-child{ background:var(--red-dark); }
   table.cmp td.task{ font-weight:700; color:var(--ink); }
+  table.cmp td.task .ti{ display:flex; align-items:center; gap:4mm; }
   table.cmp td.old{ color:var(--gray); }
   table.cmp td.new{ color:var(--red); font-weight:700; }
   table.cmp tbody tr:nth-child(even){ background:var(--panel); }
 
-  /* ---------- DIAGRAM ---------- */
-  .flow{ display:flex; align-items:stretch; gap:0; margin:6mm 0; }
-  .flow .node{
-    flex:1; border:1px solid var(--line); padding:5mm 4mm; text-align:center;
-    display:flex; flex-direction:column; justify-content:center;
-  }
+  /* ---------- FLOW / NETWORK ---------- */
+  .flow{ display:flex; align-items:stretch; }
+  .flow .node{ flex:1; border:1.4px solid var(--line); padding:5mm 4mm; text-align:center; display:flex; flex-direction:column; align-items:center; gap:2mm; justify-content:center; }
   .flow .node.mid{ background:var(--red); color:#fff; border-color:var(--red); }
   .flow .node .t{ font-size:10.5pt; font-weight:700; }
-  .flow .node .s{ font-size:8.2pt; color:var(--gray); margin-top:1.5mm; }
+  .flow .node .s{ font-size:8pt; color:var(--gray); }
   .flow .node.mid .s{ color:rgba(255,255,255,.85); }
-  .flow .arrow{
-    display:flex; align-items:center; justify-content:center; padding:0 3mm;
-    color:var(--red); font-size:16pt; font-weight:700;
-  }
+  .flow .arrow{ display:flex; align-items:center; padding:0 3mm; color:var(--red); font-size:16pt; font-weight:700; }
+  .nethero{ display:flex; align-items:center; justify-content:center; }
+  .netcap{ text-align:center; font-size:11pt; color:var(--gray); font-style:italic; margin-top:5mm; }
 
-  /* ---------- TIMELINE (método) ---------- */
-  .step{ display:flex; gap:5mm; padding:3.4mm 0; border-bottom:1px solid var(--line); }
+  /* ---------- TIMELINE ---------- */
+  .step{ display:flex; gap:5mm; padding:5.5mm 0; border-bottom:1px solid var(--line); align-items:flex-start; }
+  .step:first-child{ padding-top:2mm; }
   .step:last-child{ border-bottom:none; }
-  .step .num{
-    flex:0 0 11mm; height:11mm; width:11mm; border-radius:50%;
-    background:var(--red); color:#fff; font-weight:700; font-size:13pt;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .step .body h3{ color:var(--red); font-size:11.5pt; margin-bottom:.6mm; }
-  .step .body p{ margin:0; font-size:10pt; color:var(--ink); }
+  .step .num{ flex:0 0 13mm; height:13mm; width:13mm; border-radius:50%; background:var(--red); color:#fff; font-weight:700; font-size:15pt; display:flex; align-items:center; justify-content:center; }
+  .step .body h3{ color:var(--red); font-size:12.5pt; margin-bottom:1.4mm; display:flex; align-items:center; gap:3mm; }
+  .step .body h3 .ico{ width:21px; height:21px; }
+  .step .body p{ margin:0; font-size:11.4pt; line-height:1.46; }
 
-  /* ---------- Q&A ---------- */
-  .qa{ border-top:1px solid var(--line); padding:3.6mm 0; }
-  .qa:last-child{ border-bottom:1px solid var(--line); }
-  .qa .q{ font-weight:700; color:var(--red); font-size:10.8pt; margin-bottom:1mm; }
-  .qa .q::before{ content:"P."; color:var(--gray); margin-right:2mm; font-style:italic; }
-  .qa .a{ font-size:10pt; color:var(--ink); }
-  .qa .a::before{ content:"R."; color:var(--gray); margin-right:2mm; font-style:italic; font-weight:700; }
+  .fivetrack{ display:flex; align-items:flex-start; gap:0; }
+  .fivetrack .ft{ flex:1; text-align:center; display:flex; flex-direction:column; align-items:center; gap:2.5mm; padding:0 2mm; }
+  .fivetrack .ft .ring{ width:15mm; height:15mm; border-radius:50%; border:1.6px solid var(--red); display:flex; align-items:center; justify-content:center; position:relative; background:#fff; }
+  .fivetrack .ft .ring .n{ position:absolute; top:-3mm; right:-3mm; width:7mm; height:7mm; border-radius:50%; background:var(--red); color:#fff; font-size:9pt; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .fivetrack .ft .lb{ font-size:8.8pt; font-weight:700; color:var(--ink); line-height:1.25; }
+  .fivetrack .conn{ flex:0 0 auto; align-self:flex-start; margin-top:7.5mm; width:6mm; height:1.6px; background:var(--line); }
+
+  /* ---------- Q&A GRID ---------- */
+  .qagrid{ display:grid; grid-template-columns:1fr 1fr; gap:7mm; }
+  .qacard{ border:1px solid var(--line); border-top:3px solid var(--red); padding:6.5mm; display:flex; flex-direction:column; gap:3.5mm; min-height:58mm; }
+  .qacard .qh{ display:flex; align-items:center; gap:3.5mm; }
+  .qacard .qh .liico{ width:11mm; height:11mm; }
+  .qacard .q{ font-weight:700; color:var(--red); font-size:11.5pt; line-height:1.2; }
+  .qacard .a{ font-size:10.8pt; color:var(--ink-2); line-height:1.46; }
 
   /* ---------- COVER ---------- */
-  .cover{ padding:0; justify-content:space-between; }
-  .cover .band{ height:14mm; background:var(--red); width:100%; }
-  .cover .cbody{ padding:0 22mm; flex:1; display:flex; flex-direction:column; justify-content:center; }
-  .cover .mark{ font-size:8.5pt; letter-spacing:.34em; text-transform:uppercase; color:var(--gray); margin-bottom:9mm; }
-  .cover h1{
-    font-size:39pt; line-height:1.06; color:var(--red); font-weight:700; letter-spacing:-.015em;
-    margin-bottom:7mm;
-  }
-  .cover .rule{ width:44mm; height:3px; background:var(--red); margin:0 0 7mm 0; }
-  .cover .sub{ font-size:13.5pt; color:var(--ink); max-width:150mm; line-height:1.45; }
-  .cover .sign{ margin-top:11mm; }
+  .cover{ padding:0; }
+  .cover .cwrap{ display:flex; height:100%; }
+  .cover .sidebar{ flex:0 0 20mm; background:var(--red); display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:14mm 0; }
+  .cover .sidebar .vtext{ writing-mode:vertical-rl; transform:rotate(180deg); color:rgba(255,255,255,.92); font-size:8pt; letter-spacing:.34em; text-transform:uppercase; }
+  .cover .sidebar .sdot{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.9); }
+  .cover .cmain{ flex:1; padding:20mm 18mm 16mm; display:flex; flex-direction:column; }
+  .cover .mark{ font-size:8.5pt; letter-spacing:.3em; text-transform:uppercase; color:var(--gray); }
+  .cover h1{ font-size:40pt; line-height:1.04; color:var(--red); font-weight:700; letter-spacing:-.018em; margin:9mm 0 6mm; }
+  .cover .rule{ width:46mm; height:3px; background:var(--red); margin-bottom:6mm; }
+  .cover .sub{ font-size:13.5pt; color:var(--ink-2); max-width:150mm; line-height:1.45; }
+  .cover .heroart{ flex:1; display:flex; align-items:center; justify-content:center; margin:4mm 0; }
   .cover .sign .n{ font-size:13pt; font-weight:700; color:var(--ink); }
   .cover .sign .r{ font-size:9.5pt; color:var(--gray); font-style:italic; margin-top:1mm; }
-  .cover .cfoot{ padding:0 22mm 14mm; }
-  .cover .cfoot .regline{ font-size:8pt; color:var(--gray); font-style:italic; border-top:1px solid var(--line); padding-top:3mm; }
+  .cover .regline{ font-size:8pt; color:var(--gray); font-style:italic; border-top:1px solid var(--line); padding-top:3mm; margin-top:6mm; }
 
   /* ---------- CTA ---------- */
-  .cta{ background:var(--red); color:#fff; }
+  .cta{ background:var(--red); color:#fff; padding:16mm 17mm 14mm; }
   .cta.page::before{ display:none; }
-  .cta .kicker{ color:rgba(255,255,255,.7); }
-  .cta .content{ display:flex; flex-direction:column; justify-content:center; }
-  .cta h2.title{ color:#fff; font-size:30pt; line-height:1.1; }
+  .cta .kicker{ color:rgba(255,255,255,.72); }
+  .cta .content{ margin-top:6mm; }
+  .cta h2.title{ color:#fff; font-size:31pt; }
   .cta h2.title .u{ border-color:#fff; }
-  .cta .offer{ font-size:13pt; line-height:1.5; max-width:150mm; color:rgba(255,255,255,.95); }
+  .cta .whiteline{ width:46mm; height:3px; background:#fff; margin-bottom:6mm; }
+  .cta .offer{ font-size:13pt; line-height:1.5; max-width:152mm; color:rgba(255,255,255,.95); }
   .cta .offer strong{ color:#fff; }
-  .cta .contacts{ margin-top:11mm; display:flex; gap:8mm; flex-wrap:wrap; }
-  .cta .contacts .cbox .l{ font-size:8pt; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.7); }
-  .cta .contacts .cbox .v{ font-size:14pt; font-weight:700; color:#fff; margin-top:1mm; }
-  .cta .whiteline{ width:44mm; height:3px; background:#fff; margin:0 0 7mm; }
-  .cta .signoff{ margin-top:12mm; border-top:1px solid rgba(255,255,255,.35); padding-top:5mm; }
+  .cta .ctacards{ display:flex; gap:6mm; }
+  .cta .ccard{ flex:1; border:1px solid rgba(255,255,255,.4); padding:6mm; display:flex; align-items:center; gap:5mm; }
+  .cta .ccard .ibadge{ border-color:rgba(255,255,255,.75); width:14mm; height:14mm; }
+  .cta .ccard .l{ font-size:8pt; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.72); }
+  .cta .ccard .v{ font-size:14.5pt; font-weight:700; color:#fff; margin-top:.5mm; }
+  .cta .signoff{ border-top:1px solid rgba(255,255,255,.34); padding-top:5mm; }
   .cta .signoff .n{ font-size:14pt; font-weight:700; }
   .cta .signoff .r{ font-size:9pt; font-style:italic; color:rgba(255,255,255,.82); margin-top:1mm; }
   .cta .foot{ color:rgba(255,255,255,.72); border-top-color:rgba(255,255,255,.3); }
   .cta .foot .pg{ color:rgba(255,255,255,.72); }
 
   /* ---------- BIO ---------- */
-  .bio-grid{ display:grid; grid-template-columns:52mm 1fr; gap:8mm; margin-top:3mm; align-items:start; }
-  .photo{
-    width:52mm; height:64mm; background:var(--panel-2);
-    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
-    text-align:center; color:var(--gray); font-size:8.5pt; font-style:italic; padding:5mm;
-  }
-  .creds{ margin-top:5mm; display:flex; gap:4mm; }
-  .cred{ flex:1; border:1px solid var(--line); border-top:3px solid var(--red); padding:4mm; text-align:center; }
-  .cred .t{ font-size:8pt; letter-spacing:.14em; text-transform:uppercase; color:var(--gray); }
-  .cred .n{ font-size:11.5pt; font-weight:700; color:var(--red); margin-top:1mm; }
+  .bio-grid{ display:grid; grid-template-columns:54mm 1fr; gap:8mm; align-items:start; }
+  .photo{ width:54mm; height:76mm; background:var(--panel-2); border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--gray); font-size:8.5pt; font-style:italic; padding:6mm; gap:4mm; }
+  .photo .ico{ width:44px; height:44px; stroke:var(--gray); }
+  .creds{ display:flex; gap:5mm; }
+  .cred{ flex:1; border:1px solid var(--line); border-top:3px solid var(--red); padding:6mm 4.5mm; text-align:center; display:flex; flex-direction:column; align-items:center; gap:2.5mm; }
+  .cred .ibadge{ width:11mm; height:11mm; }
+  .cred .ibadge .ico{ width:22px; height:22px; }
+  .cred .t{ font-size:7.6pt; letter-spacing:.12em; text-transform:uppercase; color:var(--gray); }
+  .cred .n{ font-size:11.5pt; font-weight:700; color:var(--red); }
 
-  .ph{ color:var(--red); font-style:italic; font-weight:700; }
-
-  /* vertically balance sparser pages */
-  .content.vcenter{ display:flex; flex-direction:column; justify-content:center; }
-  .content.vcenter .eyebrow{ margin-top:0; }
-
-  /* opening letter */
-  .letter p{ font-size:11.6pt; line-height:1.62; }
-  .letter .sig{ margin-top:6mm; }
+  .letter p{ font-size:11.8pt; line-height:1.6; }
+  .pullquote{ border-left:3px solid var(--red); padding:2mm 0 2mm 6mm; margin:5mm 0; font-size:14pt; color:var(--red); font-weight:700; line-height:1.3; }
   .letter .sig .n{ font-weight:700; color:var(--red); font-size:12.5pt; }
   .letter .sig .r{ font-size:9pt; color:var(--gray); font-style:italic; }
+  .bigquote{ font-size:60pt; color:var(--tint); line-height:.6; font-weight:700; }
 
-  .two{ display:grid; grid-template-columns:1fr 1fr; gap:7mm; }
+  .spread{ justify-content:space-between; }
+  .content.stack{ justify-content:flex-start; gap:8mm; }
+  .tobottom{ margin-top:auto; }
+  .fivetrack .ft .sub{ font-size:8pt; color:var(--gray); line-height:1.3; margin-top:-.5mm; }
+  .gap-s>*+*{ margin-top:5mm; }
+  .gap-m>*+*{ margin-top:7mm; }
 
   /* ---------- PRINT ---------- */
   @page{ size:A4 portrait; margin:0; }
@@ -260,629 +249,629 @@
 </head>
 <body>
 
+<!-- ===================== SVG SYMBOL SPRITE ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ic-scale" viewBox="0 0 24 24"><path d="M12 4v15M8 20h8M6 7h12M12 4a1 1 0 100-2 1 1 0 000 2M6 7l-2.5 6M6 7l2.5 6M18 7l-2.5 6M18 7l2.5 6"/><path d="M3 13a3 2.4 0 006 0M15 13a3 2.4 0 006 0"/></symbol>
+  <symbol id="ic-house" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7M6 10v10h12V10M10 20v-6h4v6"/></symbol>
+  <symbol id="ic-doc" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H6V3h1M13 3v5h5M9 12h6M9 15h6M9 18h4"/></symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="ic-bot" viewBox="0 0 24 24"><rect x="5.5" y="8" width="13" height="10" rx="2"/><path d="M12 8V5M12 4a1 1 0 100-2 1 1 0 000 2"/><circle cx="9.5" cy="12.5" r="1"/><circle cx="14.5" cy="12.5" r="1"/><path d="M10 15.5h4M3.5 12v2M20.5 12v2"/></symbol>
+  <symbol id="ic-hub" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="4.5" cy="5.5" r="1.8"/><circle cx="19.5" cy="5.5" r="1.8"/><circle cx="4.5" cy="18.5" r="1.8"/><circle cx="19.5" cy="18.5" r="1.8"/><path d="M10.2 10.3L6 6.8M13.8 10.3L18 6.8M10.2 13.7L6 17.2M13.8 13.7L18 17.2"/></symbol>
+  <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L21 21"/></symbol>
+  <symbol id="ic-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-4 4v-4H4V5M8 9h8M8 12h5"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></symbol>
+  <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6l8-3M9 12l2 2 4-4"/></symbol>
+  <symbol id="ic-sign" viewBox="0 0 24 24"><path d="M3 20h18M5 16c2.5-6 6-6 4.5-1.5S13 11 12 15M15 6l3 3-8 8-4 1 1-4 8-8"/></symbol>
+  <symbol id="ic-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="1.5"/><path d="M4 9h16M8 3v4M16 3v4"/><circle cx="9" cy="13" r=".8"/><circle cx="13" cy="13" r=".8"/><circle cx="17" cy="13" r=".8"/></symbol>
+  <symbol id="ic-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5 5l2.1 2.1M16.9 16.9L19 19M19 5l-2.1 2.1M7.1 16.9L5 19"/></symbol>
+  <symbol id="ic-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c1-4 4.5-5.5 7.5-5.5s6.5 1.5 7.5 5.5"/></symbol>
+  <symbol id="ic-spark" viewBox="0 0 24 24"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z"/></symbol>
+  <symbol id="ic-folder" viewBox="0 0 24 24"><path d="M3 6h6l2 2.5h10V19H3V6"/></symbol>
+  <symbol id="ic-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+  <symbol id="ic-book" viewBox="0 0 24 24"><path d="M4 4h7a2 2 0 012 2v14a2 2 0 00-2-2H4V4M20 4h-7a2 2 0 00-2 2v14a2 2 0 012-2h7V4"/></symbol>
+  <symbol id="ic-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="ic-map" viewBox="0 0 24 24"><path d="M9 4L4 6v14l5-2 6 2 5-2V4l-5 2-6-2M9 4v14M15 6v14"/></symbol>
+  <symbol id="ic-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M4 6l8 6 8-6"/></symbol>
+  <symbol id="ic-phone" viewBox="0 0 24 24"><path d="M6 3h4l2 5-3 2c1 2 3 4 5 5l2-3 5 2v4c0 1-1 2-2 2C11 21 3 13 3 5c0-1 1-2 2-2"/></symbol>
+  <symbol id="ic-scan" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 011-1h3M20 8V5a1 1 0 00-1-1h-3M4 16v3a1 1 0 001 1h3M20 16v3a1 1 0 01-1 1h-3M4 12h16"/></symbol>
+</svg>
+
 <!-- ============================ PÁGINA 1 · CAPA ============================ -->
 <section class="page cover">
-  <div class="band"></div>
-  <div class="cbody">
-    <div class="mark">Consultoria de Inteligência Artificial · Ecossistema Claude</div>
-    <h1>O Escritório que<br>Trabalha Enquanto<br>Você Pensa</h1>
-    <div class="rule"></div>
-    <p class="sub">Como advogados, corretores e avaliadores estão multiplicando sua
-    produtividade com uma equipe de agentes de IA — sem contratar ninguém.</p>
-    <div class="sign">
-      <div class="n">Fabrício Lucas Pereira</div>
-      <div class="r">Advogado, Corretor e Avaliador Certificado</div>
+  <div class="cwrap">
+    <div class="sidebar">
+      <span class="sdot"></span>
+      <span class="vtext">Consultoria de Inteligência Artificial</span>
+      <span class="sdot"></span>
     </div>
-  </div>
-  <div class="cfoot">
-    <div class="regline">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
+    <div class="cmain">
+      <div class="mark">Ecossistema Claude · Advogados · Corretores · Avaliadores</div>
+      <h1>O Escritório que<br>Trabalha Enquanto<br>Você Pensa</h1>
+      <div class="rule"></div>
+      <p class="sub">Como advogados, corretores e avaliadores estão multiplicando sua
+      produtividade com uma equipe de agentes de IA — sem contratar ninguém.</p>
+
+      <div class="heroart">
+        <!-- HERO: rede de orquestração (você → agentes) -->
+        <svg viewBox="0 0 480 250" width="150mm" style="max-width:100%;">
+          <g fill="none" stroke="#dccaca" stroke-width="1.4">
+            <path d="M240 125 L110 55M240 125 L110 195M240 125 L370 55M240 125 L370 195M240 125 L100 125M240 125 L380 125"/>
+          </g>
+          <!-- satellites -->
+          <g>
+            <circle cx="110" cy="55" r="26" fill="#fff" stroke="#A81D20" stroke-width="1.6"/>
+            <circle cx="110" cy="195" r="26" fill="#fff" stroke="#A81D20" stroke-width="1.6"/>
+            <circle cx="370" cy="55" r="26" fill="#fff" stroke="#A81D20" stroke-width="1.6"/>
+            <circle cx="370" cy="195" r="26" fill="#fff" stroke="#A81D20" stroke-width="1.6"/>
+            <circle cx="90" cy="125" r="20" fill="#fff" stroke="#A81D20" stroke-width="1.4"/>
+            <circle cx="390" cy="125" r="20" fill="#fff" stroke="#A81D20" stroke-width="1.4"/>
+          </g>
+          <g stroke="#A81D20" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <!-- doc -->
+            <path transform="translate(98,43)" d="M4 2h9l5 5v17H4V2M12 2v6h6M8 13h6M8 17h4"/>
+            <!-- scale -->
+            <path transform="translate(96,181) scale(1.15)" d="M12 4v15M8 20h8M6 7h12M6 7l-2 5M6 7l2 5M18 7l-2 5M18 7l2 5"/>
+            <!-- house -->
+            <path transform="translate(357,43)" d="M4 11l8-7 8 7M6 10v10h12V10M10 20v-6h4v6"/>
+            <!-- clock -->
+            <g transform="translate(357,182)"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></g>
+            <!-- gears small -->
+            <g transform="translate(80,115)"><circle cx="10" cy="10" r="3"/><path d="M10 2v2.5M10 15.5V18M2 10h2.5M15.5 10H18"/></g>
+            <g transform="translate(380,115)"><circle cx="10" cy="10" r="3"/><path d="M10 2v2.5M10 15.5V18M2 10h2.5M15.5 10H18"/></g>
+          </g>
+          <!-- center node -->
+          <g>
+            <circle cx="240" cy="125" r="40" fill="#A81D20"/>
+            <text x="240" y="121" text-anchor="middle" fill="#fff" font-family="Georgia,serif" font-size="15" font-weight="bold">VOCÊ</text>
+            <text x="240" y="139" text-anchor="middle" fill="rgba(255,255,255,.82)" font-family="Georgia,serif" font-size="8.5">estratégia</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="sign">
+        <div class="n">Fabrício Lucas Pereira</div>
+        <div class="r">Advogado, Corretor e Avaliador Certificado</div>
+      </div>
+      <div class="regline">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
+    </div>
   </div>
 </section>
 
 <!-- ============================ PÁGINA 2 · CARTA ============================ -->
 <section class="page interior">
   <div class="kicker">Carta de abertura</div>
-  <div class="content letter" style="justify-content:center; display:flex; flex-direction:column;">
-    <h2 class="title" style="font-size:20pt;">Quem escreve isto <span class="u">usa isto</span> todos os dias.</h2>
-    <p>Eu não sou consultor de tecnologia falando de fora. Sou advogado militante,
-    corretor de imóveis e avaliador certificado — e tudo o que você vai ver neste
-    material roda hoje, todos os dias, no meu próprio escritório.</p>
+  <div class="content spread letter">
+    <div>
+      <div class="bigquote">“</div>
+      <h2 class="title" style="font-size:21pt; margin-top:-4mm;">Quem escreve isto <span class="u">usa isto</span> todos os dias.</h2>
+    </div>
+    <div>
+      <p>Eu não sou consultor de tecnologia falando de fora. Sou advogado militante,
+      corretor de imóveis e avaliador certificado — e tudo o que você vai ver neste
+      material roda hoje, todos os dias, no meu próprio escritório.</p>
 
-    <p>Comecei do mesmo lugar que você provavelmente está agora: com o dia tomado
-    por tarefas que se repetem. Petições e contratos redigidos do zero pela enésima
-    vez. Laudos que levavam dias. Prazos controlados na base da atenção e do susto.
-    Clientes esperando resposta enquanto eu apagava incêndios.</p>
+      <p>Comecei do mesmo lugar em que você provavelmente está agora: com o dia tomado
+      por tarefas que se repetem. Petições e contratos redigidos do zero pela enésima
+      vez. Laudos que levavam dias. Prazos controlados na base da atenção e do susto.
+      Clientes esperando resposta enquanto eu apagava incêndios.</p>
 
-    <p>A virada não veio de comprar um programa. Veio de montar, peça por peça, uma
-    <span class="redword">equipe digital de agentes de IA</span> que executa essas
-    rotinas por mim — no meu padrão, com o meu critério, sob o meu comando.</p>
+      <div class="pullquote">A virada não veio de comprar um programa. Veio de montar,
+      peça por peça, uma equipe digital de agentes que trabalha por mim.</div>
 
-    <p>Hoje eu decido e reviso. A repetição fica com as máquinas. Este material mostra
-    exatamente como isso funciona na prática — e como pode funcionar no seu escritório
-    ou na sua imobiliária.</p>
+      <p>Hoje eu decido e reviso. A repetição fica com as máquinas — no meu padrão, com o
+      meu critério, sob o meu comando. Este material mostra exatamente como isso funciona
+      na prática, e como pode funcionar no seu escritório ou na sua imobiliária.</p>
 
-    <p>Quem ensina aqui é quem opera. Essa é a única diferença que importa.</p>
-
+      <p>Quem ensina aqui é quem opera. Essa é a única diferença que importa.</p>
+    </div>
     <div class="sig">
       <div class="n">Fabrício Lucas Pereira</div>
       <div class="r">Advogado · Corretor · Avaliador Certificado</div>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">02</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">02</div></div>
 </section>
 
 <!-- ==================== PÁGINA 3 · DIAGNÓSTICO ADVOGADOS ==================== -->
 <section class="page interior">
   <div class="kicker">Diagnóstico · Advocacia</div>
   <div class="content">
-    <div class="eyebrow">Para o advogado</div>
-    <h2 class="title">A rotina que <span class="u">consome o seu dia</span></h2>
-    <p class="lead muted">Nenhuma dessas tarefas exige o seu talento jurídico. Todas
-    exigem o seu tempo.</p>
-
-    <ul class="clean">
-      <li><strong>Petições e contratos do zero</strong> — a mesma minuta reescrita a
-      cada caso, mudando poucos dados.</li>
-      <li><strong>Controle manual de prazos</strong> — planilha, agenda e memória
-      disputando a mesma responsabilidade.</li>
-      <li><strong>Consulta processo a processo</strong> — abrir cada tribunal, um por
-      um, para saber o que andou.</li>
-      <li><strong>Pesquisa de jurisprudência</strong> — horas garimpando o precedente
-      que sustenta a tese.</li>
-      <li><strong>Cliente cobrando no WhatsApp</strong> — o retorno que interrompe o
-      trabalho de verdade.</li>
+    <div class="diag">
+    <div class="dleft">
+      <div class="eyebrow">Para o advogado</div>
+      <h2 class="title">A rotina que <span class="u">consome o seu dia</span></h2>
+      <p class="lead muted" style="margin-top:1mm;">Nenhuma dessas tarefas exige o seu
+      talento jurídico. Todas exigem o seu tempo.</p>
+    <ul class="iconlist">
+      <li><span class="liico"><svg class="ico"><use href="#ic-doc"/></svg></span><span class="txt"><strong>Petições e contratos do zero</strong> — a mesma minuta reescrita a cada caso, mudando poucos dados.</span></li>
+      <li><span class="liico"><svg class="ico"><use href="#ic-clock"/></svg></span><span class="txt"><strong>Controle manual de prazos</strong> — planilha, agenda e memória disputando a mesma responsabilidade.</span></li>
+      <li><span class="liico"><svg class="ico"><use href="#ic-scan"/></svg></span><span class="txt"><strong>Consulta processo a processo</strong> — abrir cada tribunal, um por um, para saber o que andou.</span></li>
+      <li><span class="liico"><svg class="ico"><use href="#ic-search"/></svg></span><span class="txt"><strong>Pesquisa de jurisprudência</strong> — horas garimpando o precedente que sustenta a tese.</span></li>
+      <li><span class="liico"><svg class="ico"><use href="#ic-chat"/></svg></span><span class="txt"><strong>Cliente cobrando no WhatsApp</strong> — o retorno que interrompe o trabalho de verdade.</span></li>
     </ul>
 
-    <div class="cost">
-      <div class="lbl">O custo invisível</div>
-      <div class="big">40 a 60 h/mês <small>— estimativa conservadora de horas perdidas em tarefas repetitivas e automatizáveis.</small></div>
     </div>
-
-    <div class="panel" style="border-left-color:var(--red); background:#fff; border:none; padding-left:0;">
-      <h3 style="font-size:13pt;">Quantas horas da sua semana são trabalho intelectual
-      de verdade — e quantas são pura repetição?</h3>
+    <aside class="dstat">
+      <div class="stop">
+        <div class="lbl">O custo invisível</div>
+        <div class="num">40–60<small> h/mês</small></div>
+        <div class="sub">Estimativa conservadora de horas perdidas em tarefas repetitivas e automatizáveis.</div>
+      </div>
+      <div class="smid"><svg class="ico"><use href="#ic-scale"/></svg></div>
+      <div class="qz">Quantas horas da sua semana são trabalho intelectual — e quantas são pura repetição?</div>
+    </aside>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">03</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">03</div></div>
 </section>
 
 <!-- ============= PÁGINA 4 · DIAGNÓSTICO CORRETORES/AVALIADORES ============= -->
 <section class="page interior">
   <div class="kicker">Diagnóstico · Corretagem e Avaliação</div>
   <div class="content">
-    <div class="eyebrow">Para o corretor e o avaliador</div>
-    <h2 class="title">O negócio trava <span class="u">no operacional</span></h2>
-    <p class="lead muted">Enquanto você preenche documento, o lead esfria e o próximo
-    negócio espera.</p>
-
-    <ul class="clean">
-      <li><strong>Laudos de avaliação (PTAM)</strong> — dias de coleta, cálculo e
-      diagramação para cada imóvel.</li>
-      <li><strong>Fichas de captação sem padrão</strong> — cada corretor preenche de
-      um jeito, nada fica comparável.</li>
-      <li><strong>Contratos de intermediação refeitos</strong> — o mesmo modelo
-      remontado a cada negócio.</li>
-      <li><strong>Due diligence documental manual</strong> — matrícula, certidões e
-      ônus conferidos à mão, um a um.</li>
-      <li><strong>Leads esfriando</strong> — resposta lenta que empurra o cliente para
-      o concorrente.</li>
+    <div class="diag">
+    <div class="dleft">
+      <div class="eyebrow">Para o corretor e o avaliador</div>
+      <h2 class="title">O negócio trava <span class="u">no operacional</span></h2>
+      <p class="lead muted" style="margin-top:1mm;">Enquanto você preenche documento, o
+      lead esfria e o próximo negócio espera.</p>
+    <ul class="iconlist">
+      <li><span class="liico"><svg class="ico"><use href="#ic-doc"/></svg></span><span class="txt"><strong>Laudos de avaliação (PTAM)</strong> — dias de coleta, cálculo e diagramação para cada imóvel.</span></li>
+      <li><span class="liico"><svg class="ico"><use href="#ic-folder"/></svg></span><span class="txt"><strong>Fichas de captação sem padrão</strong> — cada corretor preenche de um jeito, nada fica comparável.</span></li>
+      <li><span class="liico"><svg class="ico"><use href="#ic-sign"/></svg></span><span class="txt"><strong>Contratos de intermediação refeitos</strong> — o mesmo modelo remontado a cada negócio.</span></li>
+      <li><span class="liico"><svg class="ico"><use href="#ic-search"/></svg></span><span class="txt"><strong>Due diligence documental manual</strong> — matrícula, certidões e ônus conferidos à mão, um a um.</span></li>
+      <li><span class="liico"><svg class="ico"><use href="#ic-chat"/></svg></span><span class="txt"><strong>Leads esfriando</strong> — resposta lenta que empurra o cliente para o concorrente.</span></li>
     </ul>
 
-    <div class="cost">
-      <div class="lbl">O custo invisível</div>
-      <div class="big">50 a 70 h/mês <small>— estimativa conservadora de horas presas em laudos, fichas e documentos padronizáveis.</small></div>
     </div>
-
-    <div class="panel" style="border-left-color:var(--red); background:#fff; border:none; padding-left:0;">
-      <h3 style="font-size:13pt;">Cada laudo mais lento é um imóvel a menos avaliado
-      no mês. Quanto isso custa em receita não realizada?</h3>
+    <aside class="dstat">
+      <div class="stop">
+        <div class="lbl">O custo invisível</div>
+        <div class="num">50–70<small> h/mês</small></div>
+        <div class="sub">Estimativa conservadora de horas presas em laudos, fichas e documentos padronizáveis.</div>
+      </div>
+      <div class="smid"><svg class="ico"><use href="#ic-house"/></svg></div>
+      <div class="qz">Cada laudo mais lento é um imóvel a menos avaliado no mês. Quanto isso custa em receita?</div>
+    </aside>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">04</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">04</div></div>
 </section>
 
 <!-- ==================== PÁGINA 5 · A VIRADA DE CHAVE ==================== -->
 <section class="page interior">
   <div class="kicker">O conceito</div>
-  <div class="content">
-    <div class="eyebrow">A virada de chave</div>
-    <h2 class="title">IA não é um chatbot.<br>É uma <span class="u">equipe digital.</span></h2>
-
-    <p class="lead">Um chatbot responde perguntas. Uma equipe de agentes
-    <strong>executa rotinas completas</strong> — do dado bruto ao documento pronto para
-    assinar.</p>
-
-    <p>Cada agente é especializado numa função do seu escritório. Um redige a minuta no
-    seu padrão. Outro calcula o prazo. Outro monta o laudo. Outro gera o PDF e envia para
-    assinatura eletrônica. Você deixa de <em>fazer</em> a tarefa e passa a
-    <span class="redword">comandar quem faz.</span></p>
-
-    <div class="flow">
-      <div class="node">
-        <div class="t">Você</div>
-        <div class="s">Decisão e estratégia</div>
-      </div>
-      <div class="arrow">→</div>
-      <div class="node mid">
-        <div class="t">Diretoria de agentes</div>
-        <div class="s">Redige · calcula · monta · confere</div>
-      </div>
-      <div class="arrow">→</div>
-      <div class="node">
-        <div class="t">Documento pronto</div>
-        <div class="s">Revisado e assinável</div>
-      </div>
+  <div class="content spread">
+    <div>
+      <div class="eyebrow">A virada de chave</div>
+      <h2 class="title">IA não é um chatbot.<br>É uma <span class="u">equipe digital.</span></h2>
+      <p class="lead" style="margin-top:1mm;">Um chatbot responde perguntas. Uma equipe de
+      agentes <strong>executa rotinas completas</strong> — do dado bruto ao documento
+      pronto para assinar.</p>
     </div>
 
-    <div class="panel">
-      <h3>A diferença que muda tudo</h3>
-      <p style="margin:0;">Você não vira operador de tecnologia. Você vira o
-      <strong>diretor</strong> de uma equipe que trabalha em silêncio, no seu padrão,
-      24 horas por dia — enquanto o seu tempo volta para o que só você sabe fazer:
-      pensar a estratégia e cuidar do cliente.</p>
+    <div>
+    <div class="nethero">
+      <svg viewBox="0 0 520 210" width="172mm" style="max-width:100%;">
+        <g fill="none" stroke="#dccaca" stroke-width="1.4">
+          <path d="M110 105 L245 105M275 105 L410 105"/>
+          <path d="M290 60 L360 60M290 150 L360 150" opacity="0"/>
+        </g>
+        <!-- você -->
+        <g>
+          <rect x="30" y="72" width="80" height="66" rx="6" fill="#fff" stroke="#A81D20" stroke-width="1.6"/>
+          <g transform="translate(58,84)" stroke="#A81D20" stroke-width="1.5" fill="none" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c1-4 4.5-5.5 7.5-5.5s6.5 1.5 7.5 5.5"/></g>
+          <text x="70" y="128" text-anchor="middle" font-family="Georgia,serif" font-size="10" font-weight="bold" fill="#2b2b2b">VOCÊ</text>
+        </g>
+        <text x="192" y="100" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#A81D20">→</text>
+        <!-- diretoria -->
+        <g>
+          <rect x="215" y="55" width="90" height="100" rx="6" fill="#A81D20"/>
+          <text x="260" y="78" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" font-weight="bold" fill="#fff">DIRETORIA</text>
+          <text x="260" y="90" text-anchor="middle" font-family="Georgia,serif" font-size="9.5" font-weight="bold" fill="#fff">DE AGENTES</text>
+          <g transform="translate(232,100)" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <g transform="translate(0,0)"><rect x="2" y="4" width="13" height="10" rx="2"/><path d="M8.5 4V2M6 10h5"/><circle cx="6" cy="7.5" r=".8"/><circle cx="11" cy="7.5" r=".8"/></g>
+            <g transform="translate(20,0)"><rect x="2" y="4" width="13" height="10" rx="2"/><path d="M8.5 4V2M6 10h5"/><circle cx="6" cy="7.5" r=".8"/><circle cx="11" cy="7.5" r=".8"/></g>
+            <g transform="translate(40,0)"><rect x="2" y="4" width="13" height="10" rx="2"/><path d="M8.5 4V2M6 10h5"/><circle cx="6" cy="7.5" r=".8"/><circle cx="11" cy="7.5" r=".8"/></g>
+          </g>
+          <text x="260" y="140" text-anchor="middle" font-family="Georgia,serif" font-size="7" fill="rgba(255,255,255,.85)">redige · calcula</text>
+          <text x="260" y="149" text-anchor="middle" font-family="Georgia,serif" font-size="7" fill="rgba(255,255,255,.85)">monta · confere</text>
+        </g>
+        <text x="358" y="100" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#A81D20">→</text>
+        <!-- documento -->
+        <g>
+          <rect x="410" y="72" width="80" height="66" rx="6" fill="#fff" stroke="#A81D20" stroke-width="1.6"/>
+          <g transform="translate(438,82)" stroke="#A81D20" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h9l5 5v17H4V2M12 2v6h6M8 13h6M8 17h4"/></g>
+          <text x="450" y="132" text-anchor="middle" font-family="Georgia,serif" font-size="8.4" font-weight="bold" fill="#2b2b2b">PRONTO</text>
+        </g>
+      </svg>
+    </div>
+      <p class="netcap">Você comanda. Os agentes executam. O documento sai pronto para assinar.</p>
+    </div>
+
+    <div>
+      <p style="margin-bottom:4mm;">Cada agente é especializado numa função do seu
+      escritório. Um redige a minuta no seu padrão. Outro calcula o prazo. Outro monta o
+      laudo. Outro gera o PDF e envia para assinatura. Você deixa de <em>fazer</em> a
+      tarefa e passa a <span class="redword">comandar quem faz.</span></p>
+      <div class="panel">
+        <h3>A diferença que muda tudo</h3>
+        <p style="margin:0;">Você não vira operador de tecnologia. Você vira o
+        <strong>diretor</strong> de uma equipe que trabalha em silêncio, no seu padrão,
+        24 horas por dia — enquanto o seu tempo volta para o que só você sabe fazer:
+        pensar a estratégia e cuidar do cliente.</p>
+      </div>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">05</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">05</div></div>
 </section>
 
-<!-- ==================== PÁGINA 6 · CASO 1 · LAUDOS PTAM ==================== -->
+<!-- ==================== PÁGINA 6 · CASO 1 ==================== -->
 <section class="page interior">
   <div class="kicker">Prova viva · Caso 01</div>
-  <div class="content vcenter">
-    <div class="eyebrow">O que já roda no meu escritório</div>
-    <h2 class="title">Laudos de avaliação rural <span class="u">(PTAM)</span></h2>
-    <p class="lead muted">De dias de trabalho para poucas horas — com os cálculos
-    conferidos automaticamente.</p>
+  <div class="content spread">
+    <div>
+      <div class="eyebrow">O que já roda no meu escritório</div>
+      <div class="casehead">
+        <span class="casenum">01</span>
+        <div>
+          <h2 class="title" style="margin-bottom:1mm;">Laudos de avaliação rural <span class="u">(PTAM)</span></h2>
+          <p class="lead muted" style="margin:0;">De dias de trabalho para poucas horas — com os cálculos conferidos automaticamente.</p>
+        </div>
+      </div>
+    </div>
 
     <div class="case-grid">
-      <div class="case-box">
-        <div class="cap">Antes</div>
-        <p style="margin:0;">Coleta de dados manual, homogeneização calculada na
-        planilha, diagramação refeita a cada laudo. Dias de trabalho e risco de erro de
-        cálculo a cada fator aplicado.</p>
-      </div>
-      <div class="case-box after">
-        <div class="cap">Depois — a solução</div>
-        <p style="margin:0;">Agentes coletam os dados, aplicam a homogeneização por
-        fatores conforme a <strong>NBR 14.653</strong>, montam o documento no padrão
-        visual do escritório e geram o PDF final — com conferência de cálculos
-        automatizada.</p>
-      </div>
+      <div class="case-box"><div class="cap"><span class="dot"></span>Antes</div><p>Coleta de dados manual, homogeneização calculada na planilha, diagramação refeita a cada laudo. Dias de trabalho e risco de erro de cálculo a cada fator aplicado.</p></div>
+      <div class="case-box after"><div class="cap"><span class="dot"></span>Depois — a solução</div><p>Agentes coletam os dados, aplicam a homogeneização por fatores conforme a <strong>NBR 14.653</strong>, montam o documento no padrão visual do escritório e geram o PDF final — com conferência de cálculos automatizada.</p></div>
     </div>
+
+    <div class="howband"><div class="hcap">O fluxo, ponta a ponta</div>
+    <div class="howrow">
+      <div class="hstep"><svg class="ico"><use href="#ic-folder"/></svg><span class="hl">Coleta de dados</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-gear"/></svg><span class="hl">Homogeneização<br>NBR 14.653</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-doc"/></svg><span class="hl">Montagem no<br>padrão</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-check"/></svg><span class="hl">PDF conferido</span></div>
+    </div></div>
 
     <div class="result">
-      <span class="k">Resultado</span>
-      <span class="v">Laudo padronizado em horas, não em dias — e sem erro de conta.</span>
+      <span class="ibadge solid"><svg class="ico w"><use href="#ic-spark"/></svg></span>
+      <div><div class="k">Resultado</div><div class="v">Laudo padronizado em horas, não em dias — e sem erro de conta.</div></div>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg" style="font-size:7.2pt;">Casos reais da operação do autor; dados de clientes preservados.&nbsp; · &nbsp;OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">06</div>
-  </div>
+  <div class="foot"><div class="reg" style="font-size:7pt;">Casos reais da operação do autor; dados de clientes preservados. · OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">06</div></div>
 </section>
 
-<!-- ================ PÁGINA 7 · CASO 2 · CONTRATOS EM ESCALA ================ -->
+<!-- ==================== PÁGINA 7 · CASO 2 ==================== -->
 <section class="page interior">
   <div class="kicker">Prova viva · Caso 02</div>
-  <div class="content vcenter">
-    <div class="eyebrow">O que já roda no meu escritório</div>
-    <h2 class="title">Contratos <span class="u">em escala</span></h2>
-    <p class="lead muted">Do dado do cliente ao documento pronto para assinatura
-    eletrônica.</p>
+  <div class="content spread">
+    <div>
+      <div class="eyebrow">O que já roda no meu escritório</div>
+      <div class="casehead">
+        <span class="casenum">02</span>
+        <div>
+          <h2 class="title" style="margin-bottom:1mm;">Contratos <span class="u">em escala</span></h2>
+          <p class="lead muted" style="margin:0;">Do dado do cliente ao documento pronto para assinatura eletrônica.</p>
+        </div>
+      </div>
+    </div>
 
     <div class="case-grid">
-      <div class="case-box">
-        <div class="cap">Antes</div>
-        <p style="margin:0;">Cada contrato de franquia, cada instrumento com condomínio
-        e cada aditivo remontado à mão a partir de um modelo antigo — com risco de
-        cláusula desatualizada e formatação fora do padrão.</p>
-      </div>
-      <div class="case-box after">
-        <div class="cap">Depois — a solução</div>
-        <p style="margin:0;">Um pipeline gera contratos de franquia, contratos com
-        condomínios e aditivos a partir dos dados do cliente, no padrão visual da
-        empresa, <strong>prontos para assinatura eletrônica (ClickSign)</strong>.</p>
-      </div>
+      <div class="case-box"><div class="cap"><span class="dot"></span>Antes</div><p>Cada contrato de franquia, cada instrumento com condomínio e cada aditivo remontado à mão a partir de um modelo antigo — com risco de cláusula desatualizada e formatação fora do padrão.</p></div>
+      <div class="case-box after"><div class="cap"><span class="dot"></span>Depois — a solução</div><p>Um pipeline gera contratos de franquia, contratos com condomínios e aditivos a partir dos dados do cliente, no padrão visual da empresa, <strong>prontos para assinatura eletrônica (ClickSign)</strong>.</p></div>
     </div>
+
+    <div class="howband"><div class="hcap">O fluxo, ponta a ponta</div>
+    <div class="howrow">
+      <div class="hstep"><svg class="ico"><use href="#ic-user"/></svg><span class="hl">Dados do<br>cliente</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-gear"/></svg><span class="hl">Geração no<br>padrão da marca</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-doc"/></svg><span class="hl">Contrato +<br>aditivos</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-sign"/></svg><span class="hl">Assinatura<br>eletrônica</span></div>
+    </div></div>
 
     <div class="result">
-      <span class="k">Resultado</span>
-      <span class="v">Contratos consistentes, no padrão da marca, prontos para assinar.</span>
+      <span class="ibadge solid"><svg class="ico w"><use href="#ic-spark"/></svg></span>
+      <div><div class="k">Resultado</div><div class="v">Contratos consistentes, no padrão da marca, prontos para assinar.</div></div>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg" style="font-size:7.2pt;">Casos reais da operação do autor; dados de clientes preservados.&nbsp; · &nbsp;OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">07</div>
-  </div>
+  <div class="foot"><div class="reg" style="font-size:7pt;">Casos reais da operação do autor; dados de clientes preservados. · OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">07</div></div>
 </section>
 
-<!-- ============ PÁGINA 8 · CASO 3 · MONITORAMENTO E PRAZOS ============ -->
+<!-- ==================== PÁGINA 8 · CASO 3 ==================== -->
 <section class="page interior">
   <div class="kicker">Prova viva · Caso 03</div>
-  <div class="content vcenter">
-    <div class="eyebrow">O que já roda no meu escritório</div>
-    <h2 class="title">Monitoramento processual <span class="u">e prazos</span></h2>
-    <p class="lead muted">Sem depender de conferência manual, diária, um tribunal por
-    vez.</p>
+  <div class="content spread">
+    <div>
+      <div class="eyebrow">O que já roda no meu escritório</div>
+      <div class="casehead">
+        <span class="casenum">03</span>
+        <div>
+          <h2 class="title" style="margin-bottom:1mm;">Monitoramento processual <span class="u">e prazos</span></h2>
+          <p class="lead muted" style="margin:0;">Sem depender de conferência manual, diária, um tribunal por vez.</p>
+        </div>
+      </div>
+    </div>
 
     <div class="case-grid">
-      <div class="case-box">
-        <div class="cap">Antes</div>
-        <p style="margin:0;">Login em cada sistema, leitura de cada movimentação e
-        cálculo de prazo na ponta do lápis — todo dia, sob o peso de que um esquecimento
-        pode custar o direito da parte.</p>
-      </div>
-      <div class="case-box after">
-        <div class="cap">Depois — a solução</div>
-        <p style="margin:0;">Agentes consultam as <strong>APIs públicas do CNJ
-        (DJEN / DataJud)</strong>, capturam as intimações e calculam os prazos em dias
-        úteis conforme o <strong>CPC/2015</strong> — de forma contínua.</p>
-      </div>
+      <div class="case-box"><div class="cap"><span class="dot"></span>Antes</div><p>Login em cada sistema, leitura de cada movimentação e cálculo de prazo na ponta do lápis — todo dia, sob o peso de que um esquecimento pode custar o direito da parte.</p></div>
+      <div class="case-box after"><div class="cap"><span class="dot"></span>Depois — a solução</div><p>Agentes consultam as <strong>APIs públicas do CNJ (DJEN / DataJud)</strong>, capturam as intimações e calculam os prazos em dias úteis conforme o <strong>CPC/2015</strong> — de forma contínua.</p></div>
     </div>
 
+    <div class="howband"><div class="hcap">O fluxo, ponta a ponta</div>
+    <div class="howrow">
+      <div class="hstep"><svg class="ico"><use href="#ic-scan"/></svg><span class="hl">Consulta CNJ<br>DJEN / DataJud</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-mail"/></svg><span class="hl">Captura de<br>intimações</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-calendar"/></svg><span class="hl">Prazo em dias<br>úteis (CPC)</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-check"/></svg><span class="hl">Alerta<br>contínuo</span></div>
+    </div></div>
+
     <div class="result">
-      <span class="k">Resultado</span>
-      <span class="v">Intimações capturadas e prazos calculados sem checagem manual.</span>
+      <span class="ibadge solid"><svg class="ico w"><use href="#ic-spark"/></svg></span>
+      <div><div class="k">Resultado</div><div class="v">Intimações capturadas e prazos calculados sem checagem manual diária.</div></div>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg" style="font-size:7.2pt;">Casos reais da operação do autor; dados de clientes preservados.&nbsp; · &nbsp;OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">08</div>
-  </div>
+  <div class="foot"><div class="reg" style="font-size:7pt;">Casos reais da operação do autor; dados de clientes preservados. · OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">08</div></div>
 </section>
 
-<!-- =========== PÁGINA 9 · CASO 4 · DIRETORIA EXECUTIVA DIGITAL =========== -->
+<!-- ==================== PÁGINA 9 · CASO 4 ==================== -->
 <section class="page interior">
   <div class="kicker">Prova viva · Caso 04</div>
-  <div class="content vcenter">
-    <div class="eyebrow">O que já roda no meu escritório</div>
-    <h2 class="title">Diretoria executiva <span class="u">digital</span></h2>
-    <p class="lead muted">Um orquestrador que recebe tudo, prioriza e distribui para o
-    agente certo.</p>
+  <div class="content spread">
+    <div>
+      <div class="eyebrow">O que já roda no meu escritório</div>
+      <div class="casehead">
+        <span class="casenum">04</span>
+        <div>
+          <h2 class="title" style="margin-bottom:1mm;">Diretoria executiva <span class="u">digital</span></h2>
+          <p class="lead muted" style="margin:0;">Um orquestrador que recebe tudo, prioriza e distribui para o agente certo.</p>
+        </div>
+      </div>
+    </div>
 
     <div class="case-grid">
-      <div class="case-box">
-        <div class="cap">Antes</div>
-        <p style="margin:0;">Demandas chegando por e-mail, WhatsApp e sistemas internos
-        ao mesmo tempo. Você começando o dia sem saber o que é urgente — e terminando
-        sem saber o que ficou para trás.</p>
-      </div>
-      <div class="case-box after">
-        <div class="cap">Depois — a solução</div>
-        <p style="margin:0;">Um <strong>agente orquestrador</strong> coleta as demandas
-        de e-mail, WhatsApp e sistemas internos, prioriza, distribui para o agente certo
-        e monta a <strong>agenda do dia automaticamente</strong>.</p>
-      </div>
+      <div class="case-box"><div class="cap"><span class="dot"></span>Antes</div><p>Demandas chegando por e-mail, WhatsApp e sistemas internos ao mesmo tempo. Você começando o dia sem saber o que é urgente — e terminando sem saber o que ficou para trás.</p></div>
+      <div class="case-box after"><div class="cap"><span class="dot"></span>Depois — a solução</div><p>Um <strong>agente orquestrador</strong> coleta as demandas de e-mail, WhatsApp e sistemas internos, prioriza, distribui para o agente certo e monta a <strong>agenda do dia automaticamente</strong>.</p></div>
     </div>
 
+    <div class="howband"><div class="hcap">O fluxo, ponta a ponta</div>
+    <div class="howrow">
+      <div class="hstep"><svg class="ico"><use href="#ic-mail"/></svg><span class="hl">E-mail · Whats ·<br>sistemas</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-hub"/></svg><span class="hl">Orquestrador<br>prioriza</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-bot"/></svg><span class="hl">Distribui ao<br>agente certo</span></div>
+      <div class="harr">→</div>
+      <div class="hstep"><svg class="ico"><use href="#ic-calendar"/></svg><span class="hl">Agenda do dia<br>pronta</span></div>
+    </div></div>
+
     <div class="result">
-      <span class="k">Resultado</span>
-      <span class="v">Você abre o dia com a agenda pronta e as prioridades já ordenadas.</span>
+      <span class="ibadge solid"><svg class="ico w"><use href="#ic-spark"/></svg></span>
+      <div><div class="k">Resultado</div><div class="v">Você abre o dia com a agenda pronta e as prioridades já ordenadas.</div></div>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg" style="font-size:7.2pt;">Casos reais da operação do autor; dados de clientes preservados.&nbsp; · &nbsp;OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">09</div>
-  </div>
+  <div class="foot"><div class="reg" style="font-size:7pt;">Casos reais da operação do autor; dados de clientes preservados. · OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">09</div></div>
 </section>
 
 <!-- ==================== PÁGINA 10 · ANTES / DEPOIS ==================== -->
 <section class="page interior">
   <div class="kicker">O ganho, em números</div>
-  <div class="content vcenter">
-    <div class="eyebrow">Quadro comparativo</div>
-    <h2 class="title">Antes <span class="u">e depois</span> dos agentes</h2>
-    <p class="lead muted">Números conservadores, do dia a dia real de um escritório que
-    já opera assim.</p>
+  <div class="content spread">
+    <div>
+      <div class="eyebrow">Quadro comparativo</div>
+      <h2 class="title">Antes <span class="u">e depois</span> dos agentes</h2>
+      <p class="lead muted" style="margin-top:1mm;">Números conservadores, do dia a dia real de um escritório que já opera assim.</p>
+    </div>
 
     <table class="cmp">
-      <thead>
-        <tr>
-          <th>Tarefa</th>
-          <th>Modo tradicional</th>
-          <th>Com a equipe de agentes</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Tarefa</th><th>Modo tradicional</th><th>Com a equipe de agentes</th></tr></thead>
       <tbody>
-        <tr>
-          <td class="task">Laudo de avaliação (PTAM)</td>
-          <td class="old">2 a 4 dias</td>
-          <td class="new">2 a 4 horas</td>
-        </tr>
-        <tr>
-          <td class="task">Contrato padrão + aditivo</td>
-          <td class="old">2 a 3 horas</td>
-          <td class="new">10 a 15 minutos</td>
-        </tr>
-        <tr>
-          <td class="task">Verificação de andamentos e prazos</td>
-          <td class="old">1 a 2 horas/dia</td>
-          <td class="new">Contínuo · sem intervenção</td>
-        </tr>
-        <tr>
-          <td class="task">Ficha de captação padronizada</td>
-          <td class="old">30 a 45 minutos</td>
-          <td class="new">Minutos</td>
-        </tr>
-        <tr>
-          <td class="task">Agenda e prioridades do dia</td>
-          <td class="old">Montada manualmente</td>
-          <td class="new">Pronta ao abrir o dia</td>
-        </tr>
+        <tr><td class="task"><span class="ti"><svg class="ico g" style="width:19px;height:19px;"><use href="#ic-doc"/></svg>Laudo de avaliação (PTAM)</span></td><td class="old">2 a 4 dias</td><td class="new">2 a 4 horas</td></tr>
+        <tr><td class="task"><span class="ti"><svg class="ico g" style="width:19px;height:19px;"><use href="#ic-sign"/></svg>Contrato padrão + aditivo</span></td><td class="old">2 a 3 horas</td><td class="new">10 a 15 minutos</td></tr>
+        <tr><td class="task"><span class="ti"><svg class="ico g" style="width:19px;height:19px;"><use href="#ic-scan"/></svg>Verificação de andamentos e prazos</span></td><td class="old">1 a 2 horas/dia</td><td class="new">Contínuo · sem intervenção</td></tr>
+        <tr><td class="task"><span class="ti"><svg class="ico g" style="width:19px;height:19px;"><use href="#ic-folder"/></svg>Ficha de captação padronizada</span></td><td class="old">30 a 45 minutos</td><td class="new">Minutos</td></tr>
+        <tr><td class="task"><span class="ti"><svg class="ico g" style="width:19px;height:19px;"><use href="#ic-calendar"/></svg>Agenda e prioridades do dia</span></td><td class="old">Montada manualmente</td><td class="new">Pronta ao abrir o dia</td></tr>
       </tbody>
     </table>
 
-    <div class="panel" style="margin-top:6mm;">
+    <div class="panel">
       <p style="margin:0;">Não é sobre trabalhar mais rápido no braço. É sobre
       <span class="redword">devolver ao profissional as horas</span> que a repetição
       tomava — e redirecioná-las para estratégia, relacionamento e novos negócios.</p>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">10</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">10</div></div>
 </section>
 
 <!-- ==================== PÁGINA 11 · O MÉTODO (INTRO) ==================== -->
 <section class="page interior">
   <div class="kicker">A consultoria · O Método</div>
-  <div class="content">
-    <div class="eyebrow">Metodologia proprietária</div>
-    <h2 class="title">Você não recebe um curso.<br>Recebe o <span class="u">sistema rodando.</span></h2>
-
-    <p class="lead">A implementação segue um método próprio, em cinco etapas. Ao final,
-    a equipe de agentes está <strong>funcionando dentro da sua operação</strong> — não em
-    slides, não em teoria.</p>
-
-    <div class="flow" style="margin:7mm 0;">
-      <div class="node"><div class="t">1</div><div class="s">Diagnóstico</div></div>
-      <div class="arrow">→</div>
-      <div class="node"><div class="t">2</div><div class="s">Arquitetura</div></div>
-      <div class="arrow">→</div>
-      <div class="node mid"><div class="t">3</div><div class="s">Implementação</div></div>
-      <div class="arrow">→</div>
-      <div class="node"><div class="t">4</div><div class="s">Treinamento</div></div>
-      <div class="arrow">→</div>
-      <div class="node"><div class="t">5</div><div class="s">Acompanhamento</div></div>
+  <div class="content stack">
+    <div>
+      <div class="eyebrow">Metodologia proprietária</div>
+      <h2 class="title">Você não recebe um curso.<br>Recebe o <span class="u">sistema rodando.</span></h2>
+      <p class="lead" style="margin-top:1mm;">A implementação segue um método próprio, em
+      cinco etapas. Ao final, a equipe de agentes está <strong>funcionando dentro da sua
+      operação</strong> — não em slides, não em teoria.</p>
     </div>
 
-    <div class="panel">
-      <h3>Sob medida, não template</h3>
+    <div class="fivetrack">
+      <div class="ft"><div class="ring"><span class="n">1</span><svg class="ico"><use href="#ic-map"/></svg></div><span class="lb">Diagnóstico</span><span class="sub">mapa da rotina</span></div>
+      <div class="conn"></div>
+      <div class="ft"><div class="ring"><span class="n">2</span><svg class="ico"><use href="#ic-hub"/></svg></div><span class="lb">Arquitetura</span><span class="sub">desenho dos agentes</span></div>
+      <div class="conn"></div>
+      <div class="ft"><div class="ring"><span class="n">3</span><svg class="ico"><use href="#ic-gear"/></svg></div><span class="lb">Implementação</span><span class="sub">construção e integração</span></div>
+      <div class="conn"></div>
+      <div class="ft"><div class="ring"><span class="n">4</span><svg class="ico"><use href="#ic-book"/></svg></div><span class="lb">Treinamento</span><span class="sub">você no comando</span></div>
+      <div class="conn"></div>
+      <div class="ft"><div class="ring"><span class="n">5</span><svg class="ico"><use href="#ic-target"/></svg></div><span class="lb">Acompanha-<br>mento</span><span class="sub">evolução contínua</span></div>
+    </div>
+
+    <p class="netcap" style="margin-top:1mm;">Cada etapa entrega uma parte do sistema já
+    funcionando — do primeiro mapa ao acompanhamento contínuo.</p>
+
+    <div class="panel tobottom">
+      <h3><svg class="ico" style="width:18px;height:18px;display:inline-block;vertical-align:-3px;margin-right:2mm;"><use href="#ic-shield"/></svg>Sob medida, não template</h3>
       <p style="margin:0;">Cada escritório e cada imobiliária tem uma rotina própria. Os
       agentes são desenhados para <strong>a sua operação real</strong> — respeitando o
       dever de sigilo profissional e a <strong>LGPD</strong> em cada etapa. Segurança e
       confidencialidade não são um extra: são a fundação.</p>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">11</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">11</div></div>
 </section>
 
 <!-- ==================== PÁGINA 12 · MÉTODO · ETAPAS 1-3 ==================== -->
 <section class="page interior">
   <div class="kicker">A consultoria · O Método</div>
-  <div class="content">
-    <div class="eyebrow">As cinco etapas · parte 1</div>
-    <h2 class="title">Do mapa <span class="u">à construção</span></h2>
-
-    <div style="margin-top:5mm;">
-      <div class="step">
-        <div class="num">1</div>
-        <div class="body">
-          <h3>Diagnóstico da rotina</h3>
-          <p>Mapeamento das tarefas do escritório ou da imobiliária e identificação
-          precisa do que é automatizável — onde o seu tempo está indo e quanto dá para
-          recuperar.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="num">2</div>
-        <div class="body">
-          <h3>Arquitetura da equipe digital</h3>
-          <p>Desenho dos agentes e dos fluxos sob medida para a sua operação. Cada agente
-          com uma função clara, conversando entre si — não um template genérico.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="num">3</div>
-        <div class="body">
-          <h3>Implementação</h3>
-          <p>Construção dos agentes, das skills e das integrações: documentos, assinatura
-          eletrônica, agenda e WhatsApp. É aqui que o sistema começa a produzir dentro da
-          sua rotina.</p>
-        </div>
-      </div>
+  <div class="content stack">
+    <div>
+      <div class="eyebrow">As cinco etapas · parte 1</div>
+      <h2 class="title">Do mapa <span class="u">à construção</span></h2>
+      <p class="lead muted" style="margin-top:1mm;">As três primeiras etapas transformam a
+      sua rotina atual em agentes construídos e prontos para operar.</p>
     </div>
 
-    <div class="panel" style="margin-top:6mm;">
+    <div class="step"><div class="num">1</div><div class="body"><h3><svg class="ico"><use href="#ic-map"/></svg>Diagnóstico da rotina</h3><p>Mapeamento das tarefas do escritório ou da imobiliária e identificação precisa do que é automatizável — onde o seu tempo está indo e quanto dá para recuperar.</p></div></div>
+    <div class="step"><div class="num">2</div><div class="body"><h3><svg class="ico"><use href="#ic-hub"/></svg>Arquitetura da equipe digital</h3><p>Desenho dos agentes e dos fluxos sob medida para a sua operação. Cada agente com uma função clara, conversando entre si — não um template genérico.</p></div></div>
+    <div class="step"><div class="num">3</div><div class="body"><h3><svg class="ico"><use href="#ic-gear"/></svg>Implementação</h3><p>Construção dos agentes, das skills e das integrações: documentos, assinatura eletrônica, agenda e WhatsApp. É aqui que o sistema começa a produzir dentro da sua rotina.</p></div></div>
+
+    <div class="panel tobottom">
       <p style="margin:0;">Nas três primeiras etapas saímos do <em>“seria bom
       automatizar”</em> para <span class="redword">agentes construídos e integrados</span>
       às ferramentas que você já usa.</p>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">12</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">12</div></div>
 </section>
 
 <!-- ==================== PÁGINA 13 · MÉTODO · ETAPAS 4-5 ==================== -->
 <section class="page interior">
   <div class="kicker">A consultoria · O Método</div>
-  <div class="content">
-    <div class="eyebrow">As cinco etapas · parte 2</div>
-    <h2 class="title">Da operação <span class="u">à evolução</span></h2>
-
-    <div style="margin-top:5mm;">
-      <div class="step">
-        <div class="num">4</div>
-        <div class="body">
-          <h3>Treinamento</h3>
-          <p>Capacitação sua e da sua equipe para operar os agentes e — mais importante —
-          <strong>cobrar resultado</strong> deles. Você aprende a dirigir a equipe
-          digital, não a depender de mim.</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="num">5</div>
-        <div class="body">
-          <h3>Acompanhamento</h3>
-          <p>Ajustes finos e evolução contínua conforme a rotina real muda. O sistema
-          acompanha o crescimento do escritório em vez de envelhecer parado.</p>
-        </div>
-      </div>
+  <div class="content stack">
+    <div>
+      <div class="eyebrow">As cinco etapas · parte 2</div>
+      <h2 class="title">Da operação <span class="u">à evolução</span></h2>
+      <p class="lead muted" style="margin-top:1mm;">As duas últimas etapas colocam a equipe
+      digital na sua mão e a mantêm evoluindo com o escritório.</p>
     </div>
 
-    <div class="panel" style="margin-top:6mm; background:var(--red); border:none; color:#fff;">
-      <h3 style="color:#fff;">O que fica com você</h3>
-      <p style="margin:0; color:rgba(255,255,255,.95);">Ao final, você não tem
-      anotações de um curso. Tem uma <strong>equipe de agentes operando a sua rotina</strong>,
-      integrada às suas ferramentas, com segurança e sigilo profissional respeitados — e o
+    <div class="step"><div class="num">4</div><div class="body"><h3><svg class="ico"><use href="#ic-book"/></svg>Treinamento</h3><p>Capacitação sua e da sua equipe para operar os agentes e — mais importante — <strong>cobrar resultado</strong> deles. Você aprende a dirigir a equipe digital, não a depender de mim.</p></div></div>
+    <div class="step"><div class="num">5</div><div class="body"><h3><svg class="ico"><use href="#ic-target"/></svg>Acompanhamento</h3><p>Ajustes finos e evolução contínua conforme a rotina real muda. O sistema acompanha o crescimento do escritório em vez de envelhecer parado.</p></div></div>
+
+    <div class="panel dark tobottom">
+      <h3><svg class="ico w" style="width:18px;height:18px;display:inline-block;vertical-align:-3px;margin-right:2mm;"><use href="#ic-check"/></svg>O que fica com você</h3>
+      <p style="margin:0; color:rgba(255,255,255,.95);">Ao final, você não tem anotações de
+      um curso. Tem uma <strong>equipe de agentes operando a sua rotina</strong>, integrada
+      às suas ferramentas, com segurança e sigilo profissional respeitados — e o
       conhecimento para conduzi-la.</p>
     </div>
 
-    <p class="muted small" style="margin-top:5mm;">A consultoria promete método e ganho
-    de produtividade — nunca resultado jurídico ou financeiro garantido, que sempre
-    dependerá do caso concreto.</p>
+    <p class="muted small" style="margin:0;">A consultoria promete método e ganho de
+    produtividade — nunca resultado jurídico ou financeiro garantido, que sempre dependerá
+    do caso concreto.</p>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">13</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">13</div></div>
 </section>
 
 <!-- ==================== PÁGINA 14 · OBJEÇÕES ==================== -->
 <section class="page interior">
   <div class="kicker">Antes que você pergunte</div>
-  <div class="content">
-    <div class="eyebrow">Objeções respondidas</div>
-    <h2 class="title">As dúvidas <span class="u">que todo mundo tem</span></h2>
-
-    <div style="margin-top:4mm;">
-      <div class="qa">
-        <div class="q">Preciso saber programar?</div>
-        <div class="a">Não. Você comanda os agentes em português, como quem delega a um
-        assistente. A parte técnica é construída na consultoria e entregue funcionando.</div>
-      </div>
-      <div class="qa">
-        <div class="q">Meus dados ficam seguros?</div>
-        <div class="a">Sim. A arquitetura é desenhada para respeitar o dever de sigilo
-        profissional e a LGPD, com controle sobre onde cada informação trafega.</div>
-      </div>
-      <div class="qa">
-        <div class="q">Isso substitui o advogado ou o corretor?</div>
-        <div class="a">Não. Substitui a parte repetitiva do trabalho. A decisão, a
-        estratégia e a relação com o cliente continuam — e ficam mais fortes — com você.</div>
-      </div>
-      <div class="qa">
-        <div class="q">Serve para escritório pequeno?</div>
-        <div class="a">Sim — e é justamente onde o ganho relativo é maior. Sem uma grande
-        equipe, cada hora recuperada da repetição pesa muito mais no seu resultado.</div>
-      </div>
+  <div class="content stack">
+    <div>
+      <div class="eyebrow">Objeções respondidas</div>
+      <h2 class="title">As dúvidas <span class="u">que todo mundo tem</span></h2>
+      <p class="lead muted" style="margin-top:1mm;">Quatro perguntas que todo profissional
+      faz antes de começar — respondidas direto.</p>
     </div>
 
-    <div class="panel" style="margin-top:6mm;">
+    <div class="qagrid">
+      <div class="qacard"><div class="qh"><span class="liico"><svg class="ico"><use href="#ic-gear"/></svg></span><div class="q">Preciso saber programar?</div></div><div class="a">Não. Você comanda os agentes em português, como quem delega a um assistente. A parte técnica é construída na consultoria e entregue funcionando.</div></div>
+      <div class="qacard"><div class="qh"><span class="liico"><svg class="ico"><use href="#ic-shield"/></svg></span><div class="q">Meus dados ficam seguros?</div></div><div class="a">Sim. A arquitetura é desenhada para respeitar o dever de sigilo profissional e a LGPD, com controle sobre onde cada informação trafega.</div></div>
+      <div class="qacard"><div class="qh"><span class="liico"><svg class="ico"><use href="#ic-user"/></svg></span><div class="q">Isso substitui o profissional?</div></div><div class="a">Não. Substitui a parte repetitiva do trabalho. A decisão, a estratégia e a relação com o cliente continuam — e ficam mais fortes — com você.</div></div>
+      <div class="qacard"><div class="qh"><span class="liico"><svg class="ico"><use href="#ic-spark"/></svg></span><div class="q">Serve para escritório pequeno?</div></div><div class="a">Sim — e é onde o ganho relativo é maior. Sem uma grande equipe, cada hora recuperada da repetição pesa muito mais no seu resultado.</div></div>
+    </div>
+
+    <div class="panel tobottom">
       <p style="margin:0;">A pergunta certa não é <em>“será que funciona?”</em> — já
       funciona, todos os dias, no escritório de quem escreveu este material. A pergunta é
       <span class="redword">por onde começar no seu.</span></p>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">14</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">14</div></div>
 </section>
 
-<!-- ==================== PÁGINA 15 · BIO / AUTORIDADE ==================== -->
+<!-- ==================== PÁGINA 15 · BIO ==================== -->
 <section class="page interior">
   <div class="kicker">Quem conduz a consultoria</div>
-  <div class="content">
-    <div class="eyebrow">Autoridade</div>
-    <h2 class="title">Fabrício <span class="u">Lucas Pereira</span></h2>
+  <div class="content spread">
+    <div>
+      <div class="eyebrow">Autoridade</div>
+      <h2 class="title">Fabrício <span class="u">Lucas Pereira</span></h2>
+    </div>
 
     <div class="bio-grid">
-      <div>
-        <div class="photo">[PLACEHOLDER — foto profissional de Fabrício Lucas Pereira]</div>
+      <div class="photo">
+        <svg class="ico"><use href="#ic-user"/></svg>
+        [PLACEHOLDER]<br>Foto profissional de<br>Fabrício Lucas Pereira
       </div>
       <div>
-        <p class="lead" style="margin-top:0;">Um perfil triplo, raríssimo no mercado:
-        quem entende o direito, o negócio imobiliário <em>e</em> a tecnologia que os
-        conecta.</p>
+        <p class="lead" style="margin-top:0;">Um perfil triplo, raríssimo no mercado: quem
+        entende o direito, o negócio imobiliário <em>e</em> a tecnologia que os conecta.</p>
         <p>Advogado militante atuante em <strong>direito contratual e franquias</strong>,
-        corretor de imóveis e avaliador certificado com atuação em
-        <strong>corretagem e avaliação rural</strong>.</p>
-        <p>Criador de um <strong>ecossistema próprio de agentes de IA</strong> que opera
-        diariamente o seu escritório e as suas frentes de negócio — a mesma base que
-        sustenta a consultoria descrita neste material.</p>
+        corretor de imóveis e avaliador certificado com atuação em <strong>corretagem e
+        avaliação rural</strong>.</p>
+        <p style="margin-bottom:0;">Criador de um <strong>ecossistema próprio de agentes de
+        IA</strong> que opera diariamente o seu escritório e as suas frentes de negócio — a
+        mesma base que sustenta a consultoria descrita neste material.</p>
       </div>
     </div>
 
     <div class="creds">
-      <div class="cred">
-        <div class="t">Advogado</div>
-        <div class="n">OAB/MG 141.462</div>
-      </div>
-      <div class="cred">
-        <div class="t">Corretor de Imóveis</div>
-        <div class="n">CRECI/MG 55.756</div>
-      </div>
-      <div class="cred">
-        <div class="t">Avaliador Certificado</div>
-        <div class="n">CNAI 49.018</div>
-      </div>
+      <div class="cred"><span class="ibadge"><svg class="ico"><use href="#ic-scale"/></svg></span><div class="t">Advogado</div><div class="n">OAB/MG 141.462</div></div>
+      <div class="cred"><span class="ibadge"><svg class="ico"><use href="#ic-house"/></svg></span><div class="t">Corretor de Imóveis</div><div class="n">CRECI/MG 55.756</div></div>
+      <div class="cred"><span class="ibadge"><svg class="ico"><use href="#ic-target"/></svg></span><div class="t">Avaliador Certificado</div><div class="n">CNAI 49.018</div></div>
     </div>
 
-    <div class="panel" style="margin-top:6mm;">
-      <p style="margin:0;">É essa combinação que garante que a automação respeite a
-      técnica jurídica, a norma de avaliação e a realidade do fechamento — porque quem a
-      desenha <span class="redword">vive os três mundos</span>.</p>
+    <div class="panel">
+      <p style="margin:0;">É essa combinação que garante que a automação respeite a técnica
+      jurídica, a norma de avaliação e a realidade do fechamento — porque quem a desenha
+      <span class="redword">vive os três mundos</span>.</p>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">15</div>
-  </div>
+  <div class="foot"><div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div><div class="pg">15</div></div>
 </section>
 
 <!-- ==================== PÁGINA 16 · CTA FINAL ==================== -->
 <section class="page cta">
   <div class="kicker">O próximo passo</div>
-  <div class="content">
-    <div class="whiteline"></div>
-    <h2 class="title">Quer ver isso rodando<br>no <span class="u">SEU escritório?</span></h2>
+  <div class="content stack">
+    <div>
+      <div class="whiteline"></div>
+      <h2 class="title">Quer ver isso rodando<br>no <span class="u">SEU escritório?</span></h2>
+    </div>
 
-    <p class="offer">Vamos começar pelo começo. Em um
-    <strong>diagnóstico gratuito de 30 minutos</strong>, eu analiso a sua rotina e mostro,
-    na prática, <strong>quais tarefas suas podem ser automatizadas primeiro</strong> — e
-    qual seria o ganho de tempo já no primeiro mês.</p>
+    <div>
+      <p class="offer">Vamos começar pelo começo. Em um <strong>diagnóstico gratuito de 30
+      minutos</strong>, eu analiso a sua rotina e mostro, na prática, <strong>quais tarefas
+      suas podem ser automatizadas primeiro</strong> — e qual seria o ganho de tempo já no
+      primeiro mês.</p>
+      <p class="offer" style="margin-top:5mm;">Sem compromisso e sem jargão técnico. Uma
+      conversa de profissional para profissional.</p>
+    </div>
 
-    <p class="offer" style="margin-top:5mm;">Sem compromisso e sem jargão técnico. Uma
-    conversa de profissional para profissional.</p>
-
-    <div class="contacts">
-      <div class="cbox">
-        <div class="l">WhatsApp</div>
-        <div class="v">(31) 98470-0276</div>
-      </div>
-      <div class="cbox">
-        <div class="l">E-mail</div>
-        <div class="v">fabricioadvvp@gmail.com</div>
-      </div>
+    <div class="ctacards tobottom">
+      <div class="ccard"><span class="ibadge"><svg class="ico w"><use href="#ic-phone"/></svg></span><div><div class="l">WhatsApp</div><div class="v">(31) 98470-0276</div></div></div>
+      <div class="ccard"><span class="ibadge"><svg class="ico w"><use href="#ic-mail"/></svg></span><div><div class="l">E-mail</div><div class="v">fabricioadvvp@gmail.com</div></div></div>
     </div>
 
     <div class="signoff">
@@ -890,10 +879,7 @@
       <div class="r">OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
     </div>
   </div>
-  <div class="foot">
-    <div class="reg">Fabrício Lucas Pereira — OAB/MG 141.462 · CRECI/MG 55.756 · CNAI 49.018</div>
-    <div class="pg">16</div>
-  </div>
+  <div class="foot"><div class="reg"></div><div class="pg">16</div></div>
 </section>
 
 </body>
